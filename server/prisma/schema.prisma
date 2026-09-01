@@ -159,8 +159,43 @@ model Lead {
   research           KeywordResearch?  @relation(fields: [researchId], references: [id])
   roiCalculationId   String?           @db.ObjectId
   roiCalculation     ROICalculation?   @relation(fields: [roiCalculationId], references: [id])
+  blogTopicId        String?           @db.ObjectId
+  blogTopic          BlogTopic?        @relation(fields: [blogTopicId], references: [id])
+  topicClusterId     String?           @db.ObjectId
+  topicCluster       TopicCluster?     @relation(fields: [topicClusterId], references: [id])
   createdAt          DateTime          @default(now())
 
   @@index([email])
   @@index([createdAt])
+}
+
+model BlogTopic {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  niche           String
+  targetKeywords  String?
+  audience        String?
+  contentGoal     String
+  contentType     String
+  topicsJson      String
+  strategy        String?
+  createdAt       DateTime @default(now())
+  leads           Lead[]
+
+  @@index([createdAt])
+  @@index([niche])
+}
+
+model TopicCluster {
+  id                   String   @id @default(auto()) @map("_id") @db.ObjectId
+  niche                String
+  mainKeyword          String
+  audience             String?
+  pillarPageJson       String
+  clustersJson         String
+  interlinkingStrategy String?
+  createdAt            DateTime @default(now())
+  leads                Lead[]
+
+  @@index([createdAt])
+  @@index([mainKeyword])
 }

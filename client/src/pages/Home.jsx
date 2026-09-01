@@ -28,6 +28,15 @@ const TOOLS = [
     path: '/keyword-research',
     badge: 'AI Powered',
   },
+  {
+    id: 'blog-topic-generator',
+    name: 'Blog Topic Generator',
+    description: 'Generate SEO-optimized blog topics and topic clusters with outlines, related keywords, and a content strategy.',
+    icon: '💡',
+    color: 'from-[#0C81F3] to-[#EB8988]',
+    path: '/blog-topic-generator',
+    badge: 'New',
+  },
   // {
   //   id: 'seo-roi',
   //   name: 'SEO ROI Calculator',

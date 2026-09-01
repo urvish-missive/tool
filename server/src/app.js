@@ -8,6 +8,7 @@ import leadRoutes from './routes/leadRoutes.js'
 import auditRoutes from './routes/auditRoutes.js'
 import keywordRoutes from './routes/keywordRoutes.js'
 import roiRoutes from './routes/roiRoutes.js'
+import blogTopicRoutes from './routes/blogTopicRoutes.js'
 import prisma from './utils/prisma.js'
 
 const app = express()
@@ -46,6 +47,7 @@ app.use('/api/keywords', rateLimit({
   legacyHeaders: false,
   message: { success: false, error: 'Rate limit exceeded. Please try again later.' },}), keywordRoutes)
 app.use('/api/seo-roi', roiRoutes)
+app.use('/api/blog-topics', blogTopicRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {

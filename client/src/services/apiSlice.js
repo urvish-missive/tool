@@ -10,7 +10,7 @@ export const apiSlice = createApi({
       return headers
     },
   }),
-  tagTypes: ['Analysis', 'Lead'],
+  tagTypes: ['Analysis', 'Lead', 'BlogTopic', 'TopicCluster'],
   endpoints: (builder) => ({
     // POST /api/content/analyze
     analyzeContent: builder.mutation({
@@ -64,6 +64,31 @@ export const apiSlice = createApi({
       }),
     }),
 
+    // POST /api/blog-topics/generate
+    generateTopics: builder.mutation({
+      query: (payload) => ({
+        url: '/blog-topics/generate',
+        method: 'POST',
+        body: payload,
+      }),
+      invalidatesTags: ['BlogTopic'],
+    }),
+
+    // POST /api/blog-topics/clusters
+    generateClusters: builder.mutation({
+      query: (payload) => ({
+        url: '/blog-topics/clusters',
+        method: 'POST',
+        body: payload,
+      }),
+      invalidatesTags: ['TopicCluster'],
+    }),
+
+    // GET /api/blog-topics/:id
+    getBlogTopics: builder.query({
+      query: (id) => `/blog-topics/${id}`,
+    }),
+
     // GET /api/health
     healthCheck: builder.query({
       query: () => '/health',
@@ -78,5 +103,8 @@ export const {
   useGetAuditQuery,
   useResearchKeywordsMutation,
   useCalculateROIMutation,
+  useGenerateTopicsMutation,
+  useGenerateClustersMutation,
+  useGetBlogTopicsQuery,
   useHealthCheckQuery,
 } = apiSlice

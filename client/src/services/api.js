@@ -15,3 +15,18 @@ export async function submitLead(payload) {
   const { data } = await api.post('/leads', payload)
   return data
 }
+
+export async function generateTopics(payload) {
+  const { data } = await api.post('/blog-topics/generate', payload)
+  return data
+}
+
+export async function generateClusters(payload) {
+  const { data } = await api.post('/blog-topics/clusters', payload)
+  return data
+}
+
+export async function getBlogTopics(id) {
+  const { data } = await api.get(`/blog-topics/${id}`)
+  return data
+}

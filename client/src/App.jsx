@@ -6,6 +6,7 @@ import ContentAnalyzerPage from './pages/ContentAnalyzerPage'
 import SeoAuditPage from './tools/seo-audit/SeoAuditPage'
 import KeywordResearchPage from './tools/keyword-research/KeywordResearchPage'
 import SeoRoiPage from './tools/seo-roi/SeoRoiPage'
+import BlogTopicGeneratorPage from './tools/blog-topic-generator/BlogTopicGeneratorPage'
 
 export default function App() {
   return (
@@ -17,6 +18,7 @@ export default function App() {
           <Route path="/content-analyzer" element={<ContentAnalyzerPage />} />
           <Route path="/seo-audit" element={<SeoAuditPage />} />
           <Route path="/keyword-research" element={<KeywordResearchPage />} />
+          <Route path="/blog-topic-generator" element={<BlogTopicGeneratorPage />} />
           {/* <Route path="/seo-roi-calculator" element={<SeoRoiPage />} /> */}
         </Routes>
       </main>
