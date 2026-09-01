@@ -89,6 +89,15 @@ export const apiSlice = createApi({
       query: (id) => `/blog-topics/${id}`,
     }),
 
+    // POST /api/faqs/generate
+    generateFaqs: builder.mutation({
+      query: (payload) => ({
+        url: '/faqs/generate',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
     // GET /api/health
     healthCheck: builder.query({
       query: () => '/health',
@@ -143,6 +152,7 @@ export const {
   useGenerateTopicsMutation,
   useGenerateClustersMutation,
   useGetBlogTopicsQuery,
+  useGenerateFaqsMutation,
   useHealthCheckQuery,
   useGetPublicToolsQuery,
   useAdminLoginMutation,

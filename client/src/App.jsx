@@ -1,6 +1,7 @@
 import { Routes, Route } from 'react-router-dom'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
+import ToolGuard from './components/ToolGuard'
 import Home from './pages/Home'
 import ContentAnalyzerPage from './pages/ContentAnalyzerPage'
 import SeoAuditPage from './tools/seo-audit/SeoAuditPage'
@@ -8,6 +9,7 @@ import KeywordResearchPage from './tools/keyword-research/KeywordResearchPage'
 import SeoRoiPage from './tools/seo-roi/SeoRoiPage'
 import BlogTopicGeneratorPage from './tools/blog-topic-generator/BlogTopicGeneratorPage'
 import LogoMakerPage from './tools/logo-maker/LogoMakerPage'
+import FaqGeneratorPage from './tools/faq-generator/FaqGeneratorPage'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -33,12 +35,13 @@ export default function App() {
             <main className="flex-1">
               <Routes>
                 <Route path="/" element={<Home />} />
-                <Route path="/content-analyzer" element={<ContentAnalyzerPage />} />
-                <Route path="/seo-audit" element={<SeoAuditPage />} />
-                <Route path="/keyword-research" element={<KeywordResearchPage />} />
-                <Route path="/blog-topic-generator" element={<BlogTopicGeneratorPage />} />
-                <Route path="/logo-maker" element={<LogoMakerPage />} />
-                <Route path="/seo-roi-calculator" element={<SeoRoiPage />} />
+                <Route path="/content-analyzer" element={<ToolGuard toolPath="/content-analyzer"><ContentAnalyzerPage /></ToolGuard>} />
+                <Route path="/seo-audit" element={<ToolGuard toolPath="/seo-audit"><SeoAuditPage /></ToolGuard>} />
+                <Route path="/keyword-research" element={<ToolGuard toolPath="/keyword-research"><KeywordResearchPage /></ToolGuard>} />
+                <Route path="/blog-topic-generator" element={<ToolGuard toolPath="/blog-topic-generator"><BlogTopicGeneratorPage /></ToolGuard>} />
+                <Route path="/logo-maker" element={<ToolGuard toolPath="/logo-maker"><LogoMakerPage /></ToolGuard>} />
+                <Route path="/faq-generator" element={<ToolGuard toolPath="/faq-generator"><FaqGeneratorPage /></ToolGuard>} />
+                <Route path="/seo-roi-calculator" element={<ToolGuard toolPath="/seo-roi-calculator"><SeoRoiPage /></ToolGuard>} />
               </Routes>
             </main>
             <Footer />

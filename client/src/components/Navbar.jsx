@@ -1,6 +1,18 @@
 import { useState, useRef, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 
+const API = import.meta.env.VITE_API_URL || '/api'
+
+const TOOL_HREF_SLUGS = {
+  '/content-analyzer': 'content-analyzer',
+  '/seo-audit': 'seo-audit',
+  '/keyword-research': 'keyword-research',
+  '/blog-topic-generator': 'blog-topics',
+  '/logo-maker': 'logo-maker',
+  '/faq-generator': 'faq-generator',
+  '/seo-roi-calculator': 'seo-roi',
+}
+
 const NAV_ITEMS = [
   {
     label: 'AI',
@@ -92,6 +104,7 @@ const NAV_ITEMS = [
             { icon: '🎯', label: 'Keyword Research', href: '/keyword-research' },
             { icon: '💡', label: 'Blog Topic Generator', badge: 'NEW', badgeColor: 'bg-green-500 text-white', href: '/blog-topic-generator' },
             { icon: '🎨', label: 'Logo Maker', badge: 'NEW', badgeColor: 'bg-blue-500 text-white', href: '/logo-maker' },
+            { icon: '❓', label: 'FAQ Generator', badge: 'NEW', badgeColor: 'bg-purple-500 text-white', href: '/faq-generator' },
             { icon: '💰', label: 'ROI Calculator', href: '/seo-roi-calculator' },
           ],
         },
@@ -126,6 +139,20 @@ export default function Navbar() {
   const [mobileExpanded, setMobileExpanded] = useState(null)
   const navRef = useRef(null)
   const timeoutRef = useRef(null)
+  const [disabledTools, setDisabledTools] = useState(new Set())
+
+  useEffect(() => {
+    fetch(`${API}/tools/public`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          const disabled = new Set()
+          data.tools.forEach(t => { if (!t.enabled) disabled.add(t.slug) })
+          setDisabledTools(disabled)
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   useEffect(() => {
     const handleClickOutside = (e) => {
@@ -188,7 +215,10 @@ export default function Navbar() {
                       <div className={`grid gap-8 ${item.dropdown.columns.length === 1 ? 'grid-cols-1' : item.dropdown.columns.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
                         {item.dropdown.columns.map((col, ci) => (
                           <div key={ci} className="space-y-0.5 min-w-0">
-                            {col.items.map((sub) => (
+                            {col.items.filter(sub => {
+                              const slug = TOOL_HREF_SLUGS[sub.href]
+                              return !slug || !disabledTools.has(slug)
+                            }).map((sub) => (
                               <a
                                 key={sub.label}
                                 href={sub.href}
@@ -255,7 +285,10 @@ export default function Navbar() {
                     </button>
                     {mobileExpanded === idx && (
                       <div className="pl-4 pb-2">
-                        {item.dropdown.columns.flatMap(col => col.items).map((sub) => (
+                        {item.dropdown.columns.flatMap(col => col.items).filter(sub => {
+                          const slug = TOOL_HREF_SLUGS[sub.href]
+                          return !slug || !disabledTools.has(slug)
+                        }).map((sub) => (
                           <a key={sub.label} href={sub.href} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 rounded-lg">
                             {sub.icon && <span className="text-sm w-5 h-5 flex items-center justify-center shrink-0">{sub.icon}</span>}
                             {sub.label}

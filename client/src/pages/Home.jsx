@@ -1,4 +1,17 @@
 import { Link } from 'react-router-dom'
+import { useState, useEffect } from 'react'
+
+const API = import.meta.env.VITE_API_URL || '/api'
+
+const TOOL_SLUG_MAP = {
+  'content-analyzer': 'content-analyzer',
+  'seo-audit': 'seo-audit',
+  'keyword-research': 'keyword-research',
+  'blog-topic-generator': 'blog-topics',
+  'logo-maker': 'logo-maker',
+  'faq-generator': 'faq-generator',
+  'seo-roi': 'seo-roi',
+}
 
 const TOOLS = [
   {
@@ -47,6 +60,15 @@ const TOOLS = [
     badge: 'New',
   },
   {
+    id: 'faq-generator',
+    name: 'FAQ Generator',
+    description: 'Generate SEO-friendly FAQ questions and answers for featured snippets. Export as JSON or schema markup.',
+    icon: '❓',
+    color: 'from-[#0C81F3] to-[#EB8988]',
+    path: '/faq-generator',
+    badge: 'New',
+  },
+  {
     id: 'seo-roi',
     name: 'SEO ROI Calculator',
     description: 'Estimate potential organic traffic, leads, revenue and ROI from your SEO investment.',
@@ -58,6 +80,23 @@ const TOOLS = [
 ]
 
 export default function Home() {
+  const [disabled, setDisabled] = useState(new Set())
+
+  useEffect(() => {
+    fetch(`${API}/tools/public`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          const d = new Set()
+          data.tools.forEach(t => { if (!t.enabled) d.add(t.slug) })
+          setDisabled(d)
+        }
+      })
+      .catch(() => {})
+  }, [])
+
+  const visibleTools = TOOLS.filter(t => !disabled.has(TOOL_SLUG_MAP[t.id]))
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <main className="flex-1">
@@ -82,7 +121,7 @@ export default function Home() {
         <section className="py-16 sm:py-20">
           <div className="max-w-5xl mx-auto px-4 sm:px-6">
             <div className="grid sm:grid-cols-2 gap-8">
-              {TOOLS.map((tool) => (
+              {visibleTools.map((tool) => (
                 <Link
                   key={tool.id}
                   to={tool.path}

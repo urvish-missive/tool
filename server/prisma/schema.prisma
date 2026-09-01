@@ -163,6 +163,8 @@ model Lead {
   blogTopic          BlogTopic?        @relation(fields: [blogTopicId], references: [id])
   topicClusterId     String?           @db.ObjectId
   topicCluster       TopicCluster?     @relation(fields: [topicClusterId], references: [id])
+  faqId              String?           @db.ObjectId
+  faq                FaqGeneration?    @relation(fields: [faqId], references: [id])
   createdAt          DateTime          @default(now())
 
   @@index([email])
@@ -198,6 +200,19 @@ model TopicCluster {
 
   @@index([createdAt])
   @@index([mainKeyword])
+}
+
+model FaqGeneration {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  topic        String
+  keywords     String?
+  faqsJson     String
+  questionCount Int
+  createdAt    DateTime @default(now())
+  leads        Lead[]
+
+  @@index([createdAt])
+  @@index([topic])
 }
 
 model GeneratedLogo {

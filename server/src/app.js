@@ -10,6 +10,7 @@ import keywordRoutes from './routes/keywordRoutes.js'
 import roiRoutes from './routes/roiRoutes.js'
 import blogTopicRoutes from './routes/blogTopicRoutes.js'
 import logoRoutes from './routes/logoRoutes.js'
+import faqRoutes from './routes/faqRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 import { toolAccess } from './middleware/toolAccess.js'
 import prisma from './utils/prisma.js'
@@ -44,6 +45,7 @@ app.use('/api/keywords', toolAccess('keyword-research'), keywordRoutes)
 app.use('/api/seo-roi', toolAccess('seo-roi'), roiRoutes)
 app.use('/api/blog-topics', toolAccess('blog-topics'), blogTopicRoutes)
 app.use('/api/logo', toolAccess('logo-maker'), logoRoutes)
+app.use('/api/faqs', toolAccess('faq-generator'), faqRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -112,6 +114,7 @@ async function seedDefaults() {
       { slug: 'seo-roi', name: 'SEO ROI Calculator', description: 'Estimate SEO ROI and organic traffic', dailyLimit: 200, hourlyLimit: 50 },
       { slug: 'blog-topics', name: 'Blog Topic Generator', description: 'Generate blog topics and content ideas', dailyLimit: 60, hourlyLimit: 12 },
       { slug: 'logo-maker', name: 'Logo Maker', description: 'Generate logo designs with AI', dailyLimit: 30, hourlyLimit: 5 },
+      { slug: 'faq-generator', name: 'FAQ Generator', description: 'Generate SEO-friendly FAQ questions and answers', dailyLimit: 80, hourlyLimit: 15 },
     ]
     await prisma.toolConfig.createMany({ data: tools })
     console.log('✓ Default tool configs created')
