@@ -165,6 +165,8 @@ model Lead {
   topicCluster       TopicCluster?     @relation(fields: [topicClusterId], references: [id])
   faqId              String?           @db.ObjectId
   faq                FaqGeneration?    @relation(fields: [faqId], references: [id])
+  competitorAnalysisId String?         @db.ObjectId
+  competitorAnalysis  CompetitorAnalysis? @relation(fields: [competitorAnalysisId], references: [id])
   createdAt          DateTime          @default(now())
 
   @@index([email])
@@ -229,6 +231,19 @@ model GeneratedLogo {
 
   @@index([createdAt])
   @@index([brandName])
+}
+
+model CompetitorAnalysis {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  competitorUrl   String
+  yourUrl         String?
+  targetKeywords  String?
+  reportJson      String
+  createdAt       DateTime @default(now())
+  leads           Lead[]
+
+  @@index([createdAt])
+  @@index([competitorUrl])
 }
 
 // ─── Admin & Tool Management ────────────────────────────

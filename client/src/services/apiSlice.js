@@ -98,6 +98,15 @@ export const apiSlice = createApi({
       }),
     }),
 
+    // POST /api/competitors/analyze
+    analyzeCompetitor: builder.mutation({
+      query: (payload) => ({
+        url: '/competitors/analyze',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
     // GET /api/health
     healthCheck: builder.query({
       query: () => '/health',
@@ -153,6 +162,7 @@ export const {
   useGenerateClustersMutation,
   useGetBlogTopicsQuery,
   useGenerateFaqsMutation,
+  useAnalyzeCompetitorMutation,
   useHealthCheckQuery,
   useGetPublicToolsQuery,
   useAdminLoginMutation,

@@ -11,6 +11,7 @@ import roiRoutes from './routes/roiRoutes.js'
 import blogTopicRoutes from './routes/blogTopicRoutes.js'
 import logoRoutes from './routes/logoRoutes.js'
 import faqRoutes from './routes/faqRoutes.js'
+import competitorRoutes from './routes/competitorRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 import { toolAccess } from './middleware/toolAccess.js'
 import prisma from './utils/prisma.js'
@@ -46,6 +47,7 @@ app.use('/api/seo-roi', toolAccess('seo-roi'), roiRoutes)
 app.use('/api/blog-topics', toolAccess('blog-topics'), blogTopicRoutes)
 app.use('/api/logo', toolAccess('logo-maker'), logoRoutes)
 app.use('/api/faqs', toolAccess('faq-generator'), faqRoutes)
+app.use('/api/competitors', toolAccess('competitor-analyzer'), competitorRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -115,6 +117,7 @@ async function seedDefaults() {
       { slug: 'blog-topics', name: 'Blog Topic Generator', description: 'Generate blog topics and content ideas', dailyLimit: 60, hourlyLimit: 12 },
       { slug: 'logo-maker', name: 'Logo Maker', description: 'Generate logo designs with AI', dailyLimit: 30, hourlyLimit: 5 },
       { slug: 'faq-generator', name: 'FAQ Generator', description: 'Generate SEO-friendly FAQ questions and answers', dailyLimit: 80, hourlyLimit: 15 },
+      { slug: 'competitor-analyzer', name: 'Competitor Analyzer', description: 'Analyze competitor websites for SEO insights', dailyLimit: 40, hourlyLimit: 8 },
     ]
     await prisma.toolConfig.createMany({ data: tools })
     console.log('✓ Default tool configs created')

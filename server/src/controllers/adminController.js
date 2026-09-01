@@ -125,7 +125,7 @@ export async function getStats(req, res) {
         select: { id: true, niche: true, contentGoal: true, createdAt: true } }),
       prisma.generatedLogo.findMany({ orderBy: { createdAt: 'desc' }, take: 10,
         select: { id: true, brandName: true, industry: true, createdAt: true } }),
-      prisma.roiCalculation.findMany({ orderBy: { createdAt: 'desc' }, take: 10,
+      prisma.rOICalculation.findMany({ orderBy: { createdAt: 'desc' }, take: 10,
         select: { id: true, monthlySeoInvestment: true, currency: true, createdAt: true } }),
     ])
 
@@ -291,6 +291,135 @@ export async function seedAdmin(req, res) {
   } catch (err) {
     console.error('Seed admin error:', err.message)
     res.status(500).json({ success: false, error: 'Failed to seed admin' })
+  }
+}
+
+export async function getActivity(req, res) {
+  try {
+    const { page = 1, limit = 20, tool } = req.query
+    const skip = (parseInt(page) - 1) * parseInt(limit)
+    const take = Math.min(parseInt(limit), 50)
+
+    // Fetch from all tool tables in parallel
+    const toolQueries = {
+      'content-analyzer': () => prisma.analysis.findMany({
+        orderBy: { createdAt: 'desc' }, skip, take,
+        select: { id: true, targetKeyword: true, contentType: true, overallScore: true, seoScore: true, createdAt: true },
+      }),
+      'seo-audit': () => prisma.audit.findMany({
+        orderBy: { createdAt: 'desc' }, skip, take,
+        select: { id: true, websiteUrl: true, overallScore: true, technicalScore: true, onPageScore: true, createdAt: true },
+      }),
+      'keyword-research': () => prisma.keywordResearch.findMany({
+        orderBy: { createdAt: 'desc' }, skip, take,
+        select: { id: true, seedKeyword: true, websiteUrl: true, businessType: true, country: true, createdAt: true },
+      }),
+      'blog-topic-generator': () => prisma.blogTopic.findMany({
+        orderBy: { createdAt: 'desc' }, skip, take,
+        select: { id: true, niche: true, contentGoal: true, contentType: true, createdAt: true },
+      }),
+      'logo-maker': () => prisma.generatedLogo.findMany({
+        orderBy: { createdAt: 'desc' }, skip, take,
+        select: { id: true, brandName: true, industry: true, style: true, primaryColor: true, createdAt: true },
+      }),
+      'seo-roi': () => prisma.rOICalculation.findMany({
+        orderBy: { createdAt: 'desc' }, skip, take,
+        select: { id: true, monthlySeoInvestment: true, currency: true, campaignMonths: true, createdAt: true },
+      }),
+    }
+
+    let activity = []
+    let total = 0
+
+    if (tool && toolQueries[tool]) {
+      // Single tool
+      const [results, count] = await Promise.all([
+        toolQueries[tool](),
+        getToolCount(tool),
+      ])
+      activity = results.map(r => formatActivity(tool, r))
+      total = count
+    } else {
+      // All tools — fetch and merge
+      const [analyses, audits, keywords, blogs, logos, rois, counts] = await Promise.all([
+        prisma.analysis.findMany({ orderBy: { createdAt: 'desc' }, skip, take: take + 10, select: { id: true, targetKeyword: true, contentType: true, overallScore: true, seoScore: true, createdAt: true } }),
+        prisma.audit.findMany({ orderBy: { createdAt: 'desc' }, skip, take: take + 10, select: { id: true, websiteUrl: true, overallScore: true, technicalScore: true, onPageScore: true, createdAt: true } }),
+        prisma.keywordResearch.findMany({ orderBy: { createdAt: 'desc' }, skip, take: take + 10, select: { id: true, seedKeyword: true, websiteUrl: true, businessType: true, country: true, createdAt: true } }),
+        prisma.blogTopic.findMany({ orderBy: { createdAt: 'desc' }, skip, take: take + 10, select: { id: true, niche: true, contentGoal: true, contentType: true, createdAt: true } }),
+        prisma.generatedLogo.findMany({ orderBy: { createdAt: 'desc' }, skip, take: take + 10, select: { id: true, brandName: true, industry: true, style: true, primaryColor: true, createdAt: true } }),
+        prisma.rOICalculation.findMany({ orderBy: { createdAt: 'desc' }, skip, take: take + 10, select: { id: true, monthlySeoInvestment: true, currency: true, campaignMonths: true, createdAt: true } }),
+        Promise.all([
+          prisma.analysis.count(), prisma.audit.count(), prisma.keywordResearch.count(),
+          prisma.blogTopic.count(), prisma.generatedLogo.count(), prisma.rOICalculation.count(),
+        ]),
+      ])
+
+      total = counts.reduce((a, b) => a + b, 0)
+
+      activity = [
+        ...analyses.map(r => formatActivity('content-analyzer', r)),
+        ...audits.map(r => formatActivity('seo-audit', r)),
+        ...keywords.map(r => formatActivity('keyword-research', r)),
+        ...blogs.map(r => formatActivity('blog-topic-generator', r)),
+        ...logos.map(r => formatActivity('logo-maker', r)),
+        ...rois.map(r => formatActivity('seo-roi', r)),
+      ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, take)
+    }
+
+    res.json({
+      success: true,
+      activity,
+      pagination: {
+        page: parseInt(page),
+        limit: take,
+        total,
+        pages: Math.ceil(total / take),
+      },
+    })
+  } catch (err) {
+    console.error('Activity error:', err.message)
+    res.status(500).json({ success: false, error: 'Failed to fetch activity' })
+  }
+}
+
+async function getToolCount(tool) {
+  const counts = {
+    'content-analyzer': () => prisma.analysis.count(),
+    'seo-audit': () => prisma.audit.count(),
+    'keyword-research': () => prisma.keywordResearch.count(),
+    'blog-topic-generator': () => prisma.blogTopic.count(),
+    'logo-maker': () => prisma.generatedLogo.count(),
+    'seo-roi': () => prisma.rOICalculation.count(),
+  }
+  return counts[tool] ? counts[tool]() : 0
+}
+
+function formatActivity(tool, record) {
+  const toolNames = {
+    'content-analyzer': 'Content Analyzer',
+    'seo-audit': 'SEO Audit',
+    'keyword-research': 'Keyword Research',
+    'blog-topic-generator': 'Blog Topic Generator',
+    'logo-maker': 'Logo Maker',
+    'seo-roi': 'ROI Calculator',
+  }
+  const base = { id: record.id, tool, toolName: toolNames[tool] || tool, createdAt: record.createdAt }
+
+  switch (tool) {
+    case 'content-analyzer':
+      return { ...base, detail: record.targetKeyword || 'Untitled', score: record.overallScore, subdetail: record.contentType }
+    case 'seo-audit':
+      return { ...base, detail: record.websiteUrl, score: record.overallScore, subdetail: `Technical: ${record.technicalScore} | On-Page: ${record.onPageScore}` }
+    case 'keyword-research':
+      return { ...base, detail: record.seedKeyword, score: null, subdetail: [record.websiteUrl, record.businessType, record.country].filter(Boolean).join(' • ') }
+    case 'blog-topic-generator':
+      return { ...base, detail: record.niche, score: null, subdetail: [record.contentGoal, record.contentType].filter(Boolean).join(' • ') }
+    case 'logo-maker':
+      return { ...base, detail: record.brandName, score: null, subdetail: [record.industry, record.style, record.primaryColor].filter(Boolean).join(' • ') }
+    case 'seo-roi':
+      return { ...base, detail: `${record.currency} ${record.monthlySeoInvestment}/mo`, score: null, subdetail: `${record.campaignMonths} months campaign` }
+    default:
+      return base
   }
 }
 

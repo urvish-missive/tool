@@ -26,6 +26,7 @@ export default function Footer() {
               <li><a href="/blog-topic-generator" className="hover:text-white transition-colors">Blog Topic Generator</a></li>
               <li><a href="/logo-maker" className="hover:text-white transition-colors">Logo Maker</a></li>
               <li><a href="/faq-generator" className="hover:text-white transition-colors">FAQ Generator</a></li>
+              <li><a href="/competitor-analysis" className="hover:text-white transition-colors">Competitor Analysis</a></li>
               <li><a href="/seo-roi-calculator" className="hover:text-white transition-colors">ROI Calculator</a></li>
             </ul>
           </div>

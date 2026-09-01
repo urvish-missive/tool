@@ -10,11 +10,13 @@ import SeoRoiPage from './tools/seo-roi/SeoRoiPage'
 import BlogTopicGeneratorPage from './tools/blog-topic-generator/BlogTopicGeneratorPage'
 import LogoMakerPage from './tools/logo-maker/LogoMakerPage'
 import FaqGeneratorPage from './tools/faq-generator/FaqGeneratorPage'
+import CompetitorAnalysisPage from './tools/competitor-analysis/CompetitorAnalysisPage'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminTools from './pages/admin/AdminTools'
 import AdminLeads from './pages/admin/AdminLeads'
+import AdminActivity from './pages/admin/AdminActivity'
 
 export default function App() {
   return (
@@ -24,6 +26,7 @@ export default function App() {
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
+          <Route path="activity" element={<AdminActivity />} />
           <Route path="tools" element={<AdminTools />} />
           <Route path="leads" element={<AdminLeads />} />
         </Route>
@@ -41,6 +44,7 @@ export default function App() {
                 <Route path="/blog-topic-generator" element={<ToolGuard toolPath="/blog-topic-generator"><BlogTopicGeneratorPage /></ToolGuard>} />
                 <Route path="/logo-maker" element={<ToolGuard toolPath="/logo-maker"><LogoMakerPage /></ToolGuard>} />
                 <Route path="/faq-generator" element={<ToolGuard toolPath="/faq-generator"><FaqGeneratorPage /></ToolGuard>} />
+                <Route path="/competitor-analysis" element={<ToolGuard toolPath="/competitor-analysis"><CompetitorAnalysisPage /></ToolGuard>} />
                 <Route path="/seo-roi-calculator" element={<ToolGuard toolPath="/seo-roi-calculator"><SeoRoiPage /></ToolGuard>} />
               </Routes>
             </main>

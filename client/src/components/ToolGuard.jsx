@@ -8,6 +8,8 @@ const TOOL_SLUG_MAP = {
   '/seo-roi-calculator': 'seo-roi',
   '/blog-topic-generator': 'blog-topics',
   '/logo-maker': 'logo-maker',
+  '/faq-generator': 'faq-generator',
+  '/competitor-analysis': 'competitor-analyzer',
 }
 
 export default function ToolGuard({ toolPath, children }) {

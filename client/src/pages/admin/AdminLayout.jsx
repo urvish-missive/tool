@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom'
-import { LayoutDashboard, Wrench, Users } from 'lucide-react'
+import { LayoutDashboard, Wrench, Users, Activity } from 'lucide-react'
 
 const NAV = [
   { to: '/admin', icon: <LayoutDashboard className="w-[18px] h-[18px]" />, label: 'Dashboard', exact: true },
+  { to: '/admin/activity', icon: <Activity className="w-[18px] h-[18px]" />, label: 'Activity' },
   { to: '/admin/tools', icon: <Wrench className="w-[18px] h-[18px]" />, label: 'Tools' },
   { to: '/admin/leads', icon: <Users className="w-[18px] h-[18px]" />, label: 'Leads' },
 ]

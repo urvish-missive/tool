@@ -10,6 +10,7 @@ const TOOL_SLUG_MAP = {
   'blog-topic-generator': 'blog-topics',
   'logo-maker': 'logo-maker',
   'faq-generator': 'faq-generator',
+  'competitor-analysis': 'competitor-analyzer',
   'seo-roi': 'seo-roi',
 }
 
@@ -66,6 +67,15 @@ const TOOLS = [
     icon: '❓',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/faq-generator',
+    badge: 'New',
+  },
+  {
+    id: 'competitor-analysis',
+    name: 'Competitor Analysis',
+    description: 'Spy on competitors - uncover their SEO strategy, keyword opportunities, content gaps, and quick wins.',
+    icon: '🕵️',
+    color: 'from-[#0C81F3] to-[#EB8988]',
+    path: '/competitor-analysis',
     badge: 'New',
   },
   {

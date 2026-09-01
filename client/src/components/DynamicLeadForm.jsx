@@ -1,32 +1,38 @@
 import { useState, useEffect } from 'react'
 import { useSubmitLeadMutation } from '../services/apiSlice'
 
-const API = import.meta.env.VITE_API_URL || '/api'
+const DEFAULT_CONFIG = { requireName: true, requireEmail: true, requirePhone: false, requireCompany: false }
 
 export default function DynamicLeadForm({ toolSlug, relatedIdField, relatedIdValue, title, subtitle }) {
   const [form, setForm] = useState({ name: '', email: '', company: '', website: '', phone: '' })
   const [submitLead, { isLoading }] = useSubmitLeadMutation()
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
-  const [fieldConfig, setFieldConfig] = useState(null)
+  const [fieldConfig, setFieldConfig] = useState(DEFAULT_CONFIG)
+  const [configLoaded, setConfigLoaded] = useState(false)
 
   useEffect(() => {
-    fetch(`${API}/tools/public`)
+    // Use the RTK Query cached endpoint instead of raw fetch
+    fetch('/api/tools/public')
       .then(r => r.json())
       .then(data => {
-        if (data.success) {
+        if (data.success && data.tools) {
           const tool = data.tools.find(t => t.slug === toolSlug)
           if (tool) {
             setFieldConfig({
-              requireEmail: tool.requireEmail ?? true,
               requireName: tool.requireName ?? true,
+              requireEmail: tool.requireEmail ?? true,
               requirePhone: tool.requirePhone ?? false,
               requireCompany: tool.requireCompany ?? false,
             })
           }
         }
+        setConfigLoaded(true)
       })
-      .catch(() => {})
+      .catch(err => {
+        console.warn('Failed to load tool config:', err)
+        setConfigLoaded(true) // Continue with defaults
+      })
   }, [toolSlug])
 
   const handleChange = (e) => {
@@ -60,35 +66,14 @@ export default function DynamicLeadForm({ toolSlug, relatedIdField, relatedIdVal
     )
   }
 
-  // Show loading spinner while fetching config
-  if (!fieldConfig) {
-    return (
-      <div className="space-y-4">
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div className="h-10 bg-gray-100 rounded-lg animate-pulse" />
-          <div className="h-10 bg-gray-100 rounded-lg animate-pulse" />
-        </div>
-        <div className="h-10 bg-gray-100 rounded-lg animate-pulse" />
-        <div className="h-10 bg-gray-100 rounded-lg animate-pulse w-48" />
-      </div>
-    )
-  }
-
-  // Determine which fields to show based on admin config
-  const allFields = [
-    { name: 'name', label: 'Name', type: 'text', required: fieldConfig.requireName },
-    { name: 'email', label: 'Business Email', type: 'email', required: fieldConfig.requireEmail },
-    { name: 'company', label: 'Company', type: 'text', required: fieldConfig.requireCompany },
-    { name: 'website', label: 'Website', type: 'url', required: false },
-    { name: 'phone', label: 'Phone', type: 'tel', required: fieldConfig.requirePhone },
+  // All fields always shown — required ones get the required attribute + asterisk
+  const fields = [
+    { name: 'name', label: 'Name', type: 'text', required: fieldConfig.requireName, col: true },
+    { name: 'email', label: 'Business Email', type: 'email', required: fieldConfig.requireEmail, col: true },
+    { name: 'company', label: 'Company', type: 'text', required: fieldConfig.requireCompany, col: true },
+    { name: 'website', label: 'Website', type: 'url', required: false, col: true },
+    { name: 'phone', label: 'Phone', type: 'tel', required: fieldConfig.requirePhone, col: false },
   ]
-
-  // Always show required fields; only show optional if admin enabled them
-  const visibleFields = allFields.filter(f => f.required)
-
-  // Add optional fields only if admin has enabled at least one
-  const hasOptionalFields = fieldConfig.requirePhone || fieldConfig.requireCompany
-  const optionalFields = allFields.filter(f => !f.required && f.name !== 'website')
 
   return (
     <div className="relative bg-white rounded-2xl border border-gray-200 shadow-lg shadow-gray-200/50 p-6 sm:p-8">
@@ -97,10 +82,10 @@ export default function DynamicLeadForm({ toolSlug, relatedIdField, relatedIdVal
       {subtitle && <p className="text-sm text-gray-600 mb-6">{subtitle}</p>}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="grid sm:grid-cols-2 gap-4">
-          {visibleFields.map(f => (
-            <div key={f.name}>
+          {fields.map(f => (
+            <div key={f.name} className={!f.col ? 'sm:col-span-2' : ''}>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {f.label} {f.required && <span className="text-red-500">*</span>}
+                {f.label}{f.required && ' *'}
               </label>
               <input
                 name={f.name}
@@ -113,34 +98,6 @@ export default function DynamicLeadForm({ toolSlug, relatedIdField, relatedIdVal
             </div>
           ))}
         </div>
-        {/* Website always shown */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
-          <input
-            name="website"
-            type="url"
-            value={form.website}
-            onChange={handleChange}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-          />
-        </div>
-        {/* Optional fields only if admin enabled them */}
-        {hasOptionalFields && (
-          <div className="grid sm:grid-cols-2 gap-4">
-            {optionalFields.map(f => (
-              <div key={f.name}>
-                <label className="block text-sm font-medium text-gray-700 mb-1">{f.label}</label>
-                <input
-                  name={f.name}
-                  type={f.type}
-                  value={form[f.name]}
-                  onChange={handleChange}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                />
-              </div>
-            ))}
-          </div>
-        )}
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button type="submit" disabled={isLoading}
           className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-8 py-3.5 text-sm font-semibold text-white hover:from-[#0D73D1] hover:to-[#E77771] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#0C81F3]/25 hover:shadow-[#0C81F3]/40">

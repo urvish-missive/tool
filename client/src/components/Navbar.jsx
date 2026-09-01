@@ -10,6 +10,7 @@ const TOOL_HREF_SLUGS = {
   '/blog-topic-generator': 'blog-topics',
   '/logo-maker': 'logo-maker',
   '/faq-generator': 'faq-generator',
+  '/competitor-analysis': 'competitor-analyzer',
   '/seo-roi-calculator': 'seo-roi',
 }
 
@@ -105,6 +106,7 @@ const NAV_ITEMS = [
             { icon: '💡', label: 'Blog Topic Generator', badge: 'NEW', badgeColor: 'bg-green-500 text-white', href: '/blog-topic-generator' },
             { icon: '🎨', label: 'Logo Maker', badge: 'NEW', badgeColor: 'bg-blue-500 text-white', href: '/logo-maker' },
             { icon: '❓', label: 'FAQ Generator', badge: 'NEW', badgeColor: 'bg-purple-500 text-white', href: '/faq-generator' },
+            { icon: '🕵️', label: 'Competitor Analysis', badge: 'NEW', badgeColor: 'bg-red-500 text-white', href: '/competitor-analysis' },
             { icon: '💰', label: 'ROI Calculator', href: '/seo-roi-calculator' },
           ],
         },
