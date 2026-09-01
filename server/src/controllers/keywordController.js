@@ -4,19 +4,33 @@ import prisma from '../utils/prisma.js'
 
 export async function createResearch(req, res) {
   try {
-    const { seedKeyword, websiteUrl, country, language, businessType } = req.body
+    const { seedKeyword, websiteUrl, country, language, businessType, preferredProvider } = req.body
 
-    if (!seedKeyword || seedKeyword.trim().length < 2) {
-      return res.status(400).json({ success: false, error: 'Please enter a keyword (at least 2 characters).' })
+    const hasKeyword = seedKeyword && seedKeyword.trim().length >= 2
+    const hasUrl = websiteUrl && websiteUrl.trim().length > 0
+
+    if (!hasKeyword && !hasUrl) {
+      return res.status(400).json({ success: false, error: 'Please enter a seed keyword or website URL (at least one is required).' })
     }
-    if (seedKeyword.length > 100) {
+    if (hasKeyword && seedKeyword.length > 100) {
       return res.status(400).json({ success: false, error: 'Keyword must be under 100 characters.' })
     }
+    if (hasUrl) {
+      try {
+        const parsed = new URL(websiteUrl)
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+          return res.status(400).json({ success: false, error: 'Please enter a valid HTTP or HTTPS URL.' })
+        }
+      } catch {
+        return res.status(400).json({ success: false, error: 'Please enter a valid website URL.' })
+      }
+    }
 
-    console.log(`Starting keyword research for: "${seedKeyword}"`)
+    const cleanKeyword = seedKeyword ? seedKeyword.trim() : null
+    console.log(`Starting keyword research for: "${cleanKeyword || websiteUrl}"`)
 
     const report = await withTimeout(
-      researchKeywords({ seedKeyword: seedKeyword.trim(), websiteUrl, country, language, businessType }),
+      researchKeywords({ seedKeyword: cleanKeyword, websiteUrl, country, language, businessType, preferredProvider }),
       90000, 'Keyword research'
     )
 
@@ -25,7 +39,7 @@ export async function createResearch(req, res) {
     try {
       const research = await prisma.keywordResearch.create({
         data: {
-          seedKeyword: seedKeyword.trim(),
+          seedKeyword: cleanKeyword || report.seedKeyword || 'website',
           websiteUrl: websiteUrl || null,
           country: country || null,
           language: language || null,

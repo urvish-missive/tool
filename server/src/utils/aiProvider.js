@@ -19,6 +19,13 @@ const PROVIDERS = {
     headerName: 'Authorization',
     headerPrefix: 'Bearer ',
   },
+  openrouter: {
+    url: 'https://openrouter.ai/api/v1/chat/completions',
+    model: process.env.OPENROUTER_MODEL || 'google/gemini-3.5-flash',
+    key: process.env.OPENROUTER_API_KEY,
+    headerName: 'Authorization',
+    headerPrefix: 'Bearer ',
+  },
 }
 
 /* ── Core AI Call ───────────────────────────────────────────────── */
@@ -80,11 +87,13 @@ async function callProvider(providerName, messages, options = {}) {
 export async function callAI(messages, options = {}) {
   const { preferredProvider, ...callOpts } = options
 
-  // Determine provider order: preferred first, then others
+  // Determine provider order
+  // If a specific provider is selected, ONLY use that one (no fallback)
   const providerOrder = preferredProvider
-    ? [preferredProvider, ...Object.keys(PROVIDERS).filter(p => p !== preferredProvider)]
+    ? [preferredProvider]
     : Object.keys(PROVIDERS).filter(p => PROVIDERS[p].key)
 
+  console.log(`AI provider: ${providerOrder.join(' → ')}${preferredProvider ? ' (strict)' : ' (auto-fallback)'}`)
   const errors = []
 
   for (const providerName of providerOrder) {
@@ -97,19 +106,10 @@ export async function callAI(messages, options = {}) {
     } catch (err) {
       console.log(`AI ${providerName} failed: ${err.message}`)
       errors.push(`${providerName}: ${err.message}`)
-
-      // Don't retry if it's a quota/rate limit error — move to next provider
-      if (err.message.includes('429') || err.message.includes('quota') || err.message.includes('rate')) {
-        continue
-      }
-      // For 503 (overloaded), try next provider
-      if (err.message.includes('503')) {
-        continue
-      }
     }
   }
 
-  throw new Error(`All AI providers failed: ${errors.join(' | ')}`)
+  throw new Error(`AI provider failed: ${errors.join(' | ')}`)
 }
 
 /**

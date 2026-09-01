@@ -11,6 +11,7 @@ export async function calculateROIHandler(req, res) {
       leadToCustomerRate, organicConversionRate,
       monthlySeoInvestment, campaignMonths,
       growthScenario = {},
+      preferredProvider,
     } = req.body
 
     // Validate
@@ -46,7 +47,7 @@ export async function calculateROIHandler(req, res) {
     // AI interpretation (optional, with timeout)
     let aiInsights = null
     try {
-      aiInsights = await withTimeout(interpretROI(results), 30000, 'AI interpretation')
+      aiInsights = await withTimeout(interpretROI(results, { preferredProvider }), 30000, 'AI interpretation')
     } catch {
       console.log('AI interpretation skipped (timeout)')
     }

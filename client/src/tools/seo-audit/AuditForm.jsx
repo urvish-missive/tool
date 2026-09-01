@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import ModelSelector from '../shared/ModelSelector'
 
 const COUNTRIES = ['United States', 'United Kingdom', 'India', 'Canada', 'Australia', 'Germany', 'France', 'Japan', 'Brazil', 'Other']
 
@@ -6,6 +7,7 @@ export default function AuditForm({ onSubmit, isLoading }) {
   const [websiteUrl, setWebsiteUrl] = useState('')
   const [targetKeyword, setTargetKeyword] = useState('')
   const [country, setCountry] = useState('')
+  const [aiModel, setAiModel] = useState('openrouter')
   const [error, setError] = useState('')
 
   const handleSubmit = (e) => {
@@ -32,6 +34,7 @@ export default function AuditForm({ onSubmit, isLoading }) {
       websiteUrl: websiteUrl.trim(),
       targetKeyword: targetKeyword.trim() || undefined,
       country: country || undefined,
+      preferredProvider: aiModel,
     })
   }
 
@@ -64,18 +67,21 @@ export default function AuditForm({ onSubmit, isLoading }) {
         />
       </div>
 
-      {/* Country */}
-      <div>
-        <label htmlFor="audit-country" className="block text-sm font-semibold text-gray-900 mb-1">Country / Market (optional)</label>
-        <select
-          id="audit-country"
-          value={country}
-          onChange={(e) => setCountry(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
-        >
-          <option value="">Select country...</option>
-          {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
+      {/* Country + AI Model */}
+      <div className="grid sm:grid-cols-2 gap-4">
+        <div>
+          <label htmlFor="audit-country" className="block text-sm font-semibold text-gray-900 mb-1">Country / Market (optional)</label>
+          <select
+            id="audit-country"
+            value={country}
+            onChange={(e) => setCountry(e.target.value)}
+            className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+          >
+            <option value="">Select country...</option>
+            {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+        </div>
+        <ModelSelector value={aiModel} onChange={setAiModel} />
       </div>
 
       {/* Error */}
@@ -87,7 +93,7 @@ export default function AuditForm({ onSubmit, isLoading }) {
 
       {/* Submit */}
       <button type="submit" disabled={isLoading}
-        className="w-full sm:w-auto rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-3.5 text-sm font-semibold text-white hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40">
+        className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-8 py-3.5 text-sm font-semibold text-white hover:from-[#0D73D1] hover:to-[#E77771] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#0C81F3]/25 hover:shadow-[#0C81F3]/40">
         {isLoading ? 'Analyzing...' : 'Analyze My Website'}
       </button>
     </form>

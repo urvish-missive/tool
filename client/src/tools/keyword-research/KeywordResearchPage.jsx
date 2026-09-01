@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useResearchKeywordsMutation, useSubmitLeadMutation } from '../../services/apiSlice'
+import ModelSelector from '../shared/ModelSelector'
 
 const COUNTRIES = ['United States', 'United Kingdom', 'Canada', 'Australia', 'India', 'Germany', 'France', 'UAE', 'Singapore', 'Other']
 const BUSINESS_TYPES = ['B2B', 'B2C', 'E-commerce', 'SaaS', 'Agency', 'Local Business', 'Publisher', 'Enterprise', 'Other']
@@ -213,6 +214,7 @@ export default function KeywordResearchPage() {
   const [websiteUrl, setWebsiteUrl] = useState('')
   const [country, setCountry] = useState('United States')
   const [businessType, setBusinessType] = useState('B2B')
+  const [aiModel, setAiModel] = useState('openrouter')
   const [validationError, setValidationError] = useState('')
   const [loadingStep, setLoadingStep] = useState('understand')
   const [report, setReport] = useState(null)
@@ -238,8 +240,14 @@ export default function KeywordResearchPage() {
   const handleSubmit = (e) => {
     e.preventDefault()
     setValidationError('')
-    if (!seedKeyword.trim() || seedKeyword.trim().length < 2) { setValidationError('Please enter a keyword (at least 2 characters).'); return }
-    researchKeywords({ seedKeyword: seedKeyword.trim(), websiteUrl: websiteUrl.trim() || undefined, country, businessType })
+    const hasKeyword = seedKeyword.trim().length >= 2
+    const hasUrl = websiteUrl.trim().length > 0
+    if (!hasKeyword && !hasUrl) { setValidationError('Please enter a seed keyword or website URL (at least one is required).'); return }
+    if (hasKeyword && seedKeyword.trim().length < 2) { setValidationError('Keyword must be at least 2 characters.'); return }
+    if (hasUrl) {
+      try { new URL(websiteUrl.trim()) } catch { setValidationError('Please enter a valid website URL (e.g. https://example.com)'); return }
+    }
+    researchKeywords({ seedKeyword: seedKeyword.trim() || undefined, websiteUrl: websiteUrl.trim() || undefined, country, businessType, preferredProvider: aiModel })
   }
 
   const handleReset = () => { setReport(null); setResearchId(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
@@ -252,12 +260,12 @@ export default function KeywordResearchPage() {
     <div>
       {/* Hero */}
       <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24">          <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-blue-200/40 to-purple-200/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-violet-600 to-purple-600 text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase">Free Tool</span>
+          <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase">Free Tool</span>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
             <span className="text-gray-900">Free AI </span>
-            <span className="bg-gradient-to-r from-violet-600 via-purple-500 to-pink-400 bg-clip-text text-transparent">Keyword Research</span>
+            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">Keyword Research</span>
           </h1>
           <p className="mt-5 text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
             Discover keyword ideas, search intent, long-tail opportunities, topic clusters and content ideas for your SEO strategy.
@@ -272,8 +280,8 @@ export default function KeywordResearchPage() {
           {!report && !isLoading && (
             <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-200 shadow-lg shadow-gray-200/50 p-6 sm:p-8 space-y-5 max-w-2xl mx-auto">
               <div>
-                <label className="block text-sm font-semibold text-gray-900 mb-1">Seed Keyword *</label>
-                <input type="text" required minLength={2} maxLength={100} value={seedKeyword} onChange={e => setSeedKeyword(e.target.value)}
+                <label className="block text-sm font-semibold text-gray-900 mb-1">Seed Keyword</label>
+                <input type="text" maxLength={100} value={seedKeyword} onChange={e => setSeedKeyword(e.target.value)}
                   placeholder="e.g. enterprise SEO" className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
               </div>
               <div>
@@ -281,7 +289,7 @@ export default function KeywordResearchPage() {
                 <input type="url" value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} placeholder="https://example.com"
                   className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
               </div>
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-1">Country</label>
                   <select value={country} onChange={e => setCountry(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white">
@@ -294,9 +302,10 @@ export default function KeywordResearchPage() {
                     {BUSINESS_TYPES.map(b => <option key={b}>{b}</option>)}
                   </select>
                 </div>
+                <ModelSelector value={aiModel} onChange={setAiModel} />
               </div>
               {validationError && <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">{validationError}</div>}
-              <button type="submit" disabled={isLoading} className="w-full sm:w-auto rounded-full bg-gradient-to-r from-violet-600 to-purple-600 px-8 py-3.5 text-sm font-semibold text-white hover:from-violet-700 hover:to-purple-700 disabled:opacity-50 transition-all shadow-lg shadow-purple-500/25">
+              <button type="submit" disabled={isLoading} className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-8 py-3.5 text-sm font-semibold text-white hover:from-[#0D73D1] hover:to-[#E77771] disabled:opacity-50 transition-all shadow-lg shadow-[#0C81F3]/25">
                 Generate Keyword Ideas
               </button>
             </form>
@@ -411,7 +420,7 @@ export default function KeywordResearchPage() {
 
               {/* CTA */}
               <div className="relative overflow-hidden rounded-2xl p-8 sm:p-12 text-center">
-                <div className="absolute inset-0 bg-gradient-to-br from-violet-600 via-purple-600 to-pink-500" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#0C81F3] via-[#67A7FF] to-[#EB8988]" />
                 <div className="relative">
                   <span className="inline-block px-3 py-1 bg-white/20 text-white text-xs font-bold rounded-full mb-4 tracking-wide uppercase backdrop-blur-sm">Expert Help</span>
                   <h3 className="text-2xl sm:text-3xl font-bold text-white">Want to turn these keywords into growth?</h3>
@@ -450,7 +459,7 @@ function KeywordLeadForm({ researchId }) {
 
   return (
     <div className="relative bg-white rounded-2xl border border-gray-200 shadow-lg shadow-gray-200/50 p-6 sm:p-8">
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-violet-600 via-purple-500 to-pink-400 rounded-t-2xl" />
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] rounded-t-2xl" />
       <h3 className="text-lg font-semibold text-gray-900 mb-1">Get My Free SEO Strategy</h3>
       <p className="text-sm text-gray-600 mb-6">Our experts will review your keyword research and share a personalized growth plan.</p>
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -464,7 +473,7 @@ function KeywordLeadForm({ researchId }) {
         </div>
         <div><label className="block text-sm font-medium text-gray-700 mb-1">Phone</label><input name="phone" type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" /></div>
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <button type="submit" disabled={isLoading} className="w-full sm:w-auto rounded-full bg-gradient-to-r from-violet-600 to-purple-600 px-8 py-3.5 text-sm font-semibold text-white hover:from-violet-700 hover:to-purple-700 disabled:opacity-50 transition-all shadow-lg shadow-purple-500/25">
+        <button type="submit" disabled={isLoading} className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-8 py-3.5 text-sm font-semibold text-white hover:from-[#0D73D1] hover:to-[#E77771] disabled:opacity-50 transition-all shadow-lg shadow-[#0C81F3]/25">
           {isLoading ? 'Submitting...' : 'Get My SEO Strategy'}
         </button>
       </form>

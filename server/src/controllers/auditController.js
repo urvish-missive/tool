@@ -10,7 +10,7 @@ import prisma from '../utils/prisma.js'
 
 export async function createAudit(req, res) {
   try {
-    const { websiteUrl, targetKeyword, country } = req.body
+    const { websiteUrl, targetKeyword, country, preferredProvider } = req.body
 
     if (!websiteUrl) return res.status(400).json({ success: false, error: 'Website URL is required.' })
 
@@ -53,6 +53,7 @@ export async function createAudit(req, res) {
       linksScore: scores.linksScore, structuredDataScore: scores.structuredDataScore,
       allIssues: scores.allIssues, onpageSummary: onpageResult.summary,
       linkSummary: linkResult.summary, schemaSummary: schemaResult.summary,
+      preferredProvider,
     }), 35000, 'AI analysis')
 
     // Build report

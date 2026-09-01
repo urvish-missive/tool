@@ -133,12 +133,12 @@ export default function AIAnalyticsSection({ report }) {
           className={`text-center mb-12 sm:mb-16 transition-all duration-700 ease-out ${
             heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           }`}>
-          <span className="inline-block px-5 py-1.5 bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 text-white text-xs font-bold rounded-full mb-5 tracking-wider uppercase shadow-lg shadow-purple-500/25">
+          <span className="inline-block px-5 py-1.5 bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wider uppercase shadow-lg shadow-[#0C81F3]/25">
             ✨ AI Powered
           </span>
           <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
             <span className="text-gray-900">They Trust </span>
-            <span className="bg-gradient-to-r from-blue-600 via-purple-500 to-pink-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
               Our Analysis
             </span>
           </h2>
@@ -177,7 +177,7 @@ export default function AIAnalyticsSection({ report }) {
         {/* Score Breakdown */}
         <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 sm:p-8 mb-8">
           <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-purple-500 flex items-center justify-center text-white text-sm">📊</span>
+            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0C81F3] to-[#EB8988] flex items-center justify-center text-white text-sm">📊</span>
             Score Breakdown
           </h3>
           <div className="grid sm:grid-cols-2 gap-x-8 gap-y-5">
@@ -191,7 +191,7 @@ export default function AIAnalyticsSection({ report }) {
         {intent.type && (
           <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 sm:p-8 mb-8">
             <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-600 to-pink-500 flex items-center justify-center text-white text-sm">🔍</span>
+              <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0C81F3] to-[#EB8988] flex items-center justify-center text-white text-sm">🔍</span>
               Search Intent Analysis
             </h3>
             <div className="flex flex-col sm:flex-row items-start gap-6">

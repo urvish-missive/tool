@@ -101,7 +101,7 @@ function generateFallback(data) {
   }
 }
 
-export async function interpretROI(data) {
+export async function interpretROI(data, options = {}) {
   const providers = getConfiguredProviders()
   if (providers.length === 0) {
     console.log('No AI providers configured — using fallback ROI report')
@@ -112,7 +112,7 @@ export async function interpretROI(data) {
     const parsed = await callAIAndParseJSON([
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: buildPrompt(data) },
-    ], { temperature: 0.3, maxTokens: 4000, jsonMode: true })
+    ], { temperature: 0.3, maxTokens: 4000, jsonMode: true, preferredProvider: options.preferredProvider })
 
     console.log('✓ AI ROI interpretation complete')
     return validateAIReport(parsed)

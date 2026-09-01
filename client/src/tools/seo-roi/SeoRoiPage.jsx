@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useCalculateROIMutation, useSubmitLeadMutation } from '../../services/apiSlice'
+import ModelSelector from '../shared/ModelSelector'
 
 const CURRENCIES = [
   { code: 'USD', symbol: '$', name: 'US Dollar' },
@@ -102,6 +103,7 @@ export default function SeoRoiPage() {
   const [growthPreset, setGrowthPreset] = useState('Moderate')
   const [customGrowth, setCustomGrowth] = useState(20)
   const [showAdvanced, setShowAdvanced] = useState(false)
+  const [aiModel, setAiModel] = useState('openrouter')
 
   const [calculateROI, { isLoading, isError, error, data }] = useCalculateROIMutation()
   const [activeScenario, setActiveScenario] = useState('moderate')
@@ -130,6 +132,7 @@ export default function SeoRoiPage() {
       organicConversionRate: convRate / 100, monthlySeoInvestment: investment,
       campaignMonths: months,
       growthScenario: { conservative: 0.10, moderate: growthRate / 100, aggressive: 0.35 },
+      preferredProvider: aiModel,
     })
   }
 
@@ -163,12 +166,12 @@ export default function SeoRoiPage() {
     <div>
       {/* Hero */}
       <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24">          <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-blue-200/40 to-purple-200/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase">Free Tool</span>
+          <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase">Free Tool</span>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
             <span className="text-gray-900">SEO </span>
-            <span className="bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-400 bg-clip-text text-transparent">ROI Calculator</span>
+            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">ROI Calculator</span>
           </h1>
           <p className="mt-5 text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
             Estimate the potential business impact of your organic search investment.
@@ -238,7 +241,9 @@ export default function SeoRoiPage() {
                 </div>
               </div>
 
-              <button type="submit" disabled={isLoading} className="w-full rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-8 py-3.5 text-sm font-semibold text-white hover:from-emerald-700 hover:to-teal-700 disabled:opacity-50 transition-all shadow-lg shadow-emerald-500/25">
+              <ModelSelector value={aiModel} onChange={setAiModel} />
+
+              <button type="submit" disabled={isLoading} className="w-full rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-8 py-3.5 text-sm font-semibold text-white hover:from-[#0D73D1] hover:to-[#E77771] disabled:opacity-50 transition-all shadow-lg shadow-[#0C81F3]/25">
                 {isLoading ? 'Calculating...' : 'Calculate SEO ROI'}
               </button>
             </form>
@@ -454,7 +459,7 @@ function RoiLeadForm({ calculationId }) {
         </div>
         <div><label className="block text-sm font-medium text-gray-700 mb-1">Phone</label><input name="phone" type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" /></div>
         {error && <p className="text-sm text-red-600">{error}</p>}
-        <button type="submit" disabled={isLoading} className="w-full sm:w-auto rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-8 py-3.5 text-sm font-semibold text-white hover:from-emerald-700 hover:to-teal-700 disabled:opacity-50 transition-all shadow-lg shadow-emerald-500/25">
+        <button type="submit" disabled={isLoading} className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-8 py-3.5 text-sm font-semibold text-white hover:from-[#0D73D1] hover:to-[#E77771] disabled:opacity-50 transition-all shadow-lg shadow-[#0C81F3]/25">
           {isLoading ? 'Submitting...' : 'Get My SEO Growth Plan'}
         </button>
       </form>

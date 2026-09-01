@@ -241,62 +241,18 @@ Use the above to generate keywords that match what this business ACTUALLY sells/
 
   return `Generate keyword research for a ${input.businessType || 'General'} business.
 
-## Context
-- Seed Keyword: ${input.seedKeyword}
-- Country: ${input.country || 'Global'}
-- Language: English
-- Business Type: ${input.businessType || 'General'}
+Seed: ${input.seedKeyword} | Country: ${input.country || 'Global'} | Type: ${input.businessType || 'General'}
 ${bizContext[input.businessType] || ''}
-${input.websiteUrl ? `- Website URL: ${input.websiteUrl}` : ''}
 ${websiteSection}
 
-## CRITICAL RULES:
-1. Keywords MUST be relevant to the seed keyword AND match what the website actually offers
-2. Use the website content analysis to understand the business's actual products/services
-3. For E-commerce: generate product keywords (buy, price, best, review, where to buy, etc.)
-4. Do NOT generate generic keywords like "X agency" or "X services" unless the business actually IS an agency
-5. Generate 40-60 diverse, SPECIFIC keywords based on the actual website content
-6. Each keyword should reflect real products/services/topics found on the website
-7. If a website is provided, at least 60% of keywords should be derived from the actual site content
+Rules: Keywords must match what the website ACTUALLY offers. 20-40 diverse keywords. Include: primary, long-tail, question, commercial, transactional, comparison types.
 
-## Categories to include:
-- Primary Keywords (seed variations + modifiers from site content)
-- Long-Tail Keywords (3+ words, specific to products/services found on site)
-- Question Keywords (who/what/how/why/best/where related to their actual offerings)
-- Commercial/Buying Keywords (buy, price, cost, deal relevant to their products)
-- Informational Keywords (guide, how to, tips about their services/products)
-- Transactional Keywords (order, shop, subscribe for their specific products)
-- Comparison Keywords (vs, compare, alternative for their products/services)
-- Problem-Based Keywords (best, top, review for their specific offerings)
+For each keyword: keyword, intent (Informational|Commercial|Transactional|Comparison), type, opportunityScore (0-100), businessRelevance (0-100), reason.
 
-For each keyword provide:
-- keyword (the actual search term people would type)
-- intent (Informational|Commercial|Transactional|Navigational|Comparison|Local)
-- type (primary|long-tail|question|commercial|informational|transactional|comparison|problem)
-- opportunityScore (0-100 internal estimate)
-- businessRelevance (0-100 how relevant to this specific business and its actual offerings)
-- reason (1 sentence why this keyword matters for this specific business)
-
-Also provide:
-- 3-5 topic clusters with sub-topics and content ideas based on the website's actual content areas
-- 5-8 content opportunities with suggested article/product page titles based on their offerings
-- 3-5 quick wins (highest opportunity + relevance)
-- 3-5 strategic recommendations
+Also: 3 topic clusters, 5 content opportunities, 3 quick wins, 3 recommendations.
 
 Return JSON:
-{
-  "seedKeyword": "${input.seedKeyword}",
-  "summary": "2-3 sentence overview based on actual website analysis",
-  "keywords": [{ "keyword": "", "intent": "", "type": "", "opportunityScore": 0, "businessRelevance": 0, "reason": "" }],
-  "longTailKeywords": ["string array"],
-  "questionKeywords": ["string array"],
-  "commercialKeywords": ["string array"],
-  "informationalKeywords": ["string array"],
-  "topicClusters": [{ "topic": "", "keywords": [], "contentIdeas": [] }],
-  "contentOpportunities": [{ "title": "", "primaryKeyword": "", "intent": "", "contentType": "", "reason": "" }],
-  "recommendations": ["string array"],
-  "quickWins": ["string array"]
-}`
+{"seedKeyword":"","summary":"","keywords":[{"keyword":"","intent":"","type":"","opportunityScore":0,"businessRelevance":0,"reason":""}],"longTailKeywords":[],"questionKeywords":[],"topicClusters":[{"topic":"","keywords":[],"contentIdeas":[]}],"contentOpportunities":[{"title":"","primaryKeyword":"","intent":"","contentType":"","reason":""}],"recommendations":[],"quickWins":[]}`
 }
 
 /* ── Validation & Fallback ──────────────────────────────────────── */
@@ -537,6 +493,19 @@ export async function researchKeywords(input) {
     }
   }
 
+  // If no seed keyword provided, extract topic from website
+  if (!input.seedKeyword && crawlData) {
+    const title = crawlData.titles.find(t => t && t.length > 3) || ''
+    const metaDesc = crawlData.descriptions.find(d => d && d.length > 3) || ''
+    const h1 = crawlData.headings.h1.find(h => h && h.length > 3) || ''
+    // Use the most meaningful text as seed keyword
+    const source = h1 || title || metaDesc || crawlData.productTerms[0] || ''
+    // Take first 3-4 meaningful words
+    const words = source.replace(/[^a-zA-Z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 2).slice(0, 4)
+    input.seedKeyword = words.join(' ') || 'website'
+    console.log(`No seed keyword provided — extracted from website: "${input.seedKeyword}"`)
+  }
+
   // Step 2: Try AI if any provider is configured
   const providers = getConfiguredProviders()
   if (providers.length === 0) {
@@ -550,7 +519,7 @@ export async function researchKeywords(input) {
     const parsed = await callAIAndParseJSON([
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: buildUserPrompt(input, crawlData) },
-    ], { temperature: 0.4, maxTokens: 8000, jsonMode: true })
+    ], { temperature: 0.4, maxTokens: 8000, jsonMode: true, preferredProvider: input.preferredProvider })
 
     console.log(`✓ AI keyword research complete — ${parsed.keywords?.length || 0} keywords generated`)
     return validateReport(parsed, input.seedKeyword)

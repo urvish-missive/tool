@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import LoadingProgress from '../components/LoadingProgress'
 import AIAnalyticsSection from '../components/AIAnalyticsSection'
 import LeadForm from '../components/LeadForm'
+import ModelSelector from '../tools/shared/ModelSelector'
 import { useAnalyzeContentMutation } from '../services/apiSlice'
 
 const CONTENT_TYPES = ['Blog Post', 'Landing Page', 'Product Page', 'Service Page', 'Article', 'Other']
@@ -15,6 +16,7 @@ export default function ContentAnalyzerPage() {
   const [secondaryKeywords, setSecondaryKeywords] = useState('')
   const [contentType, setContentType] = useState('Blog Post')
   const [searchIntent, setSearchIntent] = useState('Auto Detect')
+  const [aiModel, setAiModel] = useState('openrouter')
   const [validationError, setValidationError] = useState('')
 
   // Loading progress
@@ -74,6 +76,7 @@ export default function ContentAnalyzerPage() {
         secondaryKeywords: secondaryKws.length > 0 ? secondaryKws : undefined,
         contentType,
         searchIntent,
+        preferredProvider: aiModel,
       }).unwrap()
       stopProgress()
     } catch {
@@ -108,13 +111,13 @@ export default function ContentAnalyzerPage() {
         {/* Hero */}
         <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24">
           <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-blue-200/40 to-purple-200/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-cyan-200/30 to-blue-200/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
           <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
-            <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase">Free SEO Tool</span>
+            <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase">Free SEO Tool</span>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
               <span className="text-gray-900">AI SEO </span>
-              <span className="bg-gradient-to-r from-blue-600 via-purple-500 to-pink-400 bg-clip-text text-transparent">Content Analyzer</span>
+              <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">Content Analyzer</span>
             </h1>
             <p className="mt-5 text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
               Analyze your content and discover how to improve its SEO, readability, structure, search intent and overall content quality.
@@ -173,8 +176,8 @@ export default function ContentAnalyzerPage() {
                   <p className="text-xs text-gray-500 mt-1">Comma-separated</p>
                 </div>
 
-                {/* Content Type + Search Intent */}
-                <div className="grid sm:grid-cols-2 gap-4">
+                {/* Content Type + Search Intent + AI Model */}
+                <div className="grid sm:grid-cols-3 gap-4">
                   <div>
                     <label htmlFor="content-type" className="block text-sm font-semibold text-gray-900 mb-1">Content Type</label>
                     <select id="content-type" value={contentType} onChange={(e) => setContentType(e.target.value)}
@@ -189,6 +192,7 @@ export default function ContentAnalyzerPage() {
                       {SEARCH_INTENTS.map(t => <option key={t}>{t}</option>)}
                     </select>
                   </div>
+                  <ModelSelector value={aiModel} onChange={setAiModel} />
                 </div>
 
                 {/* Validation Error */}
@@ -200,7 +204,7 @@ export default function ContentAnalyzerPage() {
 
                 {/* Submit */}
                 <button type="submit"
-                  className="w-full sm:w-auto rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-3.5 text-sm font-semibold text-white hover:from-blue-700 hover:to-purple-700 transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40">
+                  className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-8 py-3.5 text-sm font-semibold text-white hover:from-[#0D73D1] hover:to-[#E77771] transition-all shadow-lg shadow-[#0C81F3]/25 hover:shadow-[#0C81F3]/40">
                   Analyze Content
                 </button>
               </form>

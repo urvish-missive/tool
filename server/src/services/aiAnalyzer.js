@@ -18,6 +18,11 @@ Rules:
 - Do NOT include <think> tags or reasoning in your output. Output ONLY the raw JSON object.`
 
 function buildUserPrompt(content, targetKeyword, secondaryKeywords, contentType, searchIntent, programmaticMetrics) {
+  const contentExcerpt = content.substring(0, 15000)
+  const m = programmaticMetrics?.metrics || {}
+  const kw = programmaticMetrics?.keyword || {}
+  const st = programmaticMetrics?.structure || {}
+
   return `Analyze this content for SEO quality.
 
 ## Content Type
@@ -33,10 +38,12 @@ ${secondaryKeywords?.length ? secondaryKeywords.join(', ') : 'Not specified'}
 ${searchIntent || 'Auto Detect'}
 
 ## Programmatic Metrics
-${JSON.stringify(programmaticMetrics, null, 2)}
+Words: ${m.wordCount || 0} | Headings: ${m.totalHeadings || 0} | Readability: ${m.readabilityScore || 0} | Long Paras: ${m.longParagraphs || 0} | Long Sentences: ${m.longSentences || 0}
+Keyword density: ${kw.density || 0}% | Near start: ${kw.nearBeginning || false} | In headings: ${kw.headingsWithKeyword || 0} | Occurrences: ${kw.occurrences || 0}
+Structure: intro ${st.hasIntroduction || false} | conclusion ${st.hasConclusion || false} | lists ${st.hasLists || false} | tables ${st.hasTables || false}
 
 ## Content
-${content.substring(0, 15000)}
+${contentExcerpt}
 
 ---
 
@@ -74,8 +81,8 @@ Return a JSON object with this EXACT structure:
   ],
   "missing_topics": ["string array of potentially missing topics"],
   "heading_recommendations": {
-    "current": ["Extract ALL headings you find in the content as H1:, H2:, H3: prefixed strings. If no headings found, return an empty array."],
-    "suggested": ["Suggest improved heading structure as H2:, H3: prefixed strings. Make them more descriptive and SEO-friendly."]
+    "current": ["Extract ALL headings from the content as H1:, H2:, H3: prefixed strings."],
+    "suggested": ["Suggest improved heading structure as H2:, H3: prefixed strings."]
   },
   "faq_opportunities": ["string array of FAQ questions to add"],
   "quick_wins": ["string array of 3-5 quick wins"],
@@ -119,7 +126,7 @@ function extractAndCleanJSON(raw) {
   }
 }
 
-export async function analyzeWithAI(content, targetKeyword, secondaryKeywords, contentType, searchIntent, programmaticMetrics) {
+export async function analyzeWithAI(content, targetKeyword, secondaryKeywords, contentType, searchIntent, programmaticMetrics, options = {}) {
   const providers = getConfiguredProviders()
   if (providers.length === 0) {
     console.log('No AI providers configured — using fallback report')
@@ -127,11 +134,11 @@ export async function analyzeWithAI(content, targetKeyword, secondaryKeywords, c
   }
 
   try {
-    console.log(`Starting AI content analysis — providers: ${providers.map(p => p.name).join(', ')}`)
+    console.log(`Starting AI content analysis — providers: ${providers.map(p => p.name).join(', ')} | preferred: ${options.preferredProvider || 'none'}`)
     const parsed = await callAIAndParseJSON([
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: buildUserPrompt(content, targetKeyword, secondaryKeywords, contentType, searchIntent, programmaticMetrics) },
-    ], { temperature: 0.3, maxTokens: 8000, jsonMode: true })
+    ], { temperature: 0.3, maxTokens: 8000, jsonMode: true, preferredProvider: options.preferredProvider })
 
     console.log('✓ AI analysis complete — scores:', { overall: parsed.overall_score, seo: parsed.seo_score })
     return validateReport(parsed, programmaticMetrics)

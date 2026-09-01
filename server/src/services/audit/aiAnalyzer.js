@@ -13,20 +13,27 @@ Rules:
 - Do NOT include <think> tags or reasoning in your output. Output ONLY the raw JSON object.`
 
 function buildUserPrompt(d) {
-  return `Analyze this SEO audit data and provide strategic recommendations.
+  // Limit issues to top 20 (CRITICAL/HIGH first) to stay under token limits
+  const sortedIssues = [...d.allIssues]
+    .sort((a, b) => {
+      const order = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 }
+      return (order[a.severity] ?? 4) - (order[b.severity] ?? 4)
+    })
+    .slice(0, 20)
+
+  const issueSummary = sortedIssues
+    .map(i => `[${i.severity}] ${i.title}`)
+    .join('\n')
+
+  return `Analyze this SEO audit and provide strategic recommendations.
 
 URL: ${d.targetUrl} | Pages: ${d.totalPages} | Score: ${d.overallScore}/100
-
-## Scores
-Technical: ${d.technicalScore} | On-Page: ${d.onPageScore} | Content: ${d.contentScore} | Performance: ${d.performanceScore} | Indexability: ${d.indexabilityScore} | Links: ${d.linksScore} | Schema: ${d.structuredDataScore}
-
-## Issues
-${d.allIssues.map(i => `[${i.severity}] ${i.title}: ${i.description}`).join('\n')}
-
-## On-Page: ${d.onpageSummary.missingTitles} missing titles, ${d.onpageSummary.missingDescriptions} missing descriptions, ${d.onpageSummary.missingH1} missing H1, ${d.onpageSummary.imagesWithoutAlt} images w/o ALT
-
-## Links: ${d.linkSummary.totalInternalLinks} internal, ${d.linkSummary.totalExternalLinks} external
-## Schema: ${d.schemaSummary.schemasFound.join(', ') || 'None'} on ${d.schemaSummary.pagesWithSchema}/${d.totalPages} pages
+Scores — Tech: ${d.technicalScore} | On-Page: ${d.onPageScore} | Content: ${d.contentScore} | Perf: ${d.performanceScore} | Index: ${d.indexabilityScore} | Links: ${d.linksScore} | Schema: ${d.structuredDataScore}
+Issues (${d.allIssues.length} total, top ${sortedIssues.length} shown):
+${issueSummary}
+On-Page: ${d.onpageSummary.missingTitles} missing titles, ${d.onpageSummary.missingDescriptions} missing desc, ${d.onpageSummary.missingH1} missing H1, ${d.onpageSummary.imagesWithoutAlt} images w/o alt
+Links: ${d.linkSummary.totalInternalLinks} internal, ${d.linkSummary.totalExternalLinks} external
+Schema: ${d.schemaSummary.schemasFound.join(', ') || 'None'} on ${d.schemaSummary.pagesWithSchema}/${d.totalPages} pages
 
 Return JSON:
 {
@@ -102,7 +109,7 @@ export async function analyzeAuditWithAI(auditData) {
     const parsed = await callAIAndParseJSON([
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: buildUserPrompt(auditData) },
-    ], { temperature: 0.3, maxTokens: 8000, jsonMode: true })
+    ], { temperature: 0.3, maxTokens: 8000, jsonMode: true, preferredProvider: auditData.preferredProvider })
 
     console.log('✓ AI audit analysis complete')
     return validateAIReport(parsed, auditData)

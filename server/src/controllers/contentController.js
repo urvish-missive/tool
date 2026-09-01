@@ -4,13 +4,13 @@ import prisma from '../utils/prisma.js'
 
 export async function analyzeContentHandler(req, res) {
   try {
-    const { content, targetKeyword, secondaryKeywords, contentType, searchIntent } = req.body
+    const { content, targetKeyword, secondaryKeywords, contentType, searchIntent, preferredProvider } = req.body
 
     // Step 1: Programmatic analysis
     const programmatic = analyzeContent(content, targetKeyword, secondaryKeywords || [], contentType)
 
     // Step 2: AI analysis
-    const aiReport = await analyzeWithAI(content, targetKeyword, secondaryKeywords, contentType, searchIntent, programmatic)
+    const aiReport = await analyzeWithAI(content, targetKeyword, secondaryKeywords, contentType, searchIntent, programmatic, { preferredProvider })
 
     // Step 3: Merge heading recommendations (AI's suggestions on top of programmatic current headings)
     const headingRecommendations = {

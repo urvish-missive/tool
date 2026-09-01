@@ -6,7 +6,7 @@ const TOOLS = [
     name: 'AI Content Analyzer',
     description: 'Analyze your content for SEO, readability, search intent and overall quality with AI-powered insights.',
     icon: '📝',
-    color: 'from-blue-600 to-purple-600',
+    color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/content-analyzer',
     badge: 'AI Powered',
   },
@@ -15,7 +15,7 @@ const TOOLS = [
     name: 'SEO Website Audit',
     description: 'Get a comprehensive technical and on-page SEO audit of your website with actionable recommendations.',
     icon: '🔍',
-    color: 'from-emerald-600 to-teal-600',
+    color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/seo-audit',
     badge: 'Free Tool',
   },
@@ -24,7 +24,7 @@ const TOOLS = [
     name: 'AI Keyword Research',
     description: 'Discover keyword ideas, search intent, long-tail opportunities, topic clusters and content ideas.',
     icon: '🎯',
-    color: 'from-violet-600 to-purple-600',
+    color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/keyword-research',
     badge: 'AI Powered',
   },
@@ -33,7 +33,7 @@ const TOOLS = [
     name: 'SEO ROI Calculator',
     description: 'Estimate potential organic traffic, leads, revenue and ROI from your SEO investment.',
     icon: '💰',
-    color: 'from-emerald-600 to-teal-600',
+    color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/seo-roi-calculator',
     badge: 'Free Tool',
   },
@@ -46,13 +46,13 @@ export default function Home() {
         {/* Hero */}
         <section className="relative overflow-hidden py-20 sm:py-28 lg:py-36">
           <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-blue-200/40 to-purple-200/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
-          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-cyan-200/30 to-blue-200/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
+          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
+          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
           <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
-            <span className="inline-block px-5 py-1.5 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs font-bold rounded-full mb-6 tracking-wider uppercase shadow-lg shadow-purple-500/25">Free SEO Tools</span>
+            <span className="inline-block px-5 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-6 tracking-wider uppercase shadow-lg shadow-[#0C81F3]/25">Free SEO Tools</span>
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
               <span className="text-gray-900">Professional </span>
-              <span className="bg-gradient-to-r from-blue-600 via-purple-500 to-pink-400 bg-clip-text text-transparent">SEO Tools</span>
+              <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">SEO Tools</span>
             </h1>
             <p className="mt-6 text-lg sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
               Free, AI-powered SEO tools built by an agency for real-world use. No credit card required.

@@ -98,12 +98,12 @@ export default function SeoAuditPage() {
     <div>
       {/* Hero */}
       <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24">          <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-blue-200/40 to-purple-200/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase">Free Tool</span>
+          <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase">Free Tool</span>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
             <span className="text-gray-900">Free SEO </span>
-            <span className="bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-400 bg-clip-text text-transparent">Website Audit</span>
+            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">Website Audit</span>
           </h1>
           <p className="mt-5 text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
             Find the SEO issues holding your website back. Analyze technical SEO, on-page optimization, content, and more.
@@ -278,7 +278,7 @@ export default function SeoAuditPage() {
 
               {/* CTA */}
               <div className="relative overflow-hidden rounded-2xl p-8 sm:p-12 text-center">
-                <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#0C81F3] via-[#67A7FF] to-[#EB8988]" />
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/4" />
                 <div className="relative">
                   <span className="inline-block px-3 py-1 bg-white/20 text-white text-xs font-bold rounded-full mb-4 tracking-wide uppercase backdrop-blur-sm">Expert Review</span>
@@ -291,7 +291,7 @@ export default function SeoAuditPage() {
 
               {/* Lead Form */}
               <div className="relative bg-white rounded-2xl border border-gray-200 shadow-lg shadow-gray-200/50 p-6 sm:p-8">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-purple-500 to-pink-400 rounded-t-2xl" />
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] rounded-t-2xl" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-1">Get a Free SEO Strategy Session</h3>
                 <p className="text-sm text-gray-600 mb-6">Our experts will review your audit and share personalized recommendations.</p>
                 <AuditLeadForm auditId={auditId} />
@@ -368,7 +368,7 @@ function AuditLeadForm({ auditId }) {
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <button type="submit" disabled={submitting}
-        className="w-full sm:w-auto rounded-full bg-gradient-to-r from-blue-600 to-purple-600 px-8 py-3.5 text-sm font-semibold text-white hover:from-blue-700 hover:to-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-500/25 hover:shadow-blue-500/40">
+        className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-8 py-3.5 text-sm font-semibold text-white hover:from-[#0D73D1] hover:to-[#E77771] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#0C81F3]/25 hover:shadow-[#0C81F3]/40">
         {submitting ? 'Submitting...' : 'Request My SEO Strategy'}
       </button>
     </form>
