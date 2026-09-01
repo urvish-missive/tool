@@ -90,7 +90,7 @@ const NAV_ITEMS = [
             { icon: '📝', label: 'AI Content Analyzer', href: '/content-analyzer' },
             { icon: '🔍', label: 'SEO Website Audit', href: '/seo-audit' },
             { icon: '🎯', label: 'Keyword Research', href: '/keyword-research' },
-            { icon: '💰', label: 'ROI Calculator', href: '/seo-roi-calculator' },
+            // { icon: '💰', label: 'ROI Calculator', href: '/seo-roi-calculator' },
           ],
         },
       ],

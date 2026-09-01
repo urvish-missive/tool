@@ -11,13 +11,13 @@ export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
-      <main className="flex-1 pt-24">
+      <main className="flex-1">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/content-analyzer" element={<ContentAnalyzerPage />} />
           <Route path="/seo-audit" element={<SeoAuditPage />} />
           <Route path="/keyword-research" element={<KeywordResearchPage />} />
-          <Route path="/seo-roi-calculator" element={<SeoRoiPage />} />
+          {/* <Route path="/seo-roi-calculator" element={<SeoRoiPage />} /> */}
         </Routes>
       </main>
       <Footer />

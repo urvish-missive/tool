@@ -109,7 +109,7 @@ export default function ContentAnalyzerPage() {
   return (
     <div>
         {/* Hero */}
-        <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24">
+        <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
           <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
           <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />

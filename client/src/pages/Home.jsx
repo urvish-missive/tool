@@ -28,15 +28,15 @@ const TOOLS = [
     path: '/keyword-research',
     badge: 'AI Powered',
   },
-  {
-    id: 'seo-roi',
-    name: 'SEO ROI Calculator',
-    description: 'Estimate potential organic traffic, leads, revenue and ROI from your SEO investment.',
-    icon: '💰',
-    color: 'from-[#0C81F3] to-[#EB8988]',
-    path: '/seo-roi-calculator',
-    badge: 'Free Tool',
-  },
+  // {
+  //   id: 'seo-roi',
+  //   name: 'SEO ROI Calculator',
+  //   description: 'Estimate potential organic traffic, leads, revenue and ROI from your SEO investment.',
+  //   icon: '💰',
+  //   color: 'from-[#0C81F3] to-[#EB8988]',
+  //   path: '/seo-roi-calculator',
+  //   badge: 'Free Tool',
+  // },
 ]
 
 export default function Home() {
