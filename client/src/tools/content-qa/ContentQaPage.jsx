@@ -209,7 +209,7 @@ export default function ContentQaPage() {
 
   const scores = useMemo(() => {
     if (!report) return { cats: {}, overall: 0, total: 0, passed: 0, failed: 0 }
-    const catScores = report.categoryScores || {}
+    const catScores = {}
     let totalItems = 0, totalPass = 0, totalFail = 0
     for (const cat of CATEGORIES) {
       let pass = 0, fail = 0, na = 0, pending = 0
@@ -221,11 +221,13 @@ export default function ContentQaPage() {
         else pending++
       }
       const assessed = pass + fail
+      catScores[cat.id] = assessed > 0 ? Math.round((pass / assessed) * 100) : 0
       totalItems += assessed; totalPass += pass; totalFail += fail
     }
+    const overall = totalItems > 0 ? Math.round((totalPass / totalItems) * 100) : 0
     return {
       cats: catScores,
-      overall: report.overall || 0,
+      overall,
       total: totalItems, passed: totalPass, failed: totalFail,
     }
   }, [report, statuses])

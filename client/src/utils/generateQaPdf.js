@@ -1,367 +1,301 @@
 import { jsPDF } from 'jspdf'
 
-const BRAND = {
-  primary: [12, 129, 243],    // #0C81F3
-  secondary: [235, 137, 136], // #EB8988
-  dark: [17, 24, 39],         // #111827
-  gray: [107, 114, 128],      // #6B7280
-  lightGray: [243, 244, 246], // #F3F4F6
+const C = {
+  primary: [12, 129, 243],
+  secondary: [235, 137, 136],
+  dark: [17, 24, 39],
+  mid: [55, 65, 81],
+  gray: [107, 114, 128],
+  lightGray: [243, 244, 246],
+  border: [229, 231, 235],
   white: [255, 255, 255],
-  green: [34, 197, 94],
-  yellow: [234, 179, 8],
-  red: [239, 68, 68],
+  green: [22, 163, 74],
+  greenBg: [220, 252, 231],
+  red: [220, 38, 38],
+  redBg: [254, 226, 226],
+  yellow: [202, 138, 4],
+  yellowBg: [254, 249, 195],
+  blue: [37, 99, 235],
+  blueBg: [219, 234, 254],
 }
 
-function getStatusColor(status) {
-  if (status === 'pass') return BRAND.green
-  if (status === 'fail') return BRAND.red
-  return BRAND.gray
-}
+function scoreColor(s) { return s >= 80 ? C.green : s >= 60 ? C.yellow : C.red }
+function scoreBg(s) { return s >= 80 ? C.greenBg : s >= 60 ? C.yellowBg : C.redBg }
 
-function getStatusIcon(status) {
-  if (status === 'pass') return '✓'
-  if (status === 'fail') return '✗'
-  return '—'
-}
-
-function getScoreColor(score) {
-  if (score >= 80) return BRAND.green
-  if (score >= 60) return BRAND.yellow
-  return BRAND.red
-}
-
-function drawGradientHeader(doc, width) {
-  // Gradient bar at top
-  for (let i = 0; i < width; i++) {
-    const ratio = i / width
-    const r = Math.round(BRAND.primary[0] + (BRAND.secondary[0] - BRAND.primary[0]) * ratio)
-    const g = Math.round(BRAND.primary[1] + (BRAND.secondary[1] - BRAND.primary[1]) * ratio)
-    const b = Math.round(BRAND.primary[2] + (BRAND.secondary[2] - BRAND.primary[2]) * ratio)
-    doc.setFillColor(r, g, b)
-    doc.rect(i, 0, 1, 8, 'F')
+function gradientBar(doc, x, y, w, h) {
+  for (let i = 0; i < w; i++) {
+    const r = i / w
+    doc.setFillColor(
+      Math.round(C.primary[0] + (C.secondary[0] - C.primary[0]) * r),
+      Math.round(C.primary[1] + (C.secondary[1] - C.primary[1]) * r),
+      Math.round(C.primary[2] + (C.secondary[2] - C.primary[2]) * r),
+    )
+    doc.rect(x + i, y, 1, h, 'F')
   }
 }
 
-function drawScoreCircle(doc, x, y, radius, score, label) {
-  const color = getScoreColor(score)
-
-  // Background circle
-  doc.setFillColor(...BRAND.lightGray)
-  doc.circle(x, y, radius, 'F')
-
-  // Score arc (simplified as filled circle with color)
-  doc.setFillColor(...color)
-  doc.circle(x, y, radius - 2, 'F')
-
-  // Score text
-  doc.setFillColor(...BRAND.white)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(14)
-  doc.text(String(score), x, y + 1, { align: 'center' })
-
-  // Percent sign
-  doc.setFontSize(8)
-  doc.text('%', x + 8, y - 2)
-
-  // Label
-  doc.setFillColor(...BRAND.dark)
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(7)
-  doc.text(label, x, y + radius + 5, { align: 'center' })
+function text(doc, str, x, y, opts = {}) {
+  const { size = 9, style = 'normal', color = C.dark, align = 'left', maxW } = opts
+  doc.setFont('helvetica', style)
+  doc.setFontSize(size)
+  doc.setTextColor(...color)
+  if (maxW) {
+    const lines = doc.splitTextToSize(String(str), maxW)
+    doc.text(lines, x, y, { align })
+    return lines.length
+  }
+  doc.text(String(str), x, y, { align })
+  return 1
 }
 
-function drawProgressBar(doc, x, y, width, height, score, label) {
-  // Label
-  doc.setFillColor(...BRAND.dark)
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8)
-  doc.text(label, x, y - 2)
+function drawScoreBadge(doc, x, y, score, label, size = 'lg') {
+  const r = size === 'lg' ? 14 : size === 'md' ? 10 : 7
+  const col = scoreColor(score)
+  const bg = scoreBg(score)
 
-  // Background bar
-  doc.setFillColor(...BRAND.lightGray)
-  doc.roundedRect(x, y, width, height, 2, 2, 'F')
+  // Outer circle
+  doc.setFillColor(...col)
+  doc.circle(x, y, r, 'F')
 
-  // Filled bar
-  const fillWidth = (score / 100) * width
-  doc.setFillColor(...getScoreColor(score))
-  doc.roundedRect(x, y, fillWidth, height, 2, 2, 'F')
+  // White inner
+  doc.setFillColor(...C.white)
+  doc.circle(x, y, r - 2, 'F')
 
-  // Score text
-  doc.setFillColor(...BRAND.dark)
+  // Score
+  doc.setFillColor(...col)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(size === 'lg' ? 16 : size === 'md' ? 11 : 8)
+  doc.text(String(score), x, y + (size === 'lg' ? 2 : 1.5), { align: 'center' })
+
+  // Label below
+  if (label) {
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(7)
+    doc.setTextColor(...C.gray)
+    doc.text(label, x, y + r + 4, { align: 'center' })
+  }
+}
+
+function drawProgress(doc, x, y, w, h, score) {
+  doc.setFillColor(...C.lightGray)
+  doc.roundedRect(x, y, w, h, 2, 2, 'F')
+  doc.setFillColor(...scoreColor(score))
+  doc.roundedRect(x, y, Math.max(2, (score / 100) * w), h, 2, 2, 'F')
+}
+
+function drawCheckItem(doc, x, y, w, label, status, isAuto) {
+  const col = status === 'pass' ? C.green : status === 'fail' ? C.red : C.gray
+  const bg = status === 'pass' ? C.greenBg : status === 'fail' ? C.redBg : C.lightGray
+  const icon = status === 'pass' ? '\u2713' : status === 'fail' ? '\u2717' : '\u2014'
+
+  // Status dot
+  doc.setFillColor(...bg)
+  doc.circle(x + 4, y, 3.5, 'F')
+  doc.setFillColor(...col)
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(7)
-  doc.text(`${score}%`, x + width + 3, y + height - 1)
+  doc.text(icon, x + 4, y + 1, { align: 'center' })
+
+  // Label
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(8)
+  doc.setTextColor(...C.dark)
+  doc.text(label, x + 10, y + 1.2, { maxWidth: w - 30 })
+
+  // Auto badge
+  if (isAuto) {
+    doc.setFillColor(...C.blueBg)
+    doc.roundedRect(x + w - 16, y - 2.5, 12, 5, 1.5, 1.5, 'F')
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(5)
+    doc.setTextColor(...C.blue)
+    doc.text('AUTO', x + w - 10, y + 0.5, { align: 'center' })
+  }
 }
 
 export function generateQaPdf(report, meta = {}) {
   const doc = new jsPDF({ unit: 'mm', format: 'a4' })
-  const pageWidth = 210
-  const pageHeight = 297
-  const margin = 20
-  const contentWidth = pageWidth - margin * 2
-  let y = 15
+  const W = 210, H = 297, M = 20, CW = W - M * 2
+  let y = 0
 
-  // ── Header gradient ──
-  drawGradientHeader(doc, pageWidth)
+  // ══════ PAGE 1: HEADER + SCORE ══════
 
-  // ── Title ──
-  y = 18
-  doc.setFillColor(...BRAND.dark)
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(20)
-  doc.text('Content QA Report', margin, y)
+  // Gradient top bar
+  gradientBar(doc, 0, 0, W, 6)
 
-  y += 8
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(9)
-  doc.setFillColor(...BRAND.gray)
-  doc.text('Based on Himani Kankaria\'s Content QA Checklist — 42 checks across 7 categories', margin, y)
+  // Title block
+  y = 16
+  text(doc, 'Content QA Report', M, y, { size: 22, style: 'bold', color: C.dark })
+  y += 7
+  text(doc, 'Based on Himani Kankaria\'s Content QA Checklist', M, y, { size: 9, color: C.gray })
+  y += 4
+  text(doc, '42 quality checks across 7 categories', M, y, { size: 8, color: C.gray })
 
-  // ── Meta info ──
-  y += 8
-  doc.setFillColor(...BRAND.lightGray)
-  doc.roundedRect(margin, y, contentWidth, 18, 3, 3, 'F')
-
-  y += 5
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8)
-  doc.setFillColor(...BRAND.gray)
-
-  const metaItems = []
-  if (meta.title) metaItems.push(`Title: ${meta.title}`)
-  if (meta.keyword) metaItems.push(`Keyword: ${meta.keyword}`)
-  if (meta.wordCount) metaItems.push(`Words: ${meta.wordCount}`)
-  if (meta.date) metaItems.push(`Date: ${meta.date}`)
-
-  const metaText = metaItems.join('  •  ')
-  doc.text(metaText || 'Content QA Analysis', margin + 4, y + 5)
-
-  if (meta.score !== undefined) {
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(16)
-    doc.setFillColor(...getScoreColor(meta.score))
-    doc.text(`${meta.score}%`, pageWidth - margin - 4, y + 8, { align: 'right' })
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(7)
-    doc.setFillColor(...BRAND.gray)
-    doc.text('Overall Score', pageWidth - margin - 4, y + 13, { align: 'right' })
+  // Date badge (top right)
+  if (meta.date) {
+    doc.setFillColor(...C.lightGray)
+    doc.roundedRect(W - M - 32, 14, 32, 8, 3, 3, 'F')
+    text(doc, meta.date, W - M - 16, 19.5, { size: 8, color: C.gray, align: 'center' })
   }
 
-  y += 24
+  // ── Score Card ──
+  y = 36
+  doc.setFillColor(...C.white)
+  doc.setDrawColor(...C.border)
+  doc.roundedRect(M, y, CW, 50, 4, 4, 'FD')
 
-  // ── Overall Score Section ──
-  doc.setFillColor(...BRAND.white)
-  doc.roundedRect(margin, y, contentWidth, 30, 3, 3, 'F')
-  doc.setDrawColor(...BRAND.lightGray)
-  doc.roundedRect(margin, y, contentWidth, 30, 3, 3, 'S')
+  // Left side: Overall score
+  drawScoreBadge(doc, M + 28, y + 22, meta.score || 0, null, 'lg')
+  text(doc, 'Overall Score', M + 28, y + 44, { size: 8, color: C.gray, align: 'center' })
 
-  drawScoreCircle(doc, margin + 22, y + 15, 12, meta.score || 0, 'Overall')
-
-  // Category mini-bars
-  const cats = report.categoryScores || {}
-  const catLabels = {
-    objective: 'Objective', audience: 'Audience', seo: 'SEO',
-    grammar: 'Grammar', ux: 'UX/Format', brand: 'Brand', final: 'Sign-Off'
-  }
-  let barX = margin + 45
-  const barWidth = (contentWidth - 50) / Object.keys(catLabels).length
-
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(9)
-  doc.setFillColor(...BRAND.dark)
-  doc.text('Category Breakdown', barX, y + 5)
-
-  Object.entries(catLabels).forEach(([key, label], i) => {
-    const bx = barX + i * barWidth
-    const score = cats[key] || 0
-    drawProgressBar(doc, bx, y + 9, barWidth - 6, 3, score, label)
-  })
-
-  // Summary line
-  y += 34
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(8)
-  doc.setFillColor(...BRAND.gray)
+  // Passed / Failed summary
   const passed = meta.passed || 0
   const total = meta.total || 0
-  doc.text(`${passed}/${total} checks passed • ${total - passed} items need attention`, margin, y)
+  const failed = total - passed
+  text(doc, `${passed} passed`, M + 52, y + 15, { size: 9, style: 'bold', color: C.green })
+  text(doc, `${failed} failed`, M + 52, y + 22, { size: 9, style: 'bold', color: C.red })
+  text(doc, `${total} total checks`, M + 52, y + 29, { size: 8, color: C.gray })
 
-  y += 10
+  // Meta info
+  if (meta.title) text(doc, `Title: ${meta.title}`, M + 52, y + 36, { size: 8, color: C.mid })
+  if (meta.keyword) text(doc, `Keyword: ${meta.keyword}`, M + 52, y + 42, { size: 8, color: C.mid })
 
-  // ── Category Sections ──
+  // Right side: Category scores
+  const cats = report.categoryScores || {}
+  const catDefs = [
+    { id: 'objective', label: 'Objective' },
+    { id: 'audience', label: 'Audience' },
+    { id: 'seo', label: 'SEO' },
+    { id: 'grammar', label: 'Grammar' },
+    { id: 'ux', label: 'UX/Format' },
+    { id: 'brand', label: 'Brand' },
+    { id: 'final', label: 'Sign-Off' },
+  ]
+
+  let catY = y + 10
+  const catX = M + 100
+  const barW = CW - 110
+
+  text(doc, 'Category Scores', catX, catY - 3, { size: 9, style: 'bold', color: C.dark })
+  catY += 4
+
+  for (const cat of catDefs) {
+    const s = cats[cat.id] || 0
+    text(doc, cat.label, catX, catY + 1, { size: 7, color: C.mid })
+    drawProgress(doc, catX + 24, catY - 0.5, barW - 28, 3, s)
+    text(doc, `${s}%`, catX + barW + 1, catY + 1, { size: 7, style: 'bold', color: scoreColor(s) })
+    catY += 7
+  }
+
+  // ── Meta info bar ──
+  y = 90
+  doc.setFillColor(...C.lightGray)
+  doc.roundedRect(M, y, CW, 8, 2, 2, 'F')
+  const metaParts = []
+  if (meta.title) metaParts.push(`Title: ${meta.title}`)
+  if (meta.keyword) metaParts.push(`Keyword: ${meta.keyword}`)
+  if (meta.wordCount) metaParts.push(`Words: ${meta.wordCount}`)
+  text(doc, metaParts.join('  |  ') || 'Content QA Analysis', M + 4, y + 5.5, { size: 7, color: C.gray })
+
+  // ── AI Summary ──
+  const ai = report.ai
+  if (ai?.summary) {
+    y = 104
+    doc.setFillColor(...C.primary)
+    doc.roundedRect(M, y, CW, 7, 2, 2, 'F')
+    text(doc, 'AI Assessment', M + 4, y + 5, { size: 9, style: 'bold', color: C.white })
+
+    y += 10
+    doc.setFillColor(...C.blueBg)
+    const summaryLines = doc.splitTextToSize(ai.summary, CW - 8)
+    const boxH = Math.min(summaryLines.length * 4 + 4, 28)
+    doc.roundedRect(M, y, CW, boxH, 2, 2, 'F')
+    text(doc, summaryLines.slice(0, 6).join(' '), M + 4, y + 4, { size: 8, color: C.dark, maxW: CW - 8 })
+    y += boxH + 4
+  }
+
+  // ── Top Issues ──
+  if (ai?.topIssues?.length > 0) {
+    doc.setFillColor(...C.redBg)
+    const issueH = Math.min(ai.topIssues.length * 4.5 + 6, 30)
+    doc.roundedRect(M, y, CW, issueH, 2, 2, 'F')
+    text(doc, 'Top Issues to Fix', M + 4, y + 4.5, { size: 8, style: 'bold', color: C.red })
+    let iy = y + 9
+    for (const issue of ai.topIssues.slice(0, 5)) {
+      text(doc, `\u26A0  ${issue}`, M + 6, iy, { size: 7, color: C.dark })
+      iy += 4.5
+    }
+    y += issueH + 4
+  }
+
+  // ══════ CATEGORY PAGES ══════
+
   const categories = report.categories || {}
   const statuses = report.statuses || {}
-  const aiReport = report.ai || {}
 
   for (const [catId, catDef] of Object.entries(categories)) {
     const catScore = cats[catId] || 0
     const items = catDef.items || []
+    const aiCat = ai?.[catId]
 
-    // Check if we need a new page
-    const estimatedHeight = 12 + items.length * 5 + 10
-    if (y + estimatedHeight > pageHeight - 20) {
+    // Check page space (header + items + possible AI box)
+    const needed = 20 + items.length * 5.5 + (aiCat ? 25 : 0)
+    if (y + needed > H - 25) {
       doc.addPage()
-      y = 15
-      drawGradientHeader(doc, pageWidth)
+      gradientBar(doc, 0, 0, W, 6)
+      y = 16
     }
 
-    // Category header
-    doc.setFillColor(...BRAND.lightGray)
-    doc.roundedRect(margin, y, contentWidth, 10, 2, 2, 'F')
+    // Category header bar
+    doc.setFillColor(...C.lightGray)
+    doc.roundedRect(M, y, CW, 10, 2, 2, 'F')
 
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(10)
-    doc.setFillColor(...BRAND.dark)
-    doc.text(catDef.label, margin + 4, y + 7)
+    text(doc, catDef.label, M + 4, y + 7, { size: 10, style: 'bold', color: C.dark })
 
-    // Score badge
-    const scoreColor = getScoreColor(catScore)
-    doc.setFillColor(...scoreColor)
-    doc.roundedRect(pageWidth - margin - 18, y + 1.5, 14, 7, 2, 2, 'F')
-    doc.setFillColor(...BRAND.white)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(8)
-    doc.text(`${catScore}%`, pageWidth - margin - 11, y + 6.5, { align: 'center' })
-
-    y += 13
+    // Score badge in header
+    drawScoreBadge(doc, W - M - 12, y + 5, catScore, null, 'sm')
+    y += 14
 
     // Items
     for (const item of items) {
-      const status = statuses[item.id] || 'pending'
-      const statusColor = getStatusColor(status)
-      const icon = getStatusIcon(status)
-
-      // Status indicator
-      doc.setFillColor(...statusColor)
-      doc.circle(margin + 4, y, 2, 'F')
-      doc.setFillColor(...BRAND.white)
-      doc.setFont('helvetica', 'bold')
-      doc.setFontSize(6)
-      doc.text(icon, margin + 4, y + 0.8, { align: 'center' })
-
-      // Item label
-      doc.setFont('helvetica', item.auto ? 'normal' : 'normal')
-      doc.setFontSize(8)
-      doc.setFillColor(...BRAND.dark)
-      doc.text(item.label, margin + 9, y + 1)
-
-      // Auto badge
-      if (item.auto) {
-        doc.setFillColor(...BRAND.primary[0], BRAND.primary[1], BRAND.primary[2])
-        doc.roundedRect(pageWidth - margin - 14, y - 1.5, 10, 4, 1, 1, 'F')
-        doc.setFillColor(...BRAND.white)
-        doc.setFont('helvetica', 'bold')
-        doc.setFontSize(5)
-        doc.text('AUTO', pageWidth - margin - 9, y + 1, { align: 'center' })
+      if (y > H - 25) {
+        doc.addPage()
+        gradientBar(doc, 0, 0, W, 6)
+        y = 16
       }
-
-      y += 5
+      drawCheckItem(doc, M, y, CW, item.label, statuses[item.id] || 'pending', item.auto)
+      y += 5.5
     }
 
-    // AI insights for this category
-    const aiCat = aiReport[catId]
-    if (aiCat?.issues?.length > 0 || aiCat?.suggestions?.length > 0) {
+    // AI insights box
+    if (aiCat && (aiCat.issues?.length > 0 || aiCat.suggestions?.length > 0)) {
       y += 2
-      doc.setFillColor(254, 249, 195) // light yellow
-      const boxHeight = (aiCat.issues?.length || 0) * 4 + (aiCat.suggestions?.length || 0) * 4 + 6
-      doc.roundedRect(margin + 4, y, contentWidth - 8, Math.min(boxHeight, 30), 2, 2, 'F')
+      const lines = []
+      if (aiCat.issues?.length > 0) lines.push(...aiCat.issues.slice(0, 3).map(i => `\u2022 ${i}`))
+      if (aiCat.suggestions?.length > 0) lines.push(...aiCat.suggestions.slice(0, 2).map(s => `\u2192 ${s}`))
+      const boxH = Math.min(lines.length * 4 + 5, 28)
 
-      let innerY = y + 4
-      if (aiCat.issues?.length > 0) {
-        doc.setFont('helvetica', 'bold')
-        doc.setFontSize(7)
-        doc.setFillColor(...BRAND.red)
-        doc.text('Issues:', margin + 7, innerY)
-        innerY += 3
-        for (const issue of aiCat.issues.slice(0, 3)) {
-          doc.setFont('helvetica', 'normal')
-          doc.setFontSize(7)
-          doc.setFillColor(...BRAND.dark)
-          doc.text(`• ${issue.substring(0, 80)}`, margin + 9, innerY)
-          innerY += 3.5
-        }
+      doc.setFillColor(...C.yellowBg)
+      doc.roundedRect(M + 4, y, CW - 8, boxH, 2, 2, 'F')
+
+      let iy = y + 4
+      for (const line of lines.slice(0, 5)) {
+        text(doc, line, M + 7, iy, { size: 7, color: C.mid, maxW: CW - 14 })
+        iy += 4
       }
-      if (aiCat.suggestions?.length > 0 && innerY < y + 28) {
-        doc.setFont('helvetica', 'bold')
-        doc.setFontSize(7)
-        doc.setFillColor(...BRAND.primary[0], BRAND.primary[1], BRAND.primary[2])
-        doc.text('Suggestions:', margin + 7, innerY)
-        innerY += 3
-        for (const sug of aiCat.suggestions.slice(0, 2)) {
-          doc.setFont('helvetica', 'normal')
-          doc.setFontSize(7)
-          doc.setFillColor(...BRAND.dark)
-          doc.text(`→ ${sug.substring(0, 80)}`, margin + 9, innerY)
-          innerY += 3.5
-        }
-      }
-      y += Math.min(boxHeight, 30) + 3
+      y += boxH + 2
     }
 
-    y += 5
+    y += 6
   }
 
-  // ── AI Summary Section ──
-  if (aiReport.summary || aiReport.topIssues?.length > 0) {
-    if (y + 40 > pageHeight - 20) {
-      doc.addPage()
-      y = 15
-    }
-
-    y += 5
-    doc.setFillColor(...BRAND.primary[0], BRAND.primary[1], BRAND.primary[2])
-    doc.roundedRect(margin, y, contentWidth, 8, 2, 2, 'F')
-    doc.setFillColor(...BRAND.white)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(10)
-    doc.text('AI Assessment', margin + 4, y + 6)
-
-    y += 12
-
-    if (aiReport.summary) {
-      doc.setFont('helvetica', 'normal')
-      doc.setFontSize(8)
-      doc.setFillColor(...BRAND.dark)
-      const lines = doc.splitTextToSize(aiReport.summary, contentWidth - 8)
-      doc.text(lines.slice(0, 4), margin + 4, y)
-      y += lines.slice(0, 4).length * 4 + 4
-    }
-
-    if (aiReport.topIssues?.length > 0) {
-      doc.setFont('helvetica', 'bold')
-      doc.setFontSize(9)
-      doc.setFillColor(...BRAND.red[0], BRAND.red[1], BRAND.red[2])
-      doc.text('Top Issues to Fix', margin + 4, y)
-      y += 5
-
-      for (const issue of aiReport.topIssues.slice(0, 5)) {
-        doc.setFont('helvetica', 'normal')
-        doc.setFontSize(8)
-        doc.setFillColor(...BRAND.dark)
-        doc.text(`⚠ ${issue}`, margin + 6, y)
-        y += 4
-      }
-    }
-  }
-
-  // ── Footer ──
-  const totalPages = doc.getNumberOfPages()
-  for (let i = 1; i <= totalPages; i++) {
+  // ══════ FOOTER ON ALL PAGES ══════
+  const pages = doc.getNumberOfPages()
+  for (let i = 1; i <= pages; i++) {
     doc.setPage(i)
-    // Gradient footer bar
-    for (let j = 0; j < pageWidth; j++) {
-      const ratio = j / pageWidth
-      const r = Math.round(BRAND.primary[0] + (BRAND.secondary[0] - BRAND.primary[0]) * ratio)
-      const g = Math.round(BRAND.primary[1] + (BRAND.secondary[1] - BRAND.primary[1]) * ratio)
-      const b = Math.round(BRAND.primary[2] + (BRAND.secondary[2] - BRAND.primary[2]) * ratio)
-      doc.setFillColor(r, g, b)
-      doc.rect(j, pageHeight - 8, 1, 8, 'F')
-    }
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(7)
-    doc.setFillColor(...BRAND.white)
-    doc.text('Content QA Report • Generated by Missive Digital', margin, pageHeight - 3)
-    doc.text(`Page ${i} of ${totalPages}`, pageWidth - margin, pageHeight - 3, { align: 'right' })
+    gradientBar(doc, 0, H - 6, W, 6)
+    text(doc, 'Content QA Report \u2022 Generated by Missive Digital', M, H - 2, { size: 6, color: C.white })
+    text(doc, `Page ${i} / ${pages}`, W - M, H - 2, { size: 6, color: C.white, align: 'right' })
   }
 
   return doc
@@ -369,6 +303,6 @@ export function generateQaPdf(report, meta = {}) {
 
 export function downloadQaPdf(report, meta = {}) {
   const doc = generateQaPdf(report, meta)
-  const filename = `content-qa-report-${meta.title?.replace(/[^a-zA-Z0-9]/g, '-') || 'report'}-${Date.now()}.pdf`
-  doc.save(filename)
+  const name = (meta.title || 'report').replace(/[^a-zA-Z0-9]/g, '-').substring(0, 30)
+  doc.save(`content-qa-${name}-${Date.now()}.pdf`)
 }

@@ -226,17 +226,24 @@ function buildUserPrompt(input, crawlData) {
 
   let websiteSection = ''
   if (crawlData) {
-    const bundleExcerpt = crawlData.bundleText ? crawlData.bundleText.substring(0, 500) : ''
+    const bundleExcerpt = crawlData.bundleText ? crawlData.bundleText.substring(0, 1000) : ''
     const spaNote = crawlData.isSPA ? ' (SPA — content from meta tags + JS bundle)' : ''
+    const bodyExcerpt = crawlData.bodyExcerpt ? crawlData.bodyExcerpt.substring(0, 2000) : ''
     websiteSection = `
-## Website Context${spaNote}
-Titles: ${crawlData.titles.join(' | ')}
-Descriptions: ${crawlData.descriptions.join(' | ')}
-H1: ${crawlData.headings.h1.join(', ')}
-H2: ${crawlData.headings.h2.slice(0, 8).join(', ')}
-Terms: ${crawlData.productTerms.join(', ')}${bundleExcerpt ? `\nJS text: ${bundleExcerpt}` : ''}
+## ACTUAL WEBSITE CONTENT (MUST USE THIS)${spaNote}
 
-Use the above to generate keywords that match what this business ACTUALLY sells/offers.`
+Page Titles: ${crawlData.titles.join(' | ')}
+Meta Descriptions: ${crawlData.descriptions.join(' | ')}
+H1 Headings: ${crawlData.headings.h1.join(', ')}
+H2 Headings: ${crawlData.headings.h2.join(', ')}
+H3 Headings: ${crawlData.headings.h3.slice(0, 8).join(', ')}
+Product/Service Terms Found: ${crawlData.productTerms.join(', ')}
+
+Website Body Text (first 2000 chars):
+${bodyExcerpt}
+${bundleExcerpt ? `\nExtracted Page Content:\n${bundleExcerpt}` : ''}
+
+IMPORTANT: The keywords MUST be derived from the actual website content above. Extract real service names, product names, features, page topics, and industry-specific terms from the website text. Do NOT just append the seed keyword to generic templates like "pricing", "features", "demo". Instead, find what this website ACTUALLY offers and generate keywords around those real offerings.`
   }
 
   return `Generate keyword research for a ${input.businessType || 'General'} business.
@@ -245,11 +252,17 @@ Seed: ${input.seedKeyword} | Country: ${input.country || 'Global'} | Type: ${inp
 ${bizContext[input.businessType] || ''}
 ${websiteSection}
 
-Rules: Keywords must match what the website ACTUALLY offers. 20-40 diverse keywords. Include: primary, long-tail, question, commercial, transactional, comparison types.
+CRITICAL RULES:
+1. EXTRACT real service names, product names, features, and topics from the Website Content above
+2. Generate keywords based on what the website ACTUALLY offers — not generic templates
+3. Use the actual H2/H3 headings, body text, and product terms to create keywords
+4. Each keyword must relate to a specific offering found on the website
+5. The "reason" field must reference the specific website content that inspired the keyword
+6. 20-40 diverse keywords covering: primary, long-tail, question, commercial, transactional, comparison
 
-For each keyword: keyword, intent (Informational|Commercial|Transactional|Comparison), type, opportunityScore (0-100), businessRelevance (0-100), reason.
+For each keyword: keyword, intent (Informational|Commercial|Transactional|Comparison), type, opportunityScore (0-100), businessRelevance (0-100), reason (MUST reference actual website content).
 
-Also: 3 topic clusters, 5 content opportunities, 3 quick wins, 3 recommendations.
+Also: 3 topic clusters from website content, 5 content opportunities, 3 quick wins, 3 recommendations.
 
 Return JSON:
 {"seedKeyword":"","summary":"","keywords":[{"keyword":"","intent":"","type":"","opportunityScore":0,"businessRelevance":0,"reason":""}],"longTailKeywords":[],"questionKeywords":[],"topicClusters":[{"topic":"","keywords":[],"contentIdeas":[]}],"contentOpportunities":[{"title":"","primaryKeyword":"","intent":"","contentType":"","reason":""}],"recommendations":[],"quickWins":[]}`
@@ -299,7 +312,7 @@ function generateFallbackReport(input, crawlData) {
 
   // For SPAs with no headings, extract phrases from bundle text + meta descriptions
   if (sitePhrases.length === 0 && crawlData) {
-    const allText = [crawlData.bodyExcerpt, crawlData.bundleText || '', crawlData.descriptions.join(' ')].join(' ')
+    const allText = [crawlData.bodyExcerpt, crawlData.bundleText || '', crawlData.descriptions.join(' '), crawlData.headings.h1.join(' '), crawlData.headings.h2.join(' '), crawlData.headings.h3.join(' ')].join(' ')
     // Extract 2-5 word phrases that look like services/products
     const phrases = allText.match(/\b[a-z]+(?:\s+[a-z]+){1,4}\b/gi) || []
     const stopWords = new Set(['the','and','for','with','that','this','you','our','we','not','are','can','will','has','have','been','but','from','they','also','any','all','one','its','may','use','get','how','why','who','what','when','where','which','than','them','then','into','over','just','more','than','some','very','much','also','each','both','few','own','same','such','only','now','other','most','here','well','too','would','could','should','about','your','them','they','then','than','these','those','more','most','such'])
@@ -329,33 +342,65 @@ function generateFallbackReport(input, crawlData) {
 
   // Generate keywords from actual site content when available
   const siteKeywords = []
-  if (crawlData && sitePhrases.length > 0) {
-    for (const phrase of sitePhrases.slice(0, 8)) {
-      if (phrase.includes(kwLower) || kwLower.includes(phrase.split(' ')[0])) {
+  if (crawlData) {
+    // Use ALL headings as keyword sources — these are real page topics
+    const allHeadings = [
+      ...crawlData.headings.h1,
+      ...crawlData.headings.h2,
+      ...crawlData.headings.h3,
+    ].filter(h => h.length > 3 && h.length < 80)
+
+    for (const heading of allHeadings.slice(0, 12)) {
+      const cleanHeading = heading.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim()
+      if (cleanHeading.length < 4) continue
+      // Don't duplicate the seed keyword
+      if (cleanHeading === kwLower) continue
+      const intent = /price|cost|buy|order|plan|subscribe/.test(cleanHeading) ? 'Transactional'
+        : /vs|compare|alternative|versus/.test(cleanHeading) ? 'Comparison'
+        : /what|how|why|guide|tip|learn/.test(cleanHeading) ? 'Informational'
+        : 'Commercial'
+      siteKeywords.push({
+        keyword: cleanHeading,
+        intent,
+        type: 'primary',
+        opportunityScore: 90,
+        businessRelevance: 95,
+        reason: `Extracted from website heading: "${heading}"`,
+      })
+    }
+
+    // Use product/service terms from body text
+    for (const term of crawlData.productTerms.slice(0, 15)) {
+      if (term.length < 4 || kwLower.includes(term) || term.includes(kwLower)) continue
+      if (['product','feature','module','component','style','color','width','height','margin','padding','font','div','span','class','script'].some(skip => term.startsWith(skip) || term === skip)) continue
+      if (!siteKeywords.find(k => k.keyword.includes(term))) {
+        const intent = ['buy', 'order', 'shop', 'claim', 'renew', 'pricing', 'subscribe'].some(t => term.includes(t)) ? 'Transactional' : 'Commercial'
         siteKeywords.push({
-          keyword: phrase,
-          intent: 'Commercial',
-          type: 'primary',
-          opportunityScore: 88,
-          businessRelevance: 95,
-          reason: `Directly matches website content "${phrase}".`,
+          keyword: `${term} ${kwLower}`,
+          intent,
+          type: 'commercial',
+          opportunityScore: 85,
+          businessRelevance: 90,
+          reason: `Service/product term found on the website: "${term}"`,
         })
       }
     }
-    // Add site-specific product/service keywords
-    for (const term of crawlData.productTerms.slice(0, 12)) {
-      // Skip terms that are too short, duplicate of seed, or not meaningful modifiers
-      if (term.length < 4 || kwLower.includes(term) || term.includes(kwLower)) continue
-      if (['insur','product','production','feature','module','component','style','color','width','height','margin','padding','font'].some(skip => term.startsWith(skip) || term === skip)) continue
-      if (!siteKeywords.find(k => k.keyword.includes(term))) {
-        const intent = ['buy', 'order', 'shop', 'claim', 'renew', 'cashless', 'hospital'].some(t => term.includes(t)) ? 'Transactional' : 'Commercial'
+
+    // Also use meta descriptions to find service phrases
+    for (const desc of crawlData.descriptions.slice(0, 3)) {
+      if (!desc) continue
+      const phrases = desc.match(/\b[a-z]+(?:\s+[a-z]+){1,4}\b/gi) || []
+      for (const phrase of phrases.slice(0, 3)) {
+        const clean = phrase.toLowerCase().trim()
+        if (clean.length < 6 || clean.length > 40) continue
+        if (siteKeywords.find(k => k.keyword === clean)) continue
         siteKeywords.push({
-          keyword: `${kwLower} ${term}`,
-          intent,
-          type: 'commercial',
-          opportunityScore: 82,
-          businessRelevance: 90,
-          reason: `Matches a product/service term found on the website.`,
+          keyword: clean,
+          intent: 'Informational',
+          type: 'long-tail',
+          opportunityScore: 78,
+          businessRelevance: 85,
+          reason: `Found in meta description: "${desc.substring(0, 60)}..."`,
         })
       }
     }
