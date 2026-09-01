@@ -107,27 +107,81 @@ export default function AdminTools() {
             </div>
 
             {/* Lead Capture Settings */}
-            <div className="border-t border-gray-100 pt-4">
-              <p className="text-xs font-medium text-gray-600 mb-2">Required Fields</p>
-              <div className="flex flex-wrap gap-2">
-                {[
-                  { key: 'requireEmail', label: 'Email' },
-                  { key: 'requireName', label: 'Name' },
-                  { key: 'requirePhone', label: 'Phone' },
-                  { key: 'requireCompany', label: 'Company' },
-                ].map(field => (
+            <div className="border-t border-gray-100 pt-4 space-y-4">
+              {/* Required Fields (inline form after results) */}
+              <div>
+                <p className="text-xs font-medium text-gray-600 mb-1">Required Fields (Bottom Form)</p>
+                <p className="text-[10px] text-gray-400 mb-2">Fields shown in the lead form at the bottom of tool results</p>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { key: 'requireEmail', label: 'Email' },
+                    { key: 'requireName', label: 'Name' },
+                    { key: 'requirePhone', label: 'Phone' },
+                    { key: 'requireCompany', label: 'Company' },
+                  ].map(field => (
+                    <button
+                      key={field.key}
+                      onClick={() => updateTool(tool.id, { [field.key]: !tool[field.key] })}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                        tool[field.key]
+                          ? 'bg-[#0C81F3]/10 text-[#0C81F3] border-[#0C81F3]/30'
+                          : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
+                      }`}
+                    >
+                      {field.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Lead Popup Section */}
+              <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                <div className="flex items-center justify-between mb-2">
+                  <div>
+                    <p className="text-xs font-medium text-gray-600">Lead Popup (Before Tool Use)</p>
+                    <p className="text-[10px] text-gray-400">Show a popup form before users can access this tool</p>
+                  </div>
                   <button
-                    key={field.key}
-                    onClick={() => updateTool(tool.id, { [field.key]: !tool[field.key] })}
-                    className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
-                      tool[field.key]
-                        ? 'bg-[#0C81F3]/10 text-[#0C81F3] border-[#0C81F3]/30'
-                        : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
-                    }`}
+                    onClick={() => updateTool(tool.id, { showLeadPopup: !tool.showLeadPopup })}
+                    disabled={saving === tool.id}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${tool.showLeadPopup ? 'bg-[#0C81F3]' : 'bg-gray-300'}`}
                   >
-                    {field.label}
+                    <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${tool.showLeadPopup ? 'translate-x-6' : 'translate-x-1'}`} />
                   </button>
-                ))}
+                </div>
+
+                {/* Popup Field Configuration */}
+                {tool.showLeadPopup && (
+                  <div className="mt-2 pt-2 border-t border-gray-200">
+                    <p className="text-[10px] text-gray-400 mb-2">Popup Form Fields</p>
+                    <div className="flex flex-wrap gap-2">
+                      {[
+                        { key: 'requireName', label: 'Name', icon: '👤' },
+                        { key: 'requireEmail', label: 'Email', icon: '✉️' },
+                        { key: 'requirePhone', label: 'Phone', icon: '📞' },
+                        { key: 'requireCompany', label: 'Company', icon: '🏢' },
+                      ].map(field => (
+                        <button
+                          key={`popup-${field.key}`}
+                          onClick={() => updateTool(tool.id, { [field.key]: !tool[field.key] })}
+                          className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                            tool[field.key]
+                              ? 'bg-white text-gray-900 border-gray-300 shadow-sm'
+                              : 'bg-gray-100 text-gray-400 border-gray-200 line-through'
+                          }`}
+                        >
+                          <span>{field.icon}</span>
+                          {field.label}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-gray-400 mt-2">
+                      {tool.requireName && tool.requireEmail ? '✓ Name and Email will be required in the popup' :
+                       tool.requireEmail ? '✓ Email will be required in the popup' :
+                       tool.requireName ? '✓ Name will be required in the popup' :
+                       'No fields marked as required — all optional'}</p>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -269,6 +269,7 @@ model ToolConfig {
   requireName     Boolean  @default(true)
   requirePhone    Boolean  @default(false)
   requireCompany  Boolean  @default(false)
+  showLeadPopup   Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }

@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import ModelSelector from '../shared/ModelSelector'
+import LeadCaptureModal from '../../components/LeadCaptureModal'
+import { useLeadPopup } from '../../components/useLeadPopup'
 
 const CONTENT_GOALS = ['Educational', 'Commercial', 'Lead Generation', 'Brand Awareness', 'Other']
 const CONTENT_TYPES = ['Blog Post', 'How-To', 'Guide', 'Listicle', 'Case Study', 'Comparison', 'Other']
@@ -296,6 +298,7 @@ export default function BlogTopicGeneratorPage() {
   // Mode: 'topics' | 'clusters'
   const [mode, setMode] = useState('topics')
   const [mainKeyword, setMainKeyword] = useState('')
+  const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose, triggerPopup } = useLeadPopup('blog-topics')
 
   // Simulate loading progress
   useEffect(() => {
@@ -309,30 +312,7 @@ export default function BlogTopicGeneratorPage() {
     return () => clearInterval(interval)
   }, [isLoading])
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setValidationError('')
-
-    if (niche.trim().length < 2) {
-      setValidationError('Please enter a niche (at least 2 characters).')
-      return
-    }
-
-    if (mode === 'clusters' && mainKeyword.trim().length < 2) {
-      setValidationError('Please enter a main keyword for topic clusters.')
-      return
-    }
-
-    if (contentGoal === 'Other' && customContentGoal.trim().length < 2) {
-      setValidationError('Please describe your custom content goal.')
-      return
-    }
-
-    if (contentType === 'Other' && customContentType.trim().length < 2) {
-      setValidationError('Please describe your custom content type.')
-      return
-    }
-
+  const runGeneration = useCallback(async () => {
     setIsLoading(true)
     setIsError(false)
     setErrorMessage('')
@@ -360,13 +340,8 @@ export default function BlogTopicGeneratorPage() {
             count: topicCount,
           }),
         })
-
         const data = await response.json()
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to generate topics')
-        }
-
+        if (!response.ok) throw new Error(data.error || 'Failed to generate topics')
         setTopicsResult(data)
       } else {
         const response = await fetch('/api/blog-topics/clusters', {
@@ -381,16 +356,10 @@ export default function BlogTopicGeneratorPage() {
             topicsPerCluster: 4,
           }),
         })
-
         const data = await response.json()
-
-        if (!response.ok) {
-          throw new Error(data.error || 'Failed to generate clusters')
-        }
-
+        if (!response.ok) throw new Error(data.error || 'Failed to generate clusters')
         setClustersResult(data)
       }
-
       setTimeout(() => {
         document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' })
       }, 100)
@@ -400,6 +369,34 @@ export default function BlogTopicGeneratorPage() {
     } finally {
       setIsLoading(false)
     }
+  }, [niche, targetKeywords, audience, contentGoal, customContentGoal, contentType, customContentType, aiModel, topicCount, mode, mainKeyword])
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setValidationError('')
+
+    if (niche.trim().length < 2) {
+      setValidationError('Please enter a niche (at least 2 characters).')
+      return
+    }
+
+    if (mode === 'clusters' && mainKeyword.trim().length < 2) {
+      setValidationError('Please enter a main keyword for topic clusters.')
+      return
+    }
+
+    if (contentGoal === 'Other' && customContentGoal.trim().length < 2) {
+      setValidationError('Please describe your custom content goal.')
+      return
+    }
+
+    if (contentType === 'Other' && customContentType.trim().length < 2) {
+      setValidationError('Please describe your custom content type.')
+      return
+    }
+
+    if (popupEnabled) { triggerPopup(); return }
+    runGeneration()
   }
 
   const handleReset = () => {
@@ -416,6 +413,14 @@ export default function BlogTopicGeneratorPage() {
 
   return (
     <div>
+      <LeadCaptureModal
+        show={showPopup}
+        onClose={handlePopupClose}
+        onSubmit={() => { handlePopupSubmit(); runGeneration() }}
+        toolSlug="blog-topics"
+        title="Get Your Free Blog Topics"
+        subtitle="Enter your details to unlock the Blog Topic Generator"
+      />
       {/* Hero */}
       <section className="relative !pt-36 overflow-hidden py-16 sm:py-20 lg:py-24">
         <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />

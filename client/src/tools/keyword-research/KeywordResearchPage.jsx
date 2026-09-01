@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useResearchKeywordsMutation } from '../../services/apiSlice'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
+import LeadCaptureModal from '../../components/LeadCaptureModal'
+import { useLeadPopup } from '../../components/useLeadPopup'
 import ModelSelector from '../shared/ModelSelector'
 
 const COUNTRIES = ['United States', 'United Kingdom', 'Canada', 'Australia', 'India', 'Germany', 'France', 'UAE', 'Singapore', 'Other']
@@ -222,6 +224,8 @@ export default function KeywordResearchPage() {
   const [researchId, setResearchId] = useState(null)
 
   const [researchKeywords, { isLoading, isError, error, data }] = useResearchKeywordsMutation()
+  const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose, triggerPopup } = useLeadPopup('keyword-research')
+  const [pendingForm, setPendingForm] = useState(null)
 
   useEffect(() => {
     if (!isLoading) return
@@ -238,6 +242,16 @@ export default function KeywordResearchPage() {
     }
   }, [data])
 
+  const runResearch = useCallback((form) => {
+    researchKeywords({
+      seedKeyword: form.seedKeyword?.trim() || undefined,
+      websiteUrl: form.websiteUrl?.trim() || undefined,
+      country: form.country,
+      businessType: form.businessType,
+      preferredProvider: form.aiModel,
+    })
+  }, [researchKeywords])
+
   const handleSubmit = (e) => {
     e.preventDefault()
     setValidationError('')
@@ -248,7 +262,12 @@ export default function KeywordResearchPage() {
     if (hasUrl) {
       try { new URL(websiteUrl.trim()) } catch { setValidationError('Please enter a valid website URL (e.g. https://example.com)'); return }
     }
-    researchKeywords({ seedKeyword: seedKeyword.trim() || undefined, websiteUrl: websiteUrl.trim() || undefined, country, businessType, preferredProvider: aiModel })
+    if (popupEnabled) {
+      setPendingForm({ seedKeyword, websiteUrl, country, businessType, aiModel })
+      triggerPopup()
+      return
+    }
+    runResearch({ seedKeyword, websiteUrl, country, businessType, aiModel })
   }
 
   const handleReset = () => { setReport(null); setResearchId(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
@@ -259,6 +278,14 @@ export default function KeywordResearchPage() {
 
   return (
     <div>
+      <LeadCaptureModal
+        show={showPopup}
+        onClose={handlePopupClose}
+        onSubmit={() => { handlePopupSubmit(); if (pendingForm) runResearch(pendingForm); setPendingForm(null) }}
+        toolSlug="keyword-research"
+        title="Get Your Free Keyword Research"
+        subtitle="Enter your details to unlock the Keyword Research tool"
+      />
       {/* Hero */}
       <section className="relative !pt-36 overflow-hidden py-16 sm:py-20 lg:py-24">          <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />

@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useCalculateROIMutation } from '../../services/apiSlice'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
+import LeadCaptureModal from '../../components/LeadCaptureModal'
+import { useLeadPopup } from '../../components/useLeadPopup'
 import ModelSelector from '../shared/ModelSelector'
 
 const CURRENCIES = [
@@ -107,6 +109,7 @@ export default function SeoRoiPage() {
   const [aiModel, setAiModel] = useState('openrouter')
 
   const [calculateROI, { isLoading, isError, error, data }] = useCalculateROIMutation()
+  const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose, triggerPopup } = useLeadPopup('seo-roi')
   const [activeScenario, setActiveScenario] = useState('moderate')
   const [chartMetric, setChartMetric] = useState('traffic')
   const [copied, setCopied] = useState(false)
@@ -125,8 +128,7 @@ export default function SeoRoiPage() {
     aggressive: { growth: results?.aggressive?.growthRate ? results.aggressive.growthRate * 100 : 35, ...results?.aggressive?.summary },
   }), [results])
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
+  const runCalculation = () => {
     calculateROI({
       currency, monthlyTraffic: traffic, monthlyLeads: leads || undefined,
       averageCustomerValue: custValue, leadToCustomerRate: custRate / 100,
@@ -135,6 +137,12 @@ export default function SeoRoiPage() {
       growthScenario: { conservative: 0.10, moderate: growthRate / 100, aggressive: 0.35 },
       preferredProvider: aiModel,
     })
+  }
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (popupEnabled) { triggerPopup(); return }
+    runCalculation()
   }
 
   const chartData = useMemo(() => {
@@ -165,6 +173,14 @@ export default function SeoRoiPage() {
 
   return (
     <div>
+      <LeadCaptureModal
+        show={showPopup}
+        onClose={handlePopupClose}
+        onSubmit={() => { handlePopupSubmit(); runCalculation() }}
+        toolSlug="seo-roi"
+        title="Get Your Free SEO ROI Report"
+        subtitle="Enter your details to unlock the ROI Calculator"
+      />
       {/* Hero */}
       <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24">          <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />

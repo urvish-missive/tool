@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import LoadingProgress from '../components/LoadingProgress'
 import AIAnalyticsSection from '../components/AIAnalyticsSection'
 import DynamicLeadForm from '../components/DynamicLeadForm'
+import LeadCaptureModal from '../components/LeadCaptureModal'
 import ModelSelector from '../tools/shared/ModelSelector'
 import { useAnalyzeContentMutation } from '../services/apiSlice'
 
@@ -18,10 +19,22 @@ export default function ContentAnalyzerPage() {
   const [searchIntent, setSearchIntent] = useState('Auto Detect')
   const [aiModel, setAiModel] = useState('openrouter')
   const [validationError, setValidationError] = useState('')
+  const [showPopup, setShowPopup] = useState(false)
+  const [popupEnabled, setPopupEnabled] = useState(false)
+  const [pendingSubmit, setPendingSubmit] = useState(null)
 
-  // Loading progress
-  const [loadingStep, setLoadingStep] = useState('reading')
-  const formRef = useRef(null)
+  // Check if lead popup is enabled for this tool
+  useEffect(() => {
+    fetch('/api/tools/public')
+      .then(r => r.json())
+      .then(data => {
+        if (data.success && data.tools) {
+          const tool = data.tools.find(t => t.slug === 'content-analyzer')
+          if (tool?.showLeadPopup) setPopupEnabled(true)
+        }
+      })
+      .catch(() => {})
+  }, [])
 
   // RTK Query mutation
   const [analyzeContent, { isLoading, isError, error, data }] = useAnalyzeContentMutation()
@@ -31,6 +44,10 @@ export default function ContentAnalyzerPage() {
   const status = isLoading ? 'loading' : isError ? 'error' : report ? 'success' : 'idle'
 
   const charCount = content.length
+
+  // Loading progress
+  const [loadingStep, setLoadingStep] = useState('reading')
+  const formRef = useRef(null)
 
   // Simulate loading progress
   const simulateProgress = useCallback(() => {
@@ -62,13 +79,43 @@ export default function ContentAnalyzerPage() {
       return
     }
 
-    setLoadingStep('reading')
-    const stopProgress = simulateProgress()
+    // Show lead popup if enabled
+    if (popupEnabled) {
+      setPendingSubmit(true)
+      setShowPopup(true)
+      return
+    }
 
+    setLoadingStep('reading')
+    runAnalysis()
+  }
+
+  // Scroll to report when data arrives
+  useEffect(() => {
+    if (report) {
+      setTimeout(() => {
+        document.getElementById('report-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
+    }
+  }, [report])
+
+  const handlePopupSubmit = () => {
+    setShowPopup(false)
+    setPendingSubmit(false)
+    setLoadingStep('reading')
+    runAnalysis()
+  }
+
+  const handlePopupClose = () => {
+    setShowPopup(false)
+    setPendingSubmit(false)
+  }
+
+  const runAnalysis = useCallback(async () => {
     const secondaryKws = secondaryKeywords
       ? secondaryKeywords.split(',').map(k => k.trim()).filter(Boolean)
       : []
-
+    const stopProgress = simulateProgress()
     try {
       await analyzeContent({
         content: content.trim(),
@@ -82,16 +129,7 @@ export default function ContentAnalyzerPage() {
     } catch {
       stopProgress()
     }
-  }
-
-  // Scroll to report when data arrives
-  useEffect(() => {
-    if (report) {
-      setTimeout(() => {
-        document.getElementById('report-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }, 100)
-    }
-  }, [report])
+  }, [content, targetKeyword, secondaryKeywords, contentType, searchIntent, aiModel, analyzeContent, simulateProgress])
 
   const handleReset = () => {
     setContent('')
@@ -106,8 +144,18 @@ export default function ContentAnalyzerPage() {
 
   const errorMessage = error?.data?.error || (isError ? "We couldn't complete the analysis right now. Please try again in a moment." : '')
 
-  return (
+    return (
     <div>
+        {/* Lead Capture Modal */}
+        <LeadCaptureModal
+          show={showPopup}
+          onClose={handlePopupClose}
+          onSubmit={handlePopupSubmit}
+          toolSlug="content-analyzer"
+          title="Get Your Free SEO Analysis"
+          subtitle="Enter your details to unlock the Content Analyzer"
+        />
+
         {/* Hero */}
         <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
           <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />

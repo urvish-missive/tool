@@ -190,7 +190,7 @@ export async function getTools(req, res) {
 export async function updateTool(req, res) {
   try {
     const { id } = req.params
-    const { enabled, dailyLimit, hourlyLimit, requireEmail, requireName, requirePhone, requireCompany, name, description } = req.body
+    const { enabled, dailyLimit, hourlyLimit, requireEmail, requireName, requirePhone, requireCompany, showLeadPopup, name, description } = req.body
 
     const data = {}
     if (enabled !== undefined) data.enabled = enabled
@@ -200,6 +200,7 @@ export async function updateTool(req, res) {
     if (requireName !== undefined) data.requireName = requireName
     if (requirePhone !== undefined) data.requirePhone = requirePhone
     if (requireCompany !== undefined) data.requireCompany = requireCompany
+    if (showLeadPopup !== undefined) data.showLeadPopup = showLeadPopup
     if (name !== undefined) data.name = name
     if (description !== undefined) data.description = description
 

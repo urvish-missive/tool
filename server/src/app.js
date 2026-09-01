@@ -58,7 +58,7 @@ app.get('/api/health', (req, res) => {
 app.get('/api/tools/public', async (req, res) => {
   try {
     const tools = await prisma.toolConfig.findMany({
-      select: { slug: true, name: true, enabled: true, requireEmail: true, requireName: true, requirePhone: true, requireCompany: true },
+      select: { slug: true, name: true, enabled: true, requireEmail: true, requireName: true, requirePhone: true, requireCompany: true, showLeadPopup: true },
     })
     res.json({ success: true, tools })
   } catch {

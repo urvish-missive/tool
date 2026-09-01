@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react'
 import { useRunAuditMutation } from '../../services/apiSlice'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
+import LeadCaptureModal from '../../components/LeadCaptureModal'
+import { useLeadPopup } from '../../components/useLeadPopup'
 import AuditForm from './AuditForm'
 import LoadingAudit from './LoadingAudit'
 import ScoreCircle from '../shared/ScoreCircle'
@@ -60,6 +62,8 @@ export default function SeoAuditPage() {
   const [report, setReport] = useState(null)
   const [auditId, setAuditId] = useState(null)
   const [runAudit, { isLoading, isError, error, data }] = useRunAuditMutation()
+  const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose, triggerPopup } = useLeadPopup('seo-audit')
+  const [pendingPayload, setPendingPayload] = useState(null)
 
   useEffect(() => {
     if (!isLoading) return
@@ -97,6 +101,14 @@ export default function SeoAuditPage() {
 
   return (
     <div>
+      <LeadCaptureModal
+        show={showPopup}
+        onClose={handlePopupClose}
+        onSubmit={() => { handlePopupSubmit(); if (pendingPayload) runAudit(pendingPayload); setPendingPayload(null) }}
+        toolSlug="seo-audit"
+        title="Get Your Free SEO Audit"
+        subtitle="Enter your details to unlock the Website Audit"
+      />
       {/* Hero */}
       <section className="relative !pt-36 overflow-hidden py-16 sm:py-20 lg:py-24">          <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
@@ -117,7 +129,10 @@ export default function SeoAuditPage() {
       <section className="py-8 sm:py-12">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           {!report && !isLoading && (
-            <AuditForm onSubmit={(payload) => runAudit(payload)} isLoading={isLoading} />
+            <AuditForm onSubmit={(payload) => {
+              if (popupEnabled) { setPendingPayload(payload); triggerPopup(); return }
+              runAudit(payload)
+            }} isLoading={isLoading} />
           )}
 
           {isLoading && <LoadingAudit currentStep={loadingStep} />}
