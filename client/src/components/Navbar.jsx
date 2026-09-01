@@ -12,6 +12,7 @@ const TOOL_HREF_SLUGS = {
   '/faq-generator': 'faq-generator',
   '/competitor-analysis': 'competitor-analyzer',
   '/seo-roi-calculator': 'seo-roi',
+  '/content-qa': 'content-qa',
 }
 
 const NAV_ITEMS = [
@@ -108,6 +109,7 @@ const NAV_ITEMS = [
             { icon: '❓', label: 'FAQ Generator', badgeColor: 'bg-purple-500 text-white', href: '/faq-generator' },
             { icon: '🕵️', label: 'Competitor Analysis', badgeColor: 'bg-red-500 text-white', href: '/competitor-analysis' },
             { icon: '💰', label: 'ROI Calculator', href: '/seo-roi-calculator' },
+            { icon: '✅', label: 'Content QA', badge: 'NEW', badgeColor: 'bg-green-500 text-white', href: '/content-qa' },
           ],
         },
       ],

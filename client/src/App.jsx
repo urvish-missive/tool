@@ -11,6 +11,7 @@ import BlogTopicGeneratorPage from './tools/blog-topic-generator/BlogTopicGenera
 import LogoMakerPage from './tools/logo-maker/LogoMakerPage'
 import FaqGeneratorPage from './tools/faq-generator/FaqGeneratorPage'
 import CompetitorAnalysisPage from './tools/competitor-analysis/CompetitorAnalysisPage'
+import ContentQaPage from './tools/content-qa/ContentQaPage'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -46,6 +47,7 @@ export default function App() {
                 <Route path="/faq-generator" element={<ToolGuard toolPath="/faq-generator"><FaqGeneratorPage /></ToolGuard>} />
                 <Route path="/competitor-analysis" element={<ToolGuard toolPath="/competitor-analysis"><CompetitorAnalysisPage /></ToolGuard>} />
                 <Route path="/seo-roi-calculator" element={<ToolGuard toolPath="/seo-roi-calculator"><SeoRoiPage /></ToolGuard>} />
+                <Route path="/content-qa" element={<ToolGuard toolPath="/content-qa"><ContentQaPage /></ToolGuard>} />
               </Routes>
             </main>
             <Footer />

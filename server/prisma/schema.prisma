@@ -167,6 +167,8 @@ model Lead {
   faq                FaqGeneration?    @relation(fields: [faqId], references: [id])
   competitorAnalysisId String?         @db.ObjectId
   competitorAnalysis  CompetitorAnalysis? @relation(fields: [competitorAnalysisId], references: [id])
+  contentQaId         String?           @db.ObjectId
+  contentQa           ContentQA?        @relation(fields: [contentQaId], references: [id])
   createdAt          DateTime          @default(now())
 
   @@index([email])
@@ -244,6 +246,23 @@ model CompetitorAnalysis {
 
   @@index([createdAt])
   @@index([competitorUrl])
+}
+
+model ContentQA {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  title           String?
+  content         String
+  targetKeyword   String?
+  metaDescription String?
+  urlSlug         String?
+  overallScore    Int
+  categoryScores  String   // JSON: { objective: number, audience: number, seo: number, ... }
+  statuses        String   // JSON: { "obj-1": "pass", "seo-3": "fail", ... }
+  reportJson      String?
+  createdAt       DateTime @default(now())
+  leads           Lead[]
+
+  @@index([createdAt])
 }
 
 // ─── Admin & Tool Management ────────────────────────────

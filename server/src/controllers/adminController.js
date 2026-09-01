@@ -127,6 +127,8 @@ export async function getStats(req, res) {
         select: { id: true, brandName: true, industry: true, createdAt: true } }),
       prisma.rOICalculation.findMany({ orderBy: { createdAt: 'desc' }, take: 10,
         select: { id: true, monthlySeoInvestment: true, currency: true, createdAt: true } }),
+      prisma.contentQA.findMany({ orderBy: { createdAt: 'desc' }, take: 10,
+        select: { id: true, title: true, targetKeyword: true, overallScore: true, createdAt: true } }),
     ])
 
     const recentActivity = [
@@ -333,6 +335,10 @@ export async function getActivity(req, res) {
         orderBy: { createdAt: 'desc' }, skip, take,
         select: { id: true, monthlySeoInvestment: true, currency: true, campaignMonths: true, createdAt: true },
       }),
+      'content-qa': () => prisma.contentQA.findMany({
+        orderBy: { createdAt: 'desc' }, skip, take,
+        select: { id: true, title: true, targetKeyword: true, overallScore: true, createdAt: true },
+      }),
     }
 
     let activity = []
@@ -348,16 +354,18 @@ export async function getActivity(req, res) {
       total = count
     } else {
       // All tools — fetch and merge
-      const [analyses, audits, keywords, blogs, logos, rois, counts] = await Promise.all([
+      const [analyses, audits, keywords, blogs, logos, rois, contentQas, counts] = await Promise.all([
         prisma.analysis.findMany({ orderBy: { createdAt: 'desc' }, skip, take: take + 10, select: { id: true, targetKeyword: true, contentType: true, overallScore: true, seoScore: true, createdAt: true } }),
         prisma.audit.findMany({ orderBy: { createdAt: 'desc' }, skip, take: take + 10, select: { id: true, websiteUrl: true, overallScore: true, technicalScore: true, onPageScore: true, createdAt: true } }),
         prisma.keywordResearch.findMany({ orderBy: { createdAt: 'desc' }, skip, take: take + 10, select: { id: true, seedKeyword: true, websiteUrl: true, businessType: true, country: true, createdAt: true } }),
         prisma.blogTopic.findMany({ orderBy: { createdAt: 'desc' }, skip, take: take + 10, select: { id: true, niche: true, contentGoal: true, contentType: true, createdAt: true } }),
         prisma.generatedLogo.findMany({ orderBy: { createdAt: 'desc' }, skip, take: take + 10, select: { id: true, brandName: true, industry: true, style: true, primaryColor: true, createdAt: true } }),
         prisma.rOICalculation.findMany({ orderBy: { createdAt: 'desc' }, skip, take: take + 10, select: { id: true, monthlySeoInvestment: true, currency: true, campaignMonths: true, createdAt: true } }),
+        prisma.contentQA.findMany({ orderBy: { createdAt: 'desc' }, skip, take: take + 10, select: { id: true, title: true, targetKeyword: true, overallScore: true, createdAt: true } }),
         Promise.all([
           prisma.analysis.count(), prisma.audit.count(), prisma.keywordResearch.count(),
           prisma.blogTopic.count(), prisma.generatedLogo.count(), prisma.rOICalculation.count(),
+          prisma.contentQA.count(),
         ]),
       ])
 
@@ -370,6 +378,7 @@ export async function getActivity(req, res) {
         ...blogs.map(r => formatActivity('blog-topic-generator', r)),
         ...logos.map(r => formatActivity('logo-maker', r)),
         ...rois.map(r => formatActivity('seo-roi', r)),
+        ...contentQas.map(r => formatActivity('content-qa', r)),
       ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, take)
     }
 
@@ -397,6 +406,7 @@ async function getToolCount(tool) {
     'blog-topic-generator': () => prisma.blogTopic.count(),
     'logo-maker': () => prisma.generatedLogo.count(),
     'seo-roi': () => prisma.rOICalculation.count(),
+    'content-qa': () => prisma.contentQA.count(),
   }
   return counts[tool] ? counts[tool]() : 0
 }
@@ -409,6 +419,7 @@ function formatActivity(tool, record) {
     'blog-topic-generator': 'Blog Topic Generator',
     'logo-maker': 'Logo Maker',
     'seo-roi': 'ROI Calculator',
+    'content-qa': 'Content QA',
   }
   const base = { id: record.id, tool, toolName: toolNames[tool] || tool, createdAt: record.createdAt }
 
@@ -425,6 +436,8 @@ function formatActivity(tool, record) {
       return { ...base, detail: record.brandName, score: null, subdetail: [record.industry, record.style, record.primaryColor].filter(Boolean).join(' • ') }
     case 'seo-roi':
       return { ...base, detail: `${record.currency} ${record.monthlySeoInvestment}/mo`, score: null, subdetail: `${record.campaignMonths} months campaign` }
+    case 'content-qa':
+      return { ...base, detail: record.title || record.targetKeyword || 'Untitled', score: record.overallScore, subdetail: null }
     default:
       return base
   }

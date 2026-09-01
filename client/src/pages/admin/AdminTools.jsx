@@ -49,6 +49,13 @@ const TOOL_FIELDS = {
     { key: 'primaryColor', label: 'Primary Color', icon: '🔴' },
     { key: 'secondaryColor', label: 'Secondary Color', icon: '🔵' },
   ],
+  'content-qa': [
+    { key: 'content', label: 'Content', icon: '📝' },
+    { key: 'title', label: 'Title', icon: '📰' },
+    { key: 'targetKeyword', label: 'Target Keyword', icon: '🎯' },
+    { key: 'metaDescription', label: 'Meta Description', icon: '📄' },
+    { key: 'urlSlug', label: 'URL Slug', icon: '🌐' },
+  ],
 }
 
 function authHeaders() {

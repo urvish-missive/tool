@@ -12,6 +12,7 @@ import blogTopicRoutes from './routes/blogTopicRoutes.js'
 import logoRoutes from './routes/logoRoutes.js'
 import faqRoutes from './routes/faqRoutes.js'
 import competitorRoutes from './routes/competitorRoutes.js'
+import contentQaRoutes from './routes/contentQaRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 import { toolAccess } from './middleware/toolAccess.js'
 import prisma from './utils/prisma.js'
@@ -48,6 +49,7 @@ app.use('/api/blog-topics', toolAccess('blog-topics'), blogTopicRoutes)
 app.use('/api/logo', toolAccess('logo-maker'), logoRoutes)
 app.use('/api/faqs', toolAccess('faq-generator'), faqRoutes)
 app.use('/api/competitors', toolAccess('competitor-analyzer'), competitorRoutes)
+app.use('/api/content-qa', toolAccess('content-qa'), contentQaRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -154,6 +156,13 @@ async function seedDefaults() {
         style: { enabled: true, label: 'Style', required: false },
         primaryColor: { enabled: true, label: 'Primary Color', required: false },
         secondaryColor: { enabled: true, label: 'Secondary Color', required: false },
+      })},
+      { slug: 'content-qa', name: 'Content QA', description: 'QA checklist to verify content quality before publish', dailyLimit: 100, hourlyLimit: 20, formFields: JSON.stringify({
+        content: { enabled: true, label: 'Content', required: true },
+        title: { enabled: true, label: 'Title', required: false },
+        targetKeyword: { enabled: true, label: 'Target Keyword', required: false },
+        metaDescription: { enabled: true, label: 'Meta Description', required: false },
+        urlSlug: { enabled: true, label: 'URL Slug', required: false },
       })},
       { slug: 'faq-generator', name: 'FAQ Generator', description: 'Generate SEO-friendly FAQ questions and answers', dailyLimit: 80, hourlyLimit: 15, formFields: JSON.stringify({}) },
       { slug: 'competitor-analyzer', name: 'Competitor Analyzer', description: 'Analyze competitor websites for SEO insights', dailyLimit: 40, hourlyLimit: 8, formFields: JSON.stringify({}) },
