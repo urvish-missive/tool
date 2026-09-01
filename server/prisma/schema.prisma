@@ -1,0 +1,166 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+model Analysis {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  content           String
+  targetKeyword     String?
+  secondaryKeywords String?
+  contentType       String
+  searchIntent      String?
+  overallScore      Int
+  seoScore          Int
+  intentScore       Int
+  depthScore        Int
+  readabilityScore  Int
+  structureScore    Int
+  usefulnessScore   Int
+  reportJson        String
+  createdAt         DateTime @default(now())
+  leads             Lead[]
+
+  @@index([createdAt])
+}
+
+model Audit {
+  id                   String      @id @default(auto()) @map("_id") @db.ObjectId
+  websiteUrl           String
+  targetKeyword        String?
+  country              String?
+  overallScore         Int
+  technicalScore       Int
+  onPageScore          Int
+  contentScore         Int
+  performanceScore     Int
+  indexabilityScore    Int
+  linksScore           Int
+  structuredDataScore  Int
+  status               String      @default("pending")
+  reportJson           String
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+  pages                AuditPage[]
+  issues               AuditIssue[]
+  leads                Lead[]
+
+  @@index([createdAt])
+  @@index([websiteUrl])
+}
+
+model AuditPage {
+  id                String   @id @default(auto()) @map("_id") @db.ObjectId
+  auditId           String   @db.ObjectId
+  audit             Audit    @relation(fields: [auditId], references: [id])
+  url               String
+  statusCode        Int
+  title             String?
+  metaDescription   String?
+  canonical         String?
+  h1Count           Int
+  h2Count           Int
+  h3Count           Int
+  wordCount         Int
+  imageCount        Int
+  missingAltCount   Int
+  internalLinkCount Int
+  externalLinkCount Int
+  responseTime      Int
+  isIndexable       Boolean  @default(true)
+  createdAt         DateTime @default(now())
+
+  @@index([auditId])
+}
+
+model AuditIssue {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  auditId        String   @db.ObjectId
+  audit          Audit    @relation(fields: [auditId], references: [id])
+  category       String
+  severity       String
+  title          String
+  description    String
+  recommendation String
+  createdAt      DateTime @default(now())
+
+  @@index([auditId])
+  @@index([severity])
+}
+
+model KeywordResearch {
+  id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  seedKeyword  String
+  websiteUrl   String?
+  country      String?
+  language     String?
+  businessType String?
+  reportJson   String
+  createdAt    DateTime    @default(now())
+  keywords     Keyword[]
+  leads        Lead[]
+
+  @@index([createdAt])
+  @@index([seedKeyword])
+}
+
+model Keyword {
+  id                String          @id @default(auto()) @map("_id") @db.ObjectId
+  researchId        String          @db.ObjectId
+  research          KeywordResearch @relation(fields: [researchId], references: [id])
+  keyword           String
+  intent            String
+  type              String
+  opportunityScore  Int
+  businessRelevance Int
+  reason            String
+  createdAt         DateTime        @default(now())
+
+  @@index([researchId])
+}
+
+model ROICalculation {
+  id                    String    @id @default(auto()) @map("_id") @db.ObjectId
+  currency              String    @default("USD")
+  monthlyTraffic        Int
+  monthlyLeads          Int?
+  averageCustomerValue  Float
+  leadToCustomerRate    Float
+  organicConversionRate Float
+  monthlySeoInvestment  Float
+  campaignMonths        Int
+  conservativeGrowth    Float
+  moderateGrowth        Float
+  aggressiveGrowth      Float
+  resultJson            String
+  createdAt             DateTime  @default(now())
+  leads                 Lead[]
+
+  @@index([createdAt])
+}
+
+model Lead {
+  id                 String            @id @default(auto()) @map("_id") @db.ObjectId
+  name               String
+  email              String
+  company            String?
+  website            String?
+  phone              String?
+  source             String?
+  analysisId         String?           @db.ObjectId
+  analysis           Analysis?         @relation(fields: [analysisId], references: [id])
+  auditId            String?           @db.ObjectId
+  audit              Audit?            @relation(fields: [auditId], references: [id])
+  researchId         String?           @db.ObjectId
+  research           KeywordResearch?  @relation(fields: [researchId], references: [id])
+  roiCalculationId   String?           @db.ObjectId
+  roiCalculation     ROICalculation?   @relation(fields: [roiCalculationId], references: [id])
+  createdAt          DateTime          @default(now())
+
+  @@index([email])
+  @@index([createdAt])
+}
