@@ -1,0 +1,138 @@
+import { useState, useEffect } from 'react'
+
+const API = import.meta.env.VITE_API_URL || '/api'
+
+function authHeaders() {
+  return { Authorization: `Bearer ${localStorage.getItem('admin_token')}`, 'Content-Type': 'application/json' }
+}
+
+export default function AdminTools() {
+  const [tools, setTools] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [saving, setSaving] = useState(null)
+
+  useEffect(() => { fetchTools() }, [])
+
+  const fetchTools = async () => {
+    try {
+      const res = await fetch(`${API}/admin/tools`, { headers: authHeaders() })
+      if (res.status === 401) { localStorage.clear(); window.location.href = '/admin/login'; return }
+      const data = await res.json()
+      if (data.success) setTools(data.tools)
+    } catch (err) { console.error(err) } finally { setLoading(false) }
+  }
+
+  const updateTool = async (id, updates) => {
+    setSaving(id)
+    try {
+      const res = await fetch(`${API}/admin/tools/${id}`, {
+        method: 'PUT',
+        headers: authHeaders(),
+        body: JSON.stringify(updates),
+      })
+      const data = await res.json()
+      if (data.success) {
+        setTools(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t))
+      }
+    } catch (err) { console.error(err) } finally { setSaving(null) }
+  }
+
+  if (loading) return <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-gray-200 border-t-[#0C81F3] rounded-full animate-spin" /></div>
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-gray-900">Tool Management</h2>
+          <p className="text-sm text-gray-500">Enable/disable tools and configure rate limits</p>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {tools.map(tool => (
+          <div key={tool.id} className={`bg-white border rounded-xl p-6 shadow-sm transition-all ${tool.enabled ? 'border-gray-200' : 'border-red-200 bg-red-50/30'}`}>
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h3 className="text-base font-semibold text-gray-900">{tool.name}</h3>
+                <p className="text-xs text-gray-500 mt-0.5">{tool.description}</p>
+                <p className="text-[11px] text-gray-400 mt-1 font-mono">/{tool.slug}</p>
+              </div>
+              <button
+                onClick={() => updateTool(tool.id, { enabled: !tool.enabled })}
+                disabled={saving === tool.id}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${tool.enabled ? 'bg-green-500' : 'bg-gray-300'}`}
+              >
+                <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${tool.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+              </button>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-3 gap-3 mb-4">
+              <div className="bg-gray-50 rounded-lg p-2 text-center">
+                <p className="text-lg font-bold text-gray-900">{tool.todayUsage || 0}</p>
+                <p className="text-[10px] text-gray-500">Today</p>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-2 text-center">
+                <p className="text-lg font-bold text-gray-900">{tool.totalUsage || 0}</p>
+                <p className="text-[10px] text-gray-500">Total</p>
+              </div>
+              <div className="bg-gray-50 rounded-lg p-2 text-center">
+                <p className="text-lg font-bold text-gray-900">{tool.hourlyLimit}</p>
+                <p className="text-[10px] text-gray-500">Limit/hr</p>
+              </div>
+            </div>
+
+            {/* Rate Limits */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Hourly Limit</label>
+                <input
+                  type="number"
+                  value={tool.hourlyLimit}
+                  onChange={(e) => updateTool(tool.id, { hourlyLimit: parseInt(e.target.value) || 0 })}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-[#0C81F3] focus:outline-none"
+                  min="1"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-600 mb-1">Daily Limit</label>
+                <input
+                  type="number"
+                  value={tool.dailyLimit}
+                  onChange={(e) => updateTool(tool.id, { dailyLimit: parseInt(e.target.value) || 0 })}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-[#0C81F3] focus:outline-none"
+                  min="1"
+                />
+              </div>
+            </div>
+
+            {/* Lead Capture Settings */}
+            <div className="border-t border-gray-100 pt-4">
+              <p className="text-xs font-medium text-gray-600 mb-2">Required Fields</p>
+              <div className="flex flex-wrap gap-2">
+                {[
+                  { key: 'requireEmail', label: 'Email' },
+                  { key: 'requireName', label: 'Name' },
+                  { key: 'requirePhone', label: 'Phone' },
+                  { key: 'requireCompany', label: 'Company' },
+                ].map(field => (
+                  <button
+                    key={field.key}
+                    onClick={() => updateTool(tool.id, { [field.key]: !tool[field.key] })}
+                    className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                      tool[field.key]
+                        ? 'bg-[#0C81F3]/10 text-[#0C81F3] border-[#0C81F3]/30'
+                        : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
+                    }`}
+                  >
+                    {field.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}

@@ -199,3 +199,46 @@ model TopicCluster {
   @@index([createdAt])
   @@index([mainKeyword])
 }
+
+model GeneratedLogo {
+  id             String   @id @default(auto()) @map("_id") @db.ObjectId
+  brandName      String
+  description    String?
+  industry       String
+  style          String   @default("modern")
+  primaryColor   String
+  secondaryColor String
+  svgContent     String
+  designJson     String
+  createdAt      DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([brandName])
+}
+
+// ─── Admin & Tool Management ────────────────────────────
+
+model Admin {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  email        String   @unique
+  passwordHash String
+  name         String
+  role         String   @default("admin")
+  createdAt    DateTime @default(now())
+}
+
+model ToolConfig {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  slug            String   @unique
+  name            String
+  description     String?
+  enabled         Boolean  @default(true)
+  dailyLimit      Int      @default(100)
+  hourlyLimit     Int      @default(20)
+  requireEmail    Boolean  @default(true)
+  requireName     Boolean  @default(true)
+  requirePhone    Boolean  @default(false)
+  requireCompany  Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}

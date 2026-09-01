@@ -37,15 +37,24 @@ const TOOLS = [
     path: '/blog-topic-generator',
     badge: 'New',
   },
-  // {
-  //   id: 'seo-roi',
-  //   name: 'SEO ROI Calculator',
-  //   description: 'Estimate potential organic traffic, leads, revenue and ROI from your SEO investment.',
-  //   icon: '💰',
-  //   color: 'from-[#0C81F3] to-[#EB8988]',
-  //   path: '/seo-roi-calculator',
-  //   badge: 'Free Tool',
-  // },
+  {
+    id: 'logo-maker',
+    name: 'Logo Maker',
+    description: 'Create professional logos instantly with our AI-powered logo generator. Choose from multiple styles and colors.',
+    icon: '🎨',
+    color: 'from-[#0C81F3] to-[#EB8988]',
+    path: '/logo-maker',
+    badge: 'New',
+  },
+  {
+    id: 'seo-roi',
+    name: 'SEO ROI Calculator',
+    description: 'Estimate potential organic traffic, leads, revenue and ROI from your SEO investment.',
+    icon: '💰',
+    color: 'from-[#0C81F3] to-[#EB8988]',
+    path: '/seo-roi-calculator',
+    badge: 'Free Tool',
+  },
 ]
 
 export default function Home() {

@@ -93,6 +93,43 @@ export const apiSlice = createApi({
     healthCheck: builder.query({
       query: () => '/health',
     }),
+
+    // GET /api/tools/public
+    getPublicTools: builder.query({
+      query: () => '/tools/public',
+    }),
+
+    // ─── Admin endpoints ────────────────────────
+    adminLogin: builder.mutation({
+      query: (payload) => ({ url: '/admin/login', method: 'POST', body: payload }),
+    }),
+    getAdminStats: builder.query({
+      query: () => ({ url: '/admin/stats', headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` } }),
+    }),
+    getAdminTools: builder.query({
+      query: () => ({ url: '/admin/tools', headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` } }),
+    }),
+    updateAdminTool: builder.mutation({
+      query: ({ id, ...updates }) => ({
+        url: `/admin/tools/${id}`,
+        method: 'PUT',
+        body: updates,
+        headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+      }),
+    }),
+    getAdminLeads: builder.query({
+      query: (params = {}) => ({
+        url: `/admin/leads?${new URLSearchParams(params)}`,
+        headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+      }),
+    }),
+    deleteAdminLead: builder.mutation({
+      query: (id) => ({
+        url: `/admin/leads/${id}`,
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+      }),
+    }),
   }),
 })
 
@@ -107,4 +144,11 @@ export const {
   useGenerateClustersMutation,
   useGetBlogTopicsQuery,
   useHealthCheckQuery,
+  useGetPublicToolsQuery,
+  useAdminLoginMutation,
+  useGetAdminStatsQuery,
+  useGetAdminToolsQuery,
+  useUpdateAdminToolMutation,
+  useGetAdminLeadsQuery,
+  useDeleteAdminLeadMutation,
 } = apiSlice

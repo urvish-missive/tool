@@ -23,9 +23,9 @@ export default function Footer() {
               <li><a href="/content-analyzer" className="hover:text-white transition-colors">Content Analyzer</a></li>
               <li><a href="/seo-audit" className="hover:text-white transition-colors">SEO Website Audit</a></li>
               <li><a href="/keyword-research" className="hover:text-white transition-colors">Keyword Research</a></li>
+              <li><a href="/blog-topic-generator" className="hover:text-white transition-colors">Blog Topic Generator</a></li>
+              <li><a href="/logo-maker" className="hover:text-white transition-colors">Logo Maker</a></li>
               <li><a href="/seo-roi-calculator" className="hover:text-white transition-colors">ROI Calculator</a></li>
-              <li><a href="#" className="hover:text-white transition-colors text-gray-600">Page Speed Checker (Coming Soon)</a></li>
-              <li><a href="#" className="hover:text-white transition-colors text-gray-600">SEO ROI Calculator (Coming Soon)</a></li>
             </ul>
           </div>
 
