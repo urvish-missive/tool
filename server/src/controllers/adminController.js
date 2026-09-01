@@ -113,6 +113,31 @@ export async function getStats(req, res) {
       _count: { id: true },
     })
 
+    // Recent activity across all tools
+    const [recentAnalyses, recentAudits, recentKeywords, recentBlogs, recentLogos, recentRois] = await Promise.all([
+      prisma.analysis.findMany({ orderBy: { createdAt: 'desc' }, take: 10,
+        select: { id: true, targetKeyword: true, overallScore: true, createdAt: true } }),
+      prisma.audit.findMany({ orderBy: { createdAt: 'desc' }, take: 10,
+        select: { id: true, websiteUrl: true, overallScore: true, createdAt: true } }),
+      prisma.keywordResearch.findMany({ orderBy: { createdAt: 'desc' }, take: 10,
+        select: { id: true, seedKeyword: true, websiteUrl: true, createdAt: true } }),
+      prisma.blogTopic.findMany({ orderBy: { createdAt: 'desc' }, take: 10,
+        select: { id: true, niche: true, contentGoal: true, createdAt: true } }),
+      prisma.generatedLogo.findMany({ orderBy: { createdAt: 'desc' }, take: 10,
+        select: { id: true, brandName: true, industry: true, createdAt: true } }),
+      prisma.roiCalculation.findMany({ orderBy: { createdAt: 'desc' }, take: 10,
+        select: { id: true, monthlySeoInvestment: true, currency: true, createdAt: true } }),
+    ])
+
+    const recentActivity = [
+      ...recentAnalyses.map(a => ({ tool: 'Content Analyzer', detail: a.targetKeyword || 'Untitled', score: a.overallScore, createdAt: a.createdAt, id: a.id })),
+      ...recentAudits.map(a => ({ tool: 'SEO Audit', detail: a.websiteUrl, score: a.overallScore, createdAt: a.createdAt, id: a.id })),
+      ...recentKeywords.map(k => ({ tool: 'Keyword Research', detail: k.seedKeyword, website: k.websiteUrl, createdAt: k.createdAt, id: k.id })),
+      ...recentBlogs.map(b => ({ tool: 'Blog Topic Generator', detail: b.niche, goal: b.contentGoal, createdAt: b.createdAt, id: b.id })),
+      ...recentLogos.map(l => ({ tool: 'Logo Maker', detail: l.brandName, industry: l.industry, createdAt: l.createdAt, id: l.id })),
+      ...recentRois.map(r => ({ tool: 'ROI Calculator', detail: `${r.currency} ${r.monthlySeoInvestment}/mo investment`, createdAt: r.createdAt, id: r.id })),
+    ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 15)
+
     res.json({
       success: true,
       stats: {
@@ -127,6 +152,7 @@ export async function getStats(req, res) {
         analysesToday,
         toolConfigs,
         recentLeads,
+        recentActivity,
         leadsBySource: leadsBySource.map(l => ({ source: l.source || 'unknown', count: l._count.id })),
         dailyUsage,
       },

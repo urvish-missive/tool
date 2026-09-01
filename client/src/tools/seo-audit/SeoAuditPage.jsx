@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useRunAuditMutation, useSubmitLeadMutation } from '../../services/apiSlice'
+import { useRunAuditMutation } from '../../services/apiSlice'
+import DynamicLeadForm from '../../components/DynamicLeadForm'
 import AuditForm from './AuditForm'
 import LoadingAudit from './LoadingAudit'
 import ScoreCircle from '../shared/ScoreCircle'
@@ -294,83 +295,18 @@ export default function SeoAuditPage() {
                 <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] rounded-t-2xl" />
                 <h3 className="text-lg font-semibold text-gray-900 mb-1">Get a Free SEO Strategy Session</h3>
                 <p className="text-sm text-gray-600 mb-6">Our experts will review your audit and share personalized recommendations.</p>
-                <AuditLeadForm auditId={auditId} />
+                <DynamicLeadForm
+                  toolSlug="seo-audit"
+                  relatedIdField="auditId"
+                  relatedIdValue={auditId}
+                  title="Get a Free SEO Strategy Session"
+                  subtitle="Our experts will review your audit and share personalized recommendations."
+                />
               </div>
             </div>
           )}
         </div>
       </section>
     </div>
-  )
-}
-
-function AuditLeadForm({ auditId }) {
-  const [form, setForm] = useState({ name: '', email: '', company: '', website: '', phone: '' })
-  const [submitted, setSubmitted] = useState(false)
-  const [error, setError] = useState('')
-  const [submitLeadFn, { isLoading: submitting }] = useSubmitLeadMutation()
-
-  const handleChange = (e) => setForm(f => ({ ...f, [e.target.name]: e.target.value }))
-
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setError('')
-    try {
-      await submitLeadFn({ ...form, auditId, source: 'seo-audit' }).unwrap()
-      setSubmitted(true)
-    } catch (err) {
-      setError(err?.data?.error || 'Something went wrong.')
-    }
-  }
-
-  if (submitted) {
-    return (
-      <div className="bg-green-50 border border-green-200 rounded-2xl p-8 text-center">
-        <svg className="w-12 h-12 text-green-500 mx-auto mb-3" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        <h3 className="text-lg font-semibold text-green-800">Thank you!</h3>
-        <p className="text-green-700 mt-1">We'll be in touch within 24 hours with your free SEO strategy.</p>
-      </div>
-    )
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div className="grid sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-          <input name="name" type="text" required value={form.name} onChange={handleChange}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Business Email *</label>
-          <input name="email" type="email" required value={form.email} onChange={handleChange}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
-        </div>
-      </div>
-      <div className="grid sm:grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
-          <input name="company" type="text" value={form.company} onChange={handleChange}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Website</label>
-          <input name="website" type="url" value={form.website} onChange={handleChange}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
-        </div>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">Phone (optional)</label>
-        <input name="phone" type="tel" value={form.phone} onChange={handleChange}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
-      </div>
-      {error && <p className="text-sm text-red-600">{error}</p>}
-      <button type="submit" disabled={submitting}
-        className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-8 py-3.5 text-sm font-semibold text-white hover:from-[#0D73D1] hover:to-[#E77771] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#0C81F3]/25 hover:shadow-[#0C81F3]/40">
-        {submitting ? 'Submitting...' : 'Request My SEO Strategy'}
-      </button>
-    </form>
   )
 }

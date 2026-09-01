@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
-import { useCalculateROIMutation, useSubmitLeadMutation } from '../../services/apiSlice'
+import { useCalculateROIMutation } from '../../services/apiSlice'
+import DynamicLeadForm from '../../components/DynamicLeadForm'
 import ModelSelector from '../shared/ModelSelector'
 
 const CURRENCIES = [
@@ -415,54 +416,17 @@ export default function SeoRoiPage() {
               </div>
 
               {/* Lead Form */}
-              <RoiLeadForm calculationId={data?.calculationId} />
+              <DynamicLeadForm
+                toolSlug="seo-roi"
+                relatedIdField="roiCalculationId"
+                relatedIdValue={data?.calculationId}
+                title="Get My SEO Growth Plan"
+                subtitle="Our experts will review your assumptions and build a customized SEO growth model."
+              />
             </div>
           )}
         </div>
       </section>
-    </div>
-  )
-}
-
-function RoiLeadForm({ calculationId }) {
-  const [form, setForm] = useState({ name: '', email: '', company: '', website: '', phone: '' })
-  const [submitLead, { isLoading }] = useSubmitLeadMutation()
-  const [submitted, setSubmitted] = useState(false)
-  const [error, setError] = useState('')
-
-  const handleSubmit = async (e) => {
-    e.preventDefault(); setError('')
-    try { await submitLead({ ...form, roiCalculationId: calculationId, source: 'roi-calculator' }).unwrap(); setSubmitted(true) }
-    catch (err) { setError(err?.data?.error || 'Something went wrong.') }
-  }
-
-  if (submitted) return (
-    <div className="bg-green-50 border border-green-200 rounded-2xl p-8 text-center">
-      <h3 className="text-lg font-semibold text-green-800">Thank you!</h3>
-      <p className="text-green-700 mt-1">We'll be in touch within 24 hours with your personalized SEO growth plan.</p>
-    </div>
-  )
-
-  return (
-    <div className="relative bg-white rounded-2xl border border-gray-200 shadow-lg shadow-gray-200/50 p-6 sm:p-8">
-      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-600 via-teal-500 to-cyan-400 rounded-t-2xl" />
-      <h3 className="text-lg font-semibold text-gray-900 mb-1">Get My SEO Growth Plan</h3>
-      <p className="text-sm text-gray-600 mb-6">Our experts will review your assumptions and build a customized SEO growth model.</p>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Name *</label><input name="name" type="text" required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" /></div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Business Email *</label><input name="email" type="email" required value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" /></div>
-        </div>
-        <div className="grid sm:grid-cols-2 gap-4">
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Company</label><input name="company" type="text" value={form.company} onChange={e => setForm(f => ({ ...f, company: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" /></div>
-          <div><label className="block text-sm font-medium text-gray-700 mb-1">Website</label><input name="website" type="url" value={form.website} onChange={e => setForm(f => ({ ...f, website: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" /></div>
-        </div>
-        <div><label className="block text-sm font-medium text-gray-700 mb-1">Phone</label><input name="phone" type="tel" value={form.phone} onChange={e => setForm(f => ({ ...f, phone: e.target.value }))} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" /></div>
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button type="submit" disabled={isLoading} className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-8 py-3.5 text-sm font-semibold text-white hover:from-[#0D73D1] hover:to-[#E77771] disabled:opacity-50 transition-all shadow-lg shadow-[#0C81F3]/25">
-          {isLoading ? 'Submitting...' : 'Get My SEO Growth Plan'}
-        </button>
-      </form>
     </div>
   )
 }

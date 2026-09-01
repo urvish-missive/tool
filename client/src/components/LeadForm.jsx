@@ -1,11 +1,33 @@
-import { useState } from 'react'
-import { useSubmitLeadMutation } from '../services/apiSlice'
+import { useState, useEffect } from 'react'
+import { useSubmitLeadMutation, useGetPublicToolsQuery } from '../services/apiSlice'
 
-export default function LeadForm({ analysisId }) {
+const API = import.meta.env.VITE_API_URL || '/api'
+
+export default function LeadForm({ analysisId, toolSlug = 'content-analyzer' }) {
   const [form, setForm] = useState({ name: '', email: '', company: '', website: '', phone: '' })
   const [submitLead, { isLoading }] = useSubmitLeadMutation()
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
+  const [fieldConfig, setFieldConfig] = useState({ requireEmail: true, requireName: true, requirePhone: false, requireCompany: false })
+
+  useEffect(() => {
+    fetch(`${API}/tools/public`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          const tool = data.tools.find(t => t.slug === toolSlug)
+          if (tool) {
+            setFieldConfig({
+              requireEmail: tool.requireEmail ?? true,
+              requireName: tool.requireName ?? true,
+              requirePhone: tool.requirePhone ?? false,
+              requireCompany: tool.requireCompany ?? false,
+            })
+          }
+        }
+      })
+      .catch(() => {})
+  }, [toolSlug])
 
   const handleChange = (e) => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }))
@@ -34,36 +56,33 @@ export default function LeadForm({ analysisId }) {
     )
   }
 
+  const fields = [
+    { name: 'name', label: 'Name', type: 'text', required: fieldConfig.requireName, col: true },
+    { name: 'email', label: 'Business Email', type: 'email', required: fieldConfig.requireEmail, col: true },
+    { name: 'company', label: 'Company', type: 'text', required: fieldConfig.requireCompany, col: true },
+    { name: 'website', label: 'Website', type: 'url', required: false, col: true },
+    { name: 'phone', label: 'Phone', type: 'tel', required: fieldConfig.requirePhone, col: false },
+  ].filter(f => f.required || form[f.name])
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid sm:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="lead-name" className="block text-sm font-medium text-gray-700 mb-1">Name *</label>
-          <input id="lead-name" name="name" type="text" required value={form.name} onChange={handleChange}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
-        </div>
-        <div>
-          <label htmlFor="lead-email" className="block text-sm font-medium text-gray-700 mb-1">Business Email *</label>
-          <input id="lead-email" name="email" type="email" required value={form.email} onChange={handleChange}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
-        </div>
-      </div>
-      <div className="grid sm:grid-cols-2 gap-4">
-        <div>
-          <label htmlFor="lead-company" className="block text-sm font-medium text-gray-700 mb-1">Company</label>
-          <input id="lead-company" name="company" type="text" value={form.company} onChange={handleChange}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
-        </div>
-        <div>
-          <label htmlFor="lead-website" className="block text-sm font-medium text-gray-700 mb-1">Website</label>
-          <input id="lead-website" name="website" type="url" value={form.website} onChange={handleChange}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
-        </div>
-      </div>
-      <div>
-        <label htmlFor="lead-phone" className="block text-sm font-medium text-gray-700 mb-1">Phone (optional)</label>
-        <input id="lead-phone" name="phone" type="tel" value={form.phone} onChange={handleChange}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+        {fields.map(f => (
+          <div key={f.name} className={!f.col ? 'sm:col-span-2' : ''}>
+            <label htmlFor={`lead-${f.name}`} className="block text-sm font-medium text-gray-700 mb-1">
+              {f.label} {f.required && <span className="text-red-500">*</span>}
+            </label>
+            <input
+              id={`lead-${f.name}`}
+              name={f.name}
+              type={f.type}
+              required={f.required}
+              value={form[f.name]}
+              onChange={handleChange}
+              className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            />
+          </div>
+        ))}
       </div>
       {error && <p className="text-sm text-red-600">{error}</p>}
       <button type="submit" disabled={isLoading}

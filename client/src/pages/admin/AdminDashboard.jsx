@@ -104,6 +104,56 @@ export default function AdminDashboard() {
         </div>
       </div>
 
+      {/* Recent Activity */}
+      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
+        <h3 className="text-base font-semibold text-gray-900 mb-4">Recent Activity</h3>
+        {(!stats.recentActivity || stats.recentActivity.length === 0) ? (
+          <p className="text-sm text-gray-400 py-8 text-center">No activity yet</p>
+        ) : (
+          <div className="space-y-2">
+            {stats.recentActivity.map((item, i) => {
+              const toolColors = {
+                'Content Analyzer': 'bg-purple-100 text-purple-700',
+                'SEO Audit': 'bg-orange-100 text-orange-700',
+                'Keyword Research': 'bg-yellow-100 text-yellow-700',
+                'Blog Topic Generator': 'bg-green-100 text-green-700',
+                'Logo Maker': 'bg-blue-100 text-blue-700',
+                'ROI Calculator': 'bg-pink-100 text-pink-700',
+              }
+              const toolIcons = {
+                'Content Analyzer': '📝',
+                'SEO Audit': '🔍',
+                'Keyword Research': '🎯',
+                'Blog Topic Generator': '💡',
+                'Logo Maker': '🎨',
+                'ROI Calculator': '💰',
+              }
+              return (
+                <div key={i} className="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0">
+                  <span className="text-base">{toolIcons[item.tool] || '🛠️'}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${toolColors[item.tool] || 'bg-gray-100 text-gray-600'}`}>
+                        {item.tool}
+                      </span>
+                      {item.score != null && (
+                        <span className={`text-xs font-semibold ${item.score >= 70 ? 'text-green-600' : item.score >= 40 ? 'text-yellow-600' : 'text-red-500'}`}>
+                          {item.score}/100
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-700 truncate mt-0.5">{item.detail}</p>
+                  </div>
+                  <span className="text-xs text-gray-400 shrink-0">
+                    {new Date(item.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
+
       {/* Recent Leads */}
       <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">

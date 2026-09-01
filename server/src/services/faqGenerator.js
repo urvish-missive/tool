@@ -13,8 +13,10 @@ ${keywordText}
 Requirements:
 - Questions should be common search queries people actually ask
 - Include a mix of: what, how, why, when, where, which questions
+- Questions should be specific enough to target featured snippets
 - Each answer should be 40-80 words
 - Answers should be informative, accurate, and helpful
+- Use natural, conversational language
 - Include the target keyword naturally in relevant answers
 
 Return ONLY valid JSON:
@@ -22,7 +24,7 @@ Return ONLY valid JSON:
   "faqs": [
     {
       "question": "What is [topic]?",
-      "answer": "Clear, concise answer...",
+      "answer": "Clear, concise answer in 40-80 words...",
       "type": "what|how|why|when|where|which"
     }
   ]
@@ -57,7 +59,7 @@ function generateFallbackFAQs(topic, keywords, count) {
   const baseFAQs = [
     {
       question: `What is ${primaryKeyword}?`,
-      answer: `${primaryKeyword} is a comprehensive solution that helps businesses and individuals achieve better results in their respective fields. It combines best practices with modern technology to deliver measurable outcomes.`,
+      answer: `${primaryKeyword} is a comprehensive solution that helps businesses and individuals achieve better results. It combines best practices with modern technology to deliver measurable outcomes.`,
       type: 'what',
     },
     {
@@ -67,32 +69,32 @@ function generateFallbackFAQs(topic, keywords, count) {
     },
     {
       question: `Why should I use ${primaryKeyword}?`,
-      answer: `Using ${primaryKeyword} can significantly improve your efficiency and results. It saves time, reduces costs, and provides data-driven insights that help you make better decisions for your business or project.`,
+      answer: `Using ${primaryKeyword} can significantly improve your efficiency and results. It saves time, reduces costs, and provides data-driven insights that help you make better decisions.`,
       type: 'why',
     },
     {
       question: `What are the main benefits of ${primaryKeyword}?`,
-      answer: `The main benefits include increased productivity, cost savings, improved accuracy, and better decision-making capabilities. ${secondaryKeyword ? `It also helps with ${secondaryKeyword} by streamlining processes and providing actionable insights.` : ''}`,
+      answer: `The main benefits include increased productivity, cost savings, improved accuracy, and better decision-making capabilities. ${secondaryKeyword ? `It also helps with ${secondaryKeyword} by streamlining processes.` : ''}`,
       type: 'what',
     },
     {
       question: `How long does it take to see results from ${primaryKeyword}?`,
-      answer: `Results from ${primaryKeyword} vary depending on your implementation and goals. Most users see initial improvements within 2-4 weeks, with significant results appearing within 2-3 months of consistent use.`,
+      answer: `Results from ${primaryKeyword} vary depending on your implementation. Most users see initial improvements within 2-4 weeks, with significant results appearing within 2-3 months of consistent use.`,
       type: 'how',
     },
     {
       question: `Is ${primaryKeyword} suitable for beginners?`,
-      answer: `Yes, ${primaryKeyword} is designed to be user-friendly for beginners while still offering advanced features for experienced users. Comprehensive guidance and support are provided to help newcomers get started effectively.`,
+      answer: `Yes, ${primaryKeyword} is designed to be user-friendly for beginners while still offering advanced features for experienced users. Comprehensive guidance is provided to help newcomers get started.`,
       type: 'what',
     },
     {
       question: `What industries benefit most from ${primaryKeyword}?`,
-      answer: `${primaryKeyword} benefits a wide range of industries including technology, healthcare, finance, education, and e-commerce. Any business looking to improve efficiency and outcomes can leverage its capabilities.`,
+      answer: `${primaryKeyword} benefits a wide range of industries including technology, healthcare, finance, education, and e-commerce. Any business looking to improve efficiency can leverage its capabilities.`,
       type: 'which',
     },
     {
       question: `How do I get started with ${primaryKeyword}?`,
-      answer: `To get started with ${primaryKeyword}, identify your specific goals and needs. Research best practices, gather necessary resources, and implement gradually. Consider consulting with experts for personalized guidance.`,
+      answer: `To get started with ${primaryKeyword}, identify your specific goals and needs. Research best practices, gather necessary resources, and implement gradually. Consider consulting experts for personalized guidance.`,
       type: 'how',
     },
   ]

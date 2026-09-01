@@ -1,7 +1,7 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import LoadingProgress from '../components/LoadingProgress'
 import AIAnalyticsSection from '../components/AIAnalyticsSection'
-import LeadForm from '../components/LeadForm'
+import DynamicLeadForm from '../components/DynamicLeadForm'
 import ModelSelector from '../tools/shared/ModelSelector'
 import { useAnalyzeContentMutation } from '../services/apiSlice'
 
@@ -255,12 +255,13 @@ export default function ContentAnalyzerPage() {
                 </div>
 
                 {/* Lead Form */}
-                <div className="relative bg-white rounded-2xl border border-gray-200 shadow-lg shadow-gray-200/50 p-6 sm:p-8">
-                  <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-purple-500 to-pink-400 rounded-t-2xl" />
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">Want a deeper SEO analysis?</h3>
-                  <p className="text-sm text-gray-600 mb-6">Our SEO experts can review your content, competitors and search strategy.</p>
-                  <LeadForm analysisId={analysisId} />
-                </div>
+                <DynamicLeadForm
+                  toolSlug="content-analyzer"
+                  relatedIdField="analysisId"
+                  relatedIdValue={analysisId}
+                  title="Want a deeper SEO analysis?"
+                  subtitle="Our SEO experts can review your content, competitors and search strategy."
+                />
               </div>
             )}
           </div>
