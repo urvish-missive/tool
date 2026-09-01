@@ -201,6 +201,12 @@ export async function updateTool(req, res) {
     if (requirePhone !== undefined) data.requirePhone = requirePhone
     if (requireCompany !== undefined) data.requireCompany = requireCompany
     if (showLeadPopup !== undefined) data.showLeadPopup = showLeadPopup
+    if (req.body.formFields !== undefined) {
+      // Store as JSON string — merge with existing fields if partial update
+      const existing = await prisma.toolConfig.findUnique({ where: { id }, select: { formFields: true } })
+      const prev = existing?.formFields ? JSON.parse(existing.formFields) : {}
+      data.formFields = JSON.stringify({ ...prev, ...req.body.formFields })
+    }
     if (name !== undefined) data.name = name
     if (description !== undefined) data.description = description
 

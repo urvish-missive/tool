@@ -270,6 +270,7 @@ model ToolConfig {
   requirePhone    Boolean  @default(false)
   requireCompany  Boolean  @default(false)
   showLeadPopup   Boolean  @default(false)
+  formFields      String   @default("{}") // JSON: { fieldName: { enabled: bool, label: string, required: bool, type: string } }
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }

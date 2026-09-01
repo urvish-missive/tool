@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import ModelSelector from '../shared/ModelSelector'
+import useToolFields from '../../hooks/useToolFields'
 
 const COUNTRIES = ['United States', 'United Kingdom', 'India', 'Canada', 'Australia', 'Germany', 'France', 'Japan', 'Brazil', 'Other']
 
@@ -9,25 +10,27 @@ export default function AuditForm({ onSubmit, isLoading }) {
   const [country, setCountry] = useState('')
   const [aiModel, setAiModel] = useState('openrouter')
   const [error, setError] = useState('')
+  const { isFieldEnabled } = useToolFields('seo-audit')
 
   const handleSubmit = (e) => {
     e.preventDefault()
     setError('')
 
-    if (!websiteUrl.trim()) {
-      setError('Please enter a website URL.')
-      return
-    }
-
-    try {
-      const parsed = new URL(websiteUrl.trim())
-      if (!['http:', 'https:'].includes(parsed.protocol)) {
-        setError('Please enter a valid HTTP or HTTPS URL.')
+    if (isFieldEnabled('url')) {
+      if (!websiteUrl.trim()) {
+        setError('Please enter a website URL.')
         return
       }
-    } catch {
-      setError('Please enter a valid website URL (e.g. https://example.com)')
-      return
+      try {
+        const parsed = new URL(websiteUrl.trim())
+        if (!['http:', 'https:'].includes(parsed.protocol)) {
+          setError('Please enter a valid HTTP or HTTPS URL.')
+          return
+        }
+      } catch {
+        setError('Please enter a valid website URL (e.g. https://example.com)')
+        return
+      }
     }
 
     onSubmit({
@@ -55,6 +58,7 @@ export default function AuditForm({ onSubmit, isLoading }) {
       </div>
 
       {/* Target Keyword */}
+      {isFieldEnabled('keyword') && (
       <div>
         <label htmlFor="audit-keyword" className="block text-sm font-semibold text-gray-900 mb-1">Target Keyword (optional)</label>
         <input
@@ -66,6 +70,7 @@ export default function AuditForm({ onSubmit, isLoading }) {
           className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
         />
       </div>
+      )}
 
       {/* Country + AI Model */}
       <div className="grid sm:grid-cols-2 gap-4">

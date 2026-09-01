@@ -5,6 +5,7 @@ import DynamicLeadForm from '../components/DynamicLeadForm'
 import LeadCaptureModal from '../components/LeadCaptureModal'
 import ModelSelector from '../tools/shared/ModelSelector'
 import { useAnalyzeContentMutation } from '../services/apiSlice'
+import useToolFields from '../hooks/useToolFields'
 
 const CONTENT_TYPES = ['Blog Post', 'Landing Page', 'Product Page', 'Service Page', 'Article', 'Other']
 const SEARCH_INTENTS = ['Auto Detect', 'Informational', 'Commercial', 'Transactional', 'Navigational']
@@ -36,6 +37,9 @@ export default function ContentAnalyzerPage() {
       .catch(() => {})
   }, [])
 
+  // Admin-controlled field visibility
+  const { isFieldEnabled } = useToolFields('content-analyzer')
+
   // RTK Query mutation
   const [analyzeContent, { isLoading, isError, error, data }] = useAnalyzeContentMutation()
 
@@ -65,18 +69,20 @@ export default function ContentAnalyzerPage() {
     e.preventDefault()
     setValidationError('')
 
-    // Validate
-    if (!content.trim()) {
-      setValidationError('Please enter your content.')
-      return
-    }
-    if (content.trim().length < 100) {
-      setValidationError(`Content must be at least 100 characters. Currently ${content.trim().length}.`)
-      return
-    }
-    if (content.trim().length > 50000) {
-      setValidationError('Content must be under 50,000 characters.')
-      return
+    // Validate only visible required fields
+    if (isFieldEnabled('content')) {
+      if (!content.trim()) {
+        setValidationError('Please enter your content.')
+        return
+      }
+      if (content.trim().length < 100) {
+        setValidationError(`Content must be at least 100 characters. Currently ${content.trim().length}.`)
+        return
+      }
+      if (content.trim().length > 50000) {
+        setValidationError('Content must be under 50,000 characters.')
+        return
+      }
     }
 
     // Show lead popup if enabled
@@ -198,6 +204,7 @@ export default function ContentAnalyzerPage() {
                 </div>
 
                 {/* Target Keyword */}
+                {isFieldEnabled('keyword') && (
                 <div>
                   <label htmlFor="target-keyword" className="block text-sm font-semibold text-gray-900 mb-1">Target Keyword (optional)</label>
                   <input
@@ -209,8 +216,10 @@ export default function ContentAnalyzerPage() {
                     className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   />
                 </div>
+                )}
 
                 {/* Secondary Keywords */}
+                {isFieldEnabled('secondaryKeywords') && (
                 <div>
                   <label htmlFor="secondary-keywords" className="block text-sm font-semibold text-gray-900 mb-1">Secondary Keywords (optional)</label>
                   <input
@@ -223,9 +232,11 @@ export default function ContentAnalyzerPage() {
                   />
                   <p className="text-xs text-gray-500 mt-1">Comma-separated</p>
                 </div>
+                )}
 
                 {/* Content Type + Search Intent + AI Model */}
                 <div className="grid sm:grid-cols-3 gap-4">
+                  {isFieldEnabled('contentType') && (
                   <div>
                     <label htmlFor="content-type" className="block text-sm font-semibold text-gray-900 mb-1">Content Type</label>
                     <select id="content-type" value={contentType} onChange={(e) => setContentType(e.target.value)}
@@ -233,6 +244,7 @@ export default function ContentAnalyzerPage() {
                       {CONTENT_TYPES.map(t => <option key={t}>{t}</option>)}
                     </select>
                   </div>
+                  )}
                   <div>
                     <label htmlFor="search-intent" className="block text-sm font-semibold text-gray-900 mb-1">Search Intent</label>
                     <select id="search-intent" value={searchIntent} onChange={(e) => setSearchIntent(e.target.value)}

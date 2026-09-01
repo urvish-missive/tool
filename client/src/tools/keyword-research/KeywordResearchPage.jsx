@@ -4,6 +4,7 @@ import DynamicLeadForm from '../../components/DynamicLeadForm'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import ModelSelector from '../shared/ModelSelector'
+import useToolFields from '../../hooks/useToolFields'
 
 const COUNTRIES = ['United States', 'United Kingdom', 'Canada', 'Australia', 'India', 'Germany', 'France', 'UAE', 'Singapore', 'Other']
 const BUSINESS_TYPES = ['B2B', 'B2C', 'E-commerce', 'SaaS', 'Agency', 'Local Business', 'Publisher', 'Enterprise', 'Other']
@@ -226,6 +227,7 @@ export default function KeywordResearchPage() {
   const [researchKeywords, { isLoading, isError, error, data }] = useResearchKeywordsMutation()
   const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose, triggerPopup } = useLeadPopup('keyword-research')
   const [pendingForm, setPendingForm] = useState(null)
+  const { isFieldEnabled } = useToolFields('keyword-research')
 
   useEffect(() => {
     if (!isLoading) return
@@ -255,8 +257,8 @@ export default function KeywordResearchPage() {
   const handleSubmit = (e) => {
     e.preventDefault()
     setValidationError('')
-    const hasKeyword = seedKeyword.trim().length >= 2
-    const hasUrl = websiteUrl.trim().length > 0
+    const hasKeyword = isFieldEnabled('seedKeyword') && seedKeyword.trim().length >= 2
+    const hasUrl = isFieldEnabled('websiteUrl') && websiteUrl.trim().length > 0
     if (!hasKeyword && !hasUrl) { setValidationError('Please enter a seed keyword or website URL (at least one is required).'); return }
     if (hasKeyword && seedKeyword.trim().length < 2) { setValidationError('Keyword must be at least 2 characters.'); return }
     if (hasUrl) {
@@ -307,29 +309,37 @@ export default function KeywordResearchPage() {
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           {!report && !isLoading && (
             <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-200 shadow-lg shadow-gray-200/50 p-6 sm:p-8 space-y-5 max-w-2xl mx-auto">
+              {isFieldEnabled('seedKeyword') && (
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-1">Seed Keyword</label>
                 <input type="text" maxLength={100} value={seedKeyword} onChange={e => setSeedKeyword(e.target.value)}
                   placeholder="e.g. enterprise SEO" className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
               </div>
+              )}
+              {isFieldEnabled('websiteUrl') && (
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-1">Website URL (optional)</label>
                 <input type="url" value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} placeholder="https://example.com"
                   className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
               </div>
+              )}
               <div className="grid sm:grid-cols-3 gap-4">
+                {isFieldEnabled('country') && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-1">Country</label>
                   <select value={country} onChange={e => setCountry(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white">
                     {COUNTRIES.map(c => <option key={c}>{c}</option>)}
                   </select>
                 </div>
+                )}
+                {isFieldEnabled('businessType') && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-1">Business Type</label>
                   <select value={businessType} onChange={e => setBusinessType(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white">
                     {BUSINESS_TYPES.map(b => <option key={b}>{b}</option>)}
                   </select>
                 </div>
+                )}
                 <ModelSelector value={aiModel} onChange={setAiModel} />
               </div>
               {validationError && <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">{validationError}</div>}

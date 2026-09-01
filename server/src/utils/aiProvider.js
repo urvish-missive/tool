@@ -36,7 +36,7 @@ async function callProvider(providerName, messages, options = {}) {
     throw new Error(`Provider "${providerName}" not configured (missing API key)`)
   }
 
-  const { temperature = 0.4, maxTokens = 8000, timeout = AI_TIMEOUT, jsonMode = false } = options
+  const { temperature = 0.4, maxTokens = 4000, timeout = AI_TIMEOUT, jsonMode = false } = options
 
   const body = {
       model: provider.model,
@@ -57,8 +57,15 @@ async function callProvider(providerName, messages, options = {}) {
 
   if (!response.ok) {
     const status = response.status
-    const body = await response.text().catch(() => '')
-    throw new Error(`AI API ${providerName} returned ${status}: ${body.substring(0, 200)}`)
+    const bodyText = await response.text().catch(() => '')
+
+    // Handle 402 (credits exceeded) — retry with fewer tokens
+    if (status === 402 && maxTokens > 1000) {
+      console.log(`Retrying ${providerName} with reduced tokens (${Math.floor(maxTokens / 2)})`)
+      return callProvider(providerName, messages, { ...options, maxTokens: Math.floor(maxTokens / 2) })
+    }
+
+    throw new Error(`AI API ${providerName} returned ${status}: ${bodyText.substring(0, 200)}`)
   }
 
   const data = await response.json()

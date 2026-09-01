@@ -58,7 +58,7 @@ app.get('/api/health', (req, res) => {
 app.get('/api/tools/public', async (req, res) => {
   try {
     const tools = await prisma.toolConfig.findMany({
-      select: { slug: true, name: true, enabled: true, requireEmail: true, requireName: true, requirePhone: true, requireCompany: true, showLeadPopup: true },
+      select: { slug: true, name: true, enabled: true, requireEmail: true, requireName: true, requirePhone: true, requireCompany: true, showLeadPopup: true, formFields: true },
     })
     res.json({ success: true, tools })
   } catch {
@@ -110,14 +110,53 @@ async function seedDefaults() {
   const toolCount = await prisma.toolConfig.count()
   if (toolCount === 0) {
     const tools = [
-      { slug: 'content-analyzer', name: 'Content Analyzer', description: 'Analyze content for SEO optimization', dailyLimit: 100, hourlyLimit: 20 },
-      { slug: 'seo-audit', name: 'SEO Audit', description: 'Audit websites for technical SEO issues', dailyLimit: 50, hourlyLimit: 10 },
-      { slug: 'keyword-research', name: 'Keyword Research', description: 'Generate keyword ideas and opportunities', dailyLimit: 80, hourlyLimit: 15 },
-      { slug: 'seo-roi', name: 'SEO ROI Calculator', description: 'Estimate SEO ROI and organic traffic', dailyLimit: 200, hourlyLimit: 50 },
-      { slug: 'blog-topics', name: 'Blog Topic Generator', description: 'Generate blog topics and content ideas', dailyLimit: 60, hourlyLimit: 12 },
-      { slug: 'logo-maker', name: 'Logo Maker', description: 'Generate logo designs with AI', dailyLimit: 30, hourlyLimit: 5 },
-      { slug: 'faq-generator', name: 'FAQ Generator', description: 'Generate SEO-friendly FAQ questions and answers', dailyLimit: 80, hourlyLimit: 15 },
-      { slug: 'competitor-analyzer', name: 'Competitor Analyzer', description: 'Analyze competitor websites for SEO insights', dailyLimit: 40, hourlyLimit: 8 },
+      { slug: 'content-analyzer', name: 'Content Analyzer', description: 'Analyze content for SEO optimization', dailyLimit: 100, hourlyLimit: 20, formFields: JSON.stringify({
+        content: { enabled: true, label: 'Content', required: true },
+        keyword: { enabled: true, label: 'Primary Keyword', required: false },
+        secondaryKeywords: { enabled: true, label: 'Secondary Keywords', required: false },
+        contentType: { enabled: true, label: 'Content Type', required: false },
+        country: { enabled: true, label: 'Country', required: false },
+      })},
+      { slug: 'seo-audit', name: 'SEO Audit', description: 'Audit websites for technical SEO issues', dailyLimit: 50, hourlyLimit: 10, formFields: JSON.stringify({
+        url: { enabled: true, label: 'Website URL', required: true },
+        html: { enabled: true, label: 'Paste HTML', required: false },
+        keyword: { enabled: true, label: 'Target Keyword', required: false },
+      })},
+      { slug: 'keyword-research', name: 'Keyword Research', description: 'Generate keyword ideas and opportunities', dailyLimit: 80, hourlyLimit: 15, formFields: JSON.stringify({
+        seedKeyword: { enabled: true, label: 'Seed Keyword', required: false },
+        websiteUrl: { enabled: true, label: 'Website URL', required: false },
+        country: { enabled: true, label: 'Country', required: false },
+        businessType: { enabled: true, label: 'Business Type', required: false },
+      })},
+      { slug: 'seo-roi', name: 'SEO ROI Calculator', description: 'Estimate SEO ROI and organic traffic', dailyLimit: 200, hourlyLimit: 50, formFields: JSON.stringify({
+        currency: { enabled: true, label: 'Currency', required: false },
+        traffic: { enabled: true, label: 'Monthly Traffic', required: true },
+        leads: { enabled: true, label: 'Monthly Leads', required: false },
+        custValue: { enabled: true, label: 'Customer Value', required: true },
+        custRate: { enabled: true, label: 'Lead → Customer Rate', required: false },
+        convRate: { enabled: true, label: 'Organic → Lead Rate', required: false },
+        investment: { enabled: true, label: 'Monthly Investment', required: true },
+        months: { enabled: true, label: 'Campaign Duration', required: false },
+        growthPreset: { enabled: true, label: 'Growth Scenario', required: false },
+      })},
+      { slug: 'blog-topics', name: 'Blog Topic Generator', description: 'Generate blog topics and content ideas', dailyLimit: 60, hourlyLimit: 12, formFields: JSON.stringify({
+        niche: { enabled: true, label: 'Niche / Industry', required: true },
+        targetKeywords: { enabled: true, label: 'Target Keywords', required: false },
+        audience: { enabled: true, label: 'Target Audience', required: false },
+        contentGoal: { enabled: true, label: 'Content Goal', required: false },
+        contentType: { enabled: true, label: 'Content Type', required: false },
+        topicCount: { enabled: true, label: 'Topic Count', required: false },
+      })},
+      { slug: 'logo-maker', name: 'Logo Maker', description: 'Generate logo designs with AI', dailyLimit: 30, hourlyLimit: 5, formFields: JSON.stringify({
+        brandName: { enabled: true, label: 'Brand Name', required: true },
+        description: { enabled: true, label: 'Description', required: false },
+        industry: { enabled: true, label: 'Industry', required: false },
+        style: { enabled: true, label: 'Style', required: false },
+        primaryColor: { enabled: true, label: 'Primary Color', required: false },
+        secondaryColor: { enabled: true, label: 'Secondary Color', required: false },
+      })},
+      { slug: 'faq-generator', name: 'FAQ Generator', description: 'Generate SEO-friendly FAQ questions and answers', dailyLimit: 80, hourlyLimit: 15, formFields: JSON.stringify({}) },
+      { slug: 'competitor-analyzer', name: 'Competitor Analyzer', description: 'Analyze competitor websites for SEO insights', dailyLimit: 40, hourlyLimit: 8, formFields: JSON.stringify({}) },
     ]
     await prisma.toolConfig.createMany({ data: tools })
     console.log('✓ Default tool configs created')
