@@ -88,6 +88,7 @@ export async function createAudit(req, res) {
         missingAltCount: p.missingAltCount,
       })),
       ai: aiReport,
+      ai_report: aiReport,
     }
 
     // Save to DB

@@ -83,21 +83,27 @@ Return a JSON object with this EXACT structure:
 }
 
 function validateAIReport(report, d) {
+  const fallback = generateFallbackAIReport(d)
+
+  const rawSnippets = report.quick_fix_snippets || report.quickFixSnippets || report.snippets || report.code_snippets || report.codeSnippets
+  const snippets = Array.isArray(rawSnippets) && rawSnippets.length > 0
+    ? rawSnippets
+    : fallback.quick_fix_snippets
+
+  const rawPlan = report.thirty_day_plan || report.thirtyDayPlan || report.sprint_plan || report.action_plan
+  const plan = Array.isArray(rawPlan) && rawPlan.length > 0
+    ? rawPlan
+    : fallback.thirty_day_plan
+
   return {
-    executive_summary: typeof report.executive_summary === 'string' ? report.executive_summary : `Website scored ${d.overallScore}/100.`,
-    overall_assessment: typeof report.overall_assessment === 'string' ? report.overall_assessment : 'Audit analysis complete.',
-    top_priorities: Array.isArray(report.top_priorities) ? report.top_priorities : [],
-    quick_fix_snippets: Array.isArray(report.quick_fix_snippets) ? report.quick_fix_snippets : [
-      {
-        title: 'Recommended Meta Tags Template',
-        language: 'html',
-        code: `<meta name="description" content="Engaging 150-160 character description of ${d.targetUrl}">\n<link rel="canonical" href="${d.targetUrl}">\n<meta name="robots" content="index, follow">`,
-      },
-    ],
-    strengths: Array.isArray(report.strengths) ? report.strengths : [],
-    strategic_opportunities: Array.isArray(report.strategic_opportunities) ? report.strategic_opportunities : [],
-    quick_wins: Array.isArray(report.quick_wins) ? report.quick_wins : [],
-    thirty_day_plan: Array.isArray(report.thirty_day_plan) ? report.thirty_day_plan : [],
+    executive_summary: typeof report.executive_summary === 'string' && report.executive_summary.trim() ? report.executive_summary : fallback.executive_summary,
+    overall_assessment: typeof report.overall_assessment === 'string' && report.overall_assessment.trim() ? report.overall_assessment : fallback.overall_assessment,
+    top_priorities: Array.isArray(report.top_priorities) && report.top_priorities.length > 0 ? report.top_priorities : fallback.top_priorities,
+    quick_fix_snippets: snippets,
+    strengths: Array.isArray(report.strengths) && report.strengths.length > 0 ? report.strengths : fallback.strengths,
+    strategic_opportunities: Array.isArray(report.strategic_opportunities) && report.strategic_opportunities.length > 0 ? report.strategic_opportunities : fallback.strategic_opportunities,
+    quick_wins: Array.isArray(report.quick_wins) && report.quick_wins.length > 0 ? report.quick_wins : fallback.quick_wins,
+    thirty_day_plan: plan,
   }
 }
 

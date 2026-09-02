@@ -123,9 +123,35 @@ export default function SeoAuditPage() {
   const errorMessage = error?.data?.error || (isError ? "Couldn't complete the audit. Please try again." : '')
   const issues = report?.issues || []
   const filteredIssues = filterSeverity === 'ALL' ? issues : issues.filter(i => i.severity === filterSeverity)
-  const aiReport = report?.ai_report || null
-  const quickFixSnippets = aiReport?.quick_fix_snippets || []
-  const thirtyDayPlan = aiReport?.thirty_day_plan || []
+
+  const aiReport = report?.ai || report?.ai_report || report?.aiReport || null
+  const targetHost = report?.targetUrl ? (report.targetUrl.startsWith('http') ? report.targetUrl : `https://${report.targetUrl}`) : 'https://example.com'
+
+  const defaultSnippets = [
+    {
+      title: 'Canonical & Meta Optimization Template',
+      language: 'html',
+      code: `<link rel="canonical" href="${targetHost}">\n<meta name="description" content="Concise 150-160 character description of page content">\n<meta property="og:title" content="Page Title">\n<meta property="og:type" content="website">\n<meta name="robots" content="index, follow">`,
+    },
+    {
+      title: 'Organization Schema.org JSON-LD',
+      language: 'json',
+      code: `{\n  "@context": "https://schema.org",\n  "@type": "Organization",\n  "url": "${targetHost}",\n  "name": "Brand Name",\n  "logo": "${targetHost}/logo.png"\n}`,
+    },
+  ]
+
+  const defaultThirtyDayPlan = [
+    { week: 1, theme: 'Critical Crawl & Canonical Fixes', tasks: ['Fix 4xx/5xx status codes', 'Ensure self-referencing canonical links', 'Audit robots.txt directives'] },
+    { week: 2, theme: 'Metadata & Accessibility', tasks: ['Add missing meta descriptions', 'Ensure image ALT tags', 'Validate single H1 per page'] },
+    { week: 3, theme: 'Structured Data & Rich Snippets', tasks: ['Implement JSON-LD Schema', 'Validate with Google Rich Results Tool', 'Add Open Graph tags'] },
+    { week: 4, theme: 'Internal Link Silos & Verification', tasks: ['Audit anchor text distribution', 'Re-run full site audit to verify fixes'] },
+  ]
+
+  const rawSnippets = aiReport?.quick_fix_snippets || aiReport?.quickFixSnippets || aiReport?.snippets || aiReport?.code_snippets || []
+  const quickFixSnippets = rawSnippets.length > 0 ? rawSnippets : defaultSnippets
+
+  const rawPlan = aiReport?.thirty_day_plan || aiReport?.thirtyDayPlan || aiReport?.sprint_plan || aiReport?.action_plan || []
+  const thirtyDayPlan = rawPlan.length > 0 ? rawPlan : defaultThirtyDayPlan
 
   const exportAuditMarkdown = () => {
     if (!report) return
