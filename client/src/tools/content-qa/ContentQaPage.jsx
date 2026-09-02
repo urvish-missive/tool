@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import {
   ClipboardCheck, ChevronDown, ChevronRight, CheckCircle2, XCircle, MinusCircle,
-  AlertTriangle, FileText, Download, Wand2, Sparkles, Volume2, Play, Pause,
+  AlertTriangle, Download, Wand2, Sparkles, Volume2, Play, Pause,
   RotateCcw, Users, Award, Zap, Scissors, ShieldCheck, Compass, Layout, Ban,
   Monitor, Copy, Check, Eye, RefreshCw, ArrowRight, BookOpen, AlertCircle
 } from 'lucide-react'
@@ -11,6 +11,7 @@ import LeadCaptureModal from '../../components/LeadCaptureModal'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import ModelSelector from '../shared/ModelSelector'
 import useToolFields from '../../hooks/useToolFields'
+import { useAnalyzeContentQaMutation, usePolishContentQaMutation } from '../../services/apiSlice'
 
 // ── 12 PILLARS DEFINITION (Matching Himani Kankaria's Checklist) ────
 const HIMANI_CATEGORIES_DEF = [
@@ -186,10 +187,11 @@ export default function ContentQaPage() {
   const [validationError, setValidationError] = useState('')
   const [loadingStepIdx, setLoadingStepIdx] = useState(0)
   const [report, setReport] = useState(null)
+  const [analyzeContentQa, { isLoading: isAnalyzing }] = useAnalyzeContentQaMutation()
+  const [polishContentQa, { isLoading: isPolishing }] = usePolishContentQaMutation()
   const [qaId, setQaId] = useState(null)
   const [statuses, setStatuses] = useState({})
   const [expandedCats, setExpandedCats] = useState({})
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState('grid') // 'grid' | 'inspector' | 'read_aloud' | 'polish'
   const [filterMode, setFilterMode] = useState('all') // 'all' | 'needs_action' | 'passed' | 'manual'
@@ -197,7 +199,6 @@ export default function ContentQaPage() {
 
   // One-Click Polish State
   const [polishedResult, setPolishedResult] = useState(null)
-  const [isPolishing, setIsPolishing] = useState(false)
   const [polishError, setPolishError] = useState(null)
   const [copiedPolished, setCopiedPolished] = useState(false)
 
@@ -264,35 +265,18 @@ export default function ContentQaPage() {
   }
 
   const runAnalysis = async () => {
-    setIsAnalyzing(true)
     setError(null)
     setReport(null)
     setPolishedResult(null)
     try {
-      const res = await fetch('/api/content-qa/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: content.trim(),
-          title: title.trim() || undefined,
-          targetKeyword: targetKeyword.trim() || undefined,
-          platform,
-          targetAudience: targetAudience.trim() || undefined,
-          preferredProvider: aiModel,
-        }),
-      })
-
-      if (!res.ok) {
-        let errMsg = 'Analysis failed'
-        try {
-          const errData = await res.json()
-          errMsg = errData.error || errMsg
-        } catch {}
-        throw new Error(errMsg)
-      }
-
-      const data = await res.json()
-      if (!data.success) throw new Error(data.error || 'Analysis failed')
+      const data = await analyzeContentQa({
+        content: content.trim(),
+        title: title.trim() || undefined,
+        targetKeyword: targetKeyword.trim() || undefined,
+        platform,
+        targetAudience: targetAudience.trim() || undefined,
+        preferredProvider: aiModel,
+      }).unwrap()
 
       setReport(data.report)
       setQaId(data.qaId)
@@ -308,42 +292,26 @@ export default function ContentQaPage() {
       })
       setExpandedCats(initialExpanded)
     } catch (err) {
-      setError(err.message || 'Analysis failed. Please check your connection or AI provider.')
-    } finally {
-      setIsAnalyzing(false)
+      setError(err?.data?.error || err.message || 'Analysis failed. Please check your connection or AI provider.')
     }
   }
 
   // One-click Himani Polish
   const runHimaniPolish = async () => {
-    setIsPolishing(true)
     setPolishError(null)
     try {
-      const res = await fetch('/api/content-qa/polish', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          content: content.trim(),
-          title: title.trim() || undefined,
-          targetKeyword: targetKeyword.trim() || undefined,
-          platform,
-          preferredProvider: aiModel,
-        }),
-      })
+      const data = await polishContentQa({
+        content: content.trim(),
+        title: title.trim() || undefined,
+        targetKeyword: targetKeyword.trim() || undefined,
+        platform,
+        preferredProvider: aiModel,
+      }).unwrap()
 
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}))
-        throw new Error(errData.error || 'Polishing failed')
-      }
-
-      const data = await res.json()
-      if (!data.success) throw new Error(data.error || 'Polish failed')
       setPolishedResult(data.polished)
       setActiveTab('polish')
     } catch (err) {
-      setPolishError(err.message || 'Unable to polish content.')
-    } finally {
-      setIsPolishing(false)
+      setPolishError(err?.data?.error || err.message || 'Unable to polish content.')
     }
   }
 
@@ -577,7 +545,7 @@ Audited with Missive Digital Content QA Tool.`
           {/* ── INPUT FORM ────────────────────────────────────────── */}
           {!report && !isAnalyzing && (
             <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-gray-200 shadow-xl shadow-gray-200/50 p-6 sm:p-9 space-y-6">
-              
+
               {/* Content Textarea */}
               {isFieldEnabled('content') && (
                 <div>
@@ -786,7 +754,7 @@ Audited with Missive Digital Content QA Tool.`
               {/* ── SCORE HERO CARD ─────────────────────────────────── */}
               <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 shadow-sm">
                 <div className="grid md:grid-cols-12 gap-6 items-center">
-                  
+
                   {/* Left Column: Overall Himani Score */}
                   <div className="md:col-span-4 text-center md:text-left md:border-r md:border-gray-100 md:pr-6">
                     <span className="text-xs font-bold uppercase tracking-wider text-[#0C81F3]">Overall Himani Score</span>
@@ -809,7 +777,7 @@ Audited with Missive Digital Content QA Tool.`
 
                   {/* Right Column: 4 Signature Quick Alert Cards */}
                   <div className="md:col-span-8 grid sm:grid-cols-2 gap-3.5">
-                    
+
                     {/* Em Dash Sentinel (Himani Rule: 0 Em Dashes) */}
                     <div className={`p-4 rounded-2xl border ${report.quickStats?.emDashesCount === 0 ? 'bg-emerald-50/80 border-emerald-200' : 'bg-red-50/80 border-red-200'}`}>
                       <div className="flex items-center justify-between mb-1">
@@ -1295,7 +1263,7 @@ Audited with Missive Digital Content QA Tool.`
                     </div>
                   ) : polishedResult ? (
                     <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 shadow-sm space-y-6">
-                      
+
                       {/* Header Badge */}
                       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-gray-100">
                         <div>

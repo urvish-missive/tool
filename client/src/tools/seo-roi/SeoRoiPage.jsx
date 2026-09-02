@@ -4,6 +4,27 @@ import DynamicLeadForm from '../../components/DynamicLeadForm'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import ModelSelector from '../shared/ModelSelector'
+import {
+  Calculator,
+  TrendingUp,
+  DollarSign,
+  Calendar,
+  Sparkles,
+  BarChart3,
+  Check,
+  Copy,
+  Download,
+  RefreshCw,
+  Zap,
+  Target,
+  ShieldCheck,
+  Award,
+  ArrowUpRight,
+  PieChart,
+  Lightbulb,
+  AlertCircle,
+  Clock,
+} from 'lucide-react'
 
 const CURRENCIES = [
   { code: 'USD', symbol: '$', name: 'US Dollar' },
@@ -15,434 +36,539 @@ const CURRENCIES = [
   { code: 'AED', symbol: 'د.إ', name: 'UAE Dirham' },
 ]
 
-const GROWTH_PRESETS = { Conservative: 10, Moderate: 20, Aggressive: 35 }
 const DURATIONS = [3, 6, 12, 24]
 
 function fmt(n, currency = 'USD') {
   const c = CURRENCIES.find(c => c.code === currency) || CURRENCIES[0]
-  const abs = Math.abs(Math.round(n))
+  const abs = Math.abs(Math.round(n || 0))
   if (abs >= 10000000) return `${c.symbol}${(abs / 10000000).toFixed(1)}Cr`
-  if (abs >= 100000) return `${c.symbol}${(abs / 1000).toFixed(0)}K`
+  if (abs >= 1000000) return `${c.symbol}${(abs / 1000000).toFixed(2)}M`
+  if (abs >= 1000) return `${c.symbol}${(abs / 1000).toFixed(1)}K`
   return `${c.symbol}${abs.toLocaleString()}`
 }
 
-// Simple SVG bar chart
-function BarChart({ data, label, color = '#6366f1', height = 200 }) {
-  const max = Math.max(...data.map(d => d.value), 1)
-  const barW = Math.max(20, Math.floor(600 / data.length) - 4)
-  const svgW = data.length * (barW + 4) + 20
+function FinancialTrajectoryChart({ monthlyData, currency, breakEvenMonth }) {
+  const [hoveredIdx, setHoveredIdx] = useState(null)
+
+  if (!monthlyData?.length) return null
+
+  // Calculate cumulative investment and cumulative revenue for each month
+  let cumInv = 0
+  let cumRev = 0
+  const series = monthlyData.map((d, i) => {
+    cumInv += (d.investment || 0)
+    cumRev += (d.revenue || 0)
+    const net = cumRev - cumInv
+    return {
+      month: d.month || i + 1,
+      revenue: d.revenue || 0,
+      cumInv,
+      cumRev,
+      net,
+    }
+  })
+
+  const maxVal = Math.max(...series.map(s => Math.max(s.cumRev, s.cumInv)), 1)
+  const chartHeight = 220
+  const chartWidth = 640
+  const paddingX = 40
+  const paddingY = 30
+  const usableWidth = chartWidth - paddingX * 2
+  const usableHeight = chartHeight - paddingY * 2
+
+  const getX = (i) => paddingX + (i / Math.max(series.length - 1, 1)) * usableWidth
+  const getY = (val) => chartHeight - paddingY - (Math.max(val, 0) / maxVal) * usableHeight
+
+  // Generate SVG path strings
+  const revPath = series.map((s, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${getY(s.cumRev)}`).join(' ')
+  const invPath = series.map((s, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${getY(s.cumInv)}`).join(' ')
+  const revArea = `${revPath} L ${getX(series.length - 1)} ${chartHeight - paddingY} L ${getX(0)} ${chartHeight - paddingY} Z`
 
   return (
-    <div className="overflow-x-auto">
-      <svg width={Math.max(svgW, 300)} height={height + 40} className="font-sans">
-        {data.map((d, i) => {
-          const barH = (d.value / max) * height
-          return (
-            <g key={i}>
-              <rect x={i * (barW + 4) + 10} y={height - barH + 10} width={barW} height={barH} fill={color} rx={3} opacity={0.85} />
-              <text x={i * (barW + 4) + 10 + barW / 2} y={height - barH + 5} textAnchor="middle" fontSize="10" fill="#374151" fontWeight="600">{d.display}</text>
-              <text x={i * (barW + 4) + 10 + barW / 2} y={height + 25} textAnchor="middle" fontSize="9" fill="#9ca3af">M{d.month}</text>
-            </g>
-          )
-        })}
-      </svg>
-    </div>
-  )
-}
+    <div className="relative bg-slate-900 text-white p-6 rounded-2xl border border-slate-800 shadow-xl overflow-hidden">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <h4 className="font-bold text-slate-100 text-base">Cumulative Financial Trajectory</h4>
+            {breakEvenMonth && (
+              <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold animate-pulse">
+                Break-Even: Month {breakEvenMonth}
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-slate-400 mt-0.5">Cumulative Revenue vs Cumulative Investment over campaign horizon</p>
+        </div>
 
-function DualBarChart({ invData, revData, invColor, revColor, height = 200 }) {
-  const maxVal = Math.max(...invData.map((d, i) => Math.max(d.value, revData[i]?.value || 0)), 1)
-  const barW = Math.max(14, Math.floor(500 / invData.length) / 2 - 2)
-  const svgW = invData.length * (barW * 2 + 6) + 20
-
-  return (
-    <div className="overflow-x-auto">
-      <svg width={Math.max(svgW, 300)} height={height + 40} className="font-sans">
-        {invData.map((d, i) => {
-          const x = i * (barW * 2 + 6) + 10
-          const invH = (d.value / maxVal) * height
-          const revH = ((revData[i]?.value || 0) / maxVal) * height
-          return (
-            <g key={i}>
-              <rect x={x} y={height - invH + 10} width={barW} height={invH} fill={invColor} rx={2} opacity={0.7} />
-              <rect x={x + barW + 2} y={height - revH + 10} width={barW} height={revH} fill={revColor} rx={2} opacity={0.7} />
-              <text x={x + barW} y={height + 25} textAnchor="middle" fontSize="9" fill="#9ca3af">M{i + 1}</text>
-            </g>
-          )
-        })}
-      </svg>
-    </div>
-  )
-}
-
-function ScenarioCard({ label, growth, summary, currency, isActive, onClick }) {
-  const roiColor = summary.roi >= 100 ? 'text-green-600' : summary.roi >= 0 ? 'text-amber-600' : 'text-red-600'
-  return (
-    <button onClick={onClick} className={`text-left rounded-xl border-2 p-5 transition-all ${isActive ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-gray-200 bg-white hover:border-gray-300'}`}>
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-sm font-bold text-gray-900">{label}</span>
-        <span className="text-xs text-gray-400">{growth}% growth</span>
+        <div className="flex items-center gap-4 text-xs">
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-emerald-400" />
+            <span className="text-slate-300">Cumulative Revenue</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <div className="w-3 h-3 rounded-full bg-blue-400" />
+            <span className="text-slate-300">Cumulative Spend</span>
+          </div>
+        </div>
       </div>
-      <div className={`text-3xl font-bold ${roiColor}`}>{summary.roi}%</div>
-      <div className="text-xs text-gray-500 mt-1">Estimated ROI</div>
-      <div className="mt-3 space-y-1 text-xs text-gray-600">
-        <div>Revenue: <span className="font-semibold">{fmt(summary.additionalRevenue, currency)}</span></div>
-        <div>Net: <span className="font-semibold">{fmt(summary.netReturn, currency)}</span></div>
+
+      {/* SVG Chart */}
+      <div className="overflow-x-auto">
+        <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full max-w-2xl mx-auto overflow-visible font-sans">
+          <defs>
+            <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#10b981" stopOpacity="0.35" />
+              <stop offset="100%" stopColor="#10b981" stopOpacity="0.0" />
+            </linearGradient>
+          </defs>
+
+          {/* Grid lines */}
+          <line x1={paddingX} y1={paddingY} x2={chartWidth - paddingX} y2={paddingY} stroke="#334155" strokeDasharray="3 3" />
+          <line x1={paddingX} y1={chartHeight / 2} x2={chartWidth - paddingX} y2={chartHeight / 2} stroke="#334155" strokeDasharray="3 3" />
+          <line x1={paddingX} y1={chartHeight - paddingY} x2={chartWidth - paddingX} y2={chartHeight - paddingY} stroke="#475569" />
+
+          {/* Revenue Area Fill */}
+          <path d={revArea} fill="url(#revGrad)" />
+
+          {/* Investment Line */}
+          <path d={invPath} fill="none" stroke="#60a5fa" strokeWidth="2.5" strokeDasharray="4 4" />
+
+          {/* Revenue Line */}
+          <path d={revPath} fill="none" stroke="#34d399" strokeWidth="3.5" strokeLinecap="round" />
+
+          {/* Points & Interactive Hover */}
+          {series.map((s, i) => {
+            const x = getX(i)
+            const yRev = getY(s.cumRev)
+            const isBreakEven = breakEvenMonth && s.month === breakEvenMonth
+
+            return (
+              <g key={i} className="cursor-pointer" onMouseEnter={() => setHoveredIdx(i)} onMouseLeave={() => setHoveredIdx(null)}>
+                {/* Break even marker vertical highlight */}
+                {isBreakEven && (
+                  <line x1={x} y1={paddingY} x2={x} y2={chartHeight - paddingY} stroke="#10b981" strokeWidth="1.5" strokeDasharray="2 2" />
+                )}
+
+                {/* Point dot */}
+                <circle cx={x} cy={yRev} r={isBreakEven ? 6 : 4} fill={isBreakEven ? '#10b981' : '#34d399'} stroke="#0f172a" strokeWidth="2" />
+
+                {/* Month label on X axis */}
+                <text x={x} y={chartHeight - 10} textAnchor="middle" fontSize="10" fill="#94a3b8" fontWeight="600">
+                  M{s.month}
+                </text>
+              </g>
+            )
+          })}
+        </svg>
       </div>
-    </button>
+
+      {/* Hover info panel */}
+      {hoveredIdx !== null && series[hoveredIdx] && (
+        <div className="mt-4 p-3 rounded-xl bg-slate-800/90 border border-slate-700 flex flex-wrap items-center justify-between text-xs gap-3">
+          <span className="font-bold text-slate-200">Month {series[hoveredIdx].month} Projections:</span>
+          <div className="flex items-center gap-4">
+            <span className="text-emerald-400">Cum. Revenue: <strong>{fmt(series[hoveredIdx].cumRev, currency)}</strong></span>
+            <span className="text-blue-400">Cum. Invested: <strong>{fmt(series[hoveredIdx].cumInv, currency)}</strong></span>
+            <span className={series[hoveredIdx].net >= 0 ? 'text-emerald-300 font-bold' : 'text-rose-400 font-bold'}>
+              Net: {fmt(series[hoveredIdx].net, currency)}
+            </span>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
 export default function SeoRoiPage() {
-  // Form state
   const [currency, setCurrency] = useState('USD')
-  const [traffic, setTraffic] = useState(10000)
-  const [leads, setLeads] = useState(0)
-  const [custValue, setCustValue] = useState(1500)
-  const [custRate, setCustRate] = useState(10)
-  const [convRate, setConvRate] = useState(3)
-  const [investment, setInvestment] = useState(5000)
-  const [months, setMonths] = useState(12)
-  const [growthPreset, setGrowthPreset] = useState('Moderate')
-  const [customGrowth, setCustomGrowth] = useState(20)
-  const [showAdvanced, setShowAdvanced] = useState(false)
-  const [aiModel, setAiModel] = useState('openrouter')
+  const [traffic, setTraffic] = useState(15000)
+  const [leads, setLeads] = useState(120)
+  const [customerValue, setCustomerValue] = useState(2500)
+  const [investment, setInvestment] = useState(2500)
+  const [duration, setDuration] = useState(12)
+  const [activePreset, setActivePreset] = useState('Moderate') // 'Conservative' | 'Moderate' | 'Aggressive'
+  const [preferredProvider, setPreferredProvider] = useState('openrouter')
 
-  const [calculateROI, { isLoading, isError, error, data }] = useCalculateROIMutation()
-  const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose, triggerPopup } = useLeadPopup('seo-roi')
-  const [activeScenario, setActiveScenario] = useState('moderate')
-  const [chartMetric, setChartMetric] = useState('traffic')
-  const [copied, setCopied] = useState(false)
+  const [calculateROI, { isLoading }] = useCalculateROIMutation()
+  const [results, setResults] = useState(null)
+  const [error, setError] = useState('')
+  const [copiedKey, setCopiedKey] = useState(null)
 
-  const growthRate = growthPreset === 'Custom' ? customGrowth : GROWTH_PRESETS[growthPreset]
-  const results = data?.results
-  const aiInsights = data?.aiInsights
+  const handleCalculate = async (e) => {
+    e?.preventDefault()
+    setError('')
+    setResults(null)
 
-  const scenario = results?.[activeScenario]
-  const forecast = scenario?.forecast || []
+    try {
+      const res = await calculateROI({
+        monthlyTraffic: Number(traffic),
+        baselineLeads: Number(leads),
+        averageCustomerValue: Number(customerValue),
+        monthlySeoInvestment: Number(investment),
+        campaignMonths: Number(duration),
+        currency,
+        preferredProvider,
+      }).unwrap()
 
-  // Compute growth rates for scenarios
-  const scenarios = useMemo(() => ({
-    conservative: { growth: results?.conservative?.growthRate ? results.conservative.growthRate * 100 : 10, ...results?.conservative?.summary },
-    moderate: { growth: results?.moderate?.growthRate ? results.moderate.growthRate * 100 : 20, ...results?.moderate?.summary },
-    aggressive: { growth: results?.aggressive?.growthRate ? results.aggressive.growthRate * 100 : 35, ...results?.aggressive?.summary },
-  }), [results])
-
-  const runCalculation = () => {
-    calculateROI({
-      currency, monthlyTraffic: traffic, monthlyLeads: leads || undefined,
-      averageCustomerValue: custValue, leadToCustomerRate: custRate / 100,
-      organicConversionRate: convRate / 100, monthlySeoInvestment: investment,
-      campaignMonths: months,
-      growthScenario: { conservative: 0.10, moderate: growthRate / 100, aggressive: 0.35 },
-      preferredProvider: aiModel,
-    })
-  }
-
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (popupEnabled) { triggerPopup(); return }
-    runCalculation()
-  }
-
-  const chartData = useMemo(() => {
-    if (!forecast.length) return { inv: [], rev: [], traffic: [], leads: [], customers: [], revenue: [] }
-    return {
-      inv: forecast.map(f => ({ month: f.month, value: f.cumInvestment, display: fmt(f.cumInvestment, currency) })),
-      rev: forecast.map(f => ({ month: f.month, value: f.cumRevenue, display: fmt(f.cumRevenue, currency) })),
-      traffic: forecast.map(f => ({ month: f.month, value: f.traffic, display: f.traffic.toLocaleString() })),
-      leads: forecast.map(f => ({ month: f.month, value: f.leads, display: f.leads.toLocaleString() })),
-      customers: forecast.map(f => ({ month: f.month, value: f.customers, display: f.customers.toLocaleString() })),
-      revenue: forecast.map(f => ({ month: f.month, value: f.revenue, display: fmt(f.revenue, currency) })),
+      setResults(res)
+      setTimeout(() => {
+        document.getElementById('roi-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
+    } catch (err) {
+      setError(err?.data?.error || 'Failed to calculate SEO ROI. Please check your inputs.')
     }
-  }, [forecast, currency])
-
-  const exportCSV = () => {
-    const header = 'Month,Traffic,Leads,Customers,Revenue,Cum Investment,Cum Revenue\n'
-    const rows = forecast.map(f => `${f.month},${f.traffic},${f.leads},${f.customers},${Math.round(f.revenue)},${Math.round(f.cumInvestment)},${Math.round(f.cumRevenue)}`).join('\n')
-    const blob = new Blob([header + rows], { type: 'text/csv' })
-    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url; a.download = 'seo-roi-forecast.csv'; a.click(); URL.revokeObjectURL(url)
   }
 
-  const copyReport = () => {
-    const s = results?.moderate?.summary
-    if (!s) return
-    const text = `SEO ROI Estimate\nROI: ${s.roi}%\nAdditional Revenue: ${fmt(s.additionalRevenue, currency)}/mo\nNet Return: ${fmt(s.netReturn, currency)}/mo\nInvestment: ${fmt(results.input?.monthlySeoInvestment || investment, currency)}/mo`
-    navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1500)
+  const triggerCopy = (text, key) => {
+    navigator.clipboard.writeText(text)
+    setCopiedKey(key)
+    setTimeout(() => setCopiedKey(null), 2000)
+  }
+
+  const activeScenario = useMemo(() => {
+    if (!results) return null
+    if (activePreset === 'Conservative') return results.conservative
+    if (activePreset === 'Aggressive') return results.aggressive
+    return results.moderate
+  }, [results, activePreset])
+
+  const aiReport = results?.aiReport || null
+
+  const exportProposal = () => {
+    if (!results) return
+    const text = [
+      `# Executive SEO Investment & ROI Proposal`,
+      `Date: ${new Date().toLocaleDateString()}`,
+      `Horizon: ${duration} Months | Scenario: ${activePreset}`,
+      '',
+      `## Executive Summary`,
+      aiReport?.executive_summary || '',
+      '',
+      `## C-Suite Pitch`,
+      aiReport?.cSuitePitch || '',
+      '',
+      `## Financial Projections (${activePreset})`,
+      `- Total SEO Investment: ${fmt(activeScenario?.summary?.totalInvestment, currency)}`,
+      `- Projected Additional Revenue: ${fmt(activeScenario?.summary?.additionalRevenue, currency)}`,
+      `- Projected Net Return: ${fmt(activeScenario?.summary?.netReturn, currency)}`,
+      `- Modeled ROI: ${activeScenario?.summary?.roi}%`,
+      `- Break-Even Milestone: ${results.breakEvenMonth ? `Month ${results.breakEvenMonth}` : 'N/A'}`,
+      '',
+      `## Phased Implementation Roadmap`,
+      ...(aiReport?.phasedRoadmap || []).map(p => `### ${p.phase}\n- Focus: ${p.focus}\n- Expected Outcome: ${p.expectedOutcome}\n`),
+    ].join('\n')
+
+    const blob = new Blob([text], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `seo-roi-proposal-${duration}months.md`
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   return (
-    <div>
-      <LeadCaptureModal
-        show={showPopup}
-        onClose={handlePopupClose}
-        onSubmit={() => { handlePopupSubmit(); runCalculation() }}
-        toolSlug="seo-roi"
-        title="Get Your Free SEO ROI Report"
-        subtitle="Enter your details to unlock the ROI Calculator"
-      />
-      {/* Hero */}
-      <section className="relative overflow-hidden py-16 sm:py-20 lg:py-24">          <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
-        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase">Free Tool</span>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-            <span className="text-gray-900">SEO </span>
-            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">ROI Calculator</span>
+    <div className="min-h-screen bg-slate-50/50 pb-20">
+      {/* Hero Header */}
+      <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase shadow-sm">
+            Executive Financial Modeling & Business Case Engine
+          </span>
+
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight mb-4">
+            <span className="text-gray-900">AI-Powered SEO ROI </span>
+            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">Calculator</span>
           </h1>
-          <p className="mt-5 text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Estimate the potential business impact of your organic search investment.
+          <p className="mt-3 text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            Model organic growth scenarios, break-even timelines, and generate an investor-ready business case to justify SEO investment.
           </p>
-          <p className="mt-2 text-xs text-gray-400 max-w-lg mx-auto">Estimates based on your assumptions. SEO performance varies by industry, competition, and many other factors. Results are not guaranteed.</p>
         </div>
       </section>
 
-      {/* Calculator */}
-      <section className="py-8 sm:py-12">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          {!results ? (
-            <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-200 shadow-lg shadow-gray-200/50 p-6 sm:p-8 max-w-2xl mx-auto space-y-6">
-              <h2 className="text-lg font-bold text-gray-900">Your Business Inputs</h2>
-
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1">Currency</label>
-                  <select value={currency} onChange={e => setCurrency(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white">
-                    {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.symbol} {c.name}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1">Monthly Organic Traffic *</label>
-                  <input type="number" min={1} max={10000000} value={traffic} onChange={e => setTraffic(Number(e.target.value))} required className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
-                </div>
+      {/* Main Container */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        {/* Form Card */}
+        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10">
+          <form onSubmit={handleCalculate} className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Currency */}
+              <div>
+                <label className="block text-sm font-bold text-slate-800 mb-2">Currency</label>
+                <select
+                  value={currency}
+                  onChange={(e) => setCurrency(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm bg-white font-medium"
+                >
+                  {CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>{c.name} ({c.symbol})</option>
+                  ))}
+                </select>
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1">Average Customer Value ({CURRENCIES.find(c => c.code === currency)?.symbol}) *</label>
-                  <input type="number" min={0} value={custValue} onChange={e => setCustValue(Number(e.target.value))} required className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1">Monthly SEO Investment ({CURRENCIES.find(c => c.code === currency)?.symbol}) *</label>
-                  <input type="number" min={0} value={investment} onChange={e => setInvestment(Number(e.target.value))} required className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
-                </div>
+              {/* Monthly Traffic */}
+              <div>
+                <label className="block text-sm font-bold text-slate-800 mb-2">Monthly Organic Visitors</label>
+                <input
+                  type="number"
+                  value={traffic}
+                  onChange={(e) => setTraffic(Math.max(100, Number(e.target.value)))}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium"
+                  required
+                />
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1">Organic → Lead Conversion Rate (%)</label>
-                  <input type="number" min={0} max={100} step={0.1} value={convRate} onChange={e => setConvRate(Number(e.target.value))} className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1">Lead → Customer Rate (%)</label>
-                  <input type="number" min={0} max={100} step={0.1} value={custRate} onChange={e => setCustRate(Number(e.target.value))} className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none" />
-                </div>
+              {/* Baseline Leads */}
+              <div>
+                <label className="block text-sm font-bold text-slate-800 mb-2">Current Monthly Leads</label>
+                <input
+                  type="number"
+                  value={leads}
+                  onChange={(e) => setLeads(Math.max(0, Number(e.target.value)))}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium"
+                  required
+                />
               </div>
 
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1">Campaign Duration</label>
-                  <div className="flex gap-2">
-                    {DURATIONS.map(d => (
-                      <button key={d} type="button" onClick={() => setMonths(d)} className={`flex-1 py-2 rounded-lg text-sm font-medium border transition-all ${months === d ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-gray-300 text-gray-600 hover:bg-gray-50'}`}>{d}mo</button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-900 mb-1">Expected Traffic Growth</label>
-                  <div className="flex gap-2">
-                    {Object.entries(GROWTH_PRESETS).map(([name, pct]) => (
-                      <button key={name} type="button" onClick={() => { setGrowthPreset(name); setCustomGrowth(pct) }} className={`flex-1 py-2 rounded-lg text-xs font-medium border transition-all ${growthPreset === name ? 'bg-blue-50 border-blue-500 text-blue-700' : 'border-gray-300 text-gray-600 hover:bg-gray-50'}`}>{name}</button>
-                    ))}
-                  </div>
-                </div>
+              {/* Average Customer Value (LTV) */}
+              <div>
+                <label className="block text-sm font-bold text-slate-800 mb-2">Average Customer Value (LTV)</label>
+                <input
+                  type="number"
+                  value={customerValue}
+                  onChange={(e) => setCustomerValue(Math.max(10, Number(e.target.value)))}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium"
+                  required
+                />
               </div>
 
-              <ModelSelector value={aiModel} onChange={setAiModel} />
+              {/* Monthly Investment */}
+              <div>
+                <label className="block text-sm font-bold text-slate-800 mb-2">Planned Monthly SEO Spend</label>
+                <input
+                  type="number"
+                  value={investment}
+                  onChange={(e) => setInvestment(Math.max(100, Number(e.target.value)))}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium"
+                  required
+                />
+              </div>
 
-              <button type="submit" disabled={isLoading} className="w-full rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-8 py-3.5 text-sm font-semibold text-white hover:from-[#0D73D1] hover:to-[#E77771] disabled:opacity-50 transition-all shadow-lg shadow-[#0C81F3]/25">
-                {isLoading ? 'Calculating...' : 'Calculate SEO ROI'}
+              {/* Horizon Duration */}
+              <div>
+                <label className="block text-sm font-bold text-slate-800 mb-2">Campaign Duration</label>
+                <div className="grid grid-cols-4 gap-2">
+                  {DURATIONS.map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => setDuration(m)}
+                      className={`py-3 text-xs font-bold rounded-xl border transition-all ${
+                        duration === m
+                          ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white border-transparent shadow-sm'
+                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                      }`}
+                    >
+                      {m} Mo
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Model Selector & Actions */}
+            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="w-full sm:w-auto">
+                <ModelSelector
+                  value={preferredProvider}
+                  onChange={setPreferredProvider}
+                  compact={true}
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={isLoading}
+                className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-8 py-3.5 text-sm font-bold text-white hover:from-[#0D73D1] hover:to-[#E77771] disabled:opacity-50 transition-all shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                {isLoading ? (
+                  <>
+                    <RefreshCw className="w-5 h-5 animate-spin" />
+                    <span>Modeling Financial Returns...</span>
+                  </>
+                ) : (
+                  <>
+                    <Calculator className="w-5 h-5" />
+                    <span>Calculate SEO ROI & Business Case</span>
+                  </>
+                )}
               </button>
-            </form>
-          ) : (
-            /* ===== RESULTS ===== */
-            <div className="space-y-8">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">SEO ROI Results</h2>
-                <div className="flex gap-2">
-                  <button onClick={copyReport} className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-200">{copied ? '✓ Copied' : 'Copy'}</button>
-                  <button onClick={exportCSV} className="px-3 py-1.5 text-xs font-medium text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-200">Export CSV</button>
-                  <button onClick={() => { setActiveScenario('moderate'); /* keep results */ }} className="px-3 py-1.5 text-xs font-medium text-gray-600 hover:bg-gray-100 rounded-lg">← Recalculate</button>
-                </div>
-              </div>
+            </div>
 
-              {/* Main ROI */}
-              <div className="bg-gradient-to-br from-emerald-600 to-teal-600 rounded-2xl p-8 text-center text-white">
-                <p className="text-sm font-semibold uppercase tracking-wider opacity-80 mb-2">Estimated SEO ROI</p>
-                <div className="text-5xl sm:text-6xl font-bold">{results.moderate.summary.roi}%</div>
-                <p className="text-sm opacity-80 mt-2">Moderate scenario — {results.moderate.growthRate * 100}% monthly growth</p>
+            {error && (
+              <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium">
+                {error}
               </div>
+            )}
+          </form>
+        </div>
 
-              {/* Key Metrics */}
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                {[
-                  ['Additional Traffic', `+${results.moderate.summary.finalMonthlyTraffic - results.input.monthlyTraffic}`, '📈'],
-                  ['Additional Leads', `+${results.moderate.summary.finalMonthlyLeads - (results.input.baselineLeads)}`, '🎯'],
-                  ['Additional Customers', `+${results.moderate.summary.finalMonthlyCustomers - Math.round(results.input.baselineLeads * results.input.leadToCustomerRate)}`, '👥'],
-                  ['Additional Revenue', fmt(results.moderate.summary.additionalRevenue, currency), '💰'],
-                ].map(([label, value, icon]) => (
-                  <div key={label} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 text-center">
-                    <span className="text-2xl block mb-1">{icon}</span>
-                    <div className="text-lg font-bold text-gray-900">{value}</div>
-                    <div className="text-xs text-gray-500">{label}</div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Investment vs Revenue */}
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-                <div className="flex items-center gap-4 mb-4 text-xs">
-                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-red-400" /> Investment</span>
-                  <span className="flex items-center gap-1"><span className="w-3 h-3 rounded bg-emerald-500" /> Cumulative Revenue</span>
-                </div>
-                <DualBarChart invData={chartData.inv} revData={chartData.rev} invColor="#f87171" revColor="#10b981" />
-              </div>
-
-              {/* Scenario Comparison */}
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Scenario Comparison</h3>
-                <div className="grid sm:grid-cols-3 gap-4">
-                  <ScenarioCard label="Conservative" growth={scenarios.conservative.growth} summary={scenarios.conservative} currency={currency} isActive={activeScenario === 'conservative'} onClick={() => setActiveScenario('conservative')} />
-                  <ScenarioCard label="Moderate" growth={scenarios.moderate.growth} summary={scenarios.moderate} currency={currency} isActive={activeScenario === 'moderate'} onClick={() => setActiveScenario('moderate')} />
-                  <ScenarioCard label="Aggressive" growth={scenarios.aggressive.growth} summary={scenarios.aggressive} currency={currency} isActive={activeScenario === 'aggressive'} onClick={() => setActiveScenario('aggressive')} />
-                </div>
-              </div>
-
-              {/* Monthly Forecast */}
-              {forecast.length > 0 && (
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-gray-900">Monthly Forecast</h3>
-                    <div className="flex gap-1">
-                      {['traffic', 'leads', 'customers', 'revenue'].map(m => (
-                        <button key={m} onClick={() => setChartMetric(m)} className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${chartMetric === m ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:bg-gray-100'}`}>{m.charAt(0).toUpperCase() + m.slice(1)}</button>
-                      ))}
+        {/* Results Container */}
+        {results && (
+          <div id="roi-results" className="space-y-6 animate-fade-in">
+            {/* C-Suite Executive Pitch Card */}
+            {aiReport?.cSuitePitch && (
+              <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-emerald-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl">
+                <div className="flex flex-col lg:flex-row items-start justify-between gap-6 pb-6 border-b border-white/10">
+                  <div>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-xs font-bold uppercase tracking-wider mb-3">
+                      <Award className="w-3.5 h-3.5" />
+                      C-Suite Business Case & Value Proposition
                     </div>
+                    <h3 className="text-xl sm:text-2xl font-black text-white leading-snug">
+                      "{aiReport.cSuitePitch}"
+                    </h3>
+                    <p className="text-slate-300 text-sm sm:text-base mt-3 leading-relaxed max-w-3xl">
+                      {aiReport.executive_summary}
+                    </p>
                   </div>
-                  <BarChart data={chartData[chartMetric]} color="#6366f1" />
-                  <div className="mt-4 overflow-x-auto">
-                    <table className="w-full text-xs">
-                      <thead><tr className="border-b border-gray-200">
-                        <th className="text-left py-2 pr-3 font-bold text-gray-500">Month</th>
-                        <th className="text-right py-2 px-3 font-bold text-gray-500">Traffic</th>
-                        <th className="text-right py-2 px-3 font-bold text-gray-500">Leads</th>
-                        <th className="text-right py-2 px-3 font-bold text-gray-500">Customers</th>
-                        <th className="text-right py-2 px-3 font-bold text-gray-500">Revenue</th>
-                        <th className="text-right py-2 pl-3 font-bold text-gray-500">Cum Revenue</th>
-                      </tr></thead>
-                      <tbody>
-                        {forecast.map(f => (
-                          <tr key={f.month} className="border-b border-gray-100">
-                            <td className="py-1.5 pr-3 font-medium text-gray-900">{f.month}</td>
-                            <td className="py-1.5 px-3 text-right">{f.traffic.toLocaleString()}</td>
-                            <td className="py-1.5 px-3 text-right">{f.leads.toLocaleString()}</td>
-                            <td className="py-1.5 px-3 text-right">{f.customers}</td>
-                            <td className="py-1.5 px-3 text-right font-medium">{fmt(f.revenue, currency)}</td>
-                            <td className="py-1.5 pl-3 text-right font-medium">{fmt(f.cumRevenue, currency)}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              )}
 
-              {/* Break-Even */}
-              {results.breakEvenMonth && (
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 text-center">
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">⏱️ Estimated Break-Even</h3>
-                  <div className="text-3xl font-bold text-emerald-600">Month {results.breakEvenMonth}</div>
-                  <p className="text-xs text-gray-500 mt-2">Based on your assumptions, modeled cumulative revenue exceeds cumulative investment around month {results.breakEvenMonth}.</p>
+                  <button
+                    onClick={exportProposal}
+                    className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold transition-colors cursor-pointer"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download Pitch Brief (.md)</span>
+                  </button>
                 </div>
-              )}
 
-              {/* Sensitivity */}
-              {results.sensitivity?.length > 0 && (
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">What Has the Biggest Impact on Your ROI?</h3>
-                  <div className="space-y-3">
-                    {results.sensitivity.map((s, i) => (
-                      <div key={i} className="flex items-center gap-3">
-                        <span className="text-sm text-gray-700 w-40 shrink-0">{s.factor}</span>
-                        <div className="flex-1 h-5 bg-gray-100 rounded-full overflow-hidden">
-                          <div className={`h-full rounded-full ${s.level === 'High' ? 'bg-emerald-500' : s.level === 'Medium' ? 'bg-amber-400' : 'bg-gray-400'}`} style={{ width: `${s.percentage}%` }} />
+                {/* Phased Roadmap */}
+                {aiReport.phasedRoadmap?.length > 0 && (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
+                    {aiReport.phasedRoadmap.map((p, i) => (
+                      <div key={i} className="bg-white/5 rounded-2xl p-5 border border-white/10 space-y-2">
+                        <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
+                          <Clock className="w-4 h-4" />
+                          <span>{p.phase}</span>
                         </div>
-                        <span className="text-xs font-semibold text-gray-500 w-20 text-right">{s.level} Impact</span>
+                        <p className="text-xs sm:text-sm text-slate-200">
+                          <strong>Strategic Focus:</strong> {p.focus}
+                        </p>
+                        <p className="text-xs text-emerald-300">
+                          <strong>Key Milestone:</strong> {p.expectedOutcome}
+                        </p>
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
+            )}
 
-              {/* AI Insights */}
-              {aiInsights && (
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
-                  <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-                    <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-purple-500 flex items-center justify-center text-white text-sm">🤖</span>
-                    AI Business Insights
-                  </h3>
-                  <p className="text-xs text-gray-400 mb-4">AI interpretation of your calculator results</p>
-                  <p className="text-gray-700 leading-relaxed mb-4">{aiInsights.executive_summary}</p>
-
-                  {aiInsights.key_insights?.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-sm font-bold text-gray-900 mb-2">Key Insights</h4>
-                      <ul className="space-y-1.5">{aiInsights.key_insights.map((ins, i) => <li key={i} className="text-sm text-gray-600 flex items-start gap-2"><span className="text-blue-500 shrink-0">•</span>{ins}</li>)}</ul>
+            {/* Scenario Switcher Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {[
+                { name: 'Conservative', data: results.conservative, color: 'text-blue-600', border: 'border-blue-500' },
+                { name: 'Moderate', data: results.moderate, color: 'text-emerald-600', border: 'border-emerald-500' },
+                { name: 'Aggressive', data: results.aggressive, color: 'text-purple-600', border: 'border-purple-500' },
+              ].map(({ name, data, color, border }) => {
+                const isSelected = activePreset === name
+                const roiVal = data.summary.roi
+                return (
+                  <div
+                    key={name}
+                    onClick={() => setActivePreset(name)}
+                    className={`cursor-pointer bg-white rounded-2xl p-6 border-2 transition-all shadow-sm hover:shadow-md ${
+                      isSelected ? `${border} bg-emerald-50/20 shadow-md ring-2 ring-emerald-500/20` : 'border-slate-200'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-3">
+                      <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
+                        {name} Case ({(data.growthRate * 100).toFixed(0)}% Growth)
+                      </span>
+                      {isSelected && (
+                        <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
+                          Active View
+                        </span>
+                      )}
                     </div>
-                  )}
 
-                  {aiInsights.risks?.length > 0 && (
-                    <div className="mb-4">
-                      <h4 className="text-sm font-bold text-gray-900 mb-2">⚠️ Risks</h4>
-                      <ul className="space-y-1.5">{aiInsights.risks.map((r, i) => <li key={i} className="text-sm text-gray-600 flex items-start gap-2"><span className="text-amber-500 shrink-0">⚠</span>{r}</li>)}</ul>
+                    <div className={`text-3xl sm:text-4xl font-black ${color} mb-1`}>
+                      {roiVal}%
                     </div>
-                  )}
+                    <span className="text-xs text-slate-500 font-medium">Estimated ROI</span>
 
-                  {aiInsights.recommendations?.length > 0 && (
-                    <div>
-                      <h4 className="text-sm font-bold text-gray-900 mb-2">💡 Recommendations</h4>
-                      <ul className="space-y-1.5">{aiInsights.recommendations.map((r, i) => <li key={i} className="text-sm text-gray-600 flex items-start gap-2"><span className="text-green-500 shrink-0">✓</span>{r}</li>)}</ul>
+                    <div className="mt-4 pt-4 border-t border-slate-100 space-y-1.5 text-xs">
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Total Revenue:</span>
+                        <strong className="text-slate-900">{fmt(data.summary.additionalRevenue, currency)}</strong>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Net Profit:</span>
+                        <strong className="text-emerald-700">{fmt(data.summary.netReturn, currency)}</strong>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-slate-500">Total Cost:</span>
+                        <strong className="text-slate-700">{fmt(data.summary.totalInvestment, currency)}</strong>
+                      </div>
                     </div>
-                  )}
-                </div>
-              )}
+                  </div>
+                )
+              })}
+            </div>
 
-              <p className="text-xs text-gray-400 text-center">
-                This calculator provides estimates based on the assumptions you enter. SEO performance varies by industry, competition, website quality, and many other factors. Results are not guaranteed.
-              </p>
+            {/* Financial Trajectory Visualization */}
+            {activeScenario && (
+              <FinancialTrajectoryChart
+                monthlyData={activeScenario.monthly}
+                currency={currency}
+                breakEvenMonth={results.breakEvenMonth}
+              />
+            )}
 
-              {/* CTA */}
-              <div className="relative overflow-hidden rounded-2xl p-8 sm:p-12 text-center">
-                <div className="absolute inset-0 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-500" />
-                <div className="relative">
-                  <span className="inline-block px-3 py-1 bg-white/20 text-white text-xs font-bold rounded-full mb-4 tracking-wide uppercase backdrop-blur-sm">Expert Help</span>
-                  <h3 className="text-2xl sm:text-3xl font-bold text-white">Want a Real SEO Growth Forecast?</h3>
-                  <p className="mt-3 text-white/80 max-w-lg mx-auto">Our SEO experts can analyze your actual website, market, competitors and search opportunities to build a customized SEO growth model.</p>
+            {/* Strategic Insights & Growth Levers */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Key Insights */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                <div className="flex items-center gap-2">
+                  <Lightbulb className="w-5 h-5 text-amber-500" />
+                  <h4 className="font-bold text-slate-900 text-base">Key Strategic Insights</h4>
                 </div>
+                <ul className="space-y-2.5">
+                  {aiReport?.key_insights?.map((insight, i) => (
+                    <li key={i} className="text-xs sm:text-sm text-slate-700 flex items-start gap-2.5">
+                      <span className="text-emerald-600 font-bold mt-0.5">•</span>
+                      <span>{insight}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
 
-              {/* Lead Form */}
-              <DynamicLeadForm
-                toolSlug="seo-roi"
-                relatedIdField="roiCalculationId"
-                relatedIdValue={data?.calculationId}
-                title="Get My SEO Growth Plan"
-                subtitle="Our experts will review your assumptions and build a customized SEO growth model."
-              />
+              {/* Largest Levers & PPC Comparison */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="w-5 h-5 text-blue-600" />
+                  <h4 className="font-bold text-slate-900 text-base">High-Impact Growth Levers</h4>
+                </div>
+                <div className="space-y-3">
+                  {aiReport?.largest_levers?.map((lever, i) => (
+                    <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-800">
+                      <strong className="text-blue-700">{lever.factor}:</strong> {lever.explanation}
+                    </div>
+                  ))}
+                </div>
+
+                {aiReport?.paidSearchComparison && (
+                  <div className="pt-3 border-t border-slate-100 text-xs text-slate-600 leading-relaxed italic">
+                    <strong>PPC vs Organic Insight:</strong> {aiReport.paidSearchComparison}
+                  </div>
+                )}
+              </div>
             </div>
-          )}
-        </div>
-      </section>
+          </div>
+        )}
+      </div>
     </div>
   )
 }

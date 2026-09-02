@@ -1,6 +1,5 @@
-import { useState, useEffect } from 'react'
-
-const API = import.meta.env.VITE_API_URL || '/api'
+import { useState } from 'react'
+import { useGetAdminToolsQuery, useUpdateAdminToolMutation } from '../../services/apiSlice'
 
 // Default field definitions per tool slug
 const TOOL_FIELDS = {
@@ -58,39 +57,23 @@ const TOOL_FIELDS = {
   ],
 }
 
-function authHeaders() {
-  return { Authorization: `Bearer ${localStorage.getItem('admin_token')}`, 'Content-Type': 'application/json' }
-}
-
 export default function AdminTools() {
-  const [tools, setTools] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [saving, setSaving] = useState(null)
+  const { data, isLoading, refetch } = useGetAdminToolsQuery()
+  const [updateAdminTool, { isLoading: isUpdating }] = useUpdateAdminToolMutation()
+  const [savingId, setSavingId] = useState(null)
 
-  useEffect(() => { fetchTools() }, [])
-
-  const fetchTools = async () => {
-    try {
-      const res = await fetch(`${API}/admin/tools`, { headers: authHeaders() })
-      if (res.status === 401) { localStorage.clear(); window.location.href = '/admin/login'; return }
-      const data = await res.json()
-      if (data.success) setTools(data.tools)
-    } catch (err) { console.error(err) } finally { setLoading(false) }
-  }
+  const tools = data?.tools || []
 
   const updateTool = async (id, updates) => {
-    setSaving(id)
+    setSavingId(id)
     try {
-      const res = await fetch(`${API}/admin/tools/${id}`, {
-        method: 'PUT',
-        headers: authHeaders(),
-        body: JSON.stringify(updates),
-      })
-      const data = await res.json()
-      if (data.success) {
-        setTools(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t))
-      }
-    } catch (err) { console.error(err) } finally { setSaving(null) }
+      await updateAdminTool({ id, ...updates }).unwrap()
+      refetch()
+    } catch (err) {
+      console.error('Update failed:', err)
+    } finally {
+      setSavingId(null)
+    }
   }
 
   const updateFormField = (toolId, toolSlug, fieldKey, enabled) => {
@@ -107,12 +90,16 @@ export default function AdminTools() {
       },
     }
 
-    // Optimistic update
-    setTools(prev => prev.map(t => t.id === toolId ? { ...t, formFields: JSON.stringify(updatedFields) } : t))
     updateTool(toolId, { formFields: updatedFields })
   }
 
-  if (loading) return <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-gray-200 border-t-[#0C81F3] rounded-full animate-spin" /></div>
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="w-8 h-8 border-4 border-gray-200 border-t-[#0C81F3] rounded-full animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <div className="space-y-6">
@@ -139,7 +126,7 @@ export default function AdminTools() {
                 </div>
                 <button
                   onClick={() => updateTool(tool.id, { enabled: !tool.enabled })}
-                  disabled={saving === tool.id}
+                  disabled={savingId === tool.id}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${tool.enabled ? 'bg-green-500' : 'bg-gray-300'}`}
                 >
                   <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${tool.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
@@ -250,7 +237,7 @@ export default function AdminTools() {
                     </div>
                     <button
                       onClick={() => updateTool(tool.id, { showLeadPopup: !tool.showLeadPopup })}
-                      disabled={saving === tool.id}
+                      disabled={savingId === tool.id}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${tool.showLeadPopup ? 'bg-[#0C81F3]' : 'bg-gray-300'}`}
                     >
                       <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${tool.showLeadPopup ? 'translate-x-6' : 'translate-x-1'}`} />

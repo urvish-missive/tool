@@ -1,35 +1,26 @@
-import { useState, useEffect } from 'react'
-
-const API = import.meta.env.VITE_API_URL || '/api'
-
-function authHeaders() {
-  return { Authorization: `Bearer ${localStorage.getItem('admin_token')}`, 'Content-Type': 'application/json' }
-}
+import { useGetAdminStatsQuery } from '../../services/apiSlice'
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState(null)
-  const [loading, setLoading] = useState(true)
+  const { data, isLoading, isError, error } = useGetAdminStatsQuery()
 
-  useEffect(() => {
-    fetchStats()
-  }, [])
-
-  const fetchStats = async () => {
-    try {
-      const res = await fetch(`${API}/admin/stats`, { headers: authHeaders() })
-      if (res.status === 401) { localStorage.clear(); window.location.href = '/admin/login'; return }
-      const data = await res.json()
-      if (data.success) setStats(data.stats)
-    } catch (err) {
-      console.error('Stats fetch failed:', err)
-    } finally {
-      setLoading(false)
-    }
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="w-8 h-8 border-4 border-gray-200 border-t-[#0C81F3] rounded-full animate-spin" />
+      </div>
+    )
   }
 
-  if (loading) return <div className="flex items-center justify-center py-20"><div className="w-8 h-8 border-4 border-gray-200 border-t-[#0C81F3] rounded-full animate-spin" /></div>
+  if (isError || !data?.success) {
+    if (error?.status === 401) {
+      localStorage.clear()
+      window.location.href = '/admin/login'
+      return null
+    }
+    return <div className="text-center py-20 text-gray-500">Failed to load stats</div>
+  }
 
-  if (!stats) return <div className="text-center py-20 text-gray-500">Failed to load stats</div>
+  const stats = data.stats
 
   const statCards = [
     { label: 'Total Leads', value: stats.totalLeads, icon: '👥', color: '#0C81F3' },
@@ -60,7 +51,7 @@ export default function AdminDashboard() {
         <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
           <h3 className="text-base font-semibold text-gray-900 mb-4">Tool Status</h3>
           <div className="space-y-3">
-            {stats.toolConfigs.map(tool => (
+            {stats.toolConfigs?.map(tool => (
               <div key={tool.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
                 <div className="flex items-center gap-3">
                   <div className={`w-2.5 h-2.5 rounded-full ${tool.enabled ? 'bg-green-500' : 'bg-red-400'}`} />
@@ -80,7 +71,7 @@ export default function AdminDashboard() {
         {/* Leads by Source */}
         <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
           <h3 className="text-base font-semibold text-gray-900 mb-4">Leads by Source</h3>
-          {stats.leadsBySource.length === 0 ? (
+          {!stats.leadsBySource || stats.leadsBySource.length === 0 ? (
             <p className="text-sm text-gray-400 py-8 text-center">No leads yet</p>
           ) : (
             <div className="space-y-3">
@@ -160,7 +151,7 @@ export default function AdminDashboard() {
           <h3 className="text-base font-semibold text-gray-900">Recent Leads</h3>
           <a href="/admin/leads" className="text-sm text-[#0C81F3] hover:underline">View All →</a>
         </div>
-        {stats.recentLeads.length === 0 ? (
+        {!stats.recentLeads || stats.recentLeads.length === 0 ? (
           <p className="text-sm text-gray-400 py-8 text-center">No leads yet</p>
         ) : (
           <div className="overflow-x-auto">

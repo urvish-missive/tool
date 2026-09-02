@@ -1,33 +1,29 @@
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import { useSubmitLeadMutation, useGetPublicToolsQuery } from '../services/apiSlice'
 
-const API = import.meta.env.VITE_API_URL || '/api'
+const DEFAULT_CONFIG = { requireEmail: true, requireName: true, requirePhone: false, requireCompany: false }
 
 export default function LeadForm({ analysisId, toolSlug = 'content-analyzer' }) {
   const [form, setForm] = useState({ name: '', email: '', company: '', website: '', phone: '' })
   const [submitLead, { isLoading }] = useSubmitLeadMutation()
+  const { data: toolsData } = useGetPublicToolsQuery()
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
-  const [fieldConfig, setFieldConfig] = useState({ requireEmail: true, requireName: true, requirePhone: false, requireCompany: false })
 
-  useEffect(() => {
-    fetch(`${API}/tools/public`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) {
-          const tool = data.tools.find(t => t.slug === toolSlug)
-          if (tool) {
-            setFieldConfig({
-              requireEmail: tool.requireEmail ?? true,
-              requireName: tool.requireName ?? true,
-              requirePhone: tool.requirePhone ?? false,
-              requireCompany: tool.requireCompany ?? false,
-            })
-          }
+  const fieldConfig = useMemo(() => {
+    if (toolsData?.success && toolsData?.tools) {
+      const tool = toolsData.tools.find(t => t.slug === toolSlug)
+      if (tool) {
+        return {
+          requireEmail: tool.requireEmail ?? true,
+          requireName: tool.requireName ?? true,
+          requirePhone: tool.requirePhone ?? false,
+          requireCompany: tool.requireCompany ?? false,
         }
-      })
-      .catch(() => {})
-  }, [toolSlug])
+      }
+    }
+    return DEFAULT_CONFIG
+  }, [toolsData, toolSlug])
 
   const handleChange = (e) => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }))

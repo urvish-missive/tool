@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { useSubmitLeadMutation } from '../services/apiSlice'
+import { useState, useEffect, useMemo } from 'react'
+import { useSubmitLeadMutation, useGetPublicToolsQuery } from '../services/apiSlice'
 
 const DEFAULT_CONFIG = { requireName: true, requireEmail: true, requirePhone: false, requireCompany: false }
 
@@ -16,29 +16,24 @@ const DEFAULT_CONFIG = { requireName: true, requireEmail: true, requirePhone: fa
 export default function LeadCaptureModal({ show, onClose, onSubmit, toolSlug, title, subtitle }) {
   const [form, setForm] = useState({ name: '', email: '', company: '', website: '', phone: '' })
   const [submitLead, { isLoading }] = useSubmitLeadMutation()
+  const { data: toolsData } = useGetPublicToolsQuery()
   const [error, setError] = useState('')
-  const [fieldConfig, setFieldConfig] = useState(DEFAULT_CONFIG)
   const [leadCaptured, setLeadCaptured] = useState(false)
 
-  useEffect(() => {
-    if (!show) return
-    fetch('/api/tools/public')
-      .then(r => r.json())
-      .then(data => {
-        if (data.success && data.tools) {
-          const tool = data.tools.find(t => t.slug === toolSlug)
-          if (tool) {
-            setFieldConfig({
-              requireName: tool.requireName ?? true,
-              requireEmail: tool.requireEmail ?? true,
-              requirePhone: tool.requirePhone ?? false,
-              requireCompany: tool.requireCompany ?? false,
-            })
-          }
+  const fieldConfig = useMemo(() => {
+    if (toolsData?.success && toolsData?.tools) {
+      const tool = toolsData.tools.find(t => t.slug === toolSlug)
+      if (tool) {
+        return {
+          requireName: tool.requireName ?? true,
+          requireEmail: tool.requireEmail ?? true,
+          requirePhone: tool.requirePhone ?? false,
+          requireCompany: tool.requireCompany ?? false,
         }
-      })
-      .catch(() => {})
-  }, [show, toolSlug])
+      }
+    }
+    return DEFAULT_CONFIG
+  }, [toolsData, toolSlug])
 
   // Reset form when modal opens
   useEffect(() => {

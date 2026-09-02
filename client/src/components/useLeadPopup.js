@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useMemo } from 'react'
+import { useGetPublicToolsQuery } from '../services/apiSlice'
 
 /**
- * Custom hook to manage lead popup logic for any tool page.
- * Checks if the tool has showLeadPopup enabled, manages popup state.
+ * Custom hook to manage lead popup logic for any tool page using RTK Query.
  *
  * Usage:
  *   const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose } = useLeadPopup('content-analyzer')
@@ -11,24 +11,19 @@ import { useState, useEffect } from 'react'
  * In JSX: <LeadCaptureModal show={showPopup} onClose={handlePopupClose} onSubmit={handlePopupSubmit} toolSlug="content-analyzer" ... />
  */
 export function useLeadPopup(toolSlug) {
-  const [popupEnabled, setPopupEnabled] = useState(false)
   const [showPopup, setShowPopup] = useState(false)
+  const { data } = useGetPublicToolsQuery()
 
-  useEffect(() => {
-    fetch('/api/tools/public')
-      .then(r => r.json())
-      .then(data => {
-        if (data.success && data.tools) {
-          const tool = data.tools.find(t => t.slug === toolSlug)
-          if (tool?.showLeadPopup) setPopupEnabled(true)
-        }
-      })
-      .catch(() => {})
-  }, [toolSlug])
+  const popupEnabled = useMemo(() => {
+    if (data?.success && data?.tools) {
+      const tool = data.tools.find(t => t.slug === toolSlug)
+      return Boolean(tool?.showLeadPopup)
+    }
+    return false
+  }, [data, toolSlug])
 
   const handlePopupSubmit = () => {
     setShowPopup(false)
-    // Return true so the caller knows to proceed
     return true
   }
 

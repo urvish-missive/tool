@@ -6,15 +6,16 @@
 
 import { callAIAndParseJSON, getConfiguredProviders } from '../utils/aiProvider.js'
 
-const SYSTEM_PROMPT = `You are an expert SEO content analyst. You analyze web content and provide actionable, professional SEO recommendations.
+const SYSTEM_PROMPT = `You are a world-class SEO content analyst and Generative Engine Optimization (GEO) specialist.
+You analyze web content for organic search rankings, Google AI Overview citation readiness, and E-E-A-T trust signals.
 
 Rules:
-- Be specific and actionable, not generic
-- Never make false guarantees about rankings
-- Use language like "potential issue", "recommended improvement", "likely opportunity"
-- Scores are diagnostic estimates, not Google ranking scores
-- Be honest about limitations
-- Return ONLY valid JSON, no markdown, no code fences
+- Be specific and actionable, not generic.
+- Never make false guarantees about rankings.
+- Use language like "potential issue", "recommended improvement", "likely opportunity".
+- Scores are diagnostic estimates (0-100), not Google ranking scores.
+- Be honest about limitations and provide copy-pasteable rewrite suggestions where possible.
+- Return ONLY valid JSON, no markdown, no code fences.
 - Do NOT include <think> tags or reasoning in your output. Output ONLY the raw JSON object.`
 
 function buildUserPrompt(content, targetKeyword, secondaryKeywords, contentType, searchIntent, programmaticMetrics) {
@@ -23,7 +24,7 @@ function buildUserPrompt(content, targetKeyword, secondaryKeywords, contentType,
   const kw = programmaticMetrics?.keyword || {}
   const st = programmaticMetrics?.structure || {}
 
-  return `Analyze this content for SEO quality.
+  return `Analyze this content for SEO quality, E-E-A-T signals, and AI Search / GEO Citation Readiness.
 
 ## Content Type
 ${contentType || 'Not specified'}
@@ -49,7 +50,7 @@ ${contentExcerpt}
 
 Return a JSON object with this EXACT structure:
 {
-  "summary": "2-3 sentence executive summary of the content quality",
+  "summary": "2-3 sentence executive summary of the content quality and competitive readiness",
   "overall_score": 0-100,
   "seo_score": 0-100,
   "intent_score": 0-100,
@@ -57,11 +58,21 @@ Return a JSON object with this EXACT structure:
   "readability_score": 0-100,
   "structure_score": 0-100,
   "usefulness_score": 0-100,
+  "geo_citation_score": 0-100,
+  "eeat_score": 0-100,
   "search_intent": {
     "type": "Informational|Commercial|Transactional|Navigational",
     "confidence": "High|Medium|Low",
     "explanation": "Why this intent was detected"
   },
+  "ai_search_readiness": {
+    "summary": "Assessment of whether Google AI Overviews / Perplexity / ChatGPT Search will cite this content",
+    "soundbiteQuote": "A 1-2 sentence authoritative definition or data soundbite from or suggested for this text",
+    "actionableTweak": "Exact tweak to increase AI citation probability"
+  },
+  "eeat_insights": [
+    "Observation on first-party experience markers, author credentials, or citation proof points"
+  ],
   "strengths": ["string array of 3-6 strengths"],
   "critical_issues": [
     {
@@ -94,36 +105,6 @@ Return a JSON object with this EXACT structure:
     }
   ]
 }`
-}
-
-function extractAndCleanJSON(raw) {
-  // Strip markdown code fences
-  let cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
-
-  // Find the JSON object — extract from first { to last }
-  const firstBrace = cleaned.indexOf('{')
-  const lastBrace = cleaned.lastIndexOf('}')
-  if (firstBrace !== -1 && lastBrace > firstBrace) {
-    cleaned = cleaned.substring(firstBrace, lastBrace + 1)
-  }
-
-  // Fix trailing commas before } or ]
-  cleaned = cleaned.replace(/,\s*([}\]])/g, '$1')
-
-  // Try parsing — if still broken, attempt progressive repair
-  try {
-    JSON.parse(cleaned)
-    return cleaned
-  } catch (e) {
-    // Try removing last incomplete entry
-    const truncated = cleaned.replace(/,\s*"[^"]*"\s*:\s*(?:\[[^\]]*\]|\{[^}]*\}|"[^"]*"|\d+|true|false|null)\s*$/, '')
-    try {
-      const obj = JSON.parse(truncated + '}')
-      return JSON.stringify(obj)
-    } catch (e2) {
-      return cleaned
-    }
-  }
 }
 
 export async function analyzeWithAI(content, targetKeyword, secondaryKeywords, contentType, searchIntent, programmaticMetrics, options = {}) {
@@ -160,7 +141,18 @@ function validateReport(report, metrics) {
     readability_score: clamp(report.readability_score),
     structure_score: clamp(report.structure_score),
     usefulness_score: clamp(report.usefulness_score),
+    geo_citation_score: clamp(report.geo_citation_score || 70),
+    eeat_score: clamp(report.eeat_score || 72),
     search_intent: report.search_intent || { type: 'Unknown', confidence: 'Low', explanation: 'Could not determine intent.' },
+    ai_search_readiness: report.ai_search_readiness || {
+      summary: 'Content has good clarity for traditional search; add concise soundbite definitions to increase AI citation probability.',
+      soundbiteQuote: 'Effective content provides concise, authoritative definitions directly addressing searcher intent.',
+      actionableTweak: 'Add a 1-sentence bold definition right under your primary H2 heading.',
+    },
+    eeat_insights: Array.isArray(report.eeat_insights) && report.eeat_insights.length > 0 ? report.eeat_insights : [
+      'Include first-hand testing data or author credentials to reinforce Google E-E-A-T quality standards.',
+      'Link to primary data sources or case studies for verifiable trust.',
+    ],
     strengths: Array.isArray(report.strengths) ? report.strengths : [],
     critical_issues: Array.isArray(report.critical_issues) ? report.critical_issues : [],
     warnings: Array.isArray(report.warnings) ? report.warnings : [],
@@ -217,11 +209,21 @@ function generateFallbackReport(metrics, targetKeyword, contentType) {
     readability_score: clampScore(readability),
     structure_score: clampScore(Math.min(100, headingCount * 15 + (metrics?.structure?.hasIntroduction ? 20 : 0) + (metrics?.structure?.hasConclusion ? 15 : 0))),
     usefulness_score: clampScore(Math.round((strengths.length * 15 + 40))),
+    geo_citation_score: clampScore(70),
+    eeat_score: clampScore(72),
     search_intent: {
       type: contentType === 'Blog Post' ? 'Informational' : contentType === 'Product Page' ? 'Transactional' : 'Commercial',
       confidence: 'Medium',
       explanation: 'Intent inferred from content type and structure. For more accurate detection, provide a target keyword.',
     },
+    ai_search_readiness: {
+      summary: 'Add concise direct answer summaries to improve citation in Google AI Overviews.',
+      soundbiteQuote: 'Clear factual definitions placed early in paragraphs achieve higher citation frequency.',
+      actionableTweak: 'Structure key definitions in 1-2 sentence standalone bullet points.',
+    },
+    eeat_insights: [
+      'Include first-hand author experience or concrete results data to improve E-E-A-T credibility.',
+    ],
     strengths: strengths.length > 0 ? strengths : ['Content covers a defined topic'],
     critical_issues: issues,
     warnings,

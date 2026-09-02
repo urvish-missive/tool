@@ -1,10 +1,11 @@
 import { useState, useRef, useCallback, useEffect } from 'react'
 import LoadingProgress from '../components/LoadingProgress'
+import { useAnalyzeContentMutation } from '../services/apiSlice'
 import AIAnalyticsSection from '../components/AIAnalyticsSection'
 import DynamicLeadForm from '../components/DynamicLeadForm'
 import LeadCaptureModal from '../components/LeadCaptureModal'
+import { useLeadPopup } from '../components/useLeadPopup'
 import ModelSelector from '../tools/shared/ModelSelector'
-import { useAnalyzeContentMutation } from '../services/apiSlice'
 import useToolFields from '../hooks/useToolFields'
 
 const CONTENT_TYPES = ['Blog Post', 'Landing Page', 'Product Page', 'Service Page', 'Article', 'Other']
@@ -20,22 +21,8 @@ export default function ContentAnalyzerPage() {
   const [searchIntent, setSearchIntent] = useState('Auto Detect')
   const [aiModel, setAiModel] = useState('openrouter')
   const [validationError, setValidationError] = useState('')
-  const [showPopup, setShowPopup] = useState(false)
-  const [popupEnabled, setPopupEnabled] = useState(false)
-  const [pendingSubmit, setPendingSubmit] = useState(null)
 
-  // Check if lead popup is enabled for this tool
-  useEffect(() => {
-    fetch('/api/tools/public')
-      .then(r => r.json())
-      .then(data => {
-        if (data.success && data.tools) {
-          const tool = data.tools.find(t => t.slug === 'content-analyzer')
-          if (tool?.showLeadPopup) setPopupEnabled(true)
-        }
-      })
-      .catch(() => {})
-  }, [])
+  const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit: onPopupSubmit, handlePopupClose, triggerPopup } = useLeadPopup('content-analyzer')
 
   // Admin-controlled field visibility
   const { isFieldEnabled } = useToolFields('content-analyzer')
@@ -87,8 +74,7 @@ export default function ContentAnalyzerPage() {
 
     // Show lead popup if enabled
     if (popupEnabled) {
-      setPendingSubmit(true)
-      setShowPopup(true)
+      triggerPopup()
       return
     }
 
@@ -106,15 +92,9 @@ export default function ContentAnalyzerPage() {
   }, [report])
 
   const handlePopupSubmit = () => {
-    setShowPopup(false)
-    setPendingSubmit(false)
+    onPopupSubmit()
     setLoadingStep('reading')
     runAnalysis()
-  }
-
-  const handlePopupClose = () => {
-    setShowPopup(false)
-    setPendingSubmit(false)
   }
 
   const runAnalysis = useCallback(async () => {
@@ -301,14 +281,14 @@ export default function ContentAnalyzerPage() {
                 <AIAnalyticsSection report={report} />
 
                 {/* CTA */}
-                <div className="relative overflow-hidden rounded-2xl p-8 sm:p-12 text-center">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600 via-purple-600 to-pink-500" />
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/4" />
-                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/10 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
-                  <div className="relative">
-                    <span className="inline-block px-3 py-1 bg-white/20 text-white text-xs font-bold rounded-full mb-4 tracking-wide uppercase backdrop-blur-sm">Expert Review</span>
-                    <h3 className="text-2xl sm:text-3xl font-bold text-white">Get a Professional SEO Strategy</h3>
-                    <p className="mt-3 text-white/80 max-w-lg mx-auto">
+                <div className="relative overflow-hidden rounded-3xl p-8 sm:p-12 text-center shadow-lg">
+                  <div className="absolute inset-0 bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988]" />
+                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/15 rounded-full blur-2xl -translate-y-1/2 translate-x-1/4" />
+                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/15 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
+                  <div className="relative text-white">
+                    <span className="inline-block px-3.5 py-1 bg-white/20 text-white text-xs font-bold rounded-full mb-4 tracking-wide uppercase backdrop-blur-sm border border-white/20">Expert Review</span>
+                    <h3 className="text-2xl sm:text-3xl font-black text-white">Get a Professional SEO Strategy</h3>
+                    <p className="mt-3 text-white/90 max-w-lg mx-auto text-sm sm:text-base leading-relaxed font-medium">
                       Want a deeper SEO analysis? Our SEO experts can review your content, competitors and search strategy.
                     </p>
                   </div>

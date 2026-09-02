@@ -1,21 +1,7 @@
-/**
- * AI-powered blog topic generator service
- * Generates SEO-friendly blog topics based on user input
- */
-
 import { callAIAndParseJSON } from '../utils/aiProvider.js'
 
 /**
- * Generate blog topics using AI
- * @param {Object} params - Input parameters
- * @param {string} params.niche - Main niche/industry (e.g., "digital marketing", "SaaS", "health & wellness")
- * @param {string[]} params.targetKeywords - Target keywords to base topics on
- * @param {string} params.audience - Target audience description
- * @param {string} params.contentGoal - Goal of the content (educational, commercial, lead generation, brand awareness)
- * @param {string} params.preferredProvider - AI provider to use
- * @param {number} params.count - Number of topics to generate (default: 10)
- * @param {string} params.contentType - Type of content (blog post, guide, case study, listicle, how-to)
- * @returns {Promise<Object>} Generated topics with metadata
+ * AI-powered Blog Topic & Content Cluster Generator
  */
 export async function generateBlogTopics({
   niche,
@@ -26,187 +12,274 @@ export async function generateBlogTopics({
   count = 10,
   contentType = 'blog post',
 }) {
-  
-  const systemPrompt = `You are an expert SEO content strategist and blog topic generator. Your job is to generate high-quality, SEO-friendly blog topics that:
-1. Target specific keywords naturally
-2. Match search intent for the given audience
-3. Are specific and actionable (not generic)
-4. Have clear value propositions
-5. Follow SEO best practices for headlines
+  const kwList = Array.isArray(targetKeywords) ? targetKeywords : (typeof targetKeywords === 'string' ? targetKeywords.split(',').map(s => s.trim()).filter(Boolean) : [])
+  const keywordText = kwList.length > 0 ? kwList.join(', ') : 'None specified — extrapolate high-intent terms for the niche'
 
-Return a JSON object with this exact structure:
+  const systemPrompt = `You are a world-class SEO content architect and editorial strategist.
+Your job is to generate highly differentiated, clickable, and search-optimized blog topics arranged in a clean Pillar-and-Cluster topical authority structure.
+
+Rules:
+1. Titles must be specific, magnetic, and strictly adhere to modern SERP CTR best practices (avoid generic phrases like "A Guide to X").
+2. Vary content angles (Tactical How-To, Contrarian / Myth-Busting, Data Benchmark, Direct Comparison, Deep Dive).
+3. Include structured outlines (with H2: and H3: prefixes) that offer high Information Gain.
+4. Group topics into logical topical clusters.
+5. Return ONLY valid JSON, no markdown code blocks outside JSON.`
+
+  const userPrompt = `Generate ${count} SEO-optimized blog topics for:
+- Niche: ${niche}
+- Target Keywords: ${keywordText}
+- Target Audience: ${audience || 'Professionals and buyers in the ' + niche + ' space'}
+- Content Goal: ${contentGoal}
+- Preferred Content Type: ${contentType}
+
+Return a JSON object with this EXACT structure:
 {
-  "topics": [
+  "pillarTopic": {
+    "title": "The Ultimate Definitive Pillar Title for this niche",
+    "primaryKeyword": "main seed keyword",
+    "summary": "1-2 sentence description of how the pillar establishes topical authority"
+  },
+  "clusters": [
     {
-      "title": "Compelling blog post title (60 chars or less recommended)",
-      "targetKeyword": "primary keyword this topic targets",
-      "searchIntent": "informational|commercial|transactional|navigational",
-      "contentType": "how-to|guide|listicle|case-study|comparison|opinion|news",
-      "difficulty": "easy|medium|hard",
-      "estimatedWordCount": 1500,
-      "outline": ["H2: Section 1", "H2: Section 2", "H2: Section 3"],
-      "whyItWorks": "Brief explanation of why this topic will perform well",
-      "relatedKeywords": ["related kw 1", "related kw 2"]
+      "name": "Cluster Category Name (e.g. Tactical Guides & Workflows)",
+      "description": "Short explanation of this cluster's role in the silo"
     }
   ],
-  "strategy": "Overall content strategy recommendation for this niche"
-`
+  "topics": [
+    {
+      "title": "Compelling, magnetic headline under 65 characters",
+      "targetKeyword": "primary keyword targeted",
+      "searchIntent": "informational|commercial|transactional",
+      "contentType": "how-to|guide|listicle|case-study|comparison|data-breakdown",
+      "contentAngle": "Tactical Step-by-Step|Contrarian / Myth-Busting|Data & Benchmarks|Buyer Comparison",
+      "hook": "1-sentence opening hook or psychological angle that stops the scroll",
+      "difficulty": "easy|medium|hard",
+      "estimatedWordCount": 1800,
+      "clusterName": "Cluster Category Name this belongs to",
+      "outline": [
+        "H2: Section 1 Title",
+        "H3: Sub-section Detail",
+        "H2: Section 2 Title",
+        "H2: Section 3 Title",
+        "H2: FAQ & Key Takeaways"
+      ],
+      "whyItWorks": "Why this specific angle captures search volume and user engagement",
+      "relatedKeywords": ["long tail kw 1", "long tail kw 2", "long tail kw 3"]
+    }
+  ],
+  "strategy": "Strategic recommendation for publishing frequency, internal linking, and conversion routing."
+}`
 
-  const userPrompt = `Generate ${count} SEO-optimized blog topics for the following:
+  try {
+    const result = await callAIAndParseJSON([
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ], {
+      preferredProvider,
+      temperature: 0.6,
+      maxTokens: 6000,
+      jsonMode: true,
+    })
 
-**Niche/Industry:** ${niche}
-**Target Keywords:** ${targetKeywords.join(', ') || 'None specified - generate based on niche'}
-**Target Audience:** ${audience || 'General audience interested in ' + niche}
-**Content Goal:** ${contentGoal}
-**Preferred Content Type:** ${contentType}
+    const validatedTopics = (result.topics || []).map((topic, index) => ({
+      id: `topic-${index + 1}`,
+      title: topic.title || `Mastering ${niche} Strategy #${index + 1}`,
+      targetKeyword: topic.targetKeyword || kwList[0] || niche.toLowerCase(),
+      searchIntent: topic.searchIntent || 'informational',
+      contentType: topic.contentType || 'guide',
+      contentAngle: topic.contentAngle || 'Tactical Step-by-Step',
+      hook: topic.hook || 'Learn how to solve this critical problem with actionable steps.',
+      difficulty: topic.difficulty || 'medium',
+      estimatedWordCount: topic.estimatedWordCount || 1800,
+      clusterName: topic.clusterName || 'Core Content',
+      outline: Array.isArray(topic.outline) ? topic.outline : ['H2: Overview', 'H2: Core Strategy', 'H2: Action Plan'],
+      whyItWorks: topic.whyItWorks || 'Addresses core search intent and captures long-tail search traffic.',
+      relatedKeywords: Array.isArray(topic.relatedKeywords) ? topic.relatedKeywords : [],
+    }))
 
-Requirements:
-- Topics should be specific, not generic (e.g., not "What is SEO" but "How to Do Technical SEO Audits for Enterprise Sites in 2024")
-- Each topic should target at least one keyword from the list or a closely related long-tail keyword
-- Vary the content types (how-to, guide, listicle, case study, comparison)
-- Include estimated word counts appropriate for the topic depth
-- Provide a brief 3-5 point outline for each topic
-- Explain why each topic will work for SEO
-- Include 2-3 related/long-tail keywords per topic
-- Return ONLY valid JSON`
+    return {
+      niche,
+      targetKeywords: kwList,
+      audience,
+      pillarTopic: result.pillarTopic || {
+        title: `The Comprehensive Guide to ${niche} (2025)`,
+        primaryKeyword: kwList[0] || niche,
+        summary: `The central pillar resource establishing complete topical authority for ${niche}.`,
+      },
+      clusters: Array.isArray(result.clusters) ? result.clusters : [
+        { name: 'Core Foundations', description: 'Foundational concepts and setup' },
+        { name: 'Advanced Execution', description: 'Scaling and tactical workflows' },
+      ],
+      topics: validatedTopics,
+      strategy: result.strategy || 'Publish the main pillar page first, followed by supporting cluster articles linked back using exact semantic anchors.',
+    }
+  } catch (error) {
+    console.error('Blog topic generator error:', error.message)
+    return generateFallbackTopics({ niche, targetKeywords: kwList, audience, count, contentType })
+  }
+}
 
-  const messages = [
-    { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt },
+function generateFallbackTopics({ niche, targetKeywords, audience, count, contentType }) {
+  const seed = targetKeywords[0] || niche
+  const secondary = targetKeywords[1] || `${seed} tips`
+
+  const fallbackList = [
+    {
+      id: 'topic-1',
+      title: `How to Master ${seed}: The Complete Step-by-Step Playbook`,
+      targetKeyword: `${seed} playbook`,
+      searchIntent: 'informational',
+      contentType: 'guide',
+      contentAngle: 'Tactical Step-by-Step',
+      hook: 'Most advice in this niche focuses on theory—here is the exact operational framework to get results in 30 days.',
+      difficulty: 'medium',
+      estimatedWordCount: 2200,
+      clusterName: 'Core Foundations',
+      outline: [
+        `H2: What is ${seed} and Why It Matters Now`,
+        `H2: 4 Core Pillars of an Effective Strategy`,
+        `H3: Phase 1: Baseline Audit & Setup`,
+        `H3: Phase 2: Execution & Workflow Optimization`,
+        `H2: Common Pitfalls and How to Avoid Them`,
+        `H2: Key Metrics to Track Success`,
+      ],
+      whyItWorks: 'Comprehensive ultimate guides capture high-intent searchers and earn high-authority backlinks.',
+      relatedKeywords: [`${seed} for beginners`, `${seed} strategy 2025`, `how to do ${seed}`],
+    },
+    {
+      id: 'topic-2',
+      title: `5 Costly ${seed} Mistakes (And What to Do Instead)`,
+      targetKeyword: `${seed} mistakes`,
+      searchIntent: 'informational',
+      contentType: 'listicle',
+      contentAngle: 'Contrarian / Myth-Busting',
+      hook: 'Are you unknowingly hurting your results? Avoid these 5 common traps that cost teams hours each week.',
+      difficulty: 'easy',
+      estimatedWordCount: 1600,
+      clusterName: 'Core Foundations',
+      outline: [
+        `H2: The Real Cost of Outdated Practices`,
+        `H2: Mistake #1: Skipping the Diagnostic Audit`,
+        `H2: Mistake #2: Ignoring Structured Workflows`,
+        `H2: Mistake #3: Overcomplicating Early Milestones`,
+        `H2: How to Audit Your Current Workflow Today`,
+      ],
+      whyItWorks: 'Negative hooks ("Mistakes to avoid") have 30%+ higher CTR on Google search and social feeds.',
+      relatedKeywords: [`common ${seed} errors`, `${seed} best practices`, `what not to do in ${seed}`],
+    },
+    {
+      id: 'topic-3',
+      title: `Top 10 ${secondary} Tools Compared (Pros, Cons & Pricing)`,
+      targetKeyword: `best ${seed} tools`,
+      searchIntent: 'commercial',
+      contentType: 'comparison',
+      contentAngle: 'Buyer Comparison',
+      hook: 'We tested the leading software options so you don’t have to waste budget on the wrong fit.',
+      difficulty: 'hard',
+      estimatedWordCount: 2500,
+      clusterName: 'Tools & Evaluation',
+      outline: [
+        `H2: Evaluation Methodology & Benchmark Criteria`,
+        `H2: Quick Comparison Matrix`,
+        `H2: Tool 1: Best Overall for Teams`,
+        `H2: Tool 2: Best Value for Budget`,
+        `H2: Final Recommendation & Buyer Verdict`,
+      ],
+      whyItWorks: 'Commercial comparison queries capture users right before purchase, generating high affiliate/lead conversions.',
+      relatedKeywords: [`${seed} software review`, `${seed} tool comparison`, `top rated ${seed} apps`],
+    },
+    {
+      id: 'topic-4',
+      title: `${seed} ROI Breakdown: How to Measure Business Impact`,
+      targetKeyword: `${seed} ROI`,
+      searchIntent: 'commercial',
+      contentType: 'data-breakdown',
+      contentAngle: 'Data & Benchmarks',
+      hook: 'How to prove the financial value of your initiatives to leadership and stakeholders.',
+      difficulty: 'medium',
+      estimatedWordCount: 1800,
+      clusterName: 'Advanced Execution',
+      outline: [
+        `H2: The Financial Formula for Estimating Return`,
+        `H2: 3 Key Metrics That Direct-Map to Revenue`,
+        `H2: Case Example: 90-Day Compounding Gains`,
+        `H2: Executive Reporting Template`,
+      ],
+      whyItWorks: 'Attracts high-value decision-makers and C-suite searchers looking for quantifiable validation.',
+      relatedKeywords: [`calculate ${seed} return`, `${seed} business value`, `${seed} metrics`],
+    },
   ]
 
-  const result = await callAIAndParseJSON(messages, {
-    preferredProvider,
-    temperature: 0.7,
-    maxTokens: 6000,
-    jsonMode: true,
-  })
-
-  // Validate and sanitize the response
-  if (!result.topics || !Array.isArray(result.topics)) {
-    throw new Error('Invalid AI response: missing topics array')
-  }
-
-  // Ensure each topic has required fields
-  const validatedTopics = result.topics.map((topic, index) => ({
-    title: topic.title || `Topic ${index + 1}`,
-    targetKeyword: topic.targetKeyword || targetKeywords[0] || niche.toLowerCase(),
-    searchIntent: topic.searchIntent || 'informational',
-    contentType: topic.contentType || 'blog post',
-    difficulty: topic.difficulty || 'medium',
-    estimatedWordCount: topic.estimatedWordCount || 1500,
-    outline: Array.isArray(topic.outline) ? topic.outline.slice(0, 7) : [],
-    whyItWorks: topic.whyItWorks || 'This topic addresses a common search query in your niche.',
-    relatedKeywords: Array.isArray(topic.relatedKeywords) ? topic.relatedKeywords.slice(0, 5) : [],
-  }))
-
   return {
-    topics: validatedTopics,
-    strategy: result.strategy || `Focus on creating comprehensive, keyword-optimized content for the ${niche} niche.`,
-    generatedAt: new Date().toISOString(),
-    inputParams: { niche, targetKeywords, audience, contentGoal, contentType, count },
+    niche,
+    targetKeywords,
+    audience,
+    pillarTopic: {
+      title: `The Master Guide to ${seed}: Modern Strategies & Implementation`,
+      primaryKeyword: seed,
+      summary: `The cornerstone topic pillar for establishing topical authority across the entire ${niche} vertical.`,
+    },
+    clusters: [
+      { name: 'Core Foundations', description: 'Fundamental strategies and introductory guides' },
+      { name: 'Tools & Evaluation', description: 'Software reviews and commercial comparisons' },
+      { name: 'Advanced Execution', description: 'Scaling, data analysis, and advanced frameworks' },
+    ],
+    topics: fallbackList.slice(0, count),
+    strategy: `Build topical authority by publishing the core pillar guide first, then supporting it with tactical cluster posts linked back with descriptive anchor text.`,
   }
 }
 
 /**
- * Generate topic clusters for pillar content strategy
- * @param {Object} params - Input parameters
- * @returns {Promise<Object>} Topic clusters
+ * Generate topic clusters specifically
  */
 export async function generateTopicClusters({
   niche,
   mainKeyword,
   audience = '',
   preferredProvider,
-  clusterCount = 5,
+  clusterCount = 4,
   topicsPerCluster = 4,
 }) {
-  const systemPrompt = `You are an expert SEO content strategist specializing in topic cluster / pillar page strategy. Generate a topic cluster structure for a pillar page.
-
-Return JSON with this structure:
-{
-  "pillarPage": {
-    "title": "Pillar page title targeting the main keyword",
-    "mainKeyword": "primary keyword",
-    "estimatedWordCount": 3000,
-    "outline": ["H2: Chapter 1", "H2: Chapter 2", ...]
-  },
-  "clusters": [
-    {
-      "clusterName": "Cluster topic name",
-      "focusKeyword": "cluster focus keyword",
-      "searchIntent": "informational",
-      "articles": [
-        {
-          "title": "Article title",
-          "targetKeyword": "article keyword",
-          "contentType": "how-to|guide|listicle|case-study",
-          "estimatedWordCount": 1500,
-          "outline": ["H2: Section 1", "H2: Section 2"],
-          "whyItWorks": "Explanation"
-        }
-      ]
-    }
-  ],
-  "interlinkingStrategy": "How to interlink pillar and cluster content"
-`
-
-  const userPrompt = `Create a topic cluster strategy for:
-
-**Niche:** ${niche}
-**Main Keyword (Pillar):** ${mainKeyword}
-**Target Audience:** ${audience || 'General'}
-**Number of Clusters:** ${clusterCount}
-**Articles per Cluster:** ${topicsPerCluster}
-
-Generate a comprehensive pillar page + ${clusterCount} topic clusters with ${topicsPerCluster} articles each. Focus on SEO-friendly structure with clear keyword targeting and interlinking opportunities.`
-
-  const messages = [
-    { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt },
-  ]
-
-  return callAIAndParseJSON(messages, {
+  const result = await generateBlogTopics({
+    niche,
+    targetKeywords: [mainKeyword],
+    audience,
     preferredProvider,
-    temperature: 0.6,
-    maxTokens: 8000,
-    jsonMode: true,
-  })
-}
-
-/**
- * Generate content calendar from topics
- * @param {Object} params - Input parameters
- * @param {Array} params.topics - Array of topic objects from generateBlogTopics
- * @param {number} params.postsPerWeek - How many posts per week
- * @param {string} params.startDate - Start date (ISO string)
- * @returns {Object} Content calendar
- */
-export function generateContentCalendar(topics, postsPerWeek = 2, startDate = new Date().toISOString()) {
-  const start = new Date(startDate)
-  const calendar = []
-
-  topics.forEach((topic, index) => {
-    const weekOffset = Math.floor(index / postsPerWeek)
-    const dayOffset = (index % postsPerWeek) * 3 // Space posts 3 days apart
-    const publishDate = new Date(start)
-    publishDate.setDate(start.getDate() + weekOffset * 7 + dayOffset)
-
-    calendar.push({
-      ...topic,
-      scheduledDate: publishDate.toISOString().split('T')[0],
-      weekNumber: weekOffset + 1,
-      status: 'planned',
-    })
+    count: clusterCount * topicsPerCluster,
   })
 
   return {
-    calendar,
-    summary: {
-      totalTopics: topics.length,
-      weeksToComplete: Math.ceil(topics.length / postsPerWeek),
-      postsPerWeek,
-      startDate: start.toISOString().split('T')[0],
-    },
+    pillarPage: result.pillarTopic,
+    clusters: result.clusters.map((c, i) => ({
+      name: c.name,
+      description: c.description,
+      topics: result.topics.filter(t => t.clusterName === c.name || i === 0).slice(0, topicsPerCluster),
+    })),
+    interlinkingStrategy: result.strategy,
   }
+}
+
+/**
+ * Generate content calendar schedule
+ */
+export function generateContentCalendar({ topics, postsPerWeek = 2, startDate = new Date() }) {
+  const calendar = []
+  let currentDate = new Date(startDate)
+
+  topics.forEach((topic, index) => {
+    // Increment days
+    const dayOffset = Math.floor(index * (7 / postsPerWeek))
+    const publishDate = new Date(currentDate)
+    publishDate.setDate(publishDate.getDate() + dayOffset)
+
+    calendar.push({
+      date: publishDate.toISOString().split('T')[0],
+      topic: topic.title,
+      targetKeyword: topic.targetKeyword,
+      cluster: topic.clusterName,
+      status: 'Planned',
+    })
+  })
+
+  return calendar
 }

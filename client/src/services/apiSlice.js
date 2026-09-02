@@ -1,9 +1,10 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
+import { API_BASE_URL } from '../utils/apiUrl'
 
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
-    baseUrl: '/api',
+    baseUrl: API_BASE_URL,
     timeout: 120000,
     prepareHeaders: (headers) => {
       headers.set('Content-Type', 'application/json')
@@ -116,6 +117,24 @@ export const apiSlice = createApi({
       }),
     }),
 
+    // POST /api/logo/variations
+    generateLogoVariations: builder.mutation({
+      query: (payload) => ({
+        url: '/logo/variations',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
+    // POST /api/content-qa/polish
+    polishContentQa: builder.mutation({
+      query: (payload) => ({
+        url: '/content-qa/polish',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
     // GET /api/health
     healthCheck: builder.query({
       query: () => '/health',
@@ -157,6 +176,12 @@ export const apiSlice = createApi({
         headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
       }),
     }),
+    getAdminActivity: builder.query({
+      query: (params = {}) => ({
+        url: `/admin/activity?${new URLSearchParams(params)}`,
+        headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+      }),
+    }),
   }),
 })
 
@@ -173,6 +198,8 @@ export const {
   useGenerateFaqsMutation,
   useAnalyzeCompetitorMutation,
   useAnalyzeContentQaMutation,
+  usePolishContentQaMutation,
+  useGenerateLogoVariationsMutation,
   useHealthCheckQuery,
   useGetPublicToolsQuery,
   useAdminLoginMutation,
@@ -181,4 +208,7 @@ export const {
   useUpdateAdminToolMutation,
   useGetAdminLeadsQuery,
   useDeleteAdminLeadMutation,
+  useGetAdminActivityQuery,
 } = apiSlice
+
+export const useGenerateBlogTopicsMutation = useGenerateTopicsMutation

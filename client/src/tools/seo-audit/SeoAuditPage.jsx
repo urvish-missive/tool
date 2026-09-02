@@ -7,15 +7,33 @@ import AuditForm from './AuditForm'
 import LoadingAudit from './LoadingAudit'
 import ScoreCircle from '../shared/ScoreCircle'
 import ScoreCard from '../shared/ScoreCard'
+import {
+  ShieldAlert,
+  CheckCircle2,
+  AlertTriangle,
+  Code,
+  Calendar,
+  Layers,
+  Sparkles,
+  Copy,
+  Check,
+  Download,
+  ExternalLink,
+  ChevronDown,
+  ChevronUp,
+  FileText,
+  Search,
+  Zap,
+} from 'lucide-react'
 
 const LOADING_STEPS = ['connect', 'technical', 'structure', 'content', 'links', 'schema', 'report']
 
 const SEVERITY_COLORS = {
-  CRITICAL: 'bg-red-100 text-red-700',
-  HIGH: 'bg-orange-100 text-orange-700',
-  MEDIUM: 'bg-yellow-100 text-yellow-700',
-  LOW: 'bg-blue-100 text-blue-700',
-  INFO: 'bg-gray-100 text-gray-600',
+  CRITICAL: 'bg-rose-100 text-rose-800 border-rose-200',
+  HIGH: 'bg-amber-100 text-amber-800 border-amber-200',
+  MEDIUM: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+  LOW: 'bg-blue-100 text-blue-800 border-blue-200',
+  INFO: 'bg-slate-100 text-slate-700 border-slate-200',
 }
 
 const SEVERITY_ICONS = {
@@ -29,27 +47,32 @@ const SEVERITY_ICONS = {
 function IssueItem({ issue }) {
   const [expanded, setExpanded] = useState(false)
   return (
-    <div className="border border-gray-200 rounded-xl p-4 hover:shadow-sm transition-shadow">
-      <button onClick={() => setExpanded(!expanded)} className="w-full text-left flex items-start gap-3">
-        <span className="text-lg shrink-0">{SEVERITY_ICONS[issue.severity] || 'ℹ️'}</span>
+    <div className="border border-slate-200 rounded-2xl p-5 hover:shadow-md transition-all bg-white">
+      <button onClick={() => setExpanded(!expanded)} className="w-full text-left flex items-start gap-3.5 cursor-pointer">
+        <span className="text-xl shrink-0 mt-0.5">{SEVERITY_ICONS[issue.severity] || 'ℹ️'}</span>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span className={`px-2 py-0.5 rounded text-xs font-bold ${SEVERITY_COLORS[issue.severity]}`}>{issue.severity}</span>
-            <span className="font-semibold text-sm text-gray-900">{issue.title}</span>
+          <div className="flex items-center gap-2 flex-wrap mb-1">
+            <span className={`px-2.5 py-0.5 rounded-md text-xs font-bold border ${SEVERITY_COLORS[issue.severity]}`}>{issue.severity}</span>
+            <span className="font-bold text-sm sm:text-base text-slate-900">{issue.title}</span>
           </div>
-          {issue.description && <p className="text-xs text-gray-500 mt-1 truncate">{issue.description}</p>}
+          {issue.description && <p className="text-xs text-slate-500 line-clamp-1">{issue.description}</p>}
         </div>
-        <svg className={`w-4 h-4 text-gray-400 shrink-0 transition-transform ${expanded ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-        </svg>
+        <div className="shrink-0 p-1 rounded-lg hover:bg-slate-100 text-slate-400">
+          {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+        </div>
       </button>
+
       {expanded && (
-        <div className="mt-3 ml-8 space-y-2 text-sm">
-          {issue.description && <p className="text-gray-600">{issue.description}</p>}
-          {issue.recommendation && (
-            <p className="text-green-700 bg-green-50 rounded-lg p-2">
-              <strong>How to fix:</strong> {issue.recommendation}
+        <div className="mt-4 pt-4 border-t border-slate-100 space-y-3 text-sm">
+          {issue.description && (
+            <p className="text-slate-600 leading-relaxed text-xs sm:text-sm">
+              <strong className="text-slate-900">Why it matters:</strong> {issue.description}
             </p>
+          )}
+          {issue.recommendation && (
+            <div className="text-emerald-800 bg-emerald-50 rounded-xl p-3.5 border border-emerald-200 text-xs sm:text-sm leading-relaxed">
+              <strong className="font-bold text-emerald-900">Recommended Remediation:</strong> {issue.recommendation}
+            </div>
           )}
         </div>
       )}
@@ -64,6 +87,10 @@ export default function SeoAuditPage() {
   const [runAudit, { isLoading, isError, error, data }] = useRunAuditMutation()
   const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose, triggerPopup } = useLeadPopup('seo-audit')
   const [pendingPayload, setPendingPayload] = useState(null)
+
+  const [activeTab, setActiveTab] = useState('issues') // 'issues' | 'snippets' | 'roadmap' | 'overview'
+  const [filterSeverity, setFilterSeverity] = useState('ALL')
+  const [copiedKey, setCopiedKey] = useState(null)
 
   useEffect(() => {
     if (!isLoading) return
@@ -92,236 +119,275 @@ export default function SeoAuditPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
+  const triggerCopy = (text, key) => {
+    navigator.clipboard.writeText(text)
+    setCopiedKey(key)
+    setTimeout(() => setCopiedKey(null), 2000)
+  }
+
   const errorMessage = error?.data?.error || (isError ? "Couldn't complete the audit. Please try again." : '')
   const issues = report?.issues || []
-  const bySeverity = { CRITICAL: [], HIGH: [], MEDIUM: [], LOW: [], INFO: [] }
-  issues.forEach(i => { if (bySeverity[i.severity]) bySeverity[i.severity].push(i) })
-  const [filterSeverity, setFilterSeverity] = useState('ALL')
   const filteredIssues = filterSeverity === 'ALL' ? issues : issues.filter(i => i.severity === filterSeverity)
+  const aiReport = report?.ai_report || null
+  const quickFixSnippets = aiReport?.quick_fix_snippets || []
+  const thirtyDayPlan = aiReport?.thirty_day_plan || []
+
+  const exportAuditMarkdown = () => {
+    if (!report) return
+    const text = [
+      `# Technical SEO Audit Report: ${report.targetUrl}`,
+      `Score: ${report.overallScore}/100 | Pages: ${report.totalPages}`,
+      `Date: ${new Date().toLocaleDateString()}`,
+      '',
+      `## Executive Summary`,
+      aiReport?.executive_summary || '',
+      '',
+      `## All Identified Issues (${issues.length})`,
+      ...issues.map((iss, i) => `${i + 1}. [${iss.severity}] ${iss.title}\n   ${iss.description}\n   Fix: ${iss.recommendation}`),
+    ].join('\n')
+
+    const blob = new Blob([text], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `seo-audit-${new URL(report.targetUrl.startsWith('http') ? report.targetUrl : 'https://' + report.targetUrl).hostname}.md`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
-    <div>
-      <LeadCaptureModal
-        show={showPopup}
-        onClose={handlePopupClose}
-        onSubmit={() => { handlePopupSubmit(); if (pendingPayload) runAudit(pendingPayload); setPendingPayload(null) }}
-        toolSlug="seo-audit"
-        title="Get Your Free SEO Audit"
-        subtitle="Enter your details to unlock the Website Audit"
-      />
+    <div className="min-h-screen bg-slate-50/50 pb-20">
       {/* Hero */}
-      <section className="relative !pt-36 overflow-hidden py-16 sm:py-20 lg:py-24">          <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4" />
-        <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
-          <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase">Free Tool</span>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-            <span className="text-gray-900">Free SEO </span>
-            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">Website Audit</span>
+      <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase shadow-sm">
+            Deep Crawl & Technical SEO Diagnostics
+          </span>
+
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight mb-4">
+            <span className="text-gray-900">AI SEO </span>
+            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">Site Auditor</span>
           </h1>
-          <p className="mt-5 text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Find the SEO issues holding your website back. Analyze technical SEO, on-page optimization, content, and more.
+          <p className="mt-3 text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            Scan your entire web page for technical blockers, metadata issues, broken canonicals, missing schema, and copy-paste developer fixes.
           </p>
-          <p className="mt-3 text-sm text-gray-400">No credit card required. Free initial SEO analysis.</p>
         </div>
       </section>
 
-      {/* Form / Loading / Report */}
-      <section className="py-8 sm:py-12">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6">
-          {!report && !isLoading && (
-            <AuditForm onSubmit={(payload) => {
-              if (popupEnabled) { setPendingPayload(payload); triggerPopup(); return }
-              runAudit(payload)
-            }} isLoading={isLoading} />
-          )}
+      {/* Main Container */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        {!report && !isLoading && (
+          <AuditForm
+            onSubmit={(payload) => {
+              if (popupEnabled) {
+                setPendingPayload(payload)
+                setShowPopup(true)
+              } else {
+                runAudit(payload)
+              }
+            }}
+            isLoading={isLoading}
+            errorMessage={errorMessage}
+          />
+        )}
 
-          {isLoading && <LoadingAudit currentStep={loadingStep} />}
+        {isLoading && <LoadingAudit step={loadingStep} />}
 
-          {isError && !isLoading && (
-            <div className="bg-white rounded-2xl border border-red-200 shadow-sm p-8 text-center max-w-md mx-auto">
-              <svg className="w-12 h-12 text-red-400 mx-auto mb-3" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-              </svg>
-              <h3 className="text-lg font-semibold text-gray-900">Audit Failed</h3>
-              <p className="text-gray-600 mt-2 max-w-sm mx-auto">{errorMessage}</p>
-              <button onClick={handleReset} className="mt-4 px-6 py-2.5 rounded-lg bg-gray-100 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
-                Try Again
-              </button>
-            </div>
-          )}
-
-          {/* ===== REPORT ===== */}
-          {report && (
-            <div id="audit-report" className="space-y-8">
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-bold text-gray-900">SEO Audit Report</h2>
-                <button onClick={handleReset} className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors">
-                  ← New Audit
-                </button>
-              </div>
-
-              {/* Overall Score */}
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center">
-                <p className="text-sm text-gray-500 uppercase tracking-wider font-semibold mb-4">SEO Health Score</p>
-                <ScoreCircle score={report.overallScore} size={160} strokeWidth={12} />
-                <p className="mt-4 text-gray-600 max-w-lg mx-auto">
-                  {report.ai?.executive_summary || `Your website scored ${report.overallScore}/100 across ${report.totalPages} page(s).`}
-                </p>
-              </div>
-
-              {/* Category Scores */}
-              <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-7 gap-3">
-                <ScoreCard score={report.technicalScore} label="Technical" icon="🔧" />
-                <ScoreCard score={report.onPageScore} label="On-Page" icon="📄" />
-                <ScoreCard score={report.contentScore} label="Content" icon="📝" />
-                <ScoreCard score={report.performanceScore} label="Performance" icon="⚡" />
-                <ScoreCard score={report.indexabilityScore} label="Indexability" icon="🔍" />
-                <ScoreCard score={report.linksScore} label="Links" icon="🔗" />
-                <ScoreCard score={report.structuredDataScore} label="Schema" icon="📊" />
-              </div>
-
-              {/* Issue Summary */}
-              <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Issues Found</h3>
-                <div className="flex flex-wrap gap-3 mb-4">
-                  {Object.entries(bySeverity).map(([sev, items]) => items.length > 0 && (
-                    <button key={sev} onClick={() => setFilterSeverity(filterSeverity === sev ? 'ALL' : sev)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${filterSeverity === sev ? 'ring-2 ring-offset-1 ring-blue-500 ' : ''}${SEVERITY_COLORS[sev]}`}>
-                      {SEVERITY_ICONS[sev]} {items.length} {sev}
-                    </button>
-                  ))}
-                  {filterSeverity !== 'ALL' && (
-                    <button onClick={() => setFilterSeverity('ALL')} className="px-3 py-1.5 rounded-full text-xs font-bold bg-gray-100 text-gray-700">
-                      Show All
-                    </button>
-                  )}
-                </div>
-                <div className="space-y-3 max-h-[600px] overflow-y-auto">
-                  {filteredIssues.map((issue, i) => <IssueItem key={i} issue={issue} />)}
-                  {filteredIssues.length === 0 && <p className="text-gray-500 text-sm">No issues found for this filter.</p>}
-                </div>
-              </div>
-
-              {/* AI Summary */}
-              {report.ai && (
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
-                  <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-                    <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-purple-500 flex items-center justify-center text-white text-sm">🤖</span>
-                    AI SEO Assessment
+        {/* Results Container */}
+        {report && (
+          <div id="audit-report" className="space-y-6 animate-fade-in">
+            {/* Header Strategic Banner */}
+            <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl">
+              <div className="flex flex-col lg:flex-row items-start justify-between gap-6 pb-6 border-b border-white/10">
+                <div className="space-y-2">
+                  <span className="text-xs font-bold uppercase tracking-wider text-blue-400">Technical Audit Complete</span>
+                  <h3 className="text-2xl sm:text-3xl font-black text-white leading-snug">
+                    {report.targetUrl}
                   </h3>
-                  <p className="text-xs text-gray-400 mb-4">AI-generated analysis based on the audit findings</p>
-                  <p className="text-gray-700 leading-relaxed mb-4">{report.ai.overall_assessment}</p>
-
-                  {/* Quick Wins */}
-                  {report.ai.quick_wins?.length > 0 && (
-                    <div className="mt-6">
-                      <h4 className="text-sm font-bold text-gray-900 mb-3">⚡ Quick Wins</h4>
-                      <ul className="space-y-2">
-                        {report.ai.quick_wins.map((w, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                            <span className="text-green-500 mt-0.5 shrink-0">✓</span>{w}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* Strengths */}
-                  {report.ai.strengths?.length > 0 && (
-                    <div className="mt-6">
-                      <h4 className="text-sm font-bold text-gray-900 mb-3">✅ Strengths</h4>
-                      <ul className="space-y-2">
-                        {report.ai.strengths.map((s, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                            <span className="text-green-500 mt-0.5 shrink-0">✓</span>{s}
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
-                  )}
-
-                  {/* 30-Day Plan */}
-                  {report.ai.thirty_day_plan?.length > 0 && (
-                    <div className="mt-6">
-                      <h4 className="text-sm font-bold text-gray-900 mb-3">📅 30-Day Action Plan</h4>
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        {report.ai.thirty_day_plan.map((week) => (
-                          <div key={week.week} className="bg-gray-50 rounded-xl p-4 border border-gray-200">
-                            <h5 className="text-sm font-bold text-gray-900 mb-2">Week {week.week}</h5>
-                            <ul className="space-y-1">
-                              {week.tasks.map((task, i) => (
-                                <li key={i} className="text-xs text-gray-600 flex items-start gap-1.5">
-                                  <span className="text-gray-400 shrink-0">•</span>{task}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* On-Page Summary */}
-              {report.onpageSummary && (
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">On-Page Summary</h3>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {[
-                      ['Pages Analyzed', report.onpageSummary.totalPages],
-                      ['Missing Titles', report.onpageSummary.missingTitles],
-                      ['Duplicate Titles', report.onpageSummary.duplicateTitles],
-                      ['Missing Descriptions', report.onpageSummary.missingDescriptions],
-                      ['Missing H1', report.onpageSummary.missingH1],
-                      ['Multiple H1', report.onpageSummary.multipleH1],
-                      ['Images w/o ALT', report.onpageSummary.imagesWithoutAlt],
-                      ['Thin Content', report.onpageSummary.thinContentPages],
-                    ].map(([label, value]) => (
-                      <div key={label} className="bg-gray-50 rounded-lg p-3 text-center">
-                        <div className={`text-lg font-bold ${value > 0 ? 'text-red-600' : 'text-green-600'}`}>{value}</div>
-                        <div className="text-xs text-gray-500 mt-0.5">{label}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
-              {/* Disclaimer */}
-              <p className="text-xs text-gray-400 text-center">
-                SEO scores provided by this tool are diagnostic estimates based on the checks performed. They are not Google ranking scores and do not guarantee search rankings or traffic.
-              </p>
-
-              {/* CTA */}
-              <div className="relative overflow-hidden rounded-2xl p-8 sm:p-12 text-center">
-                <div className="absolute inset-0 bg-gradient-to-br from-[#0C81F3] via-[#67A7FF] to-[#EB8988]" />
-                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/4" />
-                <div className="relative">
-                  <span className="inline-block px-3 py-1 bg-white/20 text-white text-xs font-bold rounded-full mb-4 tracking-wide uppercase backdrop-blur-sm">Expert Review</span>
-                  <h3 className="text-2xl sm:text-3xl font-bold text-white">Want an Expert SEO Review?</h3>
-                  <p className="mt-3 text-white/80 max-w-lg mx-auto">
-                    Our SEO team can analyze your website, competitors and growth opportunities in more depth.
+                  <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl">
+                    {aiReport?.executive_summary || `Scanned ${report.totalPages} page(s) and detected ${issues.length} action items.`}
                   </p>
                 </div>
+
+                <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0">
+                  <div className="w-24 h-24 rounded-2xl bg-white/10 border border-white/20 flex flex-col items-center justify-center">
+                    <span className="text-3xl font-black text-white">{report.overallScore}</span>
+                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wide">Health Score</span>
+                  </div>
+
+                  <div className="flex flex-col gap-2">
+                    <button
+                      onClick={exportAuditMarkdown}
+                      className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md transition-colors flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download Audit (.md)</span>
+                    </button>
+                    <button
+                      onClick={handleReset}
+                      className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
+                    >
+                      Audit Another URL
+                    </button>
+                  </div>
+                </div>
               </div>
 
-              {/* Lead Form */}
-              <div className="relative bg-white rounded-2xl border border-gray-200 shadow-lg shadow-gray-200/50 p-6 sm:p-8">
-                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] rounded-t-2xl" />
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">Get a Free SEO Strategy Session</h3>
-                <p className="text-sm text-gray-600 mb-6">Our experts will review your audit and share personalized recommendations.</p>
-                <DynamicLeadForm
-                  toolSlug="seo-audit"
-                  relatedIdField="auditId"
-                  relatedIdValue={auditId}
-                  title="Get a Free SEO Strategy Session"
-                  subtitle="Our experts will review your audit and share personalized recommendations."
-                />
+              {/* Sub-scores grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 pt-6 text-center">
+                {[
+                  { label: 'Technical', val: report.technicalScore },
+                  { label: 'On-Page', val: report.onPageScore },
+                  { label: 'Content', val: report.contentScore },
+                  { label: 'Performance', val: report.performanceScore },
+                  { label: 'Link Equity', val: report.linksScore },
+                  { label: 'Schema Data', val: report.structuredDataScore },
+                ].map(({ label, val }, i) => (
+                  <div key={i} className="bg-white/5 rounded-xl p-3 border border-white/10">
+                    <div className="text-lg sm:text-xl font-bold text-white">{val}/100</div>
+                    <div className="text-[11px] text-slate-400 font-medium">{label}</div>
+                  </div>
+                ))}
               </div>
             </div>
-          )}
-        </div>
-      </section>
+
+            {/* View Tabs */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-1.5 flex flex-wrap gap-1">
+              <button
+                onClick={() => setActiveTab('issues')}
+                className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+                  activeTab === 'issues'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                <ShieldAlert className="w-4 h-4" />
+                <span>Issues & Vulnerabilities ({issues.length})</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('snippets')}
+                className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+                  activeTab === 'snippets'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                <Code className="w-4 h-4" />
+                <span>Quick-Fix Code Snippets ({quickFixSnippets.length})</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('roadmap')}
+                className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+                  activeTab === 'roadmap'
+                    ? 'bg-blue-600 text-white shadow-sm'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                }`}
+              >
+                <Calendar className="w-4 h-4" />
+                <span>30-Day Sprint Roadmap</span>
+              </button>
+            </div>
+
+            {/* TAB 1: ISSUES LIST */}
+            {activeTab === 'issues' && (
+              <div className="space-y-4">
+                {/* Severity Filter Pills */}
+                <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'].map((sev) => {
+                      const countForSev = sev === 'ALL' ? issues.length : issues.filter(i => i.severity === sev).length
+                      if (sev !== 'ALL' && countForSev === 0) return null
+                      return (
+                        <button
+                          key={sev}
+                          onClick={() => setFilterSeverity(sev)}
+                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
+                            filterSeverity === sev
+                              ? 'bg-slate-900 text-white'
+                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                          }`}
+                        >
+                          {sev} ({countForSev})
+                        </button>
+                      )
+                    })}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {filteredIssues.map((issue, idx) => (
+                    <IssueItem key={idx} issue={issue} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 2: QUICK-FIX SNIPPETS */}
+            {activeTab === 'snippets' && (
+              <div className="space-y-4">
+                {quickFixSnippets.map((snip, idx) => (
+                  <div key={idx} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Code className="w-4 h-4 text-blue-600" />
+                        <h4 className="font-bold text-slate-900 text-base">{snip.title}</h4>
+                      </div>
+                      <button
+                        onClick={() => triggerCopy(snip.code, `snip-${idx}`)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors cursor-pointer"
+                      >
+                        {copiedKey === `snip-${idx}` ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                        <span>{copiedKey === `snip-${idx}` ? 'Copied Snippet' : 'Copy Code'}</span>
+                      </button>
+                    </div>
+
+                    <pre className="p-4 rounded-xl bg-slate-900 text-emerald-400 font-mono text-xs sm:text-sm overflow-x-auto leading-relaxed">
+                      {snip.code}
+                    </pre>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* TAB 3: 30-DAY SPRINT ROADMAP */}
+            {activeTab === 'roadmap' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {thirtyDayPlan.map((wk, i) => (
+                  <div key={i} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-3">
+                    <div className="flex items-center gap-2 text-blue-700 font-extrabold text-sm uppercase tracking-wider">
+                      <Calendar className="w-4 h-4" />
+                      <span>Week {wk.week}: {wk.theme}</span>
+                    </div>
+                    <ul className="space-y-2">
+                      {wk.tasks?.map((t, tIdx) => (
+                        <li key={tIdx} className="text-xs sm:text-sm text-slate-700 flex items-start gap-2">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                          <span>{t}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {popupEnabled && (
+        <LeadCaptureModal
+          isOpen={showPopup}
+          onClose={() => setShowPopup(false)}
+          onSubmit={(leadData) => {
+            setShowPopup(false)
+            if (pendingPayload) runAudit(pendingPayload)
+          }}
+          toolName="SEO Site Audit"
+        />
+      )}
     </div>
   )
 }

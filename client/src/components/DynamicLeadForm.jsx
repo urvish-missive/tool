@@ -1,39 +1,29 @@
-import { useState, useEffect } from 'react'
-import { useSubmitLeadMutation } from '../services/apiSlice'
+import { useState, useMemo } from 'react'
+import { useSubmitLeadMutation, useGetPublicToolsQuery } from '../services/apiSlice'
 
 const DEFAULT_CONFIG = { requireName: true, requireEmail: true, requirePhone: false, requireCompany: false }
 
 export default function DynamicLeadForm({ toolSlug, relatedIdField, relatedIdValue, title, subtitle }) {
   const [form, setForm] = useState({ name: '', email: '', company: '', website: '', phone: '' })
   const [submitLead, { isLoading }] = useSubmitLeadMutation()
+  const { data: toolsData, isLoading: toolsLoading } = useGetPublicToolsQuery()
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
-  const [fieldConfig, setFieldConfig] = useState(DEFAULT_CONFIG)
-  const [configLoaded, setConfigLoaded] = useState(false)
 
-  useEffect(() => {
-    // Use the RTK Query cached endpoint instead of raw fetch
-    fetch('/api/tools/public')
-      .then(r => r.json())
-      .then(data => {
-        if (data.success && data.tools) {
-          const tool = data.tools.find(t => t.slug === toolSlug)
-          if (tool) {
-            setFieldConfig({
-              requireName: tool.requireName ?? true,
-              requireEmail: tool.requireEmail ?? true,
-              requirePhone: tool.requirePhone ?? false,
-              requireCompany: tool.requireCompany ?? false,
-            })
-          }
+  const fieldConfig = useMemo(() => {
+    if (toolsData?.success && toolsData?.tools) {
+      const tool = toolsData.tools.find(t => t.slug === toolSlug)
+      if (tool) {
+        return {
+          requireName: tool.requireName ?? true,
+          requireEmail: tool.requireEmail ?? true,
+          requirePhone: tool.requirePhone ?? false,
+          requireCompany: tool.requireCompany ?? false,
         }
-        setConfigLoaded(true)
-      })
-      .catch(err => {
-        console.warn('Failed to load tool config:', err)
-        setConfigLoaded(true) // Continue with defaults
-      })
-  }, [toolSlug])
+      }
+    }
+    return DEFAULT_CONFIG
+  }, [toolsData, toolSlug])
 
   const handleChange = (e) => {
     setForm(f => ({ ...f, [e.target.name]: e.target.value }))

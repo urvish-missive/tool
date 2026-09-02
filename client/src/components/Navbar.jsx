@@ -1,7 +1,6 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
-
-const API = import.meta.env.VITE_API_URL || '/api'
+import { useGetPublicToolsQuery } from '../services/apiSlice'
 
 const TOOL_HREF_SLUGS = {
   '/content-analyzer': 'content-analyzer',
@@ -143,20 +142,15 @@ export default function Navbar() {
   const [mobileExpanded, setMobileExpanded] = useState(null)
   const navRef = useRef(null)
   const timeoutRef = useRef(null)
-  const [disabledTools, setDisabledTools] = useState(new Set())
+  const { data: toolsData } = useGetPublicToolsQuery()
 
-  useEffect(() => {
-    fetch(`${API}/tools/public`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) {
-          const disabled = new Set()
-          data.tools.forEach(t => { if (!t.enabled) disabled.add(t.slug) })
-          setDisabledTools(disabled)
-        }
-      })
-      .catch(() => {})
-  }, [])
+  const disabledTools = useMemo(() => {
+    const disabled = new Set()
+    if (toolsData?.success && toolsData?.tools) {
+      toolsData.tools.forEach(t => { if (!t.enabled) disabled.add(t.slug) })
+    }
+    return disabled
+  }, [toolsData])
 
   useEffect(() => {
     const handleClickOutside = (e) => {

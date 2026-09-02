@@ -1,49 +1,41 @@
-import { useState, useEffect } from 'react'
-
-const API = import.meta.env.VITE_API_URL || '/api'
-
-function authHeaders() {
-  return { Authorization: `Bearer ${localStorage.getItem('admin_token')}`, 'Content-Type': 'application/json' }
-}
+import { useState } from 'react'
+import { useGetAdminLeadsQuery, useDeleteAdminLeadMutation } from '../../services/apiSlice'
 
 const SOURCES = ['', 'content-analyzer', 'seo-audit', 'keyword-research', 'blog-topics', 'logo-maker', 'seo-roi']
 
 export default function AdminLeads() {
-  const [leads, setLeads] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 })
   const [search, setSearch] = useState('')
+  const [submittedSearch, setSubmittedSearch] = useState('')
   const [source, setSource] = useState('')
   const [page, setPage] = useState(1)
 
-  useEffect(() => { fetchLeads() }, [page, source])
-
-  const fetchLeads = async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams({ page, limit: 20 })
-      if (source) params.set('source', source)
-      if (search) params.set('search', search)
-      const res = await fetch(`${API}/admin/leads?${params}`, { headers: authHeaders() })
-      if (res.status === 401) { localStorage.clear(); window.location.href = '/admin/login'; return }
-      const data = await res.json()
-      if (data.success) { setLeads(data.leads); setPagination(data.pagination) }
-    } catch (err) { console.error(err) } finally { setLoading(false) }
+  const queryParams = {
+    page,
+    limit: 20,
+    ...(source ? { source } : {}),
+    ...(submittedSearch ? { search: submittedSearch } : {}),
   }
+
+  const { data, isLoading, refetch } = useGetAdminLeadsQuery(queryParams)
+  const [deleteAdminLead] = useDeleteAdminLeadMutation()
+
+  const leads = data?.leads || []
+  const pagination = data?.pagination || { page: 1, pages: 1, total: 0 }
 
   const handleSearch = (e) => {
     e.preventDefault()
     setPage(1)
-    fetchLeads()
+    setSubmittedSearch(search.trim())
   }
 
-  const deleteLead = async (id) => {
+  const handleDelete = async (id) => {
     if (!confirm('Delete this lead?')) return
     try {
-      const res = await fetch(`${API}/admin/leads/${id}`, { method: 'DELETE', headers: authHeaders() })
-      const data = await res.json()
-      if (data.success) setLeads(prev => prev.filter(l => l.id !== id))
-    } catch (err) { console.error(err) }
+      await deleteAdminLead(id).unwrap()
+      refetch()
+    } catch (err) {
+      console.error('Failed to delete lead:', err)
+    }
   }
 
   const exportCSV = () => {
@@ -53,7 +45,10 @@ export default function AdminLeads() {
     const csv = [headers.join(','), ...rows.map(r => r.map(v => `"${v}"`).join(','))].join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
-    const a = document.createElement('a'); a.href = url; a.download = 'leads.csv'; a.click()
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'leads.csv'
+    a.click()
     URL.revokeObjectURL(url)
   }
 
@@ -97,7 +92,7 @@ export default function AdminLeads() {
 
       {/* Table */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
-        {loading ? (
+        {isLoading ? (
           <div className="flex items-center justify-center py-16"><div className="w-8 h-8 border-4 border-gray-200 border-t-[#0C81F3] rounded-full animate-spin" /></div>
         ) : leads.length === 0 ? (
           <div className="py-16 text-center text-gray-400">
@@ -139,7 +134,7 @@ export default function AdminLeads() {
                       {new Date(lead.createdAt).toLocaleDateString()} {new Date(lead.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button onClick={() => deleteLead(lead.id)} className="text-xs text-gray-400 hover:text-red-500 transition-colors">
+                      <button onClick={() => handleDelete(lead.id)} className="text-xs text-gray-400 hover:text-red-500 transition-colors">
                         Delete
                       </button>
                     </td>

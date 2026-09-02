@@ -1,31 +1,23 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-
-const API = import.meta.env.VITE_API_URL || '/api'
+import { useAdminLoginMutation } from '../../services/apiSlice'
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [adminLogin, { isLoading }] = useAdminLoginMutation()
   const navigate = useNavigate()
 
   const handleLogin = async (e) => {
     e.preventDefault()
-    setLoading(true)
     setError('')
 
     try {
-      const res = await fetch(`${API}/admin/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      })
-      const data = await res.json()
+      const data = await adminLogin({ email, password }).unwrap()
 
       if (!data.success) {
         setError(data.error || 'Login failed')
-        setLoading(false)
         return
       }
 
@@ -33,9 +25,7 @@ export default function AdminLogin() {
       localStorage.setItem('admin_user', JSON.stringify(data.admin))
       navigate('/admin')
     } catch (err) {
-      setError('Connection failed. Please try again.')
-    } finally {
-      setLoading(false)
+      setError(err?.data?.error || err.message || 'Connection failed. Please try again.')
     }
   }
 
@@ -81,10 +71,10 @@ export default function AdminLogin() {
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={isLoading}
             className="w-full py-3 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white rounded-xl font-semibold text-sm hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Signing in...' : 'Sign In'}
+            {isLoading ? 'Signing in...' : 'Sign In'}
           </button>
         </form>
       </div>

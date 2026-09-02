@@ -1,10 +1,5 @@
-import { useState, useEffect } from 'react'
-
-const API = import.meta.env.VITE_API_URL || '/api'
-
-function authHeaders() {
-  return { Authorization: `Bearer ${localStorage.getItem('admin_token')}`, 'Content-Type': 'application/json' }
-}
+import { useState } from 'react'
+import { useGetAdminActivityQuery } from '../../services/apiSlice'
 
 const TOOLS = [
   { slug: '', label: 'All Tools' },
@@ -17,29 +12,19 @@ const TOOLS = [
 ]
 
 export default function AdminActivity() {
-  const [activity, setActivity] = useState([])
-  const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
-  const [pagination, setPagination] = useState({ page: 1, limit: 20, total: 0, pages: 1 })
   const [toolFilter, setToolFilter] = useState('')
-  const [expandedId, setExpandedId] = useState(null)
 
-  useEffect(() => { fetchActivity() }, [page, toolFilter])
-
-  const fetchActivity = async () => {
-    setLoading(true)
-    try {
-      const params = new URLSearchParams({ page: String(page), limit: '20' })
-      if (toolFilter) params.set('tool', toolFilter)
-      const res = await fetch(`${API}/admin/activity?${params}`, { headers: authHeaders() })
-      if (res.status === 401) { localStorage.clear(); window.location.href = '/admin/login'; return }
-      const data = await res.json()
-      if (data.success) {
-        setActivity(data.activity)
-        setPagination(data.pagination)
-      }
-    } catch (err) { console.error(err) } finally { setLoading(false) }
+  const queryParams = {
+    page: String(page),
+    limit: '20',
+    ...(toolFilter ? { tool: toolFilter } : {}),
   }
+
+  const { data, isLoading } = useGetAdminActivityQuery(queryParams)
+
+  const activity = data?.activity || []
+  const pagination = data?.pagination || { page: 1, limit: 20, total: 0, pages: 1 }
 
   const getToolConfig = (slug) => TOOLS.find(t => t.slug === slug) || { icon: '🛠️', color: 'bg-gray-100 text-gray-600', label: slug }
 
@@ -67,12 +52,15 @@ export default function AdminActivity() {
       {/* Filters */}
       <div className="flex flex-wrap gap-2">
         {TOOLS.map(t => (
-          <button key={t.slug} onClick={() => { setToolFilter(t.slug); setPage(1) }}
+          <button
+            key={t.slug}
+            onClick={() => { setToolFilter(t.slug); setPage(1) }}
             className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
               toolFilter === t.slug
                 ? 'bg-[#0C81F3] text-white border-[#0C81F3]'
                 : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:text-gray-900'
-            }`}>
+            }`}
+          >
             {t.icon && <span className="mr-1">{t.icon}</span>}
             {t.label}
           </button>
@@ -81,7 +69,7 @@ export default function AdminActivity() {
       </div>
 
       {/* Activity Table */}
-      {loading ? (
+      {isLoading ? (
         <div className="flex items-center justify-center py-20">
           <div className="w-8 h-8 border-4 border-gray-200 border-t-[#0C81F3] rounded-full animate-spin" />
         </div>
@@ -160,7 +148,6 @@ export default function AdminActivity() {
                 >
                   ← Previous
                 </button>
-                {/* Page numbers */}
                 {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
                   let pageNum
                   if (pagination.pages <= 5) {

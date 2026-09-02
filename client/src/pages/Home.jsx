@@ -1,97 +1,96 @@
 import { Link } from 'react-router-dom'
-import { useState, useEffect } from 'react'
-
-const API = import.meta.env.VITE_API_URL || '/api'
+import { useMemo } from 'react'
+import { useGetPublicToolsQuery } from '../services/apiSlice'
 
 const TOOL_SLUG_MAP = {
-  'content-analyzer': 'content-analyzer',
-  'seo-audit': 'seo-audit',
-  'keyword-research': 'keyword-research',
-  'blog-topic-generator': 'blog-topics',
-  'logo-maker': 'logo-maker',
-  'faq-generator': 'faq-generator',
-  'competitor-analysis': 'competitor-analyzer',
-  'seo-roi': 'seo-roi',
-  'content-qa': 'content-qa',
+  content_analyzer: 'content-analyzer',
+  seo_audit: 'seo-audit',
+  keyword_research: 'keyword-research',
+  blog_topic_generator: 'blog-topics',
+  logo_maker: 'logo-maker',
+  faq_generator: 'faq-generator',
+  competitor_analysis: 'competitor-analyzer',
+  seo_roi_calculator: 'seo-roi',
+  content_qa: 'content-qa',
 }
 
 const TOOLS = [
   {
-    id: 'content-analyzer',
-    name: 'AI Content Analyzer',
-    description: 'Analyze your content for SEO, readability, search intent and overall quality with AI-powered insights.',
-    icon: '📝',
+    id: 'content_analyzer',
+    title: 'Content Analyzer',
+    description: 'AI-driven on-page SEO analyzer with real-time scoring, content gaps, readability, and strategic insights.',
+    icon: '📊',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/content-analyzer',
-    badge: 'AI Powered',
+    badge: 'Free Tool',
   },
   {
-    id: 'content-qa',
-    name: 'Content QA Checklist',
-    description: "QA every piece of content with Himani Kankaria's 12-pillar framework (34 quality checks, zero em-dash rule, AI cliches, read-aloud test).",
-    icon: '✅',
-    color: 'from-[#0C81F3] to-[#EB8988]',
-    path: '/content-qa',
-    badge: 'Popular',
-  },
-  {
-    id: 'seo-audit',
-    name: 'SEO Website Audit',
-    description: 'Get a comprehensive technical and on-page SEO audit of your website with actionable recommendations.',
+    id: 'seo_audit',
+    title: 'SEO Audit',
+    description: 'Deep technical SEO website crawler analyzing meta tags, headings, schema markup, and performance.',
     icon: '🔍',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/seo-audit',
     badge: 'Free Tool',
   },
   {
-    id: 'keyword-research',
-    name: 'AI Keyword Research',
-    description: 'Discover keyword ideas, search intent, long-tail opportunities, topic clusters and content ideas.',
+    id: 'keyword_research',
+    title: 'Keyword Research',
+    description: 'Discover high-intent keyword opportunities, topic clusters, search intent, and long-tail ideas.',
     icon: '🎯',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/keyword-research',
-    badge: 'AI Powered',
+    badge: 'Free Tool',
   },
   {
-    id: 'blog-topic-generator',
-    name: 'Blog Topic Generator',
-    description: 'Generate SEO-optimized blog topics and topic clusters with outlines, related keywords, and a content strategy.',
+    id: 'blog_topic_generator',
+    title: 'Blog Topic Generator',
+    description: 'Generate catchy, SEO-optimized blog topic ideas with headlines, target keywords, and content briefs.',
     icon: '💡',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/blog-topic-generator',
-    badge: 'New',
+    badge: 'Free Tool',
   },
   {
-    id: 'logo-maker',
-    name: 'Logo Maker',
-    description: 'Create professional logos instantly with our AI-powered logo generator. Choose from multiple styles and colors.',
+    id: 'logo_maker',
+    title: 'AI Logo Maker',
+    description: 'Create unique, customizable SVG vector logos for your brand with instant downloads in multiple formats.',
     icon: '🎨',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/logo-maker',
-    badge: 'New',
+    badge: 'Free Tool',
   },
   {
-    id: 'faq-generator',
-    name: 'FAQ Generator',
-    description: 'Generate SEO-friendly FAQ questions and answers for featured snippets. Export as JSON or schema markup.',
+    id: 'content_qa',
+    title: 'Content QA Checklist',
+    description: 'Comprehensive 12-pillar pre-publish QA checklist to catch errors, polish tone, and verify claims.',
+    icon: '✅',
+    color: 'from-[#0C81F3] to-[#EB8988]',
+    path: '/content-qa',
+    badge: 'Free Tool',
+  },
+  {
+    id: 'faq_generator',
+    title: 'FAQ Generator',
+    description: 'Generate high-converting FAQs formulated to win Google Featured Snippets and valid Schema.org JSON-LD.',
     icon: '❓',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/faq-generator',
-    badge: 'New',
+    badge: 'Free Tool',
   },
   {
-    id: 'competitor-analysis',
-    name: 'Competitor Analysis',
-    description: 'Spy on competitors - uncover their SEO strategy, keyword opportunities, content gaps, and quick wins.',
-    icon: '🕵️',
+    id: 'competitor_analysis',
+    title: 'Competitor Analysis',
+    description: 'Reverse-engineer competitor rankings, find content gaps, and get a customized 10x outrank playbook.',
+    icon: '⚔️',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/competitor-analysis',
-    badge: 'New',
+    badge: 'Free Tool',
   },
   {
-    id: 'seo-roi',
-    name: 'SEO ROI Calculator',
-    description: 'Estimate potential organic traffic, leads, revenue and ROI from your SEO investment.',
+    id: 'seo_roi_calculator',
+    title: 'SEO ROI Calculator',
+    description: 'Model organic growth scenarios, calculate break-even timelines, and build an executive business case.',
     icon: '💰',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/seo-roi-calculator',
@@ -100,20 +99,15 @@ const TOOLS = [
 ]
 
 export default function Home() {
-  const [disabled, setDisabled] = useState(new Set())
+  const { data: toolsData } = useGetPublicToolsQuery()
 
-  useEffect(() => {
-    fetch(`${API}/tools/public`)
-      .then(r => r.json())
-      .then(data => {
-        if (data.success) {
-          const d = new Set()
-          data.tools.forEach(t => { if (!t.enabled) d.add(t.slug) })
-          setDisabled(d)
-        }
-      })
-      .catch(() => {})
-  }, [])
+  const disabled = useMemo(() => {
+    const d = new Set()
+    if (toolsData?.success && toolsData?.tools) {
+      toolsData.tools.forEach(t => { if (!t.enabled) d.add(t.slug) })
+    }
+    return d
+  }, [toolsData])
 
   const visibleTools = TOOLS.filter(t => !disabled.has(TOOL_SLUG_MAP[t.id]))
 

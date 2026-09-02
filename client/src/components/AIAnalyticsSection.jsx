@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import ScoreRing from './ScoreRing'
+import { Sparkles, ShieldCheck, Zap, HelpCircle, Check, Copy } from 'lucide-react'
 
 const SCORE_META = [
   { key: 'seo_score', label: 'SEO Optimization', icon: '🎯', color: 'from-blue-600 to-blue-400' },
@@ -8,6 +9,8 @@ const SCORE_META = [
   { key: 'readability_score', label: 'Readability', icon: '📖', color: 'from-amber-600 to-orange-400' },
   { key: 'structure_score', label: 'Structure', icon: '🏗️', color: 'from-rose-600 to-red-400' },
   { key: 'usefulness_score', label: 'Usefulness', icon: '💡', color: 'from-cyan-600 to-sky-400' },
+  { key: 'geo_citation_score', label: 'GEO / AI Overview Citation', icon: '🤖', color: 'from-indigo-600 to-violet-400' },
+  { key: 'eeat_score', label: 'E-E-A-T Trust Score', icon: '🛡️', color: 'from-emerald-700 to-teal-500' },
 ]
 
 const INTENT_ICONS = {
@@ -44,24 +47,24 @@ function ScoreBar({ score, label, icon, color, delay }) {
   return (
     <div ref={ref} className="space-y-2">
       <div className="flex items-center justify-between">
-        <span className="flex items-center gap-2 text-sm font-medium text-gray-800">
-          <span className="text-lg">{icon}</span>
-          {label}
+        <span className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-white">
+          <span className="text-base">{icon}</span>
+          <span className="text-slate-100">{label}</span>
         </span>
-        <span className="text-sm font-bold text-gray-900">{score}/100</span>
+        <span className="text-xs sm:text-sm font-bold text-white tracking-wide">{score}<span className="text-slate-400 text-[11px] font-normal">/100</span></span>
       </div>
-      <div className="relative h-3 bg-gray-200 rounded-full overflow-hidden">
+      <div className="relative h-2.5 bg-slate-800/80 rounded-full overflow-hidden border border-white/10">
         <div
           className={`absolute inset-y-0 left-0 bg-gradient-to-r ${color} rounded-full transition-all duration-1000 ease-out`}
           style={{ width: `${width}%` }}
         />
       </div>
-      <div className="flex justify-between items-center">
-        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-          score >= 80 ? 'bg-green-100 text-green-700' :
-          score >= 60 ? 'bg-yellow-100 text-yellow-700' :
-          score >= 40 ? 'bg-orange-100 text-orange-700' :
-          'bg-red-100 text-red-700'
+      <div className="flex justify-between items-center pt-0.5">
+        <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
+          score >= 80 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+          score >= 60 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
+          score >= 40 ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30' :
+          'bg-rose-500/20 text-rose-300 border border-rose-500/30'
         }`}>{rating}</span>
       </div>
     </div>
@@ -84,11 +87,11 @@ function InsightCard({ icon, title, children, accent = 'blue', delay = 0 }) {
   }, [delay])
 
   const accents = {
-    blue: 'border-blue-200 bg-blue-50/50',
-    green: 'border-green-200 bg-green-50/50',
-    amber: 'border-amber-200 bg-amber-50/50',
-    red: 'border-red-200 bg-red-50/50',
-    purple: 'border-purple-200 bg-purple-50/50',
+    blue: 'border-blue-200 bg-blue-50/40',
+    green: 'border-emerald-200 bg-emerald-50/40',
+    amber: 'border-amber-200 bg-amber-50/40',
+    red: 'border-rose-200 bg-rose-50/40',
+    purple: 'border-purple-200 bg-purple-50/40',
   }
 
   return (
@@ -97,8 +100,8 @@ function InsightCard({ icon, title, children, accent = 'blue', delay = 0 }) {
         accents[accent]
       } ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
       <div className="flex items-center gap-2 mb-3">
-        <span className="text-xl">{icon}</span>
-        <h4 className="text-base font-bold text-gray-900">{title}</h4>
+        <span className="text-lg">{icon}</span>
+        <h4 className="font-bold text-slate-900 text-sm sm:text-base">{title}</h4>
       </div>
       {children}
     </div>
@@ -106,310 +109,229 @@ function InsightCard({ icon, title, children, accent = 'blue', delay = 0 }) {
 }
 
 export default function AIAnalyticsSection({ report }) {
-  const [heroVisible, setHeroVisible] = useState(false)
-  const heroRef = useRef(null)
-
-  useEffect(() => {
-    const el = heroRef.current
-    if (!el) return
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setHeroVisible(true); obs.disconnect() } },
-      { threshold: 0.2 }
-    )
-    obs.observe(el)
-    return () => obs.disconnect()
-  }, [])
-
+  const [copiedKey, setCopiedKey] = useState(null)
   if (!report) return null
 
+  const triggerCopy = (text, key) => {
+    navigator.clipboard.writeText(text)
+    setCopiedKey(key)
+    setTimeout(() => setCopiedKey(null), 2000)
+  }
+
   const intent = report.search_intent || {}
+  const aiSearch = report.ai_search_readiness || null
+  const eeatInsights = report.eeat_insights || []
 
   return (
-    <section className="py-12 sm:py-16 lg:py-20">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6">
+    <div className="space-y-8 animate-fade-in">
+      {/* Overall Diagnostic Header */}
+      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl">
+        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-6 border-b border-white/10">
+          <div className="space-y-2 max-w-2xl">
+            <span className="text-xs font-bold uppercase tracking-wider text-blue-400">Content Quality & SEO Diagnosis</span>
+            <h3 className="text-2xl sm:text-3xl font-black text-white leading-snug">
+              Executive Assessment
+            </h3>
+            <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+              {report.summary}
+            </p>
+          </div>
 
-        {/* Section Header */}
-        <div ref={heroRef}
-          className={`text-center mb-12 sm:mb-16 transition-all duration-700 ease-out ${
-            heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          }`}>
-          <span className="inline-block px-5 py-1.5 bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wider uppercase shadow-lg shadow-[#0C81F3]/25">
-            ✨ AI Powered
-          </span>
-          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-            <span className="text-gray-900">They Trust </span>
-            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
-              Our Analysis
-            </span>
-          </h2>
-          <p className="mt-4 text-gray-500 max-w-xl mx-auto text-base sm:text-lg">
-            Deep AI-powered insights into your content's SEO performance, structure, and optimization potential.
-          </p>
+          <div className="flex items-center gap-4 shrink-0">
+            <div className="w-24 h-24 rounded-2xl bg-white/10 border border-white/20 flex flex-col items-center justify-center">
+              <span className="text-3xl font-black text-white">{report.overall_score}</span>
+              <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wide">Overall Score</span>
+            </div>
+          </div>
         </div>
 
-        {/* Overall Score Hero */}
-        <div className={`bg-white rounded-3xl border border-gray-200 shadow-xl shadow-gray-200/50 p-8 sm:p-10 mb-8 transition-all duration-700 delay-200 ease-out ${
-          heroVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-        }`}>
-          <div className="flex flex-col sm:flex-row items-center gap-8">
-            <div className="shrink-0">
-              <ScoreRing score={report.overall_score} size={160} strokeWidth={12} />
+        {/* Scores Grid */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-6">
+          {SCORE_META.map((item, i) => (
+            <div key={item.key} className="bg-white/5 rounded-xl p-4 border border-white/10">
+              <ScoreBar
+                score={report[item.key] || 50}
+                label={item.label}
+                icon={item.icon}
+                color={item.color}
+                delay={i * 100}
+              />
             </div>
-            <div className="flex-1 text-center sm:text-left">
-              <h3 className="text-xl font-bold text-gray-900 mb-2">Overall Content Score</h3>
-              <p className={`text-lg font-semibold mb-3 ${
-                report.overall_score >= 80 ? 'text-green-600' :
-                report.overall_score >= 60 ? 'text-amber-600' :
-                report.overall_score >= 40 ? 'text-orange-600' : 'text-red-600'
-              }`}>
-                {report.overall_score >= 80 ? '🌟 Excellent — Your content is well-optimized' :
-                 report.overall_score >= 60 ? '👍 Good — Solid foundation with room to improve' :
-                 report.overall_score >= 40 ? '⚠️ Needs Improvement — Several areas need attention' :
-                 '🔴 Significant Issues — Major improvements recommended'}
+          ))}
+        </div>
+      </div>
+
+      {/* AI Search & GEO Readiness Card */}
+      {aiSearch && (
+        <div className="bg-gradient-to-r from-indigo-900/90 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-md border border-indigo-500/30">
+          <div className="flex items-center justify-between pb-4 border-b border-white/10">
+            <div className="flex items-center gap-2 text-indigo-300 font-bold text-sm uppercase tracking-wider">
+              <Sparkles className="w-4 h-4" />
+              <span>Generative Engine Optimization (GEO) & AI Overview Readiness</span>
+            </div>
+            <span className="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-200 border border-indigo-400/30 text-xs font-bold">
+              Score: {report.geo_citation_score || 75}/100
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 text-sm">
+            <div className="space-y-3">
+              <h5 className="font-bold text-white text-base">AI Citation Analysis</h5>
+              <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
+                {aiSearch.summary}
               </p>
-              {report.summary && (
-                <p className="text-gray-600 leading-relaxed text-sm sm:text-base">{report.summary}</p>
+              {aiSearch.actionableTweak && (
+                <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 text-xs text-indigo-200 leading-relaxed">
+                  <strong className="text-white">Citation Tweak:</strong> {aiSearch.actionableTweak}
+                </div>
               )}
             </div>
-          </div>
-        </div>
 
-        {/* Score Breakdown */}
-        <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 sm:p-8 mb-8">
-          <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0C81F3] to-[#EB8988] flex items-center justify-center text-white text-sm">📊</span>
-            Score Breakdown
-          </h3>
-          <div className="grid sm:grid-cols-2 gap-x-8 gap-y-5">
-            {SCORE_META.map((s, i) => (
-              <ScoreBar key={s.key} score={report[s.key]} label={s.label} icon={s.icon} color={s.color} delay={i * 150} />
-            ))}
-          </div>
-        </div>
-
-        {/* Search Intent Card */}
-        {intent.type && (
-          <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 sm:p-8 mb-8">
-            <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#0C81F3] to-[#EB8988] flex items-center justify-center text-white text-sm">🔍</span>
-              Search Intent Analysis
-            </h3>
-            <div className="flex flex-col sm:flex-row items-start gap-6">
-              <div className={`shrink-0 px-6 py-4 rounded-2xl bg-gradient-to-br ${INTENT_COLORS[intent.type] || 'from-gray-600 to-gray-400'} text-white text-center shadow-lg`}>
-                <span className="text-3xl block mb-1">{INTENT_ICONS[intent.type] || '🌐'}</span>
-                <span className="text-sm font-bold">{intent.type}</span>
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="text-sm text-gray-500">Confidence:</span>
-                  <span className={`text-sm font-bold px-3 py-0.5 rounded-full ${
-                    intent.confidence === 'High' ? 'bg-green-100 text-green-700' :
-                    intent.confidence === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
-                    'bg-gray-100 text-gray-700'
-                  }`}>{intent.confidence}</span>
-                  <span className="text-sm text-gray-500">Intent Match Score:</span>
-                  <span className="text-sm font-bold text-gray-900">{report.intent_score}/100</span>
+            {aiSearch.soundbiteQuote && (
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <h5 className="font-bold text-white text-xs uppercase tracking-wider text-slate-400">High-Probability AI Pull Quote</h5>
+                  <button
+                    onClick={() => triggerCopy(aiSearch.soundbiteQuote, 'quote-ai')}
+                    className="inline-flex items-center gap-1 text-xs text-indigo-300 hover:text-white"
+                  >
+                    {copiedKey === 'quote-ai' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedKey === 'quote-ai' ? 'Copied' : 'Copy'}</span>
+                  </button>
                 </div>
-                {intent.explanation && (
-                  <p className="text-gray-600 text-sm leading-relaxed mt-2">{intent.explanation}</p>
-                )}
+                <div className="p-4 rounded-xl bg-slate-950/80 border border-indigo-500/20 text-slate-200 font-serif italic text-sm leading-relaxed">
+                  "{aiSearch.soundbiteQuote}"
+                </div>
               </div>
-            </div>
+            )}
           </div>
+        </div>
+      )}
+
+      {/* E-E-A-T Signals Card */}
+      {eeatInsights.length > 0 && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm">
+              <ShieldCheck className="w-5 h-5 text-emerald-600" />
+              <span>Google E-E-A-T Experience & Trust Audit</span>
+            </div>
+            <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
+              Trust Score: {report.eeat_score || 72}/100
+            </span>
+          </div>
+
+          <ul className="space-y-2.5">
+            {eeatInsights.map((insight, i) => (
+              <li key={i} className="text-xs sm:text-sm text-slate-700 flex items-start gap-2.5">
+                <span className="text-emerald-600 font-bold mt-0.5">•</span>
+                <span>{insight}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Search Intent Card */}
+      {intent.type && (
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-3 border-b border-slate-100">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">{INTENT_ICONS[intent.type] || '🔍'}</span>
+              <h4 className="font-bold text-slate-900 text-base">Detected Search Intent: {intent.type}</h4>
+            </div>
+            <span className="text-xs px-2.5 py-1 rounded-full bg-slate-100 font-semibold text-slate-700">
+              Confidence: {intent.confidence || 'High'}
+            </span>
+          </div>
+          {intent.explanation && (
+            <p className="text-xs sm:text-sm text-slate-600 mt-3 leading-relaxed">
+              {intent.explanation}
+            </p>
+          )}
+        </div>
+      )}
+
+      {/* Insights Grid */}
+      <div className="grid sm:grid-cols-2 gap-6">
+        {report.strengths?.length > 0 && (
+          <InsightCard icon="✅" title="Identified Strengths" accent="green">
+            <ul className="space-y-2">
+              {report.strengths.map((s, i) => (
+                <li key={i} className="text-xs sm:text-sm text-slate-700 flex items-start gap-2">
+                  <span className="text-emerald-500 font-bold">✓</span>
+                  <span>{s}</span>
+                </li>
+              ))}
+            </ul>
+          </InsightCard>
         )}
 
-        {/* AI Insights Grid */}
-        <div className="grid sm:grid-cols-2 gap-6 mb-8">
-
-          {/* Strengths */}
-          {report.strengths?.length > 0 && (
-            <InsightCard icon="✅" title="Strengths" accent="green" delay={0}>
-              <ul className="space-y-2">
-                {report.strengths.map((s, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                    <span className="text-green-500 mt-0.5 shrink-0 font-bold">✓</span>
-                    <span>{s}</span>
-                  </li>
-                ))}
-              </ul>
-            </InsightCard>
-          )}
-
-          {/* Critical Issues */}
-          {report.critical_issues?.length > 0 && (
-            <InsightCard icon="🔴" title="Critical Issues" accent="red" delay={100}>
-              <div className="space-y-3">
-                {report.critical_issues.map((issue, i) => (
-                  <div key={i} className="bg-red-100/60 rounded-xl p-3 border border-red-200/60">
-                    <p className="font-semibold text-sm text-red-800">{issue.issue}</p>
-                    <p className="text-xs text-red-600 mt-1">{issue.why_it_matters}</p>
-                    <p className="text-xs text-red-600 mt-1"><strong>Fix:</strong> {issue.action}</p>
-                  </div>
-                ))}
-              </div>
-            </InsightCard>
-          )}
-
-          {/* Warnings */}
-          {report.warnings?.length > 0 && (
-            <InsightCard icon="⚠️" title="Warnings" accent="amber" delay={200}>
-              <ul className="space-y-2">
-                {report.warnings.map((w, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                    <span className="text-amber-500 mt-0.5 shrink-0">🟡</span>
-                    <span>{w}</span>
-                  </li>
-                ))}
-              </ul>
-            </InsightCard>
-          )}
-
-          {/* Missing Topics */}
-          {report.missing_topics?.length > 0 && (
-            <InsightCard icon="🧩" title="Potential Missing Topics" accent="purple" delay={300}>
-              <ul className="space-y-2">
-                {report.missing_topics.map((t, i) => (
-                  <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                    <span className="text-purple-500 mt-0.5 shrink-0">•</span>
-                    <span>{t}</span>
-                  </li>
-                ))}
-              </ul>
-            </InsightCard>
-          )}
-        </div>
-
-        {/* AI Recommendations */}
-        {report.recommendations?.length > 0 && (
-          <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 sm:p-8 mb-8">
-            <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-600 to-teal-500 flex items-center justify-center text-white text-sm">💡</span>
-              AI Recommendations
-            </h3>
-            <div className="space-y-4">
-              {report.recommendations.map((rec, i) => (
-                <div key={i} className="bg-gray-50 border border-gray-200 rounded-2xl p-5 hover:shadow-md transition-shadow">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className={`px-2.5 py-0.5 rounded-full text-xs font-bold ${
-                      rec.priority === 'High' ? 'bg-red-100 text-red-700' :
-                      rec.priority === 'Medium' ? 'bg-amber-100 text-amber-700' :
-                      'bg-green-100 text-green-700'
-                    }`}>{rec.priority}</span>
-                    <span className="font-semibold text-gray-900">{rec.title}</span>
-                  </div>
-                  <div className="grid sm:grid-cols-2 gap-3 mt-3">
-                    <div>
-                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Why</span>
-                      <p className="text-sm text-gray-600 mt-0.5">{rec.why}</p>
-                    </div>
-                    <div>
-                      <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">How to improve</span>
-                      <p className="text-sm text-gray-600 mt-0.5">{rec.how}</p>
-                    </div>
-                  </div>
+        {report.critical_issues?.length > 0 && (
+          <InsightCard icon="🔴" title="Critical Issues" accent="red">
+            <div className="space-y-3">
+              {report.critical_issues.map((iss, i) => (
+                <div key={i} className="bg-rose-100/50 p-3 rounded-xl border border-rose-200 text-xs">
+                  <p className="font-bold text-rose-900">{iss.issue}</p>
+                  <p className="text-rose-700 mt-1">{iss.why_it_matters}</p>
+                  <p className="text-rose-800 font-medium mt-1"><strong>Fix:</strong> {iss.action}</p>
                 </div>
               ))}
             </div>
-          </div>
+          </InsightCard>
         )}
 
-        {/* Quick Wins + FAQ row */}
-        <div className="grid sm:grid-cols-2 gap-6 mb-8">
-          {/* Quick Wins */}
-          {report.quick_wins?.length > 0 && (
-            <InsightCard icon="⚡" title="Quick Wins" accent="blue" delay={0}>
-              <ol className="space-y-2 list-decimal list-inside">
-                {report.quick_wins.map((w, i) => (
-                  <li key={i} className="text-sm text-gray-700">{w}</li>
-                ))}
-              </ol>
-            </InsightCard>
-          )}
-
-          {/* FAQ */}
-          {report.faq_opportunities?.length > 0 && (
-            <InsightCard icon="❓" title="FAQ Opportunities" accent="purple" delay={100}>
-              <ol className="space-y-2 list-decimal list-inside">
-                {report.faq_opportunities.map((q, i) => (
-                  <li key={i} className="text-sm text-gray-700">{q}</li>
-                ))}
-              </ol>
-              <button disabled className="mt-4 px-4 py-2 text-xs font-medium text-gray-400 bg-gray-100 rounded-xl cursor-not-allowed border border-gray-200">
-                Generate FAQ Schema — Coming Soon
-              </button>
-            </InsightCard>
-          )}
-        </div>
-
-        {/* Heading Recommendations */}
-        {report.heading_recommendations && (
-          <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 sm:p-8 mb-8">
-            <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-amber-600 to-orange-500 flex items-center justify-center text-white text-sm">📝</span>
-              Heading Recommendations
-            </h3>
-            <div className="grid sm:grid-cols-2 gap-6">
-              {report.heading_recommendations.current?.length > 0 && (
-                <div>
-                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Current Headings</h4>
-                  <ul className="space-y-1.5">
-                    {report.heading_recommendations.current.map((h, i) => (
-                      <li key={i} className="text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-2 border border-gray-100">{h}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {report.heading_recommendations.suggested?.length > 0 && (
-                <div>
-                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Suggested Headings</h4>
-                  <ul className="space-y-1.5">
-                    {report.heading_recommendations.suggested.map((h, i) => (
-                      <li key={i} className="text-sm text-gray-700 bg-blue-50 rounded-lg px-3 py-2 border border-blue-100">{h}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          </div>
+        {report.warnings?.length > 0 && (
+          <InsightCard icon="⚠️" title="Warnings & Opportunities" accent="amber">
+            <ul className="space-y-2">
+              {report.warnings.map((w, i) => (
+                <li key={i} className="text-xs sm:text-sm text-slate-700 flex items-start gap-2">
+                  <span className="text-amber-500 font-bold">🟡</span>
+                  <span>{w}</span>
+                </li>
+              ))}
+            </ul>
+          </InsightCard>
         )}
 
-        {/* Action Plan */}
-        {report.action_plan?.length > 0 && (
-          <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 sm:p-8">
-            <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2">
-              <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-rose-600 to-pink-500 flex items-center justify-center text-white text-sm">🗺️</span>
-              SEO Action Plan
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-gray-200">
-                    <th className="text-left py-2.5 pr-4 font-bold text-gray-500 text-xs uppercase tracking-wider">Priority</th>
-                    <th className="text-left py-2.5 pr-4 font-bold text-gray-500 text-xs uppercase tracking-wider">Action</th>
-                    <th className="text-left py-2.5 font-bold text-gray-500 text-xs uppercase tracking-wider">Reason</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {report.action_plan.map((item, i) => (
-                    <tr key={i} className="border-b border-gray-100 last:border-0">
-                      <td className="py-3 pr-4">
-                        <span className={`px-2 py-0.5 rounded text-xs font-bold ${
-                          item.priority === 'HIGH' ? 'bg-red-100 text-red-700' :
-                          item.priority === 'MEDIUM' ? 'bg-amber-100 text-amber-700' :
-                          'bg-green-100 text-green-700'
-                        }`}>{item.priority}</span>
-                      </td>
-                      <td className="py-3 pr-4 font-medium text-gray-900">{item.task}</td>
-                      <td className="py-3 text-gray-600">{item.reason}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+        {report.missing_topics?.length > 0 && (
+          <InsightCard icon="🧩" title="Missing Topical Sub-Themes" accent="purple">
+            <ul className="space-y-2">
+              {report.missing_topics.map((t, i) => (
+                <li key={i} className="text-xs sm:text-sm text-slate-700 flex items-start gap-2">
+                  <span className="text-purple-500 font-bold">•</span>
+                  <span>{t}</span>
+                </li>
+              ))}
+            </ul>
+          </InsightCard>
         )}
-
       </div>
-    </section>
+
+      {/* Recommendations List */}
+      {report.recommendations?.length > 0 && (
+        <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-4">
+          <h4 className="font-bold text-slate-900 text-lg flex items-center gap-2">
+            <span>💡 Strategic Recommendations</span>
+          </h4>
+          <div className="space-y-3">
+            {report.recommendations.map((rec, i) => (
+              <div key={i} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm space-y-1">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                    rec.priority === 'High' ? 'bg-rose-100 text-rose-800' :
+                    rec.priority === 'Medium' ? 'bg-amber-100 text-amber-800' :
+                    'bg-blue-100 text-blue-800'
+                  }`}>{rec.priority}</span>
+                  <span className="font-bold text-slate-900">{rec.title}</span>
+                </div>
+                <p className="text-slate-600"><strong>Why:</strong> {rec.why}</p>
+                <p className="text-slate-800"><strong>Action:</strong> {rec.how}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
