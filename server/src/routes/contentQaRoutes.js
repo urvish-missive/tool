@@ -1,12 +1,12 @@
 import { Router } from 'express'
 import rateLimit from 'express-rate-limit'
-import { analyzeContentQAHandler } from '../controllers/contentQaController.js'
+import { analyzeContentQAHandler, polishContentQAHandler } from '../controllers/contentQaController.js'
 
 const router = Router()
 
 const qaLimiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 3600000,
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 15,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 25,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, error: 'Rate limit reached. Please try again later.' },
@@ -14,5 +14,6 @@ const qaLimiter = rateLimit({
 })
 
 router.post('/analyze', qaLimiter, analyzeContentQAHandler)
+router.post('/polish', qaLimiter, polishContentQAHandler)
 
 export default router
