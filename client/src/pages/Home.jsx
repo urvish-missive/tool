@@ -12,6 +12,7 @@ const TOOL_SLUG_MAP = {
   'faq-generator': 'faq-generator',
   'competitor-analysis': 'competitor-analyzer',
   'seo-roi': 'seo-roi',
+  'content-qa': 'content-qa',
 }
 
 const TOOLS = [
@@ -23,6 +24,15 @@ const TOOLS = [
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/content-analyzer',
     badge: 'AI Powered',
+  },
+  {
+    id: 'content-qa',
+    name: 'Content QA Checklist',
+    description: "QA every piece of content with Himani Kankaria's 12-pillar framework (34 quality checks, zero em-dash rule, AI cliches, read-aloud test).",
+    icon: '✅',
+    color: 'from-[#0C81F3] to-[#EB8988]',
+    path: '/content-qa',
+    badge: 'Popular',
   },
   {
     id: 'seo-audit',

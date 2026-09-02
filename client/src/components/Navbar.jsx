@@ -87,7 +87,7 @@ const NAV_ITEMS = [
         {
           items: [
             { icon: '✏️', label: 'Blog', href: '#' },
-            { icon: '✅', label: 'Content QA Checklist', href: '#' },
+            { icon: '✅', label: 'Content QA Checklist', href: '/content-qa' },
             { icon: '🔍', label: 'SEO Strategies', badge: 'WEBINAR', badgeColor: 'bg-white text-gray-900', href: '#' },
             { icon: '📊', label: 'Case Study', href: '#' },
           ],
