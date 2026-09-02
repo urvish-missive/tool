@@ -1,16 +1,56 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
 import {
-  ClipboardCheck, ChevronDown, ChevronRight, CheckCircle2, XCircle, MinusCircle,
-  AlertTriangle, Download, Wand2, Sparkles, Volume2, Play, Pause,
-  RotateCcw, Users, Award, Zap, Scissors, ShieldCheck, Compass, Layout, Ban,
-  Monitor, Copy, Check, Eye, RefreshCw, ArrowRight, BookOpen, AlertCircle
+  Sparkles,
+  CheckCircle2,
+  XCircle,
+  AlertTriangle,
+  FileText,
+  Volume2,
+  VolumeX,
+  RefreshCw,
+  Copy,
+  Check,
+  Download,
+  BookOpen,
+  ChevronDown,
+  ChevronUp,
+  SlidersHorizontal,
+  Wand2,
+  Share2,
+  Eye,
+  Edit3,
+  HelpCircle,
+  ExternalLink,
+  ShieldCheck,
+  Target,
+  Search,
+  MessageSquare,
+  BarChart3,
+  ArrowRight,
+  ClipboardCheck,
+  AlertCircle,
+  Layers,
+  ArrowUpRight,
+  CheckCheck,
+  Maximize2,
+  Minimize2,
+  Quote,
+  Lightbulb,
+  Users,
+  Award,
+  Zap,
+  Scissors,
+  Compass,
+  Layout,
+  Ban,
+  Monitor,
 } from 'lucide-react'
-import { downloadQaPdf } from '../../utils/generateQaPdf'
+import ModelSelector from '../shared/ModelSelector'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
 import { useLeadPopup } from '../../components/useLeadPopup'
-import ModelSelector from '../shared/ModelSelector'
 import useToolFields from '../../hooks/useToolFields'
+import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import { useAnalyzeContentQaMutation, usePolishContentQaMutation } from '../../services/apiSlice'
 
 // ── 12 PILLARS DEFINITION (Matching Himani Kankaria's Checklist) ────
@@ -187,7 +227,7 @@ export default function ContentQaPage() {
   const [validationError, setValidationError] = useState('')
   const [loadingStepIdx, setLoadingStepIdx] = useState(0)
   const [report, setReport] = useState(null)
-  const [analyzeContentQa, { isLoading: isAnalyzing }] = useAnalyzeContentQaMutation()
+  const [analyzeContentQa, { isLoading: isAnalyzing, reset: resetMutation }] = useAnalyzeContentQaMutation()
   const [polishContentQa, { isLoading: isPolishing }] = usePolishContentQaMutation()
   const [qaId, setQaId] = useState(null)
   const [statuses, setStatuses] = useState({})
@@ -212,15 +252,20 @@ export default function ContentQaPage() {
   const wordCount = content.trim().split(/\s+/).filter(Boolean).length
   const charCount = content.length
 
-  // Loading timer simulation
-  useEffect(() => {
-    if (!isAnalyzing) return
-    setLoadingStepIdx(0)
-    const interval = setInterval(() => {
-      setLoadingStepIdx(prev => (prev < LOADING_STEPS.length - 1 ? prev + 1 : prev))
-    }, 2200)
-    return () => clearInterval(interval)
-  }, [isAnalyzing])
+  const handleReset = () => {
+    setContent('')
+    setTitle('')
+    setTargetKeyword('')
+    setTargetAudience('')
+    setReport(null)
+    setQaId(null)
+    setStatuses({})
+    setPolishedResult(null)
+    setValidationError('')
+    setError(null)
+    resetMutation()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   // Scroll to report on complete
   useEffect(() => {
@@ -655,35 +700,11 @@ Audited with Missive Digital Content QA Tool.`
 
           {/* ── LOADING ANIMATION ──────────────────────────────────── */}
           {isAnalyzing && (
-            <div className="bg-white rounded-3xl border border-gray-200 shadow-xl p-8 sm:p-12 text-center max-w-lg mx-auto">
-              <div className="relative w-16 h-16 mx-auto mb-6">
-                <div className="absolute inset-0 rounded-full border-4 border-blue-200 animate-ping opacity-30" />
-                <div className="w-16 h-16 rounded-full border-4 border-[#0C81F3] border-t-transparent animate-spin" />
-              </div>
-              <h3 className="text-xl font-bold text-gray-900 mb-1">Applying Himani's QA Standards...</h3>
-              <p className="text-sm text-gray-500 mb-6">Auditing 34 checks across all 12 quality pillars</p>
-
-              <div className="space-y-3 text-left bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
-                {LOADING_STEPS.map((step, idx) => {
-                  const isDone = idx < loadingStepIdx
-                  const isActive = idx === loadingStepIdx
-                  return (
-                    <div key={step} className="flex items-center gap-3">
-                      {isDone ? (
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      ) : isActive ? (
-                        <div className="w-4 h-4 border-2 border-[#0C81F3] border-t-transparent rounded-full animate-spin shrink-0" />
-                      ) : (
-                        <div className="w-4 h-4 rounded-full border border-gray-300 shrink-0" />
-                      )}
-                      <span className={`text-xs ${isActive ? 'font-bold text-blue-950' : isDone ? 'text-emerald-800' : 'text-gray-400'}`}>
-                        {step}
-                      </span>
-                    </div>
-                  )
-                })}
-              </div>
-            </div>
+            <UnifiedToolLoader
+              title="Auditing 34 Checks Across All 12 Quality Pillars..."
+              subtitle="Eliminating AI clichés, scanning structural flow, and verifying E-E-A-T trust signals."
+              steps={LOADING_STEPS}
+            />
           )}
 
           {/* ── ERROR DISPLAY ──────────────────────────────────────── */}
@@ -721,8 +742,8 @@ Audited with Missive Digital Content QA Tool.`
 
                 <div className="flex flex-wrap items-center gap-2">
                   <button
-                    onClick={() => { setReport(null); setPolishedResult(null); setStatuses({}) }}
-                    className="px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-xl transition-all"
+                    onClick={handleReset}
+                    className="px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-xl transition-all cursor-pointer"
                   >
                     ← Audit New Content
                   </button>

@@ -43,9 +43,21 @@ export function validateURL(inputUrl) {
 
 export function resolveAndValidate(hostname) {
   return new Promise((resolve, reject) => {
-    dns.resolve4(hostname, (err, addresses) => {
-      if (err && err.code !== 'ENODATA') return reject(new Error('DNS resolution failed'))
-      if (addresses && addresses.some(isPrivateIP)) return reject(new Error('Private/internal IP blocked'))
+    dns.lookup(hostname, { all: true }, (err, addresses) => {
+      if (err) {
+        dns.resolve4(hostname, (err4, addresses4) => {
+          if (err4 && err4.code !== 'ENODATA') {
+            console.warn(`DNS resolution warning for ${hostname}:`, err4.message)
+            return resolve(true)
+          }
+          if (addresses4 && addresses4.some(isPrivateIP)) return reject(new Error('Private/internal IP blocked'))
+          resolve(true)
+        })
+        return
+      }
+      if (addresses && addresses.some(a => isPrivateIP(a.address))) {
+        return reject(new Error('Private/internal IP blocked'))
+      }
       resolve(true)
     })
   })

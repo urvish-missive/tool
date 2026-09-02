@@ -1,16 +1,37 @@
-import { useState, useEffect, useRef } from 'react'
-import ScoreRing from './ScoreRing'
-import { Sparkles, ShieldCheck, Zap, HelpCircle, Check, Copy } from 'lucide-react'
+import { useState, useMemo } from 'react'
+import {
+  Sparkles,
+  ShieldCheck,
+  Zap,
+  Check,
+  Copy,
+  Download,
+  AlertTriangle,
+  CheckCircle2,
+  XCircle,
+  HelpCircle,
+  FileText,
+  Target,
+  Search,
+  BookOpen,
+  Layers,
+  ChevronDown,
+  ChevronUp,
+  Lightbulb,
+  Quote,
+  Flame,
+  ArrowRight,
+} from 'lucide-react'
 
-const SCORE_META = [
-  { key: 'seo_score', label: 'SEO Optimization', icon: '🎯', color: 'from-blue-600 to-blue-400' },
-  { key: 'intent_score', label: 'Search Intent', icon: '🔍', color: 'from-purple-600 to-pink-400' },
-  { key: 'depth_score', label: 'Content Depth', icon: '📚', color: 'from-emerald-600 to-teal-400' },
-  { key: 'readability_score', label: 'Readability', icon: '📖', color: 'from-amber-600 to-orange-400' },
-  { key: 'structure_score', label: 'Structure', icon: '🏗️', color: 'from-rose-600 to-red-400' },
-  { key: 'usefulness_score', label: 'Usefulness', icon: '💡', color: 'from-cyan-600 to-sky-400' },
-  { key: 'geo_citation_score', label: 'GEO / AI Overview Citation', icon: '🤖', color: 'from-indigo-600 to-violet-400' },
-  { key: 'eeat_score', label: 'E-E-A-T Trust Score', icon: '🛡️', color: 'from-emerald-700 to-teal-500' },
+const PILLARS_META = [
+  { key: 'seo_score', label: 'SEO Optimization', icon: '🎯', desc: 'Keyword placement, metadata alignment, and on-page density' },
+  { key: 'intent_score', label: 'Search Intent', icon: '🔍', desc: 'Alignment with user search query expectations and journey' },
+  { key: 'depth_score', label: 'Content Depth', icon: '📚', desc: 'Coverage of entities, subtopics, and comprehensive solutions' },
+  { key: 'readability_score', label: 'Readability', icon: '📖', desc: 'Sentence cadence, scannability, and Flesch reading score' },
+  { key: 'structure_score', label: 'Structure & Flow', icon: '🏗️', desc: 'Heading hierarchy, bite-sized sections, and visual anchors' },
+  { key: 'usefulness_score', label: 'Actionable Value', icon: '💡', desc: 'Real-world takeaways, examples, and practical guidance' },
+  { key: 'geo_citation_score', label: 'GEO / AI Overview', icon: '🤖', desc: 'Probability of being extracted and cited by AI engines' },
+  { key: 'eeat_score', label: 'E-E-A-T Trust', icon: '🛡️', desc: 'First-hand experience, authority proof, and brand credibility' },
 ]
 
 const INTENT_ICONS = {
@@ -20,97 +41,46 @@ const INTENT_ICONS = {
   Navigational: '🧭',
 }
 
-const INTENT_COLORS = {
-  Informational: 'from-blue-600 to-indigo-500',
-  Commercial: 'from-purple-600 to-pink-500',
-  Transactional: 'from-emerald-600 to-teal-500',
-  Navigational: 'from-amber-600 to-orange-500',
+function getScoreColor(val) {
+  if (val >= 80) return 'text-emerald-600'
+  if (val >= 60) return 'text-amber-500'
+  if (val >= 40) return 'text-orange-500'
+  return 'text-rose-500'
 }
 
-function ScoreBar({ score, label, icon, color, delay }) {
-  const [width, setWidth] = useState(0)
-  const ref = useRef(null)
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setTimeout(() => setWidth(score), delay); obs.disconnect() } },
-      { threshold: 0.3 }
-    )
-    obs.observe(el)
-    return () => obs.disconnect()
-  }, [score, delay])
-
-  const rating = score >= 80 ? 'Excellent' : score >= 60 ? 'Good' : score >= 40 ? 'Needs Work' : 'Critical'
-
-  return (
-    <div ref={ref} className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span className="flex items-center gap-2 text-xs sm:text-sm font-semibold text-white">
-          <span className="text-base">{icon}</span>
-          <span className="text-slate-100">{label}</span>
-        </span>
-        <span className="text-xs sm:text-sm font-bold text-white tracking-wide">{score}<span className="text-slate-400 text-[11px] font-normal">/100</span></span>
-      </div>
-      <div className="relative h-2.5 bg-slate-800/80 rounded-full overflow-hidden border border-white/10">
-        <div
-          className={`absolute inset-y-0 left-0 bg-gradient-to-r ${color} rounded-full transition-all duration-1000 ease-out`}
-          style={{ width: `${width}%` }}
-        />
-      </div>
-      <div className="flex justify-between items-center pt-0.5">
-        <span className={`text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${
-          score >= 80 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
-          score >= 60 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
-          score >= 40 ? 'bg-orange-500/20 text-orange-300 border border-orange-500/30' :
-          'bg-rose-500/20 text-rose-300 border border-rose-500/30'
-        }`}>{rating}</span>
-      </div>
-    </div>
-  )
+function getScoreBadge(val) {
+  if (val >= 80) return 'bg-emerald-100 text-emerald-800 border-emerald-200'
+  if (val >= 60) return 'bg-amber-100 text-amber-800 border-amber-200'
+  if (val >= 40) return 'bg-orange-100 text-orange-800 border-orange-200'
+  return 'bg-rose-100 text-rose-800 border-rose-200'
 }
 
-function InsightCard({ icon, title, children, accent = 'blue', delay = 0 }) {
-  const [visible, setVisible] = useState(false)
-  const ref = useRef(null)
-
-  useEffect(() => {
-    const el = ref.current
-    if (!el) return
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { setTimeout(() => setVisible(true), delay); obs.disconnect() } },
-      { threshold: 0.15 }
-    )
-    obs.observe(el)
-    return () => obs.disconnect()
-  }, [delay])
-
-  const accents = {
-    blue: 'border-blue-200 bg-blue-50/40',
-    green: 'border-emerald-200 bg-emerald-50/40',
-    amber: 'border-amber-200 bg-amber-50/40',
-    red: 'border-rose-200 bg-rose-50/40',
-    purple: 'border-purple-200 bg-purple-50/40',
-  }
-
-  return (
-    <div ref={ref}
-      className={`rounded-2xl border p-5 sm:p-6 transition-all duration-700 ease-out ${
-        accents[accent]
-      } ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}>
-      <div className="flex items-center gap-2 mb-3">
-        <span className="text-lg">{icon}</span>
-        <h4 className="font-bold text-slate-900 text-sm sm:text-base">{title}</h4>
-      </div>
-      {children}
-    </div>
-  )
+function getScoreBarGradient(val) {
+  if (val >= 80) return 'from-emerald-500 to-teal-400'
+  if (val >= 60) return 'from-blue-500 to-indigo-400'
+  if (val >= 40) return 'from-amber-500 to-orange-400'
+  return 'from-rose-500 to-pink-500'
 }
 
-export default function AIAnalyticsSection({ report }) {
+export default function AIAnalyticsSection({ report, onReset }) {
+  const [activeTab, setActiveTab] = useState('scores') // 'scores' | 'issues' | 'geo' | 'eeat' | 'plan'
+  const [issueFilter, setIssueFilter] = useState('all') // 'all' | 'critical' | 'warnings'
   const [copiedKey, setCopiedKey] = useState(null)
+  const [expandedIssues, setExpandedIssues] = useState({})
+
   if (!report) return null
+
+  const overall = report.overall_score || 0
+  const intent = report.search_intent || {}
+  const aiSearch = report.ai_search_readiness || null
+  const eeatInsights = report.eeat_insights || []
+  const criticalIssues = report.critical_issues || []
+  const warnings = report.warnings || []
+  const recommendations = report.recommendations || []
+  const missingTopics = report.missing_topics || []
+  const strengths = report.strengths || []
+
+  const totalIssuesCount = criticalIssues.length + warnings.length
 
   const triggerCopy = (text, key) => {
     navigator.clipboard.writeText(text)
@@ -118,217 +88,622 @@ export default function AIAnalyticsSection({ report }) {
     setTimeout(() => setCopiedKey(null), 2000)
   }
 
-  const intent = report.search_intent || {}
-  const aiSearch = report.ai_search_readiness || null
-  const eeatInsights = report.eeat_insights || []
+  const toggleIssue = (id) => {
+    setExpandedIssues((prev) => ({ ...prev, [id]: !prev[id] }))
+  }
+
+  const exportMarkdown = () => {
+    const text = [
+      `# AI Content SEO & Quality Audit Report`,
+      `Overall Score: ${overall}/100`,
+      `Date: ${new Date().toLocaleDateString()}`,
+      '',
+      `## Executive Summary`,
+      report.summary || 'Content analysis completed.',
+      '',
+      `## Quality Pillars Scores`,
+      ...PILLARS_META.map((p) => `- **${p.label}:** ${report[p.key] || 0}/100`),
+      '',
+      `## Critical Issues & Action Items`,
+      ...criticalIssues.map((iss, i) => `${i + 1}. [CRITICAL] ${iss.issue}\n   Why: ${iss.why_it_matters}\n   Fix: ${iss.action}`),
+      '',
+      `## Strategic Recommendations`,
+      ...recommendations.map((rec, i) => `${i + 1}. [${rec.priority || 'MEDIUM'}] ${rec.title}\n   Why: ${rec.why}\n   Action: ${rec.how}`),
+    ].join('\n')
+
+    const blob = new Blob([text], { type: 'text/markdown' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `content-analysis-report-${Date.now()}.md`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  const copyActionPlan = () => {
+    const planText = recommendations
+      .map((r, i) => `${i + 1}. [${r.priority}] ${r.title}\n   • Why: ${r.why}\n   • Action: ${r.how}`)
+      .join('\n\n')
+    triggerCopy(planText, 'action-plan')
+  }
 
   return (
-    <div className="space-y-8 animate-fade-in">
-      {/* Overall Diagnostic Header */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl">
-        <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6 pb-6 border-b border-white/10">
-          <div className="space-y-2 max-w-2xl">
-            <span className="text-xs font-bold uppercase tracking-wider text-blue-400">Content Quality & SEO Diagnosis</span>
-            <h3 className="text-2xl sm:text-3xl font-black text-white leading-snug">
-              Executive Assessment
-            </h3>
-            <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-              {report.summary}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-4 shrink-0">
-            <div className="w-24 h-24 rounded-2xl bg-white/10 border border-white/20 flex flex-col items-center justify-center">
-              <span className="text-3xl font-black text-white">{report.overall_score}</span>
-              <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wide">Overall Score</span>
-            </div>
-          </div>
+    <div className="space-y-6 animate-fade-in">
+      {/* ── TOP ACTION HEADER BAR ─────────────────────────────────────── */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+        <div>
+          <span className="text-xs font-bold uppercase tracking-wider text-[#0C81F3]">
+            SEO Intelligence & Quality Audit
+          </span>
+          <h2 className="text-lg sm:text-xl font-extrabold text-slate-900">
+            Analysis Report & Action Plan
+          </h2>
         </div>
 
-        {/* Scores Grid */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-6">
-          {SCORE_META.map((item, i) => (
-            <div key={item.key} className="bg-white/5 rounded-xl p-4 border border-white/10">
-              <ScoreBar
-                score={report[item.key] || 50}
-                label={item.label}
-                icon={item.icon}
-                color={item.color}
-                delay={i * 100}
-              />
-            </div>
-          ))}
+        <div className="flex flex-wrap items-center gap-2">
+          {onReset && (
+            <button
+              onClick={onReset}
+              className="px-3.5 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded-xl transition-all cursor-pointer"
+            >
+              ← New Analysis
+            </button>
+          )}
+          <button
+            onClick={copyActionPlan}
+            className="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+          >
+            {copiedKey === 'action-plan' ? (
+              <>
+                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                <span className="text-emerald-700 font-bold">Copied Action Plan!</span>
+              </>
+            ) : (
+              <>
+                <Copy className="w-3.5 h-3.5" />
+                <span>Copy Action Plan</span>
+              </>
+            )}
+          </button>
+          <button
+            onClick={exportMarkdown}
+            className="px-3.5 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span>Export Report (.md)</span>
+          </button>
         </div>
       </div>
 
-      {/* AI Search & GEO Readiness Card */}
-      {aiSearch && (
-        <div className="bg-gradient-to-r from-indigo-900/90 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-md border border-indigo-500/30">
-          <div className="flex items-center justify-between pb-4 border-b border-white/10">
-            <div className="flex items-center gap-2 text-indigo-300 font-bold text-sm uppercase tracking-wider">
-              <Sparkles className="w-4 h-4" />
-              <span>Generative Engine Optimization (GEO) & AI Overview Readiness</span>
-            </div>
-            <span className="px-3 py-1 rounded-full bg-indigo-500/20 text-indigo-200 border border-indigo-400/30 text-xs font-bold">
-              Score: {report.geo_citation_score || 75}/100
+      {/* ── HERO SCORE CARD (Matching Signature Clean Layout) ──────────── */}
+      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm">
+        <div className="grid md:grid-cols-12 gap-6 items-center">
+          {/* Left Column: Overall Score & Readiness */}
+          <div className="md:col-span-4 text-center md:text-left md:border-r md:border-slate-100 md:pr-6">
+            <span className="text-xs font-bold uppercase tracking-wider text-[#0C81F3]">
+              Overall Content Score
             </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 text-sm">
-            <div className="space-y-3">
-              <h5 className="font-bold text-white text-base">AI Citation Analysis</h5>
-              <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
-                {aiSearch.summary}
-              </p>
-              {aiSearch.actionableTweak && (
-                <div className="p-3.5 rounded-xl bg-white/5 border border-white/10 text-xs text-indigo-200 leading-relaxed">
-                  <strong className="text-white">Citation Tweak:</strong> {aiSearch.actionableTweak}
-                </div>
-              )}
+            <div className="flex items-baseline justify-center md:justify-start gap-2 mt-2">
+              <span className={`text-6xl sm:text-7xl font-black tracking-tight ${getScoreColor(overall)}`}>
+                {overall}
+              </span>
+              <span className="text-2xl font-bold text-slate-400">/100</span>
             </div>
 
-            {aiSearch.soundbiteQuote && (
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <h5 className="font-bold text-white text-xs uppercase tracking-wider text-slate-400">High-Probability AI Pull Quote</h5>
-                  <button
-                    onClick={() => triggerCopy(aiSearch.soundbiteQuote, 'quote-ai')}
-                    className="inline-flex items-center gap-1 text-xs text-indigo-300 hover:text-white"
-                  >
-                    {copiedKey === 'quote-ai' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedKey === 'quote-ai' ? 'Copied' : 'Copy'}</span>
-                  </button>
-                </div>
-                <div className="p-4 rounded-xl bg-slate-950/80 border border-indigo-500/20 text-slate-200 font-serif italic text-sm leading-relaxed">
-                  "{aiSearch.soundbiteQuote}"
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* E-E-A-T Signals Card */}
-      {eeatInsights.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-            <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm">
-              <ShieldCheck className="w-5 h-5 text-emerald-600" />
-              <span>Google E-E-A-T Experience & Trust Audit</span>
+            <div className="mt-3">
+              <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold border ${getScoreBadge(overall)}`}>
+                {overall >= 80 ? '✓ Ready to Rank & Publish' : overall >= 60 ? '⚡ Minor Optimization Needed' : '⚠️ Critical Fixes Required'}
+              </span>
             </div>
-            <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
-              Trust Score: {report.eeat_score || 72}/100
-            </span>
-          </div>
-
-          <ul className="space-y-2.5">
-            {eeatInsights.map((insight, i) => (
-              <li key={i} className="text-xs sm:text-sm text-slate-700 flex items-start gap-2.5">
-                <span className="text-emerald-600 font-bold mt-0.5">•</span>
-                <span>{insight}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
-
-      {/* Search Intent Card */}
-      {intent.type && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-3 border-b border-slate-100">
-            <div className="flex items-center gap-2">
-              <span className="text-xl">{INTENT_ICONS[intent.type] || '🔍'}</span>
-              <h4 className="font-bold text-slate-900 text-base">Detected Search Intent: {intent.type}</h4>
-            </div>
-            <span className="text-xs px-2.5 py-1 rounded-full bg-slate-100 font-semibold text-slate-700">
-              Confidence: {intent.confidence || 'High'}
-            </span>
-          </div>
-          {intent.explanation && (
-            <p className="text-xs sm:text-sm text-slate-600 mt-3 leading-relaxed">
-              {intent.explanation}
+            <p className="text-xs text-slate-500 mt-2 font-medium">
+              {criticalIssues.length === 0 ? 'No critical blockers' : `${criticalIssues.length} critical issue(s)`} • {recommendations.length} strategic action(s)
             </p>
+          </div>
+
+          {/* Right Column: 4 Signature Quick Alert Cards in 2x2 Grid */}
+          <div className="md:col-span-8 grid sm:grid-cols-2 gap-3.5">
+            {/* 1. SEO Optimization */}
+            <div className={`p-4 rounded-2xl border ${report.seo_score >= 70 ? 'bg-emerald-50/70 border-emerald-200' : 'bg-blue-50/70 border-blue-200'}`}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  🎯 SEO Optimization
+                </span>
+                <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${getScoreBadge(report.seo_score || 0)}`}>
+                  {report.seo_score || 0}/100
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-600 line-clamp-2">
+                {report.seo_score >= 70 ? 'Strong on-page signals, keyword presence, and semantic density.' : 'Needs keyword frequency tuning and on-page heading optimization.'}
+              </p>
+            </div>
+
+            {/* 2. Search Intent Alignment */}
+            <div className={`p-4 rounded-2xl border ${report.intent_score >= 70 ? 'bg-emerald-50/70 border-emerald-200' : 'bg-amber-50/70 border-amber-200'}`}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  🔍 Search Intent Match
+                </span>
+                <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${getScoreBadge(report.intent_score || 0)}`}>
+                  {intent.type || 'Informational'}
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-600 line-clamp-2">
+                {intent.explanation || 'Matches expected query format and resolves user intent directly.'}
+              </p>
+            </div>
+
+            {/* 3. GEO / AI Overview Citation */}
+            <div className="p-4 rounded-2xl border bg-purple-50/70 border-purple-200">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-bold text-purple-900 flex items-center gap-1.5">
+                  🤖 GEO / AI Citation
+                </span>
+                <span className="text-xs font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
+                  {report.geo_citation_score || 75}/100
+                </span>
+              </div>
+              <p className="text-[11px] text-purple-800/80 line-clamp-2">
+                {aiSearch?.summary || 'Extractable soundbites and authoritative definition structures.'}
+              </p>
+            </div>
+
+            {/* 4. E-E-A-T Trust Score */}
+            <div className={`p-4 rounded-2xl border ${report.eeat_score >= 70 ? 'bg-emerald-50/70 border-emerald-200' : 'bg-slate-50 border-slate-200'}`}>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                  🛡️ E-E-A-T Trust Score
+                </span>
+                <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${getScoreBadge(report.eeat_score || 72)}`}>
+                  {report.eeat_score || 72}/100
+                </span>
+              </div>
+              <p className="text-[11px] text-slate-600 line-clamp-2">
+                {eeatInsights.length > 0 ? eeatInsights[0] : 'First-hand experience & factual authority signals verified.'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Executive Summary */}
+        {report.summary && (
+          <div className="mt-6 pt-6 border-t border-slate-100">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
+              Executive Summary
+            </h4>
+            <p className="text-slate-700 text-sm leading-relaxed">
+              {report.summary}
+            </p>
+          </div>
+        )}
+      </div>
+
+      {/* ── INTERACTIVE TAB NAVIGATION ─────────────────────────────────── */}
+      <div className="flex flex-wrap items-center gap-2 bg-slate-100/80 p-1.5 rounded-2xl border border-slate-200">
+        {[
+          { id: 'scores', label: '8-Pillar Score Grid', icon: Layers },
+          { id: 'issues', label: `Critical Fixes & Gaps (${totalIssuesCount})`, icon: AlertTriangle },
+          { id: 'geo', label: 'GEO & AI Overview', icon: Sparkles },
+          { id: 'eeat', label: 'E-E-A-T Experience Audit', icon: ShieldCheck },
+          { id: 'plan', label: `Strategic Roadmap (${recommendations.length})`, icon: Lightbulb },
+        ].map((tab) => {
+          const Icon = tab.icon
+          const isActive = activeTab === tab.id
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                isActive
+                  ? 'bg-white text-slate-900 shadow-sm border border-slate-200/80'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-white/60'
+              }`}
+            >
+              <Icon className={`w-4 h-4 ${isActive ? 'text-[#0C81F3]' : 'text-slate-400'}`} />
+              <span>{tab.label}</span>
+            </button>
+          )
+        })}
+      </div>
+
+      {/* ── TAB 1: 8-PILLAR SCORE GRID ─────────────────────────────────── */}
+      {activeTab === 'scores' && (
+        <div className="space-y-6 animate-fade-in">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {PILLARS_META.map((pillar) => {
+              const val = report[pillar.key] || 0
+              return (
+                <div
+                  key={pillar.key}
+                  className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3 hover:border-slate-300 transition-all"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl">{pillar.icon}</span>
+                    <span className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full border ${getScoreBadge(val)}`}>
+                      {val}/100
+                    </span>
+                  </div>
+
+                  <div>
+                    <h4 className="font-bold text-slate-900 text-sm">{pillar.label}</h4>
+                    <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">
+                      {pillar.desc}
+                    </p>
+                  </div>
+
+                  {/* Progress Bar */}
+                  <div className="space-y-1">
+                    <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
+                      <div
+                        className={`h-full bg-gradient-to-r ${getScoreBarGradient(val)} rounded-full transition-all duration-700`}
+                        style={{ width: `${val}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Strengths Showcase */}
+          {strengths.length > 0 && (
+            <div className="bg-emerald-50/50 rounded-2xl border border-emerald-200 p-6 space-y-3">
+              <div className="flex items-center gap-2 text-emerald-900 font-bold text-sm">
+                <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
+                <span>Verified Content Strengths</span>
+              </div>
+              <ul className="grid sm:grid-cols-2 gap-2.5 pt-1">
+                {strengths.map((str, i) => (
+                  <li key={i} className="text-xs sm:text-sm text-emerald-800 flex items-start gap-2 bg-white/70 p-3 rounded-xl border border-emerald-100">
+                    <span className="text-emerald-600 font-bold mt-0.5">✓</span>
+                    <span className="font-medium leading-relaxed">{str}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
       )}
 
-      {/* Insights Grid */}
-      <div className="grid sm:grid-cols-2 gap-6">
-        {report.strengths?.length > 0 && (
-          <InsightCard icon="✅" title="Identified Strengths" accent="green">
-            <ul className="space-y-2">
-              {report.strengths.map((s, i) => (
-                <li key={i} className="text-xs sm:text-sm text-slate-700 flex items-start gap-2">
-                  <span className="text-emerald-500 font-bold">✓</span>
-                  <span>{s}</span>
-                </li>
-              ))}
-            </ul>
-          </InsightCard>
-        )}
-
-        {report.critical_issues?.length > 0 && (
-          <InsightCard icon="🔴" title="Critical Issues" accent="red">
-            <div className="space-y-3">
-              {report.critical_issues.map((iss, i) => (
-                <div key={i} className="bg-rose-100/50 p-3 rounded-xl border border-rose-200 text-xs">
-                  <p className="font-bold text-rose-900">{iss.issue}</p>
-                  <p className="text-rose-700 mt-1">{iss.why_it_matters}</p>
-                  <p className="text-rose-800 font-medium mt-1"><strong>Fix:</strong> {iss.action}</p>
-                </div>
-              ))}
-            </div>
-          </InsightCard>
-        )}
-
-        {report.warnings?.length > 0 && (
-          <InsightCard icon="⚠️" title="Warnings & Opportunities" accent="amber">
-            <ul className="space-y-2">
-              {report.warnings.map((w, i) => (
-                <li key={i} className="text-xs sm:text-sm text-slate-700 flex items-start gap-2">
-                  <span className="text-amber-500 font-bold">🟡</span>
-                  <span>{w}</span>
-                </li>
-              ))}
-            </ul>
-          </InsightCard>
-        )}
-
-        {report.missing_topics?.length > 0 && (
-          <InsightCard icon="🧩" title="Missing Topical Sub-Themes" accent="purple">
-            <ul className="space-y-2">
-              {report.missing_topics.map((t, i) => (
-                <li key={i} className="text-xs sm:text-sm text-slate-700 flex items-start gap-2">
-                  <span className="text-purple-500 font-bold">•</span>
-                  <span>{t}</span>
-                </li>
-              ))}
-            </ul>
-          </InsightCard>
-        )}
-      </div>
-
-      {/* Recommendations List */}
-      {report.recommendations?.length > 0 && (
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-4">
-          <h4 className="font-bold text-slate-900 text-lg flex items-center gap-2">
-            <span>💡 Strategic Recommendations</span>
-          </h4>
-          <div className="space-y-3">
-            {report.recommendations.map((rec, i) => (
-              <div key={i} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs sm:text-sm space-y-1">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                    rec.priority === 'High' ? 'bg-rose-100 text-rose-800' :
-                    rec.priority === 'Medium' ? 'bg-amber-100 text-amber-800' :
-                    'bg-blue-100 text-blue-800'
-                  }`}>{rec.priority}</span>
-                  <span className="font-bold text-slate-900">{rec.title}</span>
-                </div>
-                <p className="text-slate-600"><strong>Why:</strong> {rec.why}</p>
-                <p className="text-slate-800"><strong>Action:</strong> {rec.how}</p>
-              </div>
+      {/* ── TAB 2: CRITICAL FIXES & GAPS ────────────────────────────────── */}
+      {activeTab === 'issues' && (
+        <div className="space-y-6 animate-fade-in">
+          {/* Filter Bar */}
+          <div className="flex items-center gap-2">
+            {[
+              { id: 'all', label: `All Issues (${totalIssuesCount})` },
+              { id: 'critical', label: `Critical (${criticalIssues.length})` },
+              { id: 'warnings', label: `Warnings (${warnings.length})` },
+            ].map((f) => (
+              <button
+                key={f.id}
+                onClick={() => setIssueFilter(f.id)}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors cursor-pointer ${
+                  issueFilter === f.id
+                    ? 'bg-slate-900 text-white'
+                    : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+                }`}
+              >
+                {f.label}
+              </button>
             ))}
+          </div>
+
+          {/* Critical Issues List */}
+          {(issueFilter === 'all' || issueFilter === 'critical') && criticalIssues.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-rose-600 flex items-center gap-1.5">
+                <XCircle className="w-4 h-4" />
+                <span>High-Priority Blockers ({criticalIssues.length})</span>
+              </h4>
+              <div className="space-y-3">
+                {criticalIssues.map((iss, i) => (
+                  <div key={i} className="bg-white rounded-2xl border border-rose-200 shadow-sm overflow-hidden">
+                    <button
+                      onClick={() => toggleIssue(`crit-${i}`)}
+                      className="w-full text-left p-4 sm:p-5 flex items-start justify-between gap-3 hover:bg-rose-50/30 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="px-2 py-0.5 rounded-md bg-rose-100 text-rose-800 text-[10px] font-extrabold uppercase shrink-0 mt-0.5">
+                          Critical
+                        </span>
+                        <div>
+                          <h5 className="font-bold text-slate-900 text-sm sm:text-base">
+                            {iss.issue}
+                          </h5>
+                          <p className="text-xs text-slate-500 mt-1 line-clamp-1">
+                            {iss.why_it_matters}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="p-1 rounded-lg text-slate-400 shrink-0">
+                        {expandedIssues[`crit-${i}`] ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      </div>
+                    </button>
+
+                    {expandedIssues[`crit-${i}`] && (
+                      <div className="px-5 pb-5 pt-2 border-t border-rose-100 space-y-3 text-xs sm:text-sm bg-rose-50/20">
+                        <div>
+                          <strong className="text-slate-900">Why it matters:</strong>
+                          <p className="text-slate-600 mt-0.5 leading-relaxed">{iss.why_it_matters}</p>
+                        </div>
+                        <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
+                          <strong className="font-bold text-emerald-950 flex items-center gap-1.5 mb-1">
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                            How to Fix:
+                          </strong>
+                          <p className="leading-relaxed">{iss.action}</p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Warnings List */}
+          {(issueFilter === 'all' || issueFilter === 'warnings') && warnings.length > 0 && (
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-amber-600 flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4" />
+                <span>Warnings & Minor Polish ({warnings.length})</span>
+              </h4>
+              <div className="space-y-2.5">
+                {warnings.map((w, i) => (
+                  <div key={i} className="bg-white rounded-xl border border-amber-200 p-4 flex items-start gap-3 shadow-sm">
+                    <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-extrabold uppercase shrink-0 mt-0.5">
+                      Warning
+                    </span>
+                    <p className="text-xs sm:text-sm text-slate-800 font-medium leading-relaxed">
+                      {w}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Missing Topics / Entities */}
+          {missingTopics.length > 0 && (
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-3">
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-indigo-600" />
+                <h4 className="font-bold text-slate-900 text-sm sm:text-base">
+                  Missing Topical Sub-Themes & Entities
+                </h4>
+              </div>
+              <p className="text-xs text-slate-500">
+                Incorporate these concepts to increase topical depth and coverage vs top-ranking SERP competitors.
+              </p>
+              <div className="flex flex-wrap gap-2 pt-2">
+                {missingTopics.map((topic, i) => (
+                  <span
+                    key={i}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-indigo-50 border border-indigo-100 text-indigo-800 text-xs font-semibold"
+                  >
+                    <span>+</span>
+                    <span>{topic}</span>
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── TAB 3: GEO & AI OVERVIEW READINESS ───────────────────────────── */}
+      {activeTab === 'geo' && (
+        <div className="space-y-6 animate-fade-in">
+          {aiSearch ? (
+            <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-purple-50 text-purple-600 border border-purple-100">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                      Generative Engine Optimization (GEO) Analysis
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      Evaluated for Google AI Overviews, Perplexity, and LLM search answer synthesis.
+                    </p>
+                  </div>
+                </div>
+
+                <span className="px-3.5 py-1 rounded-full bg-purple-50 text-purple-800 border border-purple-200 text-xs font-extrabold">
+                  Citation Score: {report.geo_citation_score || 75}/100
+                </span>
+              </div>
+
+              {/* Assessment */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                  AI Citation Readiness Breakdown
+                </h4>
+                <p className="text-sm text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
+                  {aiSearch.summary}
+                </p>
+              </div>
+
+              {/* Actionable Tweak */}
+              {aiSearch.actionableTweak && (
+                <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 text-blue-950 space-y-1">
+                  <strong className="text-xs font-bold uppercase tracking-wide text-blue-800 flex items-center gap-1.5">
+                    <Zap className="w-4 h-4 text-blue-600" />
+                    Recommended GEO Formatting Tweak:
+                  </strong>
+                  <p className="text-xs sm:text-sm text-blue-900 leading-relaxed">
+                    {aiSearch.actionableTweak}
+                  </p>
+                </div>
+              )}
+
+              {/* Soundbite Pull Quote */}
+              {aiSearch.soundbiteQuote && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
+                      <Quote className="w-3.5 h-3.5 text-purple-600" />
+                      Extracted AI Overview Soundbite Quote
+                    </h4>
+                    <button
+                      onClick={() => triggerCopy(aiSearch.soundbiteQuote, 'quote-ai')}
+                      className="inline-flex items-center gap-1 text-xs text-purple-600 hover:text-purple-800 font-semibold cursor-pointer"
+                    >
+                      {copiedKey === 'quote-ai' ? (
+                        <>
+                          <Check className="w-3.5 h-3.5 text-emerald-600" />
+                          <span className="text-emerald-700 font-bold">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-3.5 h-3.5" />
+                          <span>Copy Quote</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                  <div className="p-4 rounded-2xl bg-purple-50/40 border border-purple-200 text-slate-800 font-serif italic text-sm sm:text-base leading-relaxed">
+                    "{aiSearch.soundbiteQuote}"
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : (
+            <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center text-slate-500">
+              No GEO data available for this analysis.
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── TAB 4: E-E-A-T EXPERIENCE AUDIT ──────────────────────────────── */}
+      {activeTab === 'eeat' && (
+        <div className="space-y-6 animate-fade-in">
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-100">
+                  <ShieldCheck className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                    Google E-E-A-T Quality Audit
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Experience, Expertise, Authoritativeness, and Trustworthiness analysis.
+                  </p>
+                </div>
+              </div>
+
+              <span className={`px-3.5 py-1 rounded-full text-xs font-extrabold border ${getScoreBadge(report.eeat_score || 72)}`}>
+                Trust Score: {report.eeat_score || 72}/100
+              </span>
+            </div>
+
+            {/* Insights Checklist */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+                Audited E-E-A-T Signals & Proof Points
+              </h4>
+              <div className="space-y-2.5">
+                {eeatInsights.map((insight, i) => (
+                  <div
+                    key={i}
+                    className="p-4 rounded-xl bg-emerald-50/40 border border-emerald-100 flex items-start gap-3"
+                  >
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+                    <span className="text-xs sm:text-sm text-slate-800 leading-relaxed">
+                      {insight}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── TAB 5: STRATEGIC ROADMAP ────────────────────────────────────── */}
+      {activeTab === 'plan' && (
+        <div className="space-y-6 animate-fade-in">
+          <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
+              <div className="flex items-center gap-2.5">
+                <div className="p-2 rounded-xl bg-amber-50 text-amber-600 border border-amber-100">
+                  <Lightbulb className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                    Prioritized SEO Optimization Roadmap
+                  </h3>
+                  <p className="text-xs text-slate-500">
+                    Ranked by impact on organic rankings and conversion velocity.
+                  </p>
+                </div>
+              </div>
+
+              <button
+                onClick={copyActionPlan}
+                className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-black text-white text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5"
+              >
+                {copiedKey === 'action-plan' ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy All Recommendations</span>
+                  </>
+                )}
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              {recommendations.map((rec, i) => {
+                const priority = (rec.priority || 'MEDIUM').toUpperCase()
+                return (
+                  <div
+                    key={i}
+                    className="p-5 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-2.5 hover:border-slate-300 transition-all"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 text-xs font-bold flex items-center justify-center shrink-0">
+                        {i + 1}
+                      </span>
+                      <span
+                        className={`px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase ${
+                          priority === 'HIGH'
+                            ? 'bg-rose-100 text-rose-800 border border-rose-200'
+                            : priority === 'LOW'
+                            ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                            : 'bg-amber-100 text-amber-800 border border-amber-200'
+                        }`}
+                      >
+                        {priority} Priority
+                      </span>
+                      <h4 className="font-bold text-slate-900 text-sm sm:text-base">
+                        {rec.title}
+                      </h4>
+                    </div>
+
+                    <p className="text-xs sm:text-sm text-slate-600 pl-8 leading-relaxed">
+                      <strong className="text-slate-800">Why:</strong> {rec.why}
+                    </p>
+
+                    <div className="pl-8 pt-1">
+                      <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm text-slate-800 leading-relaxed shadow-xs">
+                        <strong className="text-slate-900 font-bold block mb-1">Recommended Action:</strong>
+                        {rec.how}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
       )}

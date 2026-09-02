@@ -181,37 +181,7 @@ function ContentOpportunities({ opportunities }) {
   )
 }
 
-function LoadingKeywords({ currentStep }) {
-  const idx = LOADING_STEPS.indexOf(currentStep)
-  const steps = [
-    { key: 'understand', label: 'Understanding seed keyword' },
-    { key: 'intents', label: 'Identifying search intents' },
-    { key: 'longtail', label: 'Generating long-tail ideas' },
-    { key: 'clusters', label: 'Building topic clusters' },
-    { key: 'content', label: 'Creating content opportunities' },
-    { key: 'report', label: 'Preparing report' },
-  ]
-  return (
-    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 sm:p-10 text-center max-w-md mx-auto">
-      <div className="animate-spin w-10 h-10 border-4 border-blue-200 border-t-blue-600 rounded-full mx-auto mb-6" />
-      <h3 className="text-lg font-semibold text-gray-900 mb-1">Generating keyword opportunities...</h3>
-      <p className="text-sm text-gray-500 mb-6">This may take 15-30 seconds</p>
-      <div className="space-y-3 text-left">
-        {steps.map((step, i) => {
-          const status = i < idx ? 'done' : i === idx ? 'active' : 'pending'
-          return (
-            <div key={step.key} className="flex items-center gap-3">
-              {status === 'done' && <svg className="w-5 h-5 text-green-500 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>}
-              {status === 'active' && <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin shrink-0" />}
-              {status === 'pending' && <div className="w-5 h-5 rounded-full border-2 border-gray-300 shrink-0" />}
-              <span className={`text-sm ${status === 'active' ? 'font-medium text-gray-900' : status === 'done' ? 'text-green-700' : 'text-gray-400'}`}>{step.label}</span>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
+
 
 export default function KeywordResearchPage() {
   const [seedKeyword, setSeedKeyword] = useState('')
@@ -224,7 +194,7 @@ export default function KeywordResearchPage() {
   const [report, setReport] = useState(null)
   const [researchId, setResearchId] = useState(null)
 
-  const [researchKeywords, { isLoading, isError, error, data }] = useResearchKeywordsMutation()
+  const [researchKeywords, { isLoading, isError, error, data, reset: resetMutation }] = useResearchKeywordsMutation()
   const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose, triggerPopup } = useLeadPopup('keyword-research')
   const [pendingForm, setPendingForm] = useState(null)
   const { isFieldEnabled } = useToolFields('keyword-research')
@@ -272,7 +242,15 @@ export default function KeywordResearchPage() {
     runResearch({ seedKeyword, websiteUrl, country, businessType, aiModel })
   }
 
-  const handleReset = () => { setReport(null); setResearchId(null); window.scrollTo({ top: 0, behavior: 'smooth' }) }
+  const handleReset = () => {
+    setSeedKeyword('')
+    setWebsiteUrl('')
+    setReport(null)
+    setResearchId(null)
+    setValidationError('')
+    resetMutation()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
   const errorMessage = error?.data?.error || (isError ? 'Research failed. Please try again.' : '')
 
   const intentCounts = {}
@@ -349,7 +327,19 @@ export default function KeywordResearchPage() {
             </form>
           )}
 
-          {isLoading && <LoadingKeywords currentStep={loadingStep} />}
+          {isLoading && (
+            <UnifiedToolLoader
+              title="Uncovering High-Intent Keyword Opportunities..."
+              subtitle={`Mining search volumes, intent taxonomy, and long-tail cluster ideas for "${seedKeyword || websiteUrl}".`}
+              steps={[
+                'Understanding seed entity & competitive landscape',
+                'Expanding search query variations & long-tail phrases',
+                'Categorizing search intent (Informational, Commercial, Transactional)',
+                'Estimating search volume & ranking difficulty scores',
+                'Grouping keywords into actionable topic clusters',
+              ]}
+            />
+          )}
 
           {isError && !isLoading && (
             <div className="bg-white rounded-2xl border border-red-200 shadow-sm p-8 text-center max-w-md mx-auto">

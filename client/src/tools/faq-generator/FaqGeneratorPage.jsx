@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useGenerateFaqsMutation } from '../../services/apiSlice'
 import ModelSelector from '../shared/ModelSelector'
+import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import {
   HelpCircle,
   Sparkles,
@@ -45,7 +46,7 @@ export default function FaqGeneratorPage() {
   const [targetKeywords, setTargetKeywords] = useState('')
   const [count, setCount] = useState(8)
   const [preferredProvider, setPreferredProvider] = useState('openrouter')
-  const [generateFaqs, { isLoading }] = useGenerateFaqsMutation()
+  const [generateFaqs, { isLoading, reset: resetMutation }] = useGenerateFaqsMutation()
   
   const [dataResult, setDataResult] = useState(null)
   const [error, setError] = useState('')
@@ -101,6 +102,8 @@ export default function FaqGeneratorPage() {
     setExpandedItems({})
     setFilterType('all')
     setActiveTab('faqs')
+    resetMutation()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const triggerCopy = (text, key) => {
@@ -321,6 +324,21 @@ export default function FaqGeneratorPage() {
             )}
           </form>
         </div>
+
+        {/* Loading State */}
+        {isLoading && (
+          <UnifiedToolLoader
+            title="Synthesizing High-Converting FAQs & Schema..."
+            subtitle={`Mining search queries, Featured Snippets, and People Also Ask questions for "${topic}".`}
+            steps={[
+              'Analyzing topic intent & keyword entities',
+              'Mining Google "People Also Ask" questions',
+              'Drafting concise, authoritative answers',
+              'Structuring bulleted steps & comparison criteria',
+              'Generating valid Schema.org FAQPage JSON-LD',
+            ]}
+          />
+        )}
 
         {/* Results Section */}
         {dataResult && (

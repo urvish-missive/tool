@@ -28,7 +28,7 @@ export default function ContentAnalyzerPage() {
   const { isFieldEnabled } = useToolFields('content-analyzer')
 
   // RTK Query mutation
-  const [analyzeContent, { isLoading, isError, error, data }] = useAnalyzeContentMutation()
+  const [analyzeContent, { isLoading, isError, error, data, reset: resetMutation }] = useAnalyzeContentMutation()
 
   const report = data?.report || null
   const analysisId = data?.analysisId || null
@@ -125,7 +125,8 @@ export default function ContentAnalyzerPage() {
     setSearchIntent('Auto Detect')
     setValidationError('')
     setLoadingStep('reading')
-    formRef.current?.scrollIntoView({ behavior: 'smooth' })
+    resetMutation()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const errorMessage = error?.data?.error || (isError ? "We couldn't complete the analysis right now. Please try again in a moment." : '')
@@ -272,13 +273,7 @@ export default function ContentAnalyzerPage() {
             {/* Report */}
             {status === 'success' && report && (
               <div id="report-section" className="space-y-8">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-gray-900">Analysis Report</h2>
-                  <button onClick={handleReset} className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded-lg transition-colors">
-                    ← New Analysis
-                  </button>
-                </div>
-                <AIAnalyticsSection report={report} />
+                <AIAnalyticsSection report={report} onReset={handleReset} />
 
                 {/* CTA */}
                 <div className="relative overflow-hidden rounded-3xl p-8 sm:p-12 text-center shadow-lg">

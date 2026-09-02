@@ -4,6 +4,7 @@ import DynamicLeadForm from '../../components/DynamicLeadForm'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import ModelSelector from '../shared/ModelSelector'
+import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import {
   Calculator,
   TrendingUp,
@@ -188,7 +189,7 @@ export default function SeoRoiPage() {
   const [activePreset, setActivePreset] = useState('Moderate') // 'Conservative' | 'Moderate' | 'Aggressive'
   const [preferredProvider, setPreferredProvider] = useState('openrouter')
 
-  const [calculateROI, { isLoading }] = useCalculateROIMutation()
+  const [calculateROI, { isLoading, reset: resetMutation }] = useCalculateROIMutation()
   const [results, setResults] = useState(null)
   const [error, setError] = useState('')
   const [copiedKey, setCopiedKey] = useState(null)
@@ -216,6 +217,18 @@ export default function SeoRoiPage() {
     } catch (err) {
       setError(err?.data?.error || 'Failed to calculate SEO ROI. Please check your inputs.')
     }
+  }
+
+  const handleReset = () => {
+    setTraffic(15000)
+    setLeads(120)
+    setCustomerValue(2500)
+    setInvestment(2500)
+    setDuration(12)
+    setResults(null)
+    setError('')
+    resetMutation()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const triggerCopy = (text, key) => {
@@ -379,8 +392,8 @@ export default function SeoRoiPage() {
             </div>
 
             {/* Model Selector & Actions */}
-            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="w-full sm:w-auto">
+            <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+              <div className="w-full sm:w-auto sm:min-w-[190px]">
                 <ModelSelector
                   value={preferredProvider}
                   onChange={setPreferredProvider}
@@ -388,23 +401,34 @@ export default function SeoRoiPage() {
                 />
               </div>
 
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-8 py-3.5 text-sm font-bold text-white hover:from-[#0D73D1] hover:to-[#E77771] disabled:opacity-50 transition-all shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer"
-              >
-                {isLoading ? (
-                  <>
-                    <RefreshCw className="w-5 h-5 animate-spin" />
-                    <span>Modeling Financial Returns...</span>
-                  </>
-                ) : (
-                  <>
-                    <Calculator className="w-5 h-5" />
-                    <span>Calculate SEO ROI & Business Case</span>
-                  </>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+                {results && (
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="w-full sm:w-auto px-5 py-3 rounded-full border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-sm text-center cursor-pointer order-2 sm:order-1"
+                  >
+                    Reset
+                  </button>
                 )}
-              </button>
+                <button
+                  type="submit"
+                  disabled={isLoading}
+                  className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-6 sm:px-8 py-3.5 text-sm sm:text-base font-bold text-white hover:opacity-95 active:scale-[0.98] disabled:opacity-50 transition-all shadow-md hover:shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
+                >
+                  {isLoading ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin shrink-0" />
+                      <span>Modeling Financial Returns...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Calculator className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                      <span>Calculate SEO ROI & Business Case</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
 
             {error && (
@@ -414,6 +438,21 @@ export default function SeoRoiPage() {
             )}
           </form>
         </div>
+
+        {/* Loading State */}
+        {isLoading && (
+          <UnifiedToolLoader
+            title="Forecasting Financial SEO Yield & Pipeline Value..."
+            subtitle="Calculating customer lifetime value (LTV), compound organic traffic ramps, and break-even timelines."
+            steps={[
+              'Benchmarking monthly traffic growth curves',
+              'Simulating lead conversion and pipeline velocity',
+              'Modeling Conservative, Moderate, and Aggressive scenarios',
+              'Synthesizing payback periods & net present revenue',
+              'Drafting C-Suite executive business proposal',
+            ]}
+          />
+        )}
 
         {/* Results Container */}
         {results && (
@@ -469,12 +508,13 @@ export default function SeoRoiPage() {
             {/* Scenario Switcher Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               {[
-                { name: 'Conservative', data: results.conservative, color: 'text-blue-600', border: 'border-blue-500' },
-                { name: 'Moderate', data: results.moderate, color: 'text-emerald-600', border: 'border-emerald-500' },
-                { name: 'Aggressive', data: results.aggressive, color: 'text-purple-600', border: 'border-purple-500' },
+                { name: 'Conservative', data: results?.conservative, color: 'text-blue-600', border: 'border-blue-500' },
+                { name: 'Moderate', data: results?.moderate, color: 'text-emerald-600', border: 'border-emerald-500' },
+                { name: 'Aggressive', data: results?.aggressive, color: 'text-purple-600', border: 'border-purple-500' },
               ].map(({ name, data, color, border }) => {
                 const isSelected = activePreset === name
-                const roiVal = data.summary.roi
+                const roiVal = data?.summary?.roi ?? 0
+                const growthPct = data?.growthRate ? (data.growthRate * 100).toFixed(0) : '0'
                 return (
                   <div
                     key={name}
@@ -485,7 +525,7 @@ export default function SeoRoiPage() {
                   >
                     <div className="flex items-center justify-between mb-3">
                       <span className="text-xs font-extrabold uppercase tracking-wider text-slate-500">
-                        {name} Case ({(data.growthRate * 100).toFixed(0)}% Growth)
+                        {name} Case ({growthPct}% Growth)
                       </span>
                       {isSelected && (
                         <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
@@ -502,15 +542,15 @@ export default function SeoRoiPage() {
                     <div className="mt-4 pt-4 border-t border-slate-100 space-y-1.5 text-xs">
                       <div className="flex justify-between">
                         <span className="text-slate-500">Total Revenue:</span>
-                        <strong className="text-slate-900">{fmt(data.summary.additionalRevenue, currency)}</strong>
+                        <strong className="text-slate-900">{fmt(data?.summary?.additionalRevenue, currency)}</strong>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-500">Net Profit:</span>
-                        <strong className="text-emerald-700">{fmt(data.summary.netReturn, currency)}</strong>
+                        <strong className="text-emerald-700">{fmt(data?.summary?.netReturn, currency)}</strong>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-slate-500">Total Cost:</span>
-                        <strong className="text-slate-700">{fmt(data.summary.totalInvestment, currency)}</strong>
+                        <strong className="text-slate-700">{fmt(data?.summary?.totalInvestment, currency)}</strong>
                       </div>
                     </div>
                   </div>
@@ -521,9 +561,9 @@ export default function SeoRoiPage() {
             {/* Financial Trajectory Visualization */}
             {activeScenario && (
               <FinancialTrajectoryChart
-                monthlyData={activeScenario.monthly}
+                monthlyData={activeScenario?.forecast || activeScenario?.monthly}
                 currency={currency}
-                breakEvenMonth={results.breakEvenMonth}
+                breakEvenMonth={results?.breakEvenMonth}
               />
             )}
 

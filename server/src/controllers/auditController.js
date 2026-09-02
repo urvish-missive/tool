@@ -30,6 +30,7 @@ export async function createAudit(req, res) {
     try {
       crawlData = await withTimeout(crawlWebsite(normalizedUrl), 45000, 'Crawl')
     } catch (err) {
+      console.error(`Crawl failed for ${normalizedUrl}:`, err)
       const msg = err.message.includes('timeout') ? 'The website took too long to respond.'
         : err.message.includes('Invalid URL') ? 'Please enter a valid website URL.'
         : err.message.includes('Private') ? 'This URL points to an internal/private address.'
@@ -44,17 +45,31 @@ export async function createAudit(req, res) {
     const schemaResult = analyzeSchema(crawlData.pages)
     const scores = calculateScores(technicalResult, onpageResult, linkResult, schemaResult, crawlData)
 
-    // AI analysis
-    const aiReport = await withTimeout(analyzeAuditWithAI({
-      targetUrl: normalizedUrl, totalPages: crawlData.totalPages,
-      overallScore: scores.overallScore, technicalScore: scores.technicalScore,
-      onPageScore: scores.onPageScore, contentScore: scores.contentScore,
-      performanceScore: scores.performanceScore, indexabilityScore: scores.indexabilityScore,
-      linksScore: scores.linksScore, structuredDataScore: scores.structuredDataScore,
-      allIssues: scores.allIssues, onpageSummary: onpageResult.summary,
-      linkSummary: linkResult.summary, schemaSummary: schemaResult.summary,
-      preferredProvider,
-    }), 35000, 'AI analysis')
+    // AI analysis with safe fallback
+    let aiReport
+    try {
+      aiReport = await withTimeout(analyzeAuditWithAI({
+        targetUrl: normalizedUrl, totalPages: crawlData.totalPages,
+        overallScore: scores.overallScore, technicalScore: scores.technicalScore,
+        onPageScore: scores.onPageScore, contentScore: scores.contentScore,
+        performanceScore: scores.performanceScore, indexabilityScore: scores.indexabilityScore,
+        linksScore: scores.linksScore, structuredDataScore: scores.structuredDataScore,
+        allIssues: scores.allIssues, onpageSummary: onpageResult.summary,
+        linkSummary: linkResult.summary, schemaSummary: schemaResult.summary,
+        preferredProvider,
+      }), 25000, 'AI analysis')
+    } catch (aiErr) {
+      console.warn('AI analysis timed out or failed, using structured fallback:', aiErr.message)
+      aiReport = await analyzeAuditWithAI({
+        targetUrl: normalizedUrl, totalPages: crawlData.totalPages,
+        overallScore: scores.overallScore, technicalScore: scores.technicalScore,
+        onPageScore: scores.onPageScore, contentScore: scores.contentScore,
+        performanceScore: scores.performanceScore, indexabilityScore: scores.indexabilityScore,
+        linksScore: scores.linksScore, structuredDataScore: scores.structuredDataScore,
+        allIssues: scores.allIssues, onpageSummary: onpageResult.summary,
+        linkSummary: linkResult.summary, schemaSummary: schemaResult.summary,
+      })
+    }
 
     // Build report
     const report = {

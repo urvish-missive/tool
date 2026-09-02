@@ -4,7 +4,7 @@ import DynamicLeadForm from '../../components/DynamicLeadForm'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import AuditForm from './AuditForm'
-import LoadingAudit from './LoadingAudit'
+import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import ScoreCircle from '../shared/ScoreCircle'
 import ScoreCard from '../shared/ScoreCard'
 import {
@@ -26,7 +26,13 @@ import {
   Zap,
 } from 'lucide-react'
 
-const LOADING_STEPS = ['connect', 'technical', 'structure', 'content', 'links', 'schema', 'report']
+const LOADING_STEPS = [
+  'Crawling website and verifying HTTP response codes',
+  'Analyzing title tags, meta descriptions, and headings',
+  'Checking canonicals, robots.txt, and indexability',
+  'Evaluating schema.org structured data & entity signals',
+  'Synthesizing remediation plan & copy-paste fixes',
+]
 
 const SEVERITY_COLORS = {
   CRITICAL: 'bg-rose-100 text-rose-800 border-rose-200',
@@ -81,26 +87,15 @@ function IssueItem({ issue }) {
 }
 
 export default function SeoAuditPage() {
-  const [loadingStep, setLoadingStep] = useState('connect')
   const [report, setReport] = useState(null)
   const [auditId, setAuditId] = useState(null)
-  const [runAudit, { isLoading, isError, error, data }] = useRunAuditMutation()
+  const [runAudit, { isLoading, isError, error, data, reset: resetMutation }] = useRunAuditMutation()
   const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose, triggerPopup } = useLeadPopup('seo-audit')
   const [pendingPayload, setPendingPayload] = useState(null)
 
   const [activeTab, setActiveTab] = useState('issues') // 'issues' | 'snippets' | 'roadmap' | 'overview'
   const [filterSeverity, setFilterSeverity] = useState('ALL')
   const [copiedKey, setCopiedKey] = useState(null)
-
-  useEffect(() => {
-    if (!isLoading) return
-    let idx = 0
-    const interval = setInterval(() => {
-      idx++
-      if (idx < LOADING_STEPS.length) setLoadingStep(LOADING_STEPS[idx])
-    }, 3000)
-    return () => clearInterval(interval)
-  }, [isLoading])
 
   useEffect(() => {
     if (data?.report) {
@@ -115,7 +110,7 @@ export default function SeoAuditPage() {
   const handleReset = () => {
     setReport(null)
     setAuditId(null)
-    setLoadingStep('connect')
+    resetMutation()
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -194,7 +189,13 @@ export default function SeoAuditPage() {
           />
         )}
 
-        {isLoading && <LoadingAudit step={loadingStep} />}
+        {isLoading && (
+          <UnifiedToolLoader
+            title="Performing Deep Technical Site Audit..."
+            subtitle="Crawling DOM elements, analyzing meta signals, HTTP headers, and schema integrity."
+            steps={LOADING_STEPS}
+          />
+        )}
 
         {/* Results Container */}
         {report && (

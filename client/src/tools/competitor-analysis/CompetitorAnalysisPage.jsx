@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react'
 import { useAnalyzeCompetitorMutation } from '../../services/apiSlice'
 import ModelSelector from '../shared/ModelSelector'
+import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import {
   Search,
   Globe,
@@ -45,7 +46,7 @@ export default function CompetitorAnalysisPage() {
   const [yourUrl, setYourUrl] = useState('')
   const [targetKeywords, setTargetKeywords] = useState('')
   const [preferredProvider, setPreferredProvider] = useState('openrouter')
-  const [analyzeCompetitor, { isLoading }] = useAnalyzeCompetitorMutation()
+  const [analyzeCompetitor, { isLoading, reset: resetMutation }] = useAnalyzeCompetitorMutation()
 
   const [results, setResults] = useState(null)
   const [error, setError] = useState('')
@@ -84,6 +85,8 @@ export default function CompetitorAnalysisPage() {
     setTargetKeywords('')
     setResults(null)
     setError('')
+    resetMutation()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
   const triggerCopy = (text, key) => {
@@ -210,8 +213,8 @@ export default function CompetitorAnalysisPage() {
             </div>
 
             {/* Model Selector & Actions */}
-            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="w-full sm:w-auto">
+            <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+              <div className="w-full sm:w-auto sm:min-w-[190px]">
                 <ModelSelector
                   value={preferredProvider}
                   onChange={setPreferredProvider}
@@ -219,12 +222,12 @@ export default function CompetitorAnalysisPage() {
                 />
               </div>
 
-              <div className="flex items-center gap-3 w-full sm:w-auto">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
                 {results && (
                   <button
                     type="button"
                     onClick={handleReset}
-                    className="px-5 py-3 rounded-full border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-sm"
+                    className="w-full sm:w-auto px-5 py-3 rounded-full border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-sm text-center cursor-pointer order-2 sm:order-1"
                   >
                     Reset
                   </button>
@@ -232,16 +235,16 @@ export default function CompetitorAnalysisPage() {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-8 py-3.5 text-sm font-bold text-white hover:from-[#0D73D1] hover:to-[#E77771] disabled:opacity-50 transition-all shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-6 sm:px-8 py-3.5 text-sm sm:text-base font-bold text-white hover:opacity-95 active:scale-[0.98] disabled:opacity-50 transition-all shadow-md hover:shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
                 >
                   {isLoading ? (
                     <>
-                      <RefreshCw className="w-5 h-5 animate-spin" />
+                      <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin shrink-0" />
                       <span>Crawling & Analyzing Competitor...</span>
                     </>
                   ) : (
                     <>
-                      <Zap className="w-5 h-5" />
+                      <Zap className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
                       <span>Reverse-Engineer Competitor</span>
                     </>
                   )}
@@ -256,6 +259,21 @@ export default function CompetitorAnalysisPage() {
             )}
           </form>
         </div>
+
+        {/* Loading State */}
+        {isLoading && (
+          <UnifiedToolLoader
+            title="Crawling & Reverse-Engineering Competitor..."
+            subtitle={`Analyzing on-page structure, backlink angles, and keyword opportunities for ${competitorUrl}.`}
+            steps={[
+              'Fetching competitor HTML & meta tags',
+              'Extracting heading structure & content depth',
+              'Auditing keyword density & entity associations',
+              'Calculating outrank difficulty & content gaps',
+              'Building 10x actionable outrank playbook',
+            ]}
+          />
+        )}
 
         {/* Results Container */}
         {results && (

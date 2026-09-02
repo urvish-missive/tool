@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react'
 import { Sparkles, Download, RefreshCw, Wand2, Check, Lightbulb, Image as ImageIcon, Globe, Smartphone, CreditCard, Layout, Moon, Sun } from 'lucide-react'
 import ModelSelector from '../shared/ModelSelector'
+import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import { useGenerateLogoVariationsMutation } from '../../services/apiSlice'
 
 const INDUSTRIES = [
@@ -99,65 +100,8 @@ function LogoVariationCard({ variation, isSelected, onSelect, onDownload }) {
   )
 }
 
-function LoadingState() {
-  const [step, setStep] = useState(0)
-
-  useState(() => {
-    const interval = setInterval(() => {
-      setStep((s) => (s < LOADING_STEPS.length - 1 ? s + 1 : s))
-    }, 1500)
-    return () => clearInterval(interval)
-  }, [])
-
-  return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-10 text-center max-w-lg mx-auto">
-      <div className="relative w-16 h-16 mx-auto mb-6">
-        <div className="absolute inset-0 border-4 border-blue-100 rounded-full"></div>
-        <div className="absolute inset-0 border-4 border-blue-500 rounded-full border-t-transparent animate-spin"></div>
-        <div className="absolute inset-0 flex items-center justify-center">
-          <Wand2 size={20} className="text-blue-500" />
-        </div>
-      </div>
-      <h3 className="text-lg font-bold text-slate-900 mb-1">AI is crafting your vector logos</h3>
-      <p className="text-sm text-slate-500 mb-8">Generating unique geometric marks and colorways</p>
-
-      <div className="space-y-3 text-left">
-        {LOADING_STEPS.map((s, i) => {
-          const status = i < step ? 'done' : i === step ? 'active' : 'pending'
-          return (
-            <div key={i} className="flex items-center gap-3">
-              {status === 'done' && (
-                <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center shrink-0">
-                  <Check size={12} color="white" strokeWidth={3} />
-                </div>
-              )}
-              {status === 'active' && (
-                <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin shrink-0" />
-              )}
-              {status === 'pending' && (
-                <div className="w-5 h-5 rounded-full border-2 border-slate-200 shrink-0" />
-              )}
-              <span
-                className={`text-sm ${
-                  status === 'active'
-                    ? 'font-medium text-slate-900'
-                    : status === 'done'
-                    ? 'text-emerald-700'
-                    : 'text-slate-400'
-                }`}
-              >
-                {s.label}
-              </span>
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
 export default function LogoMakerPage() {
-  const [generateLogoVariations, { isLoading: isGenerating }] = useGenerateLogoVariationsMutation()
+  const [generateLogoVariations, { isLoading: isGenerating, reset: resetMutation }] = useGenerateLogoVariationsMutation()
   const [brandName, setBrandName] = useState('')
   const [description, setDescription] = useState('')
   const [industry, setIndustry] = useState('tech')
@@ -225,9 +169,13 @@ export default function LogoMakerPage() {
   }
 
   const handleStartOver = () => {
+    setBrandName('')
+    setDescription('')
     setVariations(null)
     setSelectedIndex(0)
+    setValidationError('')
     setErrorMessage('')
+    resetMutation()
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -368,7 +316,19 @@ export default function LogoMakerPage() {
           </form>
         )}
 
-        {isGenerating && <LoadingState />}
+        {isGenerating && (
+          <UnifiedToolLoader
+            title={`Crafting Vector Brand Identity for "${brandName}"...`}
+            subtitle="Generating mathematical SVG geometry, custom brand typography, and responsive mockups."
+            steps={[
+              'Synthesizing brand archetype & design philosophy',
+              'Constructing mathematical SVG vector paths',
+              'Applying harmonious colorway palettes',
+              'Rendering 4 scalable vector logo variations',
+              'Generating realistic website & card mockups',
+            ]}
+          />
+        )}
 
         {/* Results */}
         {variations && !isGenerating && (
