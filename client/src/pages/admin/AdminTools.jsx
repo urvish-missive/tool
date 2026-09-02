@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useGetAdminToolsQuery, useUpdateAdminToolMutation } from '../../services/apiSlice'
 
 // Default field definitions per tool slug
@@ -58,21 +58,35 @@ const TOOL_FIELDS = {
 }
 
 export default function AdminTools() {
-  const { data, isLoading, refetch } = useGetAdminToolsQuery()
-  const [updateAdminTool, { isLoading: isUpdating }] = useUpdateAdminToolMutation()
-  const [savingId, setSavingId] = useState(null)
+  const { data, isLoading } = useGetAdminToolsQuery()
+  const [updateAdminTool] = useUpdateAdminToolMutation()
+  const [localTools, setLocalTools] = useState([])
 
-  const tools = data?.tools || []
+  useEffect(() => {
+    if (data?.tools) {
+      setLocalTools(data.tools)
+    }
+  }, [data?.tools])
+
+  const tools = localTools.length > 0 ? localTools : (data?.tools || [])
 
   const updateTool = async (id, updates) => {
-    setSavingId(id)
+    // 1. Optimistic instant local update
+    setLocalTools(prev => prev.map(t => {
+      if (t.id !== id) return t
+      const next = { ...t, ...updates }
+      if (updates.formFields && typeof updates.formFields === 'object') {
+        next.formFields = JSON.stringify(updates.formFields)
+      }
+      return next
+    }))
+
+    // 2. Persist to API in background
     try {
       await updateAdminTool({ id, ...updates }).unwrap()
-      refetch()
     } catch (err) {
-      console.error('Update failed:', err)
-    } finally {
-      setSavingId(null)
+      console.error('Update failed, reverting state:', err)
+      if (data?.tools) setLocalTools(data.tools)
     }
   }
 
@@ -93,7 +107,7 @@ export default function AdminTools() {
     updateTool(toolId, { formFields: updatedFields })
   }
 
-  if (isLoading) {
+  if (isLoading && !tools.length) {
     return (
       <div className="flex items-center justify-center py-20">
         <div className="w-8 h-8 border-4 border-gray-200 border-t-[#0C81F3] rounded-full animate-spin" />
@@ -125,9 +139,9 @@ export default function AdminTools() {
                   <p className="text-[11px] text-gray-400 mt-1 font-mono">/{tool.slug}</p>
                 </div>
                 <button
+                  type="button"
                   onClick={() => updateTool(tool.id, { enabled: !tool.enabled })}
-                  disabled={savingId === tool.id}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${tool.enabled ? 'bg-green-500' : 'bg-gray-300'}`}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none ${tool.enabled ? 'bg-green-500' : 'bg-gray-300'}`}
                 >
                   <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${tool.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
                 </button>
@@ -214,9 +228,10 @@ export default function AdminTools() {
                       { key: 'requireCompany', label: 'Company' },
                     ].map(field => (
                       <button
+                        type="button"
                         key={field.key}
                         onClick={() => updateTool(tool.id, { [field.key]: !tool[field.key] })}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                        className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
                           tool[field.key]
                             ? 'bg-[#0C81F3]/10 text-[#0C81F3] border-[#0C81F3]/30'
                             : 'bg-gray-50 text-gray-500 border-gray-200 hover:bg-gray-100'
@@ -236,9 +251,9 @@ export default function AdminTools() {
                       <p className="text-[10px] text-gray-400">Show a popup form before users can access this tool</p>
                     </div>
                     <button
+                      type="button"
                       onClick={() => updateTool(tool.id, { showLeadPopup: !tool.showLeadPopup })}
-                      disabled={savingId === tool.id}
-                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${tool.showLeadPopup ? 'bg-[#0C81F3]' : 'bg-gray-300'}`}
+                      className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none ${tool.showLeadPopup ? 'bg-[#0C81F3]' : 'bg-gray-300'}`}
                     >
                       <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${tool.showLeadPopup ? 'translate-x-6' : 'translate-x-1'}`} />
                     </button>
@@ -255,9 +270,10 @@ export default function AdminTools() {
                           { key: 'requireCompany', label: 'Company', icon: '🏢' },
                         ].map(field => (
                           <button
+                            type="button"
                             key={`popup-${field.key}`}
                             onClick={() => updateTool(tool.id, { [field.key]: !tool[field.key] })}
-                            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors ${
+                            className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
                               tool[field.key]
                                 ? 'bg-white text-gray-900 border-gray-300 shadow-sm'
                                 : 'bg-gray-100 text-gray-400 border-gray-200 line-through'

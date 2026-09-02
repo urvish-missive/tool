@@ -162,6 +162,27 @@ export const apiSlice = createApi({
         body: updates,
         headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
       }),
+      async onQueryStarted({ id, ...updates }, { dispatch, queryFulfilled }) {
+        const patchResult = dispatch(
+          apiSlice.util.updateQueryData('getAdminTools', undefined, (draft) => {
+            if (draft?.tools) {
+              const tool = draft.tools.find(t => t.id === id)
+              if (tool) {
+                const serializedUpdates = { ...updates }
+                if (updates.formFields && typeof updates.formFields === 'object') {
+                  serializedUpdates.formFields = JSON.stringify(updates.formFields)
+                }
+                Object.assign(tool, serializedUpdates)
+              }
+            }
+          })
+        )
+        try {
+          await queryFulfilled
+        } catch {
+          patchResult.undo()
+        }
+      },
     }),
     getAdminLeads: builder.query({
       query: (params = {}) => ({

@@ -24,6 +24,9 @@ import {
   FileText,
   Search,
   Zap,
+  RotateCcw,
+  ArrowLeft,
+  RefreshCw,
 } from 'lucide-react'
 
 const LOADING_STEPS = [
@@ -226,6 +229,35 @@ export default function SeoAuditPage() {
         {/* Results Container */}
         {report && (
           <div id="audit-report" className="space-y-6 animate-fade-in">
+            {/* ── TOP ACTION HEADER BAR ─────────────────────────────────────── */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+              <div>
+                <span className="text-xs font-bold uppercase tracking-wider text-[#0C81F3]">
+                  Technical SEO & Crawl Diagnostics
+                </span>
+                <h2 className="text-lg sm:text-xl font-extrabold text-slate-900">
+                  {report.targetUrl}
+                </h2>
+              </div>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  onClick={handleReset}
+                  className="px-4 py-2.5 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer border border-slate-200"
+                >
+                  <RotateCcw className="w-3.5 h-3.5 text-slate-600" />
+                  <span>← New Audit</span>
+                </button>
+                <button
+                  onClick={exportAuditMarkdown}
+                  className="px-4 py-2.5 text-xs font-bold text-white bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:from-[#0D73D1] hover:to-[#E77771] rounded-xl flex items-center gap-1.5 transition-all cursor-pointer shadow-sm"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Export Report (.md)</span>
+                </button>
+              </div>
+            </div>
+
             {/* Header Strategic Banner */}
             <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl">
               <div className="flex flex-col lg:flex-row items-start justify-between gap-6 pb-6 border-b border-white/10">
@@ -255,9 +287,10 @@ export default function SeoAuditPage() {
                     </button>
                     <button
                       onClick={handleReset}
-                      className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
+                      className="px-4 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition-colors cursor-pointer flex items-center justify-center gap-1.5 border border-white/20"
                     >
-                      Audit Another URL
+                      <RotateCcw className="w-3.5 h-3.5" />
+                      <span>← Audit Another URL</span>
                     </button>
                   </div>
                 </div>
