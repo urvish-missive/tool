@@ -45,7 +45,15 @@ const INTENT_BADGES = {
 }
 
 export default function FaqGeneratorPage() {
-  const { register, handleSubmit, control, watch, formState: { errors }, reset: resetForm, setValue } = useForm({
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    formState: { errors },
+    reset: resetForm,
+    setValue,
+  } = useForm({
     resolver: zodResolver(faqGeneratorSchema),
     defaultValues: { topic: '', targetKeywords: '', count: 8, preferredProvider: 'openrouter' },
   })
@@ -81,18 +89,21 @@ export default function FaqGeneratorPage() {
       targetKeywords: parsed.data.targetKeywords,
       count: Number(parsed.data.count),
       preferredProvider: parsed.data.preferredProvider,
-    }).unwrap()
-      .then(result => {
+    })
+      .unwrap()
+      .then((result) => {
         setDataResult(result)
         const expanded = {}
         result.faqs?.forEach((_, i) => (expanded[i] = true))
         setExpandedItems(expanded)
         setSerpExpanded({ 0: true, 1: true })
         setTimeout(() => {
-          document.getElementById('faq-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          document
+            .getElementById('faq-results')
+            ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }, 100)
       })
-      .catch(err => {
+      .catch((err) => {
         setError(err?.data?.error || 'Failed to generate FAQs. Please try again.')
       })
   }
@@ -120,12 +131,14 @@ export default function FaqGeneratorPage() {
 
   const toggleAllExpand = (expand) => {
     const updated = {}
-    faqs.forEach((_, i) => { updated[i] = expand })
+    faqs.forEach((_, i) => {
+      updated[i] = expand
+    })
     setExpandedItems(updated)
   }
 
   const toggleSerpFaq = (i) => {
-    setSerpExpanded(prev => ({ ...prev, [i]: !prev[i] }))
+    setSerpExpanded((prev) => ({ ...prev, [i]: !prev[i] }))
   }
 
   const filteredFaqs = useMemo(() => {
@@ -134,23 +147,27 @@ export default function FaqGeneratorPage() {
   }, [faqs, filterType])
 
   const markdownText = useMemo(() => {
-    return faqs.map(f => {
-      let content = `### ${f.question}\n\n${f.answer}\n`
-      if (f.bulletPoints?.length) {
-        content += '\n' + f.bulletPoints.map(b => `- ${b}`).join('\n') + '\n'
-      }
-      return content
-    }).join('\n')
+    return faqs
+      .map((f) => {
+        let content = `### ${f.question}\n\n${f.answer}\n`
+        if (f.bulletPoints?.length) {
+          content += '\n' + f.bulletPoints.map((b) => `- ${b}`).join('\n') + '\n'
+        }
+        return content
+      })
+      .join('\n')
   }, [faqs])
 
   const htmlDetailsText = useMemo(() => {
-    return faqs.map(f => {
-      let body = `<p>${f.answer}</p>`
-      if (f.bulletPoints?.length) {
-        body += `<ul>${f.bulletPoints.map(b => `<li>${b}</li>`).join('')}</ul>`
-      }
-      return `<details class="faq-item">\n  <summary><strong>${f.question}</strong></summary>\n  <div class="faq-answer">\n    ${body}\n  </div>\n</details>`
-    }).join('\n\n')
+    return faqs
+      .map((f) => {
+        let body = `<p>${f.answer}</p>`
+        if (f.bulletPoints?.length) {
+          body += `<ul>${f.bulletPoints.map((b) => `<li>${b}</li>`).join('')}</ul>`
+        }
+        return `<details class="faq-item">\n  <summary><strong>${f.question}</strong></summary>\n  <div class="faq-answer">\n    ${body}\n  </div>\n</details>`
+      })
+      .join('\n\n')
   }, [faqs])
 
   const jsonLdString = useMemo(() => {
@@ -173,7 +190,11 @@ export default function FaqGeneratorPage() {
           name: faq.question,
           acceptedAnswer: {
             '@type': 'Answer',
-            text: faq.answer + (faq.bulletPoints?.length ? ` <ul>${faq.bulletPoints.map(b => `<li>${b}</li>`).join('')}</ul>` : ''),
+            text:
+              faq.answer +
+              (faq.bulletPoints?.length
+                ? ` <ul>${faq.bulletPoints.map((b) => `<li>${b}</li>`).join('')}</ul>`
+                : ''),
           },
         })),
       }
@@ -196,7 +217,10 @@ export default function FaqGeneratorPage() {
     <div className="min-h-screen bg-slate-50/50 pb-20">
       {/* Hero Header */}
       <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }}
+        />
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
@@ -206,10 +230,13 @@ export default function FaqGeneratorPage() {
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight mb-4">
             <span className="text-gray-900">AI FAQ & Schema </span>
-            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">Generator</span>
+            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
+              Generator
+            </span>
           </h1>
           <p className="mt-3 text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Generate high-converting FAQs formulated to win Google Featured Snippets, People Also Ask boxes, and valid Schema.org FAQPage JSON-LD.
+            Generate high-converting FAQs formulated to win Google Featured Snippets, People Also
+            Ask boxes, and valid Schema.org FAQPage JSON-LD.
           </p>
         </div>
       </section>
@@ -235,13 +262,18 @@ export default function FaqGeneratorPage() {
                   />
                   <HelpCircle className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
                 </div>
-                {errors.topic && <p className="mt-1 text-xs text-red-600">{errors.topic.message}</p>}
+                {errors.topic && (
+                  <p className="mt-1 text-xs text-red-600">{errors.topic.message}</p>
+                )}
               </div>
 
               {/* Target Keywords */}
               <div>
                 <label htmlFor="keywords" className="block text-sm font-bold text-slate-800 mb-2">
-                  Target Keywords <span className="text-xs font-normal text-slate-500">(Optional, comma separated)</span>
+                  Target Keywords{' '}
+                  <span className="text-xs font-normal text-slate-500">
+                    (Optional, comma separated)
+                  </span>
                 </label>
                 <input
                   id="keywords"
@@ -257,7 +289,9 @@ export default function FaqGeneratorPage() {
                 <label className="block text-sm font-bold text-slate-800 mb-2">
                   Number of FAQs
                 </label>
-                <Controller control={control} name="count"
+                <Controller
+                  control={control}
+                  name="count"
                   render={({ field }) => (
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                       {[4, 6, 8, 12].map((num) => (
@@ -283,8 +317,13 @@ export default function FaqGeneratorPage() {
             {/* Model Selector & Submit */}
             <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
               <div className="w-full sm:w-auto sm:min-w-[190px]">
-                <Controller control={control} name="preferredProvider"
-                  render={({ field }) => <ModelSelector value={field.value} onChange={field.onChange} compact={true} />} />
+                <Controller
+                  control={control}
+                  name="preferredProvider"
+                  render={({ field }) => (
+                    <ModelSelector value={field.value} onChange={field.onChange} compact={true} />
+                  )}
+                />
               </div>
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
@@ -350,7 +389,10 @@ export default function FaqGeneratorPage() {
                   <h3 className="text-base font-bold text-slate-900">FAQ Research Report</h3>
                   <p className="text-sm text-slate-500 mt-1">{summary}</p>
                 </div>
-                <button onClick={handleReset} className="px-4 py-2 text-sm font-medium text-[#0C81F3] hover:bg-blue-50 rounded-lg">
+                <button
+                  onClick={handleReset}
+                  className="px-4 py-2 text-sm font-medium text-[#0C81F3] hover:bg-blue-50 rounded-lg"
+                >
                   ← New Research
                 </button>
               </div>
@@ -364,7 +406,7 @@ export default function FaqGeneratorPage() {
                   { id: 'serp', label: 'SERP Preview', icon: Search },
                   { id: 'schema', label: 'Schema JSON-LD', icon: Code },
                   { id: 'export', label: 'Export', icon: Download },
-                ].map(tab => (
+                ].map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
@@ -384,8 +426,12 @@ export default function FaqGeneratorPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   {[
                     { id: 'all', label: `All (${faqs.length})` },
-                    ...QUESTION_TYPES.filter(t => t.value !== 'all' && faqs.some(f => (f.type || '').toLowerCase() === t.value)).map(t => ({ id: t.value, label: t.label })),
-                  ].map(f => (
+                    ...QUESTION_TYPES.filter(
+                      (t) =>
+                        t.value !== 'all' &&
+                        faqs.some((f) => (f.type || '').toLowerCase() === t.value)
+                    ).map((t) => ({ id: t.value, label: t.label })),
+                  ].map((f) => (
                     <button
                       key={f.id}
                       onClick={() => setFilterType(f.id)}
@@ -399,7 +445,10 @@ export default function FaqGeneratorPage() {
                 {/* FAQ Items */}
                 <div className="space-y-3">
                   {filteredFaqs.map((faq, i) => (
-                    <div key={i} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div
+                      key={i}
+                      className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+                    >
                       <button
                         onClick={() => toggleExpand(i)}
                         className="w-full flex items-center justify-between p-4 sm:p-5 text-left hover:bg-slate-50 transition-colors"
@@ -411,13 +460,19 @@ export default function FaqGeneratorPage() {
                           <div className="min-w-0">
                             <h4 className="text-sm font-bold text-slate-900">{faq.question}</h4>
                             {faq.type && (
-                              <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${INTENT_BADGES[faq.type] || 'bg-slate-50 text-slate-700 border-slate-200'}`}>
+                              <span
+                                className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${INTENT_BADGES[faq.type] || 'bg-slate-50 text-slate-700 border-slate-200'}`}
+                              >
                                 {faq.type}
                               </span>
                             )}
                           </div>
                         </div>
-                        {expandedItems[i] ? <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />}
+                        {expandedItems[i] ? (
+                          <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+                        )}
                       </button>
 
                       {expandedItems[i] && (
@@ -426,7 +481,10 @@ export default function FaqGeneratorPage() {
                           {faq.bulletPoints?.length > 0 && (
                             <ul className="mt-3 space-y-1.5">
                               {faq.bulletPoints.map((bp, j) => (
-                                <li key={j} className="text-sm text-slate-600 flex items-start gap-2">
+                                <li
+                                  key={j}
+                                  className="text-sm text-slate-600 flex items-start gap-2"
+                                >
                                   <span className="text-[#0C81F3] mt-1 shrink-0">•</span>
                                   {bp}
                                 </li>
@@ -434,7 +492,9 @@ export default function FaqGeneratorPage() {
                             </ul>
                           )}
                           <button
-                            onClick={() => triggerCopy(faq.question + '\n\n' + faq.answer, `faq-${i}`)}
+                            onClick={() =>
+                              triggerCopy(faq.question + '\n\n' + faq.answer, `faq-${i}`)
+                            }
                             className="mt-3 px-3 py-1.5 text-xs font-semibold text-[#0C81F3] bg-blue-50 rounded-lg hover:bg-blue-100"
                           >
                             {copiedState === `faq-${i}` ? '✓ Copied' : 'Copy FAQ'}
@@ -453,26 +513,46 @@ export default function FaqGeneratorPage() {
                 <div className="flex items-center gap-3 mb-4">
                   <h3 className="text-sm font-bold text-slate-900">Google SERP Preview</h3>
                   <div className="flex items-center gap-2">
-                    <button onClick={() => setSerpDevice('desktop')} className={`px-3 py-1 rounded-lg text-xs font-semibold ${serpDevice === 'desktop' ? 'bg-blue-50 text-blue-700' : 'text-slate-500'}`}>
-                      <Monitor className="w-3.5 h-3.5 inline mr-1" />Desktop
+                    <button
+                      onClick={() => setSerpDevice('desktop')}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold ${serpDevice === 'desktop' ? 'bg-blue-50 text-blue-700' : 'text-slate-500'}`}
+                    >
+                      <Monitor className="w-3.5 h-3.5 inline mr-1" />
+                      Desktop
                     </button>
-                    <button onClick={() => setSerpDevice('mobile')} className={`px-3 py-1 rounded-lg text-xs font-semibold ${serpDevice === 'mobile' ? 'bg-blue-50 text-blue-700' : 'text-slate-500'}`}>
-                      <Smartphone className="w-3.5 h-3.5 inline mr-1" />Mobile
+                    <button
+                      onClick={() => setSerpDevice('mobile')}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold ${serpDevice === 'mobile' ? 'bg-blue-50 text-blue-700' : 'text-slate-500'}`}
+                    >
+                      <Smartphone className="w-3.5 h-3.5 inline mr-1" />
+                      Mobile
                     </button>
                   </div>
                 </div>
-                <div className={`bg-white rounded-xl border border-slate-200 p-5 ${serpDevice === 'mobile' ? 'max-w-sm' : 'max-w-2xl'}`}>
+                <div
+                  className={`bg-white rounded-xl border border-slate-200 p-5 ${serpDevice === 'mobile' ? 'max-w-sm' : 'max-w-2xl'}`}
+                >
                   <div className="text-xs text-green-700 mb-1">https://example.com › faq</div>
-                  <h3 className="text-blue-700 text-base font-medium hover:underline cursor-pointer">{topic || 'FAQ Topic'}</h3>
-                  <p className="text-xs text-slate-600 mt-1 line-clamp-2">{faqs[0]?.answer?.substring(0, 160)}...</p>
+                  <h3 className="text-blue-700 text-base font-medium hover:underline cursor-pointer">
+                    {topic || 'FAQ Topic'}
+                  </h3>
+                  <p className="text-xs text-slate-600 mt-1 line-clamp-2">
+                    {faqs[0]?.answer?.substring(0, 160)}...
+                  </p>
                   {faqs.slice(0, 3).map((faq, i) => (
                     <div key={i} className="mt-3 pt-3 border-t border-slate-100">
                       <div className="flex items-center justify-between">
                         <span className="text-xs font-bold text-slate-800">{faq.question}</span>
                         {serpExpanded[i] ? (
-                          <ChevronUp className="w-3.5 h-3.5 text-slate-400 cursor-pointer" onClick={() => toggleSerpFaq(i)} />
+                          <ChevronUp
+                            className="w-3.5 h-3.5 text-slate-400 cursor-pointer"
+                            onClick={() => toggleSerpFaq(i)}
+                          />
                         ) : (
-                          <ChevronDown className="w-3.5 h-3.5 text-slate-400 cursor-pointer" onClick={() => toggleSerpFaq(i)} />
+                          <ChevronDown
+                            className="w-3.5 h-3.5 text-slate-400 cursor-pointer"
+                            onClick={() => toggleSerpFaq(i)}
+                          />
                         )}
                       </div>
                       {serpExpanded[i] && (
@@ -493,7 +573,11 @@ export default function FaqGeneratorPage() {
                     onClick={() => triggerCopy(jsonLdString, 'schema')}
                     className="px-3 py-1.5 text-xs font-semibold text-[#0C81F3] bg-blue-50 rounded-lg hover:bg-blue-100 flex items-center gap-1.5"
                   >
-                    {copiedState === 'schema' ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedState === 'schema' ? (
+                      <Check className="w-3.5 h-3.5 text-green-600" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
                     {copiedState === 'schema' ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
@@ -508,20 +592,28 @@ export default function FaqGeneratorPage() {
               <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
                 <h3 className="text-sm font-bold text-slate-900">Export Options</h3>
                 <div className="grid sm:grid-cols-3 gap-3">
-                  <button onClick={() => handleDownloadFile(markdownText, 'faqs.md', 'text/markdown')}
-                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left">
+                  <button
+                    onClick={() => handleDownloadFile(markdownText, 'faqs.md', 'text/markdown')}
+                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left"
+                  >
                     <FileText className="w-5 h-5 text-[#0C81F3] mb-2" />
                     <div className="text-sm font-bold text-slate-900">Markdown</div>
                     <div className="text-xs text-slate-500">.md file for docs</div>
                   </button>
-                  <button onClick={() => handleDownloadFile(htmlDetailsText, 'faqs.html', 'text/html')}
-                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left">
+                  <button
+                    onClick={() => handleDownloadFile(htmlDetailsText, 'faqs.html', 'text/html')}
+                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left"
+                  >
                     <Code className="w-5 h-5 text-purple-600 mb-2" />
                     <div className="text-sm font-bold text-slate-900">HTML Details</div>
                     <div className="text-xs text-slate-500">Collapsible FAQ HTML</div>
                   </button>
-                  <button onClick={() => handleDownloadFile(jsonLdString, 'faq-schema.json', 'application/json')}
-                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left">
+                  <button
+                    onClick={() =>
+                      handleDownloadFile(jsonLdString, 'faq-schema.json', 'application/json')
+                    }
+                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left"
+                  >
                     <Layers className="w-5 h-5 text-emerald-600 mb-2" />
                     <div className="text-sm font-bold text-slate-900">JSON-LD Schema</div>
                     <div className="text-xs text-slate-500">For your website</div>
@@ -536,7 +628,10 @@ export default function FaqGeneratorPage() {
                 <h3 className="text-sm font-bold text-slate-900 mb-3">People Also Ask</h3>
                 <div className="space-y-2">
                   {paa.map((q, i) => (
-                    <div key={i} className="flex items-center gap-2 text-sm text-slate-700 bg-slate-50 rounded-lg px-3 py-2">
+                    <div
+                      key={i}
+                      className="flex items-center gap-2 text-sm text-slate-700 bg-slate-50 rounded-lg px-3 py-2"
+                    >
                       <span className="text-[#0C81F3] shrink-0">?</span>
                       {q}
                     </div>

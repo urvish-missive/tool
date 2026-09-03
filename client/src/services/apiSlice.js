@@ -177,10 +177,16 @@ export const apiSlice = createApi({
       query: (payload) => ({ url: '/admin/login', method: 'POST', body: payload }),
     }),
     getAdminStats: builder.query({
-      query: () => ({ url: '/admin/stats', headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` } }),
+      query: () => ({
+        url: '/admin/stats',
+        headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+      }),
     }),
     getAdminTools: builder.query({
-      query: () => ({ url: '/admin/tools', headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` } }),
+      query: () => ({
+        url: '/admin/tools',
+        headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+      }),
     }),
     updateAdminTool: builder.mutation({
       query: ({ id, ...updates }) => ({
@@ -193,7 +199,7 @@ export const apiSlice = createApi({
         const patchResult = dispatch(
           apiSlice.util.updateQueryData('getAdminTools', undefined, (draft) => {
             if (draft?.tools) {
-              const tool = draft.tools.find(t => t.id === id)
+              const tool = draft.tools.find((t) => t.id === id)
               if (tool) {
                 const serializedUpdates = { ...updates }
                 if (updates.formFields && typeof updates.formFields === 'object') {

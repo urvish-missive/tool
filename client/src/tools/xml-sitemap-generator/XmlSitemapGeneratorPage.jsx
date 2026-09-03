@@ -1,8 +1,5 @@
 import { useMemo, useState } from 'react'
-import {
-  useGenerateSitemapMutation,
-  useValidateSitemapMutation,
-} from '../../services/apiSlice'
+import { useGenerateSitemapMutation, useValidateSitemapMutation } from '../../services/apiSlice'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
 import { useLeadPopup } from '../../components/useLeadPopup'
@@ -110,11 +107,14 @@ export default function XmlSitemapGeneratorPage() {
   const [expandedFaq, setExpandedFaq] = useState(null)
 
   // API Mutations
-  const [generateSitemap, { isLoading: isGenerating, data: sitemapData, error: generateError }] = useGenerateSitemapMutation()
-  const [validateSitemap, { isLoading: isValidating, data: validationData, error: validateError }] = useValidateSitemapMutation()
+  const [generateSitemap, { isLoading: isGenerating, data: sitemapData, error: generateError }] =
+    useGenerateSitemapMutation()
+  const [validateSitemap, { isLoading: isValidating, data: validationData, error: validateError }] =
+    useValidateSitemapMutation()
 
   // Lead Popup
-  const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose } = useLeadPopup('xml-sitemap-generator')
+  const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose } =
+    useLeadPopup('xml-sitemap-generator')
   const [pendingPayload, setPendingPayload] = useState(null)
 
   const isLoading = isGenerating || isValidating
@@ -137,7 +137,7 @@ export default function XmlSitemapGeneratorPage() {
       includeImages,
       defaultChangefreq,
       defaultPriority: defaultPriority === 'auto' ? '' : defaultPriority,
-      excludePatterns: excludePattern ? excludePattern.split(',').map(s => s.trim()) : [],
+      excludePatterns: excludePattern ? excludePattern.split(',').map((s) => s.trim()) : [],
     }
 
     if (popupEnabled) {
@@ -219,7 +219,7 @@ export default function XmlSitemapGeneratorPage() {
 
   const downloadUrlsTxt = () => {
     if (!sitemapData?.urls?.length) return
-    const text = sitemapData.urls.map(u => u.loc).join('\n')
+    const text = sitemapData.urls.map((u) => u.loc).join('\n')
     downloadFile(text, 'sitemap-urls.txt', 'text/plain')
   }
 
@@ -227,7 +227,10 @@ export default function XmlSitemapGeneratorPage() {
     if (!sitemapData?.urls?.length) return
     const headers = 'URL,Status,Priority,Changefreq,Lastmod,Images\n'
     const rows = sitemapData.urls
-      .map(u => `"${u.loc}",${u.statusCode || 200},${u.priority || 0.8},${u.changefreq || 'weekly'},${u.lastmod || ''},${u.images?.length || 0}`)
+      .map(
+        (u) =>
+          `"${u.loc}",${u.statusCode || 200},${u.priority || 0.8},${u.changefreq || 'weekly'},${u.lastmod || ''},${u.images?.length || 0}`
+      )
       .join('\n')
     downloadFile(headers + rows, 'sitemap-report.csv', 'text/csv')
   }
@@ -237,7 +240,7 @@ export default function XmlSitemapGeneratorPage() {
     if (!sitemapData?.urls) return []
     if (!tableSearch.trim()) return sitemapData.urls
     const q = tableSearch.toLowerCase()
-    return sitemapData.urls.filter(u => u.loc.toLowerCase().includes(q))
+    return sitemapData.urls.filter((u) => u.loc.toLowerCase().includes(q))
   }, [sitemapData, tableSearch])
 
   // Split sitemap index preview
@@ -287,28 +290,39 @@ export default function XmlSitemapGeneratorPage() {
           </h1>
 
           <p className="mt-3 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Generate clean, search-engine ready XML sitemaps with deep crawling, Google image extensions, canonical checks, and instant Search Console readiness.
+            Generate clean, search-engine ready XML sitemaps with deep crawling, Google image
+            extensions, canonical checks, and instant Search Console readiness.
           </p>
 
           {/* Mode Switcher Buttons */}
           <div className="mt-8 inline-flex p-1.5 bg-white/90 backdrop-blur-md rounded-2xl border border-slate-200 shadow-sm gap-1 sm:gap-2">
             <button
-              onClick={() => { setMode('crawler'); setValidatorUrl(''); setValidatorXml('') }}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${mode === 'crawler'
-                ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
+              onClick={() => {
+                setMode('crawler')
+                setValidatorUrl('')
+                setValidatorXml('')
+              }}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                mode === 'crawler'
+                  ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
             >
               <Globe className="w-4 h-4" />
               <span>Website Crawler</span>
             </button>
 
             <button
-              onClick={() => { setMode('manual'); setValidatorUrl(''); setValidatorXml('') }}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${mode === 'manual'
-                ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
+              onClick={() => {
+                setMode('manual')
+                setValidatorUrl('')
+                setValidatorXml('')
+              }}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                mode === 'manual'
+                  ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
             >
               <ListOrdered className="w-4 h-4" />
               <span>Manual / Bulk URLs</span>
@@ -316,10 +330,11 @@ export default function XmlSitemapGeneratorPage() {
 
             <button
               onClick={() => setMode('validator')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${mode === 'validator'
-                ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
-                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                }`}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                mode === 'validator'
+                  ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
+                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              }`}
             >
               <ShieldCheck className="w-4 h-4" />
               <span>Sitemap Validator</span>
@@ -344,7 +359,11 @@ export default function XmlSitemapGeneratorPage() {
         {/* Loading Screen with UnifiedToolLoader */}
         {isLoading && (
           <UnifiedToolLoader
-            title={mode === 'validator' ? 'Validating XML Sitemap Schema...' : 'Crawling Website & Generating Sitemap...'}
+            title={
+              mode === 'validator'
+                ? 'Validating XML Sitemap Schema...'
+                : 'Crawling Website & Generating Sitemap...'
+            }
             subtitle={
               mode === 'validator'
                 ? 'Inspecting XML tags, testing URL reachability, and verifying 50MB / 50,000 limits.'
@@ -385,7 +404,8 @@ export default function XmlSitemapGeneratorPage() {
                     </button>
                   </div>
                   <p className="text-xs text-slate-500 mt-2">
-                    Enter any root domain or homepage. The crawler will automatically discover all reachable internal links.
+                    Enter any root domain or homepage. The crawler will automatically discover all
+                    reachable internal links.
                   </p>
                 </div>
 
@@ -451,8 +471,16 @@ export default function XmlSitemapGeneratorPage() {
                     className="flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-slate-900 transition-colors cursor-pointer"
                   >
                     <Sliders className="w-3.5 h-3.5" />
-                    <span>{showAdvanced ? 'Hide Advanced Settings' : 'Show Advanced Settings (Images, Priorities, Exclusions)'}</span>
-                    {showAdvanced ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    <span>
+                      {showAdvanced
+                        ? 'Hide Advanced Settings'
+                        : 'Show Advanced Settings (Images, Priorities, Exclusions)'}
+                    </span>
+                    {showAdvanced ? (
+                      <ChevronUp className="w-3.5 h-3.5" />
+                    ) : (
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    )}
                   </button>
 
                   {showAdvanced && (
@@ -465,8 +493,12 @@ export default function XmlSitemapGeneratorPage() {
                           onChange={(e) => setIncludeImages(e.target.checked)}
                           className="w-4 h-4 text-[#0C81F3] rounded border-slate-300 focus:ring-[#0C81F3]"
                         />
-                        <label htmlFor="includeImages" className="text-slate-800 font-medium cursor-pointer">
-                          Include Google Image Sitemaps tags (<code className="text-[#0C81F3]">&lt;image:image&gt;</code>)
+                        <label
+                          htmlFor="includeImages"
+                          className="text-slate-800 font-medium cursor-pointer"
+                        >
+                          Include Google Image Sitemaps tags (
+                          <code className="text-[#0C81F3]">&lt;image:image&gt;</code>)
                         </label>
                       </div>
 
@@ -551,7 +583,8 @@ export default function XmlSitemapGeneratorPage() {
                     className="w-full p-4 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 text-xs sm:text-sm font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3] focus:border-transparent transition-all"
                   />
                   <p className="text-xs text-slate-500 mt-2">
-                    Paste any number of clean URLs. Sitemaps.org standards require absolute URLs with http:// or https://.
+                    Paste any number of clean URLs. Sitemaps.org standards require absolute URLs
+                    with http:// or https://.
                   </p>
                 </div>
 
@@ -626,7 +659,8 @@ export default function XmlSitemapGeneratorPage() {
                     />
                   </div>
                   <p className="text-xs text-slate-500 mt-1.5">
-                    We will fetch your live XML sitemap, check response headers, syntax validity, and size limits.
+                    We will fetch your live XML sitemap, check response headers, syntax validity,
+                    and size limits.
                   </p>
                 </div>
 
@@ -644,7 +678,7 @@ export default function XmlSitemapGeneratorPage() {
                   </label>
                   <textarea
                     rows={4}
-                    placeholder="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;&#10;&lt;urlset xmlns=&quot;http://www.sitemaps.org/schemas/sitemap/0.9&quot;&gt;&#10;  &lt;url&gt;&#10;    &lt;loc&gt;https://example.com/&lt;/loc&gt;&#10;  &lt;/url&gt;&#10;&lt;/urlset&gt;"
+                    placeholder='&lt;?xml version="1.0" encoding="UTF-8"?&gt;&#10;&lt;urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"&gt;&#10;  &lt;url&gt;&#10;    &lt;loc&gt;https://example.com/&lt;/loc&gt;&#10;  &lt;/url&gt;&#10;&lt;/urlset&gt;'
                     value={validatorXml}
                     onChange={(e) => {
                       setValidatorXml(e.target.value)
@@ -674,47 +708,70 @@ export default function XmlSitemapGeneratorPage() {
             {/* KPI Summary Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
               <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm text-center">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total URLs</span>
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  Total URLs
+                </span>
                 <p className="text-2xl sm:text-3xl font-extrabold text-[#0C81F3] mt-1">
                   {sitemapData.totalUrls.toLocaleString()}
                 </p>
-                <span className="text-[11px] text-emerald-600 font-semibold mt-0.5 inline-block">Discovered</span>
+                <span className="text-[11px] text-emerald-600 font-semibold mt-0.5 inline-block">
+                  Discovered
+                </span>
               </div>
 
               <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm text-center">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Images Included</span>
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  Images Included
+                </span>
                 <p className="text-2xl sm:text-3xl font-extrabold text-[#EB8988] mt-1">
                   {sitemapData.totalImages.toLocaleString()}
                 </p>
-                <span className="text-[11px] text-slate-400 font-medium mt-0.5 inline-block">&lt;image:image&gt;</span>
+                <span className="text-[11px] text-slate-400 font-medium mt-0.5 inline-block">
+                  &lt;image:image&gt;
+                </span>
               </div>
 
               <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm text-center">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">200 OK Status</span>
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  200 OK Status
+                </span>
                 <p className="text-2xl sm:text-3xl font-extrabold text-emerald-600 mt-1">
                   {sitemapData.status200Count}
                 </p>
-                <span className="text-[11px] text-emerald-600 font-semibold mt-0.5 inline-block">100% Reachable</span>
+                <span className="text-[11px] text-emerald-600 font-semibold mt-0.5 inline-block">
+                  100% Reachable
+                </span>
               </div>
 
               <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm text-center">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Avg Priority</span>
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  Avg Priority
+                </span>
                 <p className="text-2xl sm:text-3xl font-extrabold text-indigo-600 mt-1">
                   {sitemapData.avgPriority}
                 </p>
-                <span className="text-[11px] text-slate-400 font-medium mt-0.5 inline-block">Scale 0.0 - 1.0</span>
+                <span className="text-[11px] text-slate-400 font-medium mt-0.5 inline-block">
+                  Scale 0.0 - 1.0
+                </span>
               </div>
 
               <div className="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm text-center">
-                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">File Size</span>
+                <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                  File Size
+                </span>
                 <p className="text-2xl sm:text-3xl font-extrabold text-amber-600 mt-1">
-                  {sitemapData.fileSizeKb} <span className="text-xs font-bold text-slate-500">KB</span>
+                  {sitemapData.fileSizeKb}{' '}
+                  <span className="text-xs font-bold text-slate-500">KB</span>
                 </p>
-                <span className="text-[11px] text-slate-400 font-medium mt-0.5 inline-block">&lt; 50 MB Limit</span>
+                <span className="text-[11px] text-slate-400 font-medium mt-0.5 inline-block">
+                  &lt; 50 MB Limit
+                </span>
               </div>
 
               <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-4 sm:p-5 rounded-2xl border border-emerald-200 shadow-sm text-center flex flex-col justify-center items-center">
-                <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">GSC Ready</span>
+                <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-wider">
+                  GSC Ready
+                </span>
                 <div className="flex items-center gap-1 mt-1 text-emerald-700 font-bold text-base">
                   <CheckCircle2 className="w-5 h-5 text-emerald-600" />
                   <span>Valid XML</span>
@@ -730,50 +787,55 @@ export default function XmlSitemapGeneratorPage() {
                 <div className="flex items-center gap-2 overflow-x-auto pb-1 sm:pb-0">
                   <button
                     onClick={() => setActiveTab('xml')}
-                    className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${activeTab === 'xml'
-                      ? 'bg-slate-900 text-white shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                      }`}
+                    className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                      activeTab === 'xml'
+                        ? 'bg-slate-900 text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    }`}
                   >
                     XML Code View
                   </button>
 
                   <button
                     onClick={() => setActiveTab('table')}
-                    className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${activeTab === 'table'
-                      ? 'bg-slate-900 text-white shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                      }`}
+                    className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                      activeTab === 'table'
+                        ? 'bg-slate-900 text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    }`}
                   >
                     Visual URL Table ({sitemapData.urls.length})
                   </button>
 
                   <button
                     onClick={() => setActiveTab('robots')}
-                    className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${activeTab === 'robots'
-                      ? 'bg-slate-900 text-white shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                      }`}
+                    className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                      activeTab === 'robots'
+                        ? 'bg-slate-900 text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    }`}
                   >
                     Robots.txt Directive
                   </button>
 
                   <button
                     onClick={() => setActiveTab('index')}
-                    className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${activeTab === 'index'
-                      ? 'bg-slate-900 text-white shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                      }`}
+                    className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                      activeTab === 'index'
+                        ? 'bg-slate-900 text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    }`}
                   >
                     Sitemap Index
                   </button>
 
                   <button
                     onClick={() => setActiveTab('guide')}
-                    className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${activeTab === 'guide'
-                      ? 'bg-slate-900 text-white shadow-sm'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                      }`}
+                    className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                      activeTab === 'guide'
+                        ? 'bg-slate-900 text-white shadow-sm'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    }`}
                   >
                     GSC Submission Guide
                   </button>
@@ -785,7 +847,11 @@ export default function XmlSitemapGeneratorPage() {
                     onClick={() => copyToClipboard(sitemapData.xmlContent, setCopied)}
                     className="px-3.5 py-1.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
                   >
-                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copied ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
                     <span>{copied ? 'Copied!' : 'Copy XML'}</span>
                   </button>
 
@@ -873,7 +939,10 @@ export default function XmlSitemapGeneratorPage() {
                         {filteredUrls.map((entry, idx) => (
                           <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
                             <td className="py-3 px-4 font-mono text-slate-400">{idx + 1}</td>
-                            <td className="py-3 px-4 font-mono font-medium text-slate-900 max-w-sm truncate" title={entry.loc}>
+                            <td
+                              className="py-3 px-4 font-mono font-medium text-slate-900 max-w-sm truncate"
+                              title={entry.loc}
+                            >
                               {entry.loc}
                             </td>
                             <td className="py-3 px-3">
@@ -883,18 +952,23 @@ export default function XmlSitemapGeneratorPage() {
                             </td>
                             <td className="py-3 px-3">
                               <span
-                                className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${entry.priority >= 0.8
-                                  ? 'bg-blue-100 text-blue-800'
-                                  : entry.priority >= 0.6
-                                    ? 'bg-slate-100 text-slate-800'
-                                    : 'bg-amber-50 text-amber-800'
-                                  }`}
+                                className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
+                                  entry.priority >= 0.8
+                                    ? 'bg-blue-100 text-blue-800'
+                                    : entry.priority >= 0.6
+                                      ? 'bg-slate-100 text-slate-800'
+                                      : 'bg-amber-50 text-amber-800'
+                                }`}
                               >
                                 {Number(entry.priority).toFixed(1)}
                               </span>
                             </td>
-                            <td className="py-3 px-3 capitalize text-slate-600">{entry.changefreq || 'weekly'}</td>
-                            <td className="py-3 px-3 text-slate-500 font-mono text-[11px]">{entry.lastmod}</td>
+                            <td className="py-3 px-3 capitalize text-slate-600">
+                              {entry.changefreq || 'weekly'}
+                            </td>
+                            <td className="py-3 px-3 text-slate-500 font-mono text-[11px]">
+                              {entry.lastmod}
+                            </td>
                             <td className="py-3 px-3 text-center">
                               {entry.images?.length > 0 ? (
                                 <span className="inline-flex items-center gap-1 text-emerald-700 font-bold">
@@ -928,9 +1002,16 @@ export default function XmlSitemapGeneratorPage() {
               {activeTab === 'robots' && (
                 <div className="p-6 space-y-4">
                   <div className="bg-blue-50/60 border border-blue-200/80 rounded-2xl p-4 text-xs text-blue-900 leading-relaxed">
-                    <p className="font-bold text-sm mb-1">Add this directive to your website's robots.txt file</p>
+                    <p className="font-bold text-sm mb-1">
+                      Add this directive to your website's robots.txt file
+                    </p>
                     <p>
-                      Adding the <code className="font-mono bg-blue-100 px-1 py-0.5 rounded text-blue-950 font-semibold">Sitemap:</code> directive helps search engine crawlers locate your sitemap instantly upon their very first visit to your domain.
+                      Adding the{' '}
+                      <code className="font-mono bg-blue-100 px-1 py-0.5 rounded text-blue-950 font-semibold">
+                        Sitemap:
+                      </code>{' '}
+                      directive helps search engine crawlers locate your sitemap instantly upon
+                      their very first visit to your domain.
                     </p>
                   </div>
 
@@ -941,7 +1022,11 @@ export default function XmlSitemapGeneratorPage() {
                         onClick={() => copyToClipboard(sitemapData.robotsSnippet, setCopiedRobots)}
                         className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs flex items-center gap-1 cursor-pointer"
                       >
-                        {copiedRobots ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                        {copiedRobots ? (
+                          <Check className="w-3 h-3 text-emerald-400" />
+                        ) : (
+                          <Copy className="w-3 h-3" />
+                        )}
                         <span>{copiedRobots ? 'Copied!' : 'Copy Directive'}</span>
                       </button>
                     </div>
@@ -959,7 +1044,13 @@ export default function XmlSitemapGeneratorPage() {
                   <div className="bg-amber-50/60 border border-amber-200/80 rounded-2xl p-4 text-xs text-amber-900 leading-relaxed">
                     <p className="font-bold text-sm mb-1">When to use a Sitemap Index?</p>
                     <p>
-                      If your website has over 50,000 URLs or exceeds 50MB, or if you prefer segmenting your content by category (e.g. Pages, Blog Posts, Ecommerce Products), use a Sitemap Index file (<code className="font-mono bg-amber-100 px-1 py-0.5 rounded text-amber-950 font-semibold">&lt;sitemapindex&gt;</code>).
+                      If your website has over 50,000 URLs or exceeds 50MB, or if you prefer
+                      segmenting your content by category (e.g. Pages, Blog Posts, Ecommerce
+                      Products), use a Sitemap Index file (
+                      <code className="font-mono bg-amber-100 px-1 py-0.5 rounded text-amber-950 font-semibold">
+                        &lt;sitemapindex&gt;
+                      </code>
+                      ).
                     </p>
                   </div>
 
@@ -971,7 +1062,11 @@ export default function XmlSitemapGeneratorPage() {
                           onClick={() => copyToClipboard(sitemapIndexXml, setCopiedIndex)}
                           className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded text-xs flex items-center gap-1 cursor-pointer"
                         >
-                          {copiedIndex ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                          {copiedIndex ? (
+                            <Check className="w-3 h-3 text-emerald-400" />
+                          ) : (
+                            <Copy className="w-3 h-3" />
+                          )}
                           <span>{copiedIndex ? 'Copied' : 'Copy'}</span>
                         </button>
                         <button
@@ -1010,7 +1105,12 @@ export default function XmlSitemapGeneratorPage() {
                       </div>
                       <h4 className="font-bold text-sm text-slate-900">Upload to Server</h4>
                       <p className="text-xs text-slate-600 leading-relaxed">
-                        Download the <code className="bg-slate-200 px-1 py-0.5 rounded text-slate-800 font-mono">sitemap.xml</code> file and upload it to the root directory of your website (e.g. <code className="text-[#0C81F3]">https://yourdomain.com/sitemap.xml</code>).
+                        Download the{' '}
+                        <code className="bg-slate-200 px-1 py-0.5 rounded text-slate-800 font-mono">
+                          sitemap.xml
+                        </code>{' '}
+                        file and upload it to the root directory of your website (e.g.{' '}
+                        <code className="text-[#0C81F3]">https://yourdomain.com/sitemap.xml</code>).
                       </p>
                     </div>
 
@@ -1018,9 +1118,21 @@ export default function XmlSitemapGeneratorPage() {
                       <div className="w-8 h-8 rounded-full bg-[#0C81F3] text-white font-bold flex items-center justify-center text-sm shadow">
                         2
                       </div>
-                      <h4 className="font-bold text-sm text-slate-900">Open Google Search Console</h4>
+                      <h4 className="font-bold text-sm text-slate-900">
+                        Open Google Search Console
+                      </h4>
                       <p className="text-xs text-slate-600 leading-relaxed">
-                        Go to <a href="https://search.google.com/search-console" target="_blank" rel="noreferrer" className="text-[#0C81F3] underline font-semibold">Google Search Console</a>, select your property, and navigate to <strong>Indexing → Sitemaps</strong> in the sidebar.
+                        Go to{' '}
+                        <a
+                          href="https://search.google.com/search-console"
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-[#0C81F3] underline font-semibold"
+                        >
+                          Google Search Console
+                        </a>
+                        , select your property, and navigate to <strong>Indexing → Sitemaps</strong>{' '}
+                        in the sidebar.
                       </p>
                     </div>
 
@@ -1030,7 +1142,12 @@ export default function XmlSitemapGeneratorPage() {
                       </div>
                       <h4 className="font-bold text-sm text-slate-900">Submit & Track</h4>
                       <p className="text-xs text-slate-600 leading-relaxed">
-                        Enter <code className="bg-slate-200 px-1 py-0.5 rounded text-slate-800 font-mono">sitemap.xml</code> in the "Add a new sitemap" input and click <strong>Submit</strong>. Google will verify the XML format and start discovering your pages immediately.
+                        Enter{' '}
+                        <code className="bg-slate-200 px-1 py-0.5 rounded text-slate-800 font-mono">
+                          sitemap.xml
+                        </code>{' '}
+                        in the "Add a new sitemap" input and click <strong>Submit</strong>. Google
+                        will verify the XML format and start discovering your pages immediately.
                       </p>
                     </div>
                   </div>
@@ -1042,7 +1159,10 @@ export default function XmlSitemapGeneratorPage() {
             <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-white rounded-2xl border border-slate-200 shadow-sm gap-3">
               <div className="flex items-center gap-2 text-xs text-slate-500">
                 <Compass className="w-4 h-4 text-[#0C81F3]" />
-                <span>Generated for <strong>{sitemapData.websiteUrl}</strong> with {sitemapData.totalUrls} discovered URLs</span>
+                <span>
+                  Generated for <strong>{sitemapData.websiteUrl}</strong> with{' '}
+                  {sitemapData.totalUrls} discovered URLs
+                </span>
               </div>
 
               <div className="flex items-center gap-2">
@@ -1068,21 +1188,25 @@ export default function XmlSitemapGeneratorPage() {
                     <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
                     <span>Audit Source: {validationData.source}</span>
                   </div>
-                  <h3 className="text-2xl font-extrabold text-slate-900">XML Sitemap Health Score</h3>
+                  <h3 className="text-2xl font-extrabold text-slate-900">
+                    XML Sitemap Health Score
+                  </h3>
                   <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                    Analyzed against Sitemaps.org 0.9 schema, Google standards, and indexability best practices.
+                    Analyzed against Sitemaps.org 0.9 schema, Google standards, and indexability
+                    best practices.
                   </p>
                 </div>
 
                 {/* Score Circle Banner */}
                 <div className="flex items-center gap-4 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
                   <div
-                    className={`w-16 h-16 rounded-full flex flex-col items-center justify-center font-extrabold text-white shadow-md ${validationData.healthScore >= 80
-                      ? 'bg-emerald-500'
-                      : validationData.healthScore >= 60
-                        ? 'bg-amber-500'
-                        : 'bg-rose-500'
-                      }`}
+                    className={`w-16 h-16 rounded-full flex flex-col items-center justify-center font-extrabold text-white shadow-md ${
+                      validationData.healthScore >= 80
+                        ? 'bg-emerald-500'
+                        : validationData.healthScore >= 60
+                          ? 'bg-amber-500'
+                          : 'bg-rose-500'
+                    }`}
                   >
                     <span className="text-xl leading-none">{validationData.healthScore}</span>
                     <span className="text-[9px] uppercase tracking-wider font-semibold">/ 100</span>
@@ -1097,7 +1221,8 @@ export default function XmlSitemapGeneratorPage() {
                           : 'Critical Issues Found'}
                     </p>
                     <p className="text-slate-500 mt-0.5">
-                      {validationData.criticalCount} Critical • {validationData.warningCount} Warnings
+                      {validationData.criticalCount} Critical • {validationData.warningCount}{' '}
+                      Warnings
                     </p>
                   </div>
                 </div>
@@ -1106,14 +1231,18 @@ export default function XmlSitemapGeneratorPage() {
               {/* Stats Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                 <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-center">
-                  <span className="text-[11px] font-bold text-slate-500 uppercase">Parsed URLs</span>
+                  <span className="text-[11px] font-bold text-slate-500 uppercase">
+                    Parsed URLs
+                  </span>
                   <p className="text-2xl font-bold text-slate-900 mt-1">
                     {validationData.totalUrls.toLocaleString()}
                   </p>
                 </div>
                 <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-center">
                   <span className="text-[11px] font-bold text-slate-500 uppercase">File Size</span>
-                  <p className="text-2xl font-bold text-slate-900 mt-1">{validationData.sizeKb} KB</p>
+                  <p className="text-2xl font-bold text-slate-900 mt-1">
+                    {validationData.sizeKb} KB
+                  </p>
                 </div>
                 <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 text-center">
                   <span className="text-[11px] font-bold text-slate-500 uppercase">Type</span>
@@ -1129,7 +1258,9 @@ export default function XmlSitemapGeneratorPage() {
 
               {/* Issues List */}
               <div className="space-y-3">
-                <h4 className="font-bold text-slate-900 text-sm">Diagnostic Findings & Remediations</h4>
+                <h4 className="font-bold text-slate-900 text-sm">
+                  Diagnostic Findings & Remediations
+                </h4>
 
                 {validationData.allIssues?.length === 0 ? (
                   <div className="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs sm:text-sm flex items-center gap-3">
@@ -1137,7 +1268,8 @@ export default function XmlSitemapGeneratorPage() {
                     <div>
                       <p className="font-bold">No Issues Detected!</p>
                       <p className="text-xs text-emerald-700 mt-0.5">
-                        Your sitemap conforms 100% to Sitemaps.org guidelines and is ready for submission to Google Search Console.
+                        Your sitemap conforms 100% to Sitemaps.org guidelines and is ready for
+                        submission to Google Search Console.
                       </p>
                     </div>
                   </div>
@@ -1145,21 +1277,23 @@ export default function XmlSitemapGeneratorPage() {
                   validationData.allIssues.map((issue, idx) => (
                     <div
                       key={idx}
-                      className={`p-4 rounded-2xl border text-xs sm:text-sm space-y-1.5 ${issue.severity === 'CRITICAL'
-                        ? 'bg-rose-50/70 border-rose-200 text-rose-950'
-                        : issue.severity === 'HIGH'
-                          ? 'bg-amber-50/70 border-amber-200 text-amber-950'
-                          : 'bg-blue-50/70 border-blue-200 text-blue-950'
-                        }`}
+                      className={`p-4 rounded-2xl border text-xs sm:text-sm space-y-1.5 ${
+                        issue.severity === 'CRITICAL'
+                          ? 'bg-rose-50/70 border-rose-200 text-rose-950'
+                          : issue.severity === 'HIGH'
+                            ? 'bg-amber-50/70 border-amber-200 text-amber-950'
+                            : 'bg-blue-50/70 border-blue-200 text-blue-950'
+                      }`}
                     >
                       <div className="flex items-center gap-2 font-bold">
                         <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${issue.severity === 'CRITICAL'
-                            ? 'bg-rose-200 text-rose-900'
-                            : issue.severity === 'HIGH'
-                              ? 'bg-amber-200 text-amber-900'
-                              : 'bg-blue-200 text-blue-900'
-                            }`}
+                          className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${
+                            issue.severity === 'CRITICAL'
+                              ? 'bg-rose-200 text-rose-900'
+                              : issue.severity === 'HIGH'
+                                ? 'bg-amber-200 text-amber-900'
+                                : 'bg-blue-200 text-blue-900'
+                          }`}
                         >
                           {issue.severity}
                         </span>
@@ -1191,9 +1325,12 @@ export default function XmlSitemapGeneratorPage() {
         {/* FAQ Accordion */}
         <div className="max-w-3xl mx-auto mt-12 space-y-4">
           <div className="text-center mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Frequently Asked Questions</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+              Frequently Asked Questions
+            </h2>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              Everything you need to know about XML sitemaps, crawl budgets, and search engine discovery.
+              Everything you need to know about XML sitemaps, crawl budgets, and search engine
+              discovery.
             </p>
           </div>
 
@@ -1201,13 +1338,20 @@ export default function XmlSitemapGeneratorPage() {
             {FAQ_ITEMS.map((item, idx) => {
               const isOpen = expandedFaq === idx
               return (
-                <div key={idx} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                <div
+                  key={idx}
+                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm"
+                >
                   <button
                     onClick={() => setExpandedFaq(isOpen ? null : idx)}
                     className="w-full text-left p-4 sm:p-5 flex items-center justify-between gap-4 font-bold text-slate-900 text-xs sm:text-sm cursor-pointer hover:bg-slate-50 transition-colors"
                   >
                     <span>{item.q}</span>
-                    {isOpen ? <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />}
+                    {isOpen ? (
+                      <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+                    )}
                   </button>
                   {isOpen && (
                     <div className="px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3">

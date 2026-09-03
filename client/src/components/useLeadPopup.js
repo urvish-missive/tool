@@ -16,7 +16,7 @@ export function useLeadPopup(toolSlug) {
 
   const popupEnabled = useMemo(() => {
     if (data?.success && data?.tools) {
-      const tool = data.tools.find(t => t.slug === toolSlug)
+      const tool = data.tools.find((t) => t.slug === toolSlug)
       return Boolean(tool?.showLeadPopup)
     }
     return false
@@ -35,5 +35,12 @@ export function useLeadPopup(toolSlug) {
     setShowPopup(true)
   }
 
-  return { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose, triggerPopup }
+  return {
+    popupEnabled,
+    showPopup,
+    setShowPopup,
+    handlePopupSubmit,
+    handlePopupClose,
+    triggerPopup,
+  }
 }

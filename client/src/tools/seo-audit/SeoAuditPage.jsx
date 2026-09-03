@@ -57,14 +57,23 @@ function IssueItem({ issue }) {
   const [expanded, setExpanded] = useState(false)
   return (
     <div className="border border-slate-200 rounded-2xl p-5 hover:shadow-md transition-all bg-white">
-      <button onClick={() => setExpanded(!expanded)} className="w-full text-left flex items-start gap-3.5 cursor-pointer">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full text-left flex items-start gap-3.5 cursor-pointer"
+      >
         <span className="text-xl shrink-0 mt-0.5">{SEVERITY_ICONS[issue.severity] || 'ℹ️'}</span>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap mb-1">
-            <span className={`px-2.5 py-0.5 rounded-md text-xs font-bold border ${SEVERITY_COLORS[issue.severity]}`}>{issue.severity}</span>
+            <span
+              className={`px-2.5 py-0.5 rounded-md text-xs font-bold border ${SEVERITY_COLORS[issue.severity]}`}
+            >
+              {issue.severity}
+            </span>
             <span className="font-bold text-sm sm:text-base text-slate-900">{issue.title}</span>
           </div>
-          {issue.description && <p className="text-xs text-slate-500 line-clamp-1">{issue.description}</p>}
+          {issue.description && (
+            <p className="text-xs text-slate-500 line-clamp-1">{issue.description}</p>
+          )}
         </div>
         <div className="shrink-0 p-1 rounded-lg hover:bg-slate-100 text-slate-400">
           {expanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -80,7 +89,8 @@ function IssueItem({ issue }) {
           )}
           {issue.recommendation && (
             <div className="text-emerald-800 bg-emerald-50 rounded-xl p-3.5 border border-emerald-200 text-xs sm:text-sm leading-relaxed">
-              <strong className="font-bold text-emerald-900">Recommended Remediation:</strong> {issue.recommendation}
+              <strong className="font-bold text-emerald-900">Recommended Remediation:</strong>{' '}
+              {issue.recommendation}
             </div>
           )}
         </div>
@@ -92,8 +102,16 @@ function IssueItem({ issue }) {
 export default function SeoAuditPage() {
   const [report, setReport] = useState(null)
   const [auditId, setAuditId] = useState(null)
-  const [runAudit, { isLoading, isError, error, data, reset: resetMutation }] = useRunAuditMutation()
-  const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose, triggerPopup } = useLeadPopup('seo-audit')
+  const [runAudit, { isLoading, isError, error, data, reset: resetMutation }] =
+    useRunAuditMutation()
+  const {
+    popupEnabled,
+    showPopup,
+    setShowPopup,
+    handlePopupSubmit,
+    handlePopupClose,
+    triggerPopup,
+  } = useLeadPopup('seo-audit')
   const [pendingPayload, setPendingPayload] = useState(null)
 
   const [activeTab, setActiveTab] = useState('issues') // 'issues' | 'snippets' | 'roadmap' | 'overview'
@@ -123,12 +141,18 @@ export default function SeoAuditPage() {
     setTimeout(() => setCopiedKey(null), 2000)
   }
 
-  const errorMessage = error?.data?.error || (isError ? "Couldn't complete the audit. Please try again." : '')
+  const errorMessage =
+    error?.data?.error || (isError ? "Couldn't complete the audit. Please try again." : '')
   const issues = report?.issues || []
-  const filteredIssues = filterSeverity === 'ALL' ? issues : issues.filter(i => i.severity === filterSeverity)
+  const filteredIssues =
+    filterSeverity === 'ALL' ? issues : issues.filter((i) => i.severity === filterSeverity)
 
   const aiReport = report?.ai || report?.ai_report || report?.aiReport || null
-  const targetHost = report?.targetUrl ? (report.targetUrl.startsWith('http') ? report.targetUrl : `https://${report.targetUrl}`) : 'https://example.com'
+  const targetHost = report?.targetUrl
+    ? report.targetUrl.startsWith('http')
+      ? report.targetUrl
+      : `https://${report.targetUrl}`
+    : 'https://example.com'
 
   const defaultSnippets = [
     {
@@ -144,16 +168,54 @@ export default function SeoAuditPage() {
   ]
 
   const defaultThirtyDayPlan = [
-    { week: 1, theme: 'Critical Crawl & Canonical Fixes', tasks: ['Fix 4xx/5xx status codes', 'Ensure self-referencing canonical links', 'Audit robots.txt directives'] },
-    { week: 2, theme: 'Metadata & Accessibility', tasks: ['Add missing meta descriptions', 'Ensure image ALT tags', 'Validate single H1 per page'] },
-    { week: 3, theme: 'Structured Data & Rich Snippets', tasks: ['Implement JSON-LD Schema', 'Validate with Google Rich Results Tool', 'Add Open Graph tags'] },
-    { week: 4, theme: 'Internal Link Silos & Verification', tasks: ['Audit anchor text distribution', 'Re-run full site audit to verify fixes'] },
+    {
+      week: 1,
+      theme: 'Critical Crawl & Canonical Fixes',
+      tasks: [
+        'Fix 4xx/5xx status codes',
+        'Ensure self-referencing canonical links',
+        'Audit robots.txt directives',
+      ],
+    },
+    {
+      week: 2,
+      theme: 'Metadata & Accessibility',
+      tasks: [
+        'Add missing meta descriptions',
+        'Ensure image ALT tags',
+        'Validate single H1 per page',
+      ],
+    },
+    {
+      week: 3,
+      theme: 'Structured Data & Rich Snippets',
+      tasks: [
+        'Implement JSON-LD Schema',
+        'Validate with Google Rich Results Tool',
+        'Add Open Graph tags',
+      ],
+    },
+    {
+      week: 4,
+      theme: 'Internal Link Silos & Verification',
+      tasks: ['Audit anchor text distribution', 'Re-run full site audit to verify fixes'],
+    },
   ]
 
-  const rawSnippets = aiReport?.quick_fix_snippets || aiReport?.quickFixSnippets || aiReport?.snippets || aiReport?.code_snippets || []
+  const rawSnippets =
+    aiReport?.quick_fix_snippets ||
+    aiReport?.quickFixSnippets ||
+    aiReport?.snippets ||
+    aiReport?.code_snippets ||
+    []
   const quickFixSnippets = rawSnippets.length > 0 ? rawSnippets : defaultSnippets
 
-  const rawPlan = aiReport?.thirty_day_plan || aiReport?.thirtyDayPlan || aiReport?.sprint_plan || aiReport?.action_plan || []
+  const rawPlan =
+    aiReport?.thirty_day_plan ||
+    aiReport?.thirtyDayPlan ||
+    aiReport?.sprint_plan ||
+    aiReport?.action_plan ||
+    []
   const thirtyDayPlan = rawPlan.length > 0 ? rawPlan : defaultThirtyDayPlan
 
   const exportAuditMarkdown = () => {
@@ -167,7 +229,10 @@ export default function SeoAuditPage() {
       aiReport?.executive_summary || '',
       '',
       `## All Identified Issues (${issues.length})`,
-      ...issues.map((iss, i) => `${i + 1}. [${iss.severity}] ${iss.title}\n   ${iss.description}\n   Fix: ${iss.recommendation}`),
+      ...issues.map(
+        (iss, i) =>
+          `${i + 1}. [${iss.severity}] ${iss.title}\n   ${iss.description}\n   Fix: ${iss.recommendation}`
+      ),
     ].join('\n')
 
     const blob = new Blob([text], { type: 'text/markdown' })
@@ -183,7 +248,10 @@ export default function SeoAuditPage() {
     <div className="min-h-screen bg-slate-50/50 pb-20">
       {/* Hero */}
       <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }}
+        />
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
@@ -193,10 +261,13 @@ export default function SeoAuditPage() {
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight mb-4">
             <span className="text-gray-900">AI SEO </span>
-            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">Site Auditor</span>
+            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
+              Site Auditor
+            </span>
           </h1>
           <p className="mt-3 text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Scan your entire web page for technical blockers, metadata issues, broken canonicals, missing schema, and copy-paste developer fixes.
+            Scan your entire web page for technical blockers, metadata issues, broken canonicals,
+            missing schema, and copy-paste developer fixes.
           </p>
         </div>
       </section>
@@ -262,19 +333,24 @@ export default function SeoAuditPage() {
             <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl">
               <div className="flex flex-col lg:flex-row items-start justify-between gap-6 pb-6 border-b border-white/10">
                 <div className="space-y-2">
-                  <span className="text-xs font-bold uppercase tracking-wider text-blue-400">Technical Audit Complete</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-blue-400">
+                    Technical Audit Complete
+                  </span>
                   <h3 className="text-2xl sm:text-3xl font-black text-white leading-snug">
                     {report.targetUrl}
                   </h3>
                   <p className="text-slate-300 text-sm sm:text-base leading-relaxed max-w-2xl">
-                    {aiReport?.executive_summary || `Scanned ${report.totalPages} page(s) and detected ${issues.length} action items.`}
+                    {aiReport?.executive_summary ||
+                      `Scanned ${report.totalPages} page(s) and detected ${issues.length} action items.`}
                   </p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row items-center gap-4 shrink-0">
                   <div className="w-24 h-24 rounded-2xl bg-white/10 border border-white/20 flex flex-col items-center justify-center">
                     <span className="text-3xl font-black text-white">{report.overallScore}</span>
-                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wide">Health Score</span>
+                    <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wide">
+                      Health Score
+                    </span>
                   </div>
 
                   <div className="flex flex-col gap-2">
@@ -358,7 +434,10 @@ export default function SeoAuditPage() {
                 <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-wrap items-center justify-between gap-3">
                   <div className="flex flex-wrap items-center gap-1.5">
                     {['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW', 'INFO'].map((sev) => {
-                      const countForSev = sev === 'ALL' ? issues.length : issues.filter(i => i.severity === sev).length
+                      const countForSev =
+                        sev === 'ALL'
+                          ? issues.length
+                          : issues.filter((i) => i.severity === sev).length
                       if (sev !== 'ALL' && countForSev === 0) return null
                       return (
                         <button
@@ -389,7 +468,10 @@ export default function SeoAuditPage() {
             {activeTab === 'snippets' && (
               <div className="space-y-4">
                 {quickFixSnippets.map((snip, idx) => (
-                  <div key={idx} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-3">
+                  <div
+                    key={idx}
+                    className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-3"
+                  >
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Code className="w-4 h-4 text-blue-600" />
@@ -399,7 +481,11 @@ export default function SeoAuditPage() {
                         onClick={() => triggerCopy(snip.code, `snip-${idx}`)}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors cursor-pointer"
                       >
-                        {copiedKey === `snip-${idx}` ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                        {copiedKey === `snip-${idx}` ? (
+                          <Check className="w-3.5 h-3.5" />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" />
+                        )}
                         <span>{copiedKey === `snip-${idx}` ? 'Copied Snippet' : 'Copy Code'}</span>
                       </button>
                     </div>
@@ -416,14 +502,22 @@ export default function SeoAuditPage() {
             {activeTab === 'roadmap' && (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {thirtyDayPlan.map((wk, i) => (
-                  <div key={i} className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-3">
+                  <div
+                    key={i}
+                    className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-3"
+                  >
                     <div className="flex items-center gap-2 text-blue-700 font-extrabold text-sm uppercase tracking-wider">
                       <Calendar className="w-4 h-4" />
-                      <span>Week {wk.week}: {wk.theme}</span>
+                      <span>
+                        Week {wk.week}: {wk.theme}
+                      </span>
                     </div>
                     <ul className="space-y-2">
                       {wk.tasks?.map((t, tIdx) => (
-                        <li key={tIdx} className="text-xs sm:text-sm text-slate-700 flex items-start gap-2">
+                        <li
+                          key={tIdx}
+                          className="text-xs sm:text-sm text-slate-700 flex items-start gap-2"
+                        >
                           <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                           <span>{t}</span>
                         </li>

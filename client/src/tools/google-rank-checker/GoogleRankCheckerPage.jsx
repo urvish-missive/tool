@@ -91,7 +91,8 @@ export default function GoogleRankCheckerPage() {
   const [checkRank, { isLoading, data: rankData, error: apiError }] = useCheckRankMutation()
 
   // Lead Popup Integration
-  const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose } = useLeadPopup('google-rank-checker')
+  const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose } =
+    useLeadPopup('google-rank-checker')
   const [pendingPayload, setPendingPayload] = useState(null)
 
   const errorMessage = apiError?.data?.error || null
@@ -142,7 +143,9 @@ export default function GoogleRankCheckerPage() {
       `Estimated CTR: ${rankData.estimatedCtr}`,
       rankData.rankingUrl ? `Ranking URL: ${rankData.rankingUrl}` : '',
       `Tested on: ${new Date().toLocaleDateString()}`,
-    ].filter(Boolean).join('\n')
+    ]
+      .filter(Boolean)
+      .join('\n')
 
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true)
@@ -156,7 +159,10 @@ export default function GoogleRankCheckerPage() {
     if (rankData.isBatch && rankData.batchKeywords) {
       const headers = 'Keyword,Position,Search Intent,Difficulty,Search Volume,Ranking URL\n'
       const rows = rankData.batchKeywords
-        .map(b => `"${b.keyword}",${b.position ? b.position : 'Not in top 100'},"${b.searchIntent || ''}",${b.difficulty || ''},"${b.volume || ''}","${b.rankingUrl || ''}"`)
+        .map(
+          (b) =>
+            `"${b.keyword}",${b.position ? b.position : 'Not in top 100'},"${b.searchIntent || ''}",${b.difficulty || ''},"${b.volume || ''}","${b.rankingUrl || ''}"`
+        )
         .join('\n')
       const blob = new Blob([headers + rows], { type: 'text/csv' })
       const url = URL.createObjectURL(blob)
@@ -168,7 +174,10 @@ export default function GoogleRankCheckerPage() {
     } else {
       const headers = 'Position,Competitor Domain,Page Title,URL,Content Type\n'
       const rows = (rankData.topCompetitors || [])
-        .map(c => `${c.position},"${c.domain}","${(c.title || '').replace(/"/g, '""')}","${c.url}","${c.contentType || ''}"`)
+        .map(
+          (c) =>
+            `${c.position},"${c.domain}","${(c.title || '').replace(/"/g, '""')}","${c.url}","${c.contentType || ''}"`
+        )
         .join('\n')
       const blob = new Blob([headers + rows], { type: 'text/csv' })
       const url = URL.createObjectURL(blob)
@@ -186,7 +195,7 @@ export default function GoogleRankCheckerPage() {
     if (!competitorSearch.trim()) return rankData.topCompetitors
     const q = competitorSearch.toLowerCase()
     return rankData.topCompetitors.filter(
-      c => (c.domain || '').toLowerCase().includes(q) || (c.title || '').toLowerCase().includes(q)
+      (c) => (c.domain || '').toLowerCase().includes(q) || (c.title || '').toLowerCase().includes(q)
     )
   }, [rankData, competitorSearch])
 
@@ -225,7 +234,8 @@ export default function GoogleRankCheckerPage() {
           </h1>
 
           <p className="mt-3 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Instantly discover where your domain ranks on Google for any keyword. Uncover top 10 competitors, analyze SERP features, and get an actionable playbook to claim the #1 spot.
+            Instantly discover where your domain ranks on Google for any keyword. Uncover top 10
+            competitors, analyze SERP features, and get an actionable playbook to claim the #1 spot.
           </p>
 
           {/* Mode Switcher */}
@@ -348,7 +358,11 @@ export default function GoogleRankCheckerPage() {
                       </label>
                       <button
                         type="button"
-                        onClick={() => setBatchKeywords('himani kankaria\nseo audit tool\nkeyword research tool\nfaq generator')}
+                        onClick={() =>
+                          setBatchKeywords(
+                            'himani kankaria\nseo audit tool\nkeyword research tool\nfaq generator'
+                          )
+                        }
                         className="text-xs text-[#0C81F3] hover:underline font-semibold cursor-pointer"
                       >
                         Sample Keywords
@@ -394,7 +408,9 @@ export default function GoogleRankCheckerPage() {
                       type="button"
                       onClick={() => setDevice('desktop')}
                       className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                        device === 'desktop' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                        device === 'desktop'
+                          ? 'bg-white text-slate-900 shadow-sm'
+                          : 'text-slate-500 hover:text-slate-800'
                       }`}
                     >
                       <Monitor className="w-3.5 h-3.5" />
@@ -404,7 +420,9 @@ export default function GoogleRankCheckerPage() {
                       type="button"
                       onClick={() => setDevice('mobile')}
                       className={`flex items-center justify-center gap-1.5 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                        device === 'mobile' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                        device === 'mobile'
+                          ? 'bg-white text-slate-900 shadow-sm'
+                          : 'text-slate-500 hover:text-slate-800'
                       }`}
                     >
                       <Smartphone className="w-3.5 h-3.5" />
@@ -448,11 +466,15 @@ export default function GoogleRankCheckerPage() {
                   </div>
 
                   <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-                    Ranking for <span className="bg-gradient-to-r from-[#67A7FF] to-[#F7B7B3] bg-clip-text text-transparent">"{rankData.keyword}"</span>
+                    Ranking for{' '}
+                    <span className="bg-gradient-to-r from-[#67A7FF] to-[#F7B7B3] bg-clip-text text-transparent">
+                      "{rankData.keyword}"
+                    </span>
                   </h2>
 
                   <p className="text-xs sm:text-sm text-slate-300">
-                    Target Domain: <strong className="text-white font-mono">{rankData.domain}</strong>
+                    Target Domain:{' '}
+                    <strong className="text-white font-mono">{rankData.domain}</strong>
                   </p>
                 </div>
 
@@ -473,17 +495,19 @@ export default function GoogleRankCheckerPage() {
                   </div>
 
                   <div className="space-y-1">
-                    <span className="text-xs text-slate-300 font-medium">Search Position Status</span>
+                    <span className="text-xs text-slate-300 font-medium">
+                      Search Position Status
+                    </span>
                     <p className="text-sm sm:text-base font-bold text-white">
                       {rankData.position === 1
                         ? '🏆 Position #1 Winner'
                         : rankData.position <= 3
-                        ? '🥈 Top 3 (Above the Fold)'
-                        : rankData.position <= 10
-                        ? '📈 First Page of Google'
-                        : rankData.position <= 20
-                        ? '⚠️ Striking Distance (Page 2)'
-                        : '🎯 Not in Top 100'}
+                          ? '🥈 Top 3 (Above the Fold)'
+                          : rankData.position <= 10
+                            ? '📈 First Page of Google'
+                            : rankData.position <= 20
+                              ? '⚠️ Striking Distance (Page 2)'
+                              : '🎯 Not in Top 100'}
                     </p>
                     <a
                       href={rankData.liveSearchUrl}
@@ -501,25 +525,39 @@ export default function GoogleRankCheckerPage() {
               {/* KPI Bar */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-6 mt-6 border-t border-white/10 text-center">
                 <div className="bg-white/5 p-3.5 rounded-xl border border-white/5">
-                  <span className="text-[11px] font-semibold text-slate-400 uppercase">Search Intent</span>
-                  <p className="text-base sm:text-lg font-bold text-slate-100 mt-0.5">{rankData.searchIntent}</p>
+                  <span className="text-[11px] font-semibold text-slate-400 uppercase">
+                    Search Intent
+                  </span>
+                  <p className="text-base sm:text-lg font-bold text-slate-100 mt-0.5">
+                    {rankData.searchIntent}
+                  </p>
                 </div>
 
                 <div className="bg-white/5 p-3.5 rounded-xl border border-white/5">
-                  <span className="text-[11px] font-semibold text-slate-400 uppercase">Keyword Difficulty</span>
+                  <span className="text-[11px] font-semibold text-slate-400 uppercase">
+                    Keyword Difficulty
+                  </span>
                   <p className="text-base sm:text-lg font-bold text-slate-100 mt-0.5">
                     {rankData.difficulty} <span className="text-xs text-slate-400">/ 100</span>
                   </p>
                 </div>
 
                 <div className="bg-white/5 p-3.5 rounded-xl border border-white/5">
-                  <span className="text-[11px] font-semibold text-slate-400 uppercase">Search Volume Tier</span>
-                  <p className="text-base sm:text-lg font-bold text-slate-100 mt-0.5">{rankData.searchVolumeTier}</p>
+                  <span className="text-[11px] font-semibold text-slate-400 uppercase">
+                    Search Volume Tier
+                  </span>
+                  <p className="text-base sm:text-lg font-bold text-slate-100 mt-0.5">
+                    {rankData.searchVolumeTier}
+                  </p>
                 </div>
 
                 <div className="bg-white/5 p-3.5 rounded-xl border border-white/5">
-                  <span className="text-[11px] font-semibold text-slate-400 uppercase">Est. Organic CTR</span>
-                  <p className="text-base sm:text-lg font-bold text-emerald-400 mt-0.5">{rankData.estimatedCtr}</p>
+                  <span className="text-[11px] font-semibold text-slate-400 uppercase">
+                    Est. Organic CTR
+                  </span>
+                  <p className="text-base sm:text-lg font-bold text-emerald-400 mt-0.5">
+                    {rankData.estimatedCtr}
+                  </p>
                 </div>
               </div>
             </div>
@@ -553,7 +591,8 @@ export default function GoogleRankCheckerPage() {
                   </h3>
 
                   <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
-                    {rankData.rankingSnippet || `Discover high-performance solutions from ${rankData.domain} tailored for ${rankData.keyword}. Explore comprehensive industry expertise and proven outcomes.`}
+                    {rankData.rankingSnippet ||
+                      `Discover high-performance solutions from ${rankData.domain} tailored for ${rankData.keyword}. Explore comprehensive industry expertise and proven outcomes.`}
                   </p>
                 </div>
               </div>
@@ -628,7 +667,11 @@ export default function GoogleRankCheckerPage() {
                     onClick={copySummary}
                     className="px-3.5 py-1.5 rounded-xl border border-slate-300 hover:bg-slate-100 text-slate-700 text-xs font-bold transition-colors flex items-center gap-1.5 cursor-pointer"
                   >
-                    {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copied ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
                     <span>{copied ? 'Copied!' : 'Copy Summary'}</span>
                   </button>
 
@@ -647,7 +690,8 @@ export default function GoogleRankCheckerPage() {
                 <div className="p-6 space-y-4">
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                     <p className="text-xs text-slate-500">
-                      Comparing against the top search results currently ranking on Google for <strong>"{rankData.keyword}"</strong>.
+                      Comparing against the top search results currently ranking on Google for{' '}
+                      <strong>"{rankData.keyword}"</strong>.
                     </p>
                     <input
                       type="text"
@@ -671,12 +715,15 @@ export default function GoogleRankCheckerPage() {
                       </thead>
                       <tbody className="divide-y divide-slate-100 text-slate-700">
                         {filteredCompetitors.map((comp, idx) => {
-                          const isTarget = comp.isTargetDomain || (rankData.position === comp.position)
+                          const isTarget =
+                            comp.isTargetDomain || rankData.position === comp.position
                           return (
                             <tr
                               key={idx}
                               className={`transition-colors ${
-                                isTarget ? 'bg-blue-50/80 font-semibold border-l-4 border-[#0C81F3]' : 'hover:bg-slate-50/80'
+                                isTarget
+                                  ? 'bg-blue-50/80 font-semibold border-l-4 border-[#0C81F3]'
+                                  : 'hover:bg-slate-50/80'
                               }`}
                             >
                               <td className="py-3 px-4">
@@ -685,8 +732,8 @@ export default function GoogleRankCheckerPage() {
                                     comp.position === 1
                                       ? 'bg-amber-400 text-amber-950 shadow-sm'
                                       : comp.position <= 3
-                                      ? 'bg-emerald-100 text-emerald-800'
-                                      : 'bg-slate-100 text-slate-700'
+                                        ? 'bg-emerald-100 text-emerald-800'
+                                        : 'bg-slate-100 text-slate-700'
                                   }`}
                                 >
                                   {comp.position}
@@ -703,9 +750,13 @@ export default function GoogleRankCheckerPage() {
                                 </div>
                               </td>
                               <td className="py-3 px-4 max-w-md">
-                                <p className="font-semibold text-slate-900 truncate">{comp.title}</p>
+                                <p className="font-semibold text-slate-900 truncate">
+                                  {comp.title}
+                                </p>
                                 {comp.snippet && (
-                                  <p className="text-slate-500 line-clamp-1 text-[11px] mt-0.5">{comp.snippet}</p>
+                                  <p className="text-slate-500 line-clamp-1 text-[11px] mt-0.5">
+                                    {comp.snippet}
+                                  </p>
                                 )}
                               </td>
                               <td className="py-3 px-3">
@@ -740,7 +791,9 @@ export default function GoogleRankCheckerPage() {
                 <div className="p-6 space-y-6">
                   {rankData.competitiveGapAnalysis && (
                     <div className="p-4 rounded-2xl bg-amber-50/70 border border-amber-200 text-xs sm:text-sm text-amber-950">
-                      <strong className="font-bold text-amber-900">Why #1 Is Outranking You: </strong>
+                      <strong className="font-bold text-amber-900">
+                        Why #1 Is Outranking You:{' '}
+                      </strong>
                       <span>{rankData.competitiveGapAnalysis}</span>
                     </div>
                   )}
@@ -752,7 +805,10 @@ export default function GoogleRankCheckerPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       {rankData.outrankPlaybook.map((step, idx) => (
-                        <div key={idx} className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                        <div
+                          key={idx}
+                          className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2"
+                        >
                           <div className="flex items-center justify-between">
                             <span className="w-6 h-6 rounded-full bg-slate-900 text-white font-bold text-xs flex items-center justify-center">
                               {step.step || idx + 1}
@@ -763,8 +819,8 @@ export default function GoogleRankCheckerPage() {
                                   step.impact === 'Critical'
                                     ? 'bg-rose-100 text-rose-800'
                                     : step.impact === 'High'
-                                    ? 'bg-amber-100 text-amber-800'
-                                    : 'bg-blue-100 text-blue-800'
+                                      ? 'bg-amber-100 text-amber-800'
+                                      : 'bg-blue-100 text-blue-800'
                                 }`}
                               >
                                 {step.impact} Impact
@@ -772,7 +828,9 @@ export default function GoogleRankCheckerPage() {
                             )}
                           </div>
                           <h5 className="font-bold text-slate-900 text-sm">{step.title}</h5>
-                          <p className="text-xs text-slate-600 leading-relaxed">{step.description}</p>
+                          <p className="text-xs text-slate-600 leading-relaxed">
+                            {step.description}
+                          </p>
                         </div>
                       ))}
                     </div>
@@ -784,17 +842,23 @@ export default function GoogleRankCheckerPage() {
               {activeTab === 'features' && (
                 <div className="p-6 space-y-4">
                   <p className="text-xs text-slate-500">
-                    Search engine result page (SERP) features occupying prime screen real estate above standard organic listings.
+                    Search engine result page (SERP) features occupying prime screen real estate
+                    above standard organic listings.
                   </p>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                     {rankData.serpFeatures.map((feat, idx) => (
-                      <div key={idx} className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5">
+                      <div
+                        key={idx}
+                        className="p-5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2.5"
+                      >
                         <div className="flex items-center justify-between">
                           <span className="font-bold text-slate-900 text-sm">{feat.name}</span>
                           <span
                             className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
-                              feat.present ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-200 text-slate-600'
+                              feat.present
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : 'bg-slate-200 text-slate-600'
                             }`}
                           >
                             {feat.present ? 'Active on SERP' : 'Standard'}
@@ -807,7 +871,9 @@ export default function GoogleRankCheckerPage() {
                         )}
                         {feat.howToWin && (
                           <div className="text-xs bg-white p-3 rounded-xl border border-slate-200 text-slate-700">
-                            <strong className="text-slate-900 font-semibold">How to Win It: </strong>
+                            <strong className="text-slate-900 font-semibold">
+                              How to Win It:{' '}
+                            </strong>
                             <span>{feat.howToWin}</span>
                           </div>
                         )}
@@ -821,12 +887,16 @@ export default function GoogleRankCheckerPage() {
               {activeTab === 'paa' && (
                 <div className="p-6 space-y-4">
                   <p className="text-xs text-slate-500">
-                    Add these high-intent customer questions and answers to your page to win Google FAQ rich results and conversational search queries.
+                    Add these high-intent customer questions and answers to your page to win Google
+                    FAQ rich results and conversational search queries.
                   </p>
 
                   <div className="space-y-3">
                     {rankData.peopleAlsoAsk.map((paa, idx) => (
-                      <div key={idx} className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+                      <div
+                        key={idx}
+                        className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5"
+                      >
                         <h5 className="font-bold text-slate-900 text-xs sm:text-sm flex items-start gap-2">
                           <span className="text-[#0C81F3]">Q:</span>
                           <span>{paa.question}</span>
@@ -865,15 +935,17 @@ export default function GoogleRankCheckerPage() {
                                   b.position && b.position <= 3
                                     ? 'bg-emerald-100 text-emerald-800'
                                     : b.position && b.position <= 10
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : 'bg-slate-100 text-slate-600'
+                                      ? 'bg-blue-100 text-blue-800'
+                                      : 'bg-slate-100 text-slate-600'
                                 }`}
                               >
                                 {b.position ? `#${b.position}` : '>100'}
                               </span>
                             </td>
                             <td className="py-3 px-3">{b.searchIntent || '-'}</td>
-                            <td className="py-3 px-3">{b.difficulty ? `${b.difficulty}/100` : '-'}</td>
+                            <td className="py-3 px-3">
+                              {b.difficulty ? `${b.difficulty}/100` : '-'}
+                            </td>
                             <td className="py-3 px-3">{b.volume || '-'}</td>
                             <td className="py-3 px-4 font-mono text-[11px] max-w-xs truncate">
                               {b.rankingUrl || '-'}
@@ -891,7 +963,10 @@ export default function GoogleRankCheckerPage() {
             <div className="flex flex-col sm:flex-row items-center justify-between p-4 bg-white rounded-2xl border border-slate-200 shadow-sm gap-3">
               <div className="flex items-center gap-2 text-xs text-slate-500">
                 <Compass className="w-4 h-4 text-[#0C81F3]" />
-                <span>Rank check completed for <strong>{rankData.domain}</strong> on Google {rankData.countryName}</span>
+                <span>
+                  Rank check completed for <strong>{rankData.domain}</strong> on Google{' '}
+                  {rankData.countryName}
+                </span>
               </div>
 
               <button
@@ -917,9 +992,12 @@ export default function GoogleRankCheckerPage() {
         {/* FAQ Accordion */}
         <div className="max-w-3xl mx-auto mt-12 space-y-4">
           <div className="text-center mb-6">
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900">Frequently Asked Questions</h2>
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+              Frequently Asked Questions
+            </h2>
             <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              Everything you need to know about tracking keyword positions and Google search rankings.
+              Everything you need to know about tracking keyword positions and Google search
+              rankings.
             </p>
           </div>
 
@@ -927,13 +1005,20 @@ export default function GoogleRankCheckerPage() {
             {FAQ_ITEMS.map((item, idx) => {
               const isOpen = expandedFaq === idx
               return (
-                <div key={idx} className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+                <div
+                  key={idx}
+                  className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm"
+                >
                   <button
                     onClick={() => setExpandedFaq(isOpen ? null : idx)}
                     className="w-full text-left p-4 sm:p-5 flex items-center justify-between gap-4 font-bold text-slate-900 text-xs sm:text-sm cursor-pointer hover:bg-slate-50 transition-colors"
                   >
                     <span>{item.q}</span>
-                    {isOpen ? <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />}
+                    {isOpen ? (
+                      <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+                    )}
                   </button>
                   {isOpen && (
                     <div className="px-5 pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-3">

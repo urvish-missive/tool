@@ -35,28 +35,108 @@ export default function App() {
         </Route>
 
         {/* Public routes — with Navbar/Footer */}
-        <Route path="*" element={
-          <>
-            <Navbar />
-            <main className="flex-1">
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/content-analyzer" element={<ToolGuard toolPath="/content-analyzer"><ContentAnalyzerPage /></ToolGuard>} />
-                <Route path="/seo-audit" element={<ToolGuard toolPath="/seo-audit"><SeoAuditPage /></ToolGuard>} />
-                <Route path="/keyword-research" element={<ToolGuard toolPath="/keyword-research"><KeywordResearchPage /></ToolGuard>} />
-                <Route path="/blog-topic-generator" element={<ToolGuard toolPath="/blog-topic-generator"><BlogTopicGeneratorPage /></ToolGuard>} />
-                <Route path="/logo-maker" element={<ToolGuard toolPath="/logo-maker"><LogoMakerPage /></ToolGuard>} />
-                <Route path="/faq-generator" element={<ToolGuard toolPath="/faq-generator"><FaqGeneratorPage /></ToolGuard>} />
-                <Route path="/competitor-analysis" element={<ToolGuard toolPath="/competitor-analysis"><CompetitorAnalysisPage /></ToolGuard>} />
-                <Route path="/seo-roi-calculator" element={<ToolGuard toolPath="/seo-roi-calculator"><SeoRoiPage /></ToolGuard>} />
-                <Route path="/content-qa" element={<ToolGuard toolPath="/content-qa"><ContentQaPage /></ToolGuard>} />
-                <Route path="/xml-sitemap-generator" element={<ToolGuard toolPath="/xml-sitemap-generator"><XmlSitemapGeneratorPage /></ToolGuard>} />
-                <Route path="/google-rank-checker" element={<ToolGuard toolPath="/google-rank-checker"><GoogleRankCheckerPage /></ToolGuard>} />
-              </Routes>
-            </main>
-            <Footer />
-          </>
-        } />
+        <Route
+          path="*"
+          element={
+            <>
+              <Navbar />
+              <main className="flex-1">
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route
+                    path="/content-analyzer"
+                    element={
+                      <ToolGuard toolPath="/content-analyzer">
+                        <ContentAnalyzerPage />
+                      </ToolGuard>
+                    }
+                  />
+                  <Route
+                    path="/seo-audit"
+                    element={
+                      <ToolGuard toolPath="/seo-audit">
+                        <SeoAuditPage />
+                      </ToolGuard>
+                    }
+                  />
+                  <Route
+                    path="/keyword-research"
+                    element={
+                      <ToolGuard toolPath="/keyword-research">
+                        <KeywordResearchPage />
+                      </ToolGuard>
+                    }
+                  />
+                  <Route
+                    path="/blog-topic-generator"
+                    element={
+                      <ToolGuard toolPath="/blog-topic-generator">
+                        <BlogTopicGeneratorPage />
+                      </ToolGuard>
+                    }
+                  />
+                  <Route
+                    path="/logo-maker"
+                    element={
+                      <ToolGuard toolPath="/logo-maker">
+                        <LogoMakerPage />
+                      </ToolGuard>
+                    }
+                  />
+                  <Route
+                    path="/faq-generator"
+                    element={
+                      <ToolGuard toolPath="/faq-generator">
+                        <FaqGeneratorPage />
+                      </ToolGuard>
+                    }
+                  />
+                  <Route
+                    path="/competitor-analysis"
+                    element={
+                      <ToolGuard toolPath="/competitor-analysis">
+                        <CompetitorAnalysisPage />
+                      </ToolGuard>
+                    }
+                  />
+                  <Route
+                    path="/seo-roi-calculator"
+                    element={
+                      <ToolGuard toolPath="/seo-roi-calculator">
+                        <SeoRoiPage />
+                      </ToolGuard>
+                    }
+                  />
+                  <Route
+                    path="/content-qa"
+                    element={
+                      <ToolGuard toolPath="/content-qa">
+                        <ContentQaPage />
+                      </ToolGuard>
+                    }
+                  />
+                  <Route
+                    path="/xml-sitemap-generator"
+                    element={
+                      <ToolGuard toolPath="/xml-sitemap-generator">
+                        <XmlSitemapGeneratorPage />
+                      </ToolGuard>
+                    }
+                  />
+                  <Route
+                    path="/google-rank-checker"
+                    element={
+                      <ToolGuard toolPath="/google-rank-checker">
+                        <GoogleRankCheckerPage />
+                      </ToolGuard>
+                    }
+                  />
+                </Routes>
+              </main>
+              <Footer />
+            </>
+          }
+        />
       </Routes>
     </div>
   )

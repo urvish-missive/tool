@@ -17,13 +17,20 @@ const STEP_KEY_MAP = {
   report: 4,
 }
 
-export default function LoadingProgress({ currentStep, title = 'Analyzing your content...', subtitle }) {
-  const currentStepIdx = typeof currentStep === 'string' ? (STEP_KEY_MAP[currentStep] ?? 0) : undefined
+export default function LoadingProgress({
+  currentStep,
+  title = 'Analyzing your content...',
+  subtitle,
+}) {
+  const currentStepIdx =
+    typeof currentStep === 'string' ? (STEP_KEY_MAP[currentStep] ?? 0) : undefined
 
   return (
     <UnifiedToolLoader
       title={title}
-      subtitle={subtitle || 'Deep scanning SEO structure, readability, keywords, and search intent.'}
+      subtitle={
+        subtitle || 'Deep scanning SEO structure, readability, keywords, and search intent.'
+      }
       steps={DEFAULT_STEPS}
       currentStepIdx={currentStepIdx}
     />

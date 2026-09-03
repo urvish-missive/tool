@@ -28,10 +28,16 @@ export function validateUrl(raw, { required = false, fieldName = 'URL' } = {}) {
       return { url: normalized, error: `${fieldName} must use HTTP or HTTPS.` }
     }
     if (!parsed.hostname.includes('.')) {
-      return { url: normalized, error: `Please enter a valid ${fieldName.toLowerCase()} (e.g. example.com).` }
+      return {
+        url: normalized,
+        error: `Please enter a valid ${fieldName.toLowerCase()} (e.g. example.com).`,
+      }
     }
     return { url: normalized, error: null }
   } catch {
-    return { url: normalized, error: `Please enter a valid ${fieldName.toLowerCase()} (e.g. example.com).` }
+    return {
+      url: normalized,
+      error: `Please enter a valid ${fieldName.toLowerCase()} (e.g. example.com).`,
+    }
   }
 }

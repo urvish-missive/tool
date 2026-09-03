@@ -20,21 +20,57 @@ import {
 } from 'lucide-react'
 
 const PILLARS_META = [
-  { key: 'seo_score', label: 'SEO Optimization', icon: '🎯', desc: 'Keyword placement, metadata alignment, and on-page density' },
-  { key: 'intent_score', label: 'Search Intent', icon: '🔍', desc: 'Alignment with user search query expectations and journey' },
-  { key: 'depth_score', label: 'Content Depth', icon: '📚', desc: 'Coverage of entities, subtopics, and comprehensive solutions' },
-  { key: 'readability_score', label: 'Readability', icon: '📖', desc: 'Sentence cadence, scannability, and Flesch reading score' },
-  { key: 'structure_score', label: 'Structure & Flow', icon: '🏗️', desc: 'Heading hierarchy, bite-sized sections, and visual anchors' },
-  { key: 'usefulness_score', label: 'Actionable Value', icon: '💡', desc: 'Real-world takeaways, examples, and practical guidance' },
-  { key: 'geo_citation_score', label: 'GEO / AI Overview', icon: '🤖', desc: 'Probability of being extracted and cited by AI engines' },
-  { key: 'eeat_score', label: 'E-E-A-T Trust', icon: '🛡️', desc: 'First-hand experience, authority proof, and brand credibility' },
+  {
+    key: 'seo_score',
+    label: 'SEO Optimization',
+    icon: '🎯',
+    desc: 'Keyword placement, metadata alignment, and on-page density',
+  },
+  {
+    key: 'intent_score',
+    label: 'Search Intent',
+    icon: '🔍',
+    desc: 'Alignment with user search query expectations and journey',
+  },
+  {
+    key: 'depth_score',
+    label: 'Content Depth',
+    icon: '📚',
+    desc: 'Coverage of entities, subtopics, and comprehensive solutions',
+  },
+  {
+    key: 'readability_score',
+    label: 'Readability',
+    icon: '📖',
+    desc: 'Sentence cadence, scannability, and Flesch reading score',
+  },
+  {
+    key: 'structure_score',
+    label: 'Structure & Flow',
+    icon: '🏗️',
+    desc: 'Heading hierarchy, bite-sized sections, and visual anchors',
+  },
+  {
+    key: 'usefulness_score',
+    label: 'Actionable Value',
+    icon: '💡',
+    desc: 'Real-world takeaways, examples, and practical guidance',
+  },
+  {
+    key: 'geo_citation_score',
+    label: 'GEO / AI Overview',
+    icon: '🤖',
+    desc: 'Probability of being extracted and cited by AI engines',
+  },
+  {
+    key: 'eeat_score',
+    label: 'E-E-A-T Trust',
+    icon: '🛡️',
+    desc: 'First-hand experience, authority proof, and brand credibility',
+  },
 ]
 
-import {
-  getScoreColor,
-  getScoreBadge,
-  getScoreBarGradient,
-} from '../utils/scoreHelpers'
+import { getScoreColor, getScoreBadge, getScoreBarGradient } from '../utils/scoreHelpers'
 
 export default function AIAnalyticsSection({ report, onReset, onEdit }) {
   const [activeTab, setActiveTab] = useState('scores') // 'scores' | 'issues' | 'geo' | 'eeat' | 'plan'
@@ -79,10 +115,16 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
       ...PILLARS_META.map((p) => `- **${p.label}:** ${report[p.key] || 0}/100`),
       '',
       `## Critical Issues & Action Items`,
-      ...criticalIssues.map((iss, i) => `${i + 1}. [CRITICAL] ${iss.issue}\n   Why: ${iss.why_it_matters}\n   Fix: ${iss.action}`),
+      ...criticalIssues.map(
+        (iss, i) =>
+          `${i + 1}. [CRITICAL] ${iss.issue}\n   Why: ${iss.why_it_matters}\n   Fix: ${iss.action}`
+      ),
       '',
       `## Strategic Recommendations`,
-      ...recommendations.map((rec, i) => `${i + 1}. [${rec.priority || 'MEDIUM'}] ${rec.title}\n   Why: ${rec.why}\n   Action: ${rec.how}`),
+      ...recommendations.map(
+        (rec, i) =>
+          `${i + 1}. [${rec.priority || 'MEDIUM'}] ${rec.title}\n   Why: ${rec.why}\n   Action: ${rec.how}`
+      ),
     ].join('\n')
 
     const blob = new Blob([text], { type: 'text/markdown' })
@@ -96,7 +138,9 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
 
   const copyActionPlan = () => {
     const planText = recommendations
-      .map((r, i) => `${i + 1}. [${r.priority}] ${r.title}\n   • Why: ${r.why}\n   • Action: ${r.how}`)
+      .map(
+        (r, i) => `${i + 1}. [${r.priority}] ${r.title}\n   • Why: ${r.why}\n   • Action: ${r.how}`
+      )
       .join('\n\n')
     triggerCopy(planText, 'action-plan')
   }
@@ -171,52 +215,74 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
               Overall Content Quality Score
             </span>
             <div className="flex items-baseline justify-center md:justify-start gap-2">
-              <span className={`text-6xl sm:text-7xl font-black tracking-tight ${getScoreColor(overall)}`}>
+              <span
+                className={`text-6xl sm:text-7xl font-black tracking-tight ${getScoreColor(overall)}`}
+              >
                 {overall}
               </span>
               <span className="text-2xl font-bold text-slate-400">/100</span>
             </div>
 
             <div>
-              <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${getScoreBadge(overall)}`}>
-                {overall >= 80 ? '✓ Ready to Rank & Publish' : overall >= 60 ? '⚡ Minor Optimization Needed' : '⚠️ Critical Fixes Required'}
+              <span
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${getScoreBadge(overall)}`}
+              >
+                {overall >= 80
+                  ? '✓ Ready to Rank & Publish'
+                  : overall >= 60
+                    ? '⚡ Minor Optimization Needed'
+                    : '⚠️ Critical Fixes Required'}
               </span>
             </div>
 
             <p className="text-xs text-slate-500 font-medium">
-              {criticalIssues.length === 0 ? 'No critical blockers' : `${criticalIssues.length} critical issue(s)`} • {recommendations.length} action item(s)
+              {criticalIssues.length === 0
+                ? 'No critical blockers'
+                : `${criticalIssues.length} critical issue(s)`}{' '}
+              • {recommendations.length} action item(s)
             </p>
           </div>
 
           {/* Right Column: 4 Signature Quick Alert Cards */}
           <div className="md:col-span-8 grid sm:grid-cols-2 gap-4">
             {/* 1. SEO Optimization */}
-            <div className={`p-4 sm:p-5 rounded-2xl border transition-all ${report.seo_score >= 70 ? 'bg-emerald-50/70 border-emerald-200' : 'bg-blue-50/70 border-blue-200'}`}>
+            <div
+              className={`p-4 sm:p-5 rounded-2xl border transition-all ${report.seo_score >= 70 ? 'bg-emerald-50/70 border-emerald-200' : 'bg-blue-50/70 border-blue-200'}`}
+            >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                   🎯 SEO Optimization
                 </span>
-                <span className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full ${getScoreBadge(report.seo_score || 0)}`}>
+                <span
+                  className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full ${getScoreBadge(report.seo_score || 0)}`}
+                >
                   {report.seo_score || 0}/100
                 </span>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed">
-                {report.seo_score >= 70 ? 'Strong on-page signals, keyword presence, and semantic density.' : 'Needs keyword frequency tuning and on-page heading optimization.'}
+                {report.seo_score >= 70
+                  ? 'Strong on-page signals, keyword presence, and semantic density.'
+                  : 'Needs keyword frequency tuning and on-page heading optimization.'}
               </p>
             </div>
 
             {/* 2. Search Intent Alignment */}
-            <div className={`p-4 sm:p-5 rounded-2xl border transition-all ${report.intent_score >= 70 ? 'bg-emerald-50/70 border-emerald-200' : 'bg-amber-50/70 border-amber-200'}`}>
+            <div
+              className={`p-4 sm:p-5 rounded-2xl border transition-all ${report.intent_score >= 70 ? 'bg-emerald-50/70 border-emerald-200' : 'bg-amber-50/70 border-amber-200'}`}
+            >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                   🔍 Search Intent Match
                 </span>
-                <span className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full ${getScoreBadge(report.intent_score || 0)}`}>
+                <span
+                  className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full ${getScoreBadge(report.intent_score || 0)}`}
+                >
                   {intent.type || 'Informational'}
                 </span>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed">
-                {intent.explanation || 'Matches expected query format and resolves user intent directly.'}
+                {intent.explanation ||
+                  'Matches expected query format and resolves user intent directly.'}
               </p>
             </div>
 
@@ -231,22 +297,29 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
                 </span>
               </div>
               <p className="text-xs text-purple-800/80 leading-relaxed">
-                {aiSearch?.summary || 'Extractable soundbites and authoritative definition structures.'}
+                {aiSearch?.summary ||
+                  'Extractable soundbites and authoritative definition structures.'}
               </p>
             </div>
 
             {/* 4. E-E-A-T Trust Score */}
-            <div className={`p-4 sm:p-5 rounded-2xl border transition-all ${report.eeat_score >= 70 ? 'bg-emerald-50/70 border-emerald-200' : 'bg-slate-50 border-slate-200'}`}>
+            <div
+              className={`p-4 sm:p-5 rounded-2xl border transition-all ${report.eeat_score >= 70 ? 'bg-emerald-50/70 border-emerald-200' : 'bg-slate-50 border-slate-200'}`}
+            >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                   🛡️ E-E-A-T Trust Score
                 </span>
-                <span className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full ${getScoreBadge(report.eeat_score || 72)}`}>
+                <span
+                  className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full ${getScoreBadge(report.eeat_score || 72)}`}
+                >
                   {report.eeat_score || 72}/100
                 </span>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed">
-                {eeatInsights.length > 0 ? eeatInsights[0] : 'First-hand experience & factual authority signals verified.'}
+                {eeatInsights.length > 0
+                  ? eeatInsights[0]
+                  : 'First-hand experience & factual authority signals verified.'}
               </p>
             </div>
           </div>
@@ -269,7 +342,11 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
       <div className="flex flex-wrap items-center gap-2 bg-slate-100/90 p-2 rounded-2xl border border-slate-200/80">
         {[
           { id: 'scores', label: '8-Pillar Score Grid', icon: Layers },
-          { id: 'issues', label: `Critical Fixes & Gaps (${totalIssuesCount})`, icon: AlertTriangle },
+          {
+            id: 'issues',
+            label: `Critical Fixes & Gaps (${totalIssuesCount})`,
+            icon: AlertTriangle,
+          },
           { id: 'geo', label: 'GEO & AI Overview', icon: Sparkles },
           { id: 'eeat', label: 'E-E-A-T Experience Audit', icon: ShieldCheck },
           { id: 'plan', label: `Strategic Roadmap (${recommendations.length})`, icon: Lightbulb },
@@ -306,7 +383,9 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
                 >
                   <div className="flex items-center justify-between">
                     <span className="text-2xl">{pillar.icon}</span>
-                    <span className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full border ${getScoreBadge(val)}`}>
+                    <span
+                      className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full border ${getScoreBadge(val)}`}
+                    >
                       {val}/100
                     </span>
                   </div>
@@ -341,7 +420,10 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
               </div>
               <ul className="grid sm:grid-cols-2 gap-2.5 pt-1">
                 {strengths.map((str, i) => (
-                  <li key={i} className="text-xs sm:text-sm text-emerald-800 flex items-start gap-2 bg-white/70 p-3 rounded-xl border border-emerald-100">
+                  <li
+                    key={i}
+                    className="text-xs sm:text-sm text-emerald-800 flex items-start gap-2 bg-white/70 p-3 rounded-xl border border-emerald-100"
+                  >
                     <span className="text-emerald-600 font-bold mt-0.5">✓</span>
                     <span className="font-medium leading-relaxed">{str}</span>
                   </li>
@@ -385,7 +467,10 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
               </h4>
               <div className="space-y-3">
                 {criticalIssues.map((iss, i) => (
-                  <div key={i} className="bg-white rounded-2xl border border-rose-200 shadow-sm overflow-hidden">
+                  <div
+                    key={i}
+                    className="bg-white rounded-2xl border border-rose-200 shadow-sm overflow-hidden"
+                  >
                     <button
                       onClick={() => toggleIssue(`crit-${i}`)}
                       className="w-full text-left p-4 sm:p-5 flex items-start justify-between gap-3 hover:bg-rose-50/30 transition-colors cursor-pointer"
@@ -404,7 +489,11 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
                         </div>
                       </div>
                       <div className="p-1 rounded-lg text-slate-400 shrink-0">
-                        {expandedIssues[`crit-${i}`] ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                        {expandedIssues[`crit-${i}`] ? (
+                          <ChevronUp className="w-4 h-4" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4" />
+                        )}
                       </div>
                     </button>
 
@@ -412,7 +501,9 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
                       <div className="px-5 pb-5 pt-2 border-t border-rose-100 space-y-3 text-xs sm:text-sm bg-rose-50/20">
                         <div>
                           <strong className="text-slate-900">Why it matters:</strong>
-                          <p className="text-slate-600 mt-0.5 leading-relaxed">{iss.why_it_matters}</p>
+                          <p className="text-slate-600 mt-0.5 leading-relaxed">
+                            {iss.why_it_matters}
+                          </p>
                         </div>
                         <div className="p-3.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
                           <strong className="font-bold text-emerald-950 flex items-center gap-1.5 mb-1">
@@ -438,7 +529,10 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
               </h4>
               <div className="space-y-2.5">
                 {warnings.map((w, i) => (
-                  <div key={i} className="bg-white rounded-xl border border-amber-200 p-4 flex items-start gap-3 shadow-sm">
+                  <div
+                    key={i}
+                    className="bg-white rounded-xl border border-amber-200 p-4 flex items-start gap-3 shadow-sm"
+                  >
                     <span className="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800 text-[10px] font-extrabold uppercase shrink-0 mt-0.5">
                       Warning
                     </span>
@@ -461,7 +555,8 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
                 </h4>
               </div>
               <p className="text-xs text-slate-500">
-                Incorporate these concepts to increase topical depth and coverage vs top-ranking SERP competitors.
+                Incorporate these concepts to increase topical depth and coverage vs top-ranking
+                SERP competitors.
               </p>
               <div className="flex flex-wrap gap-2 pt-2">
                 {missingTopics.map((topic, i) => (
@@ -494,7 +589,8 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
                       Generative Engine Optimization (GEO) Analysis
                     </h3>
                     <p className="text-xs text-slate-500">
-                      Evaluated for Google AI Overviews, Perplexity, and LLM search answer synthesis.
+                      Evaluated for Google AI Overviews, Perplexity, and LLM search answer
+                      synthesis.
                     </p>
                   </div>
                 </div>
@@ -585,7 +681,9 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
                 </div>
               </div>
 
-              <span className={`px-3.5 py-1 rounded-full text-xs font-extrabold border ${getScoreBadge(report.eeat_score || 72)}`}>
+              <span
+                className={`px-3.5 py-1 rounded-full text-xs font-extrabold border ${getScoreBadge(report.eeat_score || 72)}`}
+              >
                 Trust Score: {report.eeat_score || 72}/100
               </span>
             </div>
@@ -667,15 +765,13 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
                           priority === 'HIGH'
                             ? 'bg-rose-100 text-rose-800 border border-rose-200'
                             : priority === 'LOW'
-                            ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                            : 'bg-amber-100 text-amber-800 border border-amber-200'
+                              ? 'bg-blue-100 text-blue-800 border border-blue-200'
+                              : 'bg-amber-100 text-amber-800 border border-amber-200'
                         }`}
                       >
                         {priority} Priority
                       </span>
-                      <h4 className="font-bold text-slate-900 text-sm sm:text-base">
-                        {rec.title}
-                      </h4>
+                      <h4 className="font-bold text-slate-900 text-sm sm:text-base">{rec.title}</h4>
                     </div>
 
                     <p className="text-xs sm:text-sm text-slate-600 pl-8 leading-relaxed">
@@ -684,7 +780,9 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
 
                     <div className="pl-8 pt-1">
                       <div className="p-3.5 rounded-xl bg-white border border-slate-200 text-xs sm:text-sm text-slate-800 leading-relaxed shadow-xs">
-                        <strong className="text-slate-900 font-bold block mb-1">Recommended Action:</strong>
+                        <strong className="text-slate-900 font-bold block mb-1">
+                          Recommended Action:
+                        </strong>
                         {rec.how}
                       </div>
                     </div>

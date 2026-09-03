@@ -12,7 +12,7 @@ export default function useToolFields(toolSlug) {
 
   const fields = useMemo(() => {
     if (data?.success && data?.tools) {
-      const tool = data.tools.find(t => t.slug === toolSlug)
+      const tool = data.tools.find((t) => t.slug === toolSlug)
       if (tool?.formFields) {
         try {
           return typeof tool.formFields === 'string' ? JSON.parse(tool.formFields) : tool.formFields

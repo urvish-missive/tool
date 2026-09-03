@@ -40,7 +40,10 @@ export default function AdminLogin() {
           <p className="text-sm text-gray-500 mt-1">Sign in to manage tools and leads</p>
         </div>
 
-        <form onSubmit={handleLogin} className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 space-y-5">
+        <form
+          onSubmit={handleLogin}
+          className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8 space-y-5"
+        >
           {error && (
             <div className="bg-red-50 border border-red-200 text-red-700 text-sm px-4 py-3 rounded-xl">
               {error}
@@ -53,7 +56,7 @@ export default function AdminLogin() {
               <input
                 type="email"
                 value={email}
-                onChange={e => setEmail(e.target.value)}
+                onChange={(e) => setEmail(e.target.value)}
                 required
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-4 pr-4 py-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[#0C81F3] focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 transition-all"
                 placeholder="admin@example.com"
@@ -67,7 +70,7 @@ export default function AdminLogin() {
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
-                onChange={e => setPassword(e.target.value)}
+                onChange={(e) => setPassword(e.target.value)}
                 required
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl pl-4 pr-12 py-3 text-sm text-gray-900 placeholder-gray-400 focus:border-[#0C81F3] focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 transition-all"
                 placeholder="••••••••"

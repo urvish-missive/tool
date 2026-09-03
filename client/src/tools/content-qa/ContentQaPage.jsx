@@ -81,7 +81,11 @@ const HIMANI_CATEGORIES_DEF = [
     color: '#9333EA',
     items: [
       { id: 'ra-1', label: 'If read out loud, does it sound natural?', auto: true },
-      { id: 'ra-2', label: 'Does it hold attention, sound confident, and flow smoothly?', auto: false },
+      {
+        id: 'ra-2',
+        label: 'Does it hold attention, sound confident, and flow smoothly?',
+        auto: false,
+      },
       { id: 'ra-3', label: 'Can any line be shortened without losing meaning?', auto: true },
     ],
   },
@@ -104,7 +108,11 @@ const HIMANI_CATEGORIES_DEF = [
     icon: <Award className="w-4 h-4 text-amber-600" />,
     color: '#D97706',
     items: [
-      { id: 'eat-1', label: 'Is lived experience, observation, or real context added?', auto: true },
+      {
+        id: 'eat-1',
+        label: 'Is lived experience, observation, or real context added?',
+        auto: true,
+      },
       { id: 'eat-2', label: 'Does the content explain why or how, not just what?', auto: true },
       { id: 'eat-3', label: 'Does it show you are a thought-leader in this niche?', auto: false },
     ],
@@ -116,7 +124,12 @@ const HIMANI_CATEGORIES_DEF = [
     icon: <Zap className="w-4 h-4 text-emerald-600" />,
     color: '#059669',
     items: [
-      { id: 'ins-1', label: 'Does the content start with an insight, observation, or hook, and not a long setup?', auto: true },
+      {
+        id: 'ins-1',
+        label:
+          'Does the content start with an insight, observation, or hook, and not a long setup?',
+        auto: true,
+      },
       { id: 'ins-2', label: 'Does it immediately come to the point?', auto: true },
     ],
   },
@@ -127,7 +140,12 @@ const HIMANI_CATEGORIES_DEF = [
     icon: <Scissors className="w-4 h-4 text-cyan-600" />,
     color: '#0891B2',
     items: [
-      { id: 'mc-1', label: 'Every line adds new or valuable info, clarity, or perspective for that one audience', auto: false },
+      {
+        id: 'mc-1',
+        label:
+          'Every line adds new or valuable info, clarity, or perspective for that one audience',
+        auto: false,
+      },
       { id: 'mc-2', label: 'No filler lines. No "nice to have" sentences.', auto: true },
     ],
   },
@@ -138,8 +156,16 @@ const HIMANI_CATEGORIES_DEF = [
     icon: <ShieldCheck className="w-4 h-4 text-indigo-600" />,
     color: '#4F46E5',
     items: [
-      { id: 'off-1', label: 'Are we not undermining any profession, system, academy, or industry?', auto: false },
-      { id: 'off-2', label: 'Is it polished and respectful, even when talking about gaps or competitors?', auto: false },
+      {
+        id: 'off-1',
+        label: 'Are we not undermining any profession, system, academy, or industry?',
+        auto: false,
+      },
+      {
+        id: 'off-2',
+        label: 'Is it polished and respectful, even when talking about gaps or competitors?',
+        auto: false,
+      },
     ],
   },
   {
@@ -150,7 +176,12 @@ const HIMANI_CATEGORIES_DEF = [
     color: '#0C81F3',
     items: [
       { id: 'bp-1', label: "Is the message aligned with the brand's voice?", auto: false },
-      { id: 'bp-2', label: "Are we reinforcing authority, sharing the brand's experience & expertise without sounding salesy?", auto: true },
+      {
+        id: 'bp-2',
+        label:
+          "Are we reinforcing authority, sharing the brand's experience & expertise without sounding salesy?",
+        auto: true,
+      },
     ],
   },
   {
@@ -186,8 +217,17 @@ const HIMANI_CATEGORIES_DEF = [
     icon: <AlertTriangle className="w-4 h-4 text-orange-600" />,
     color: '#EA580C',
     items: [
-      { id: 'comp-1', label: 'No claims that trigger compliance (e.g., pharma, medical).', auto: true },
-      { id: 'comp-2', label: 'No overstatements for industries where neutrality matters (finance, telecom, etc.).', auto: true },
+      {
+        id: 'comp-1',
+        label: 'No claims that trigger compliance (e.g., pharma, medical).',
+        auto: true,
+      },
+      {
+        id: 'comp-2',
+        label:
+          'No overstatements for industries where neutrality matters (finance, telecom, etc.).',
+        auto: true,
+      },
     ],
   },
   {
@@ -197,9 +237,18 @@ const HIMANI_CATEGORIES_DEF = [
     icon: <Monitor className="w-4 h-4 text-emerald-600" />,
     color: '#10B981',
     items: [
-      { id: 'vpf-1', label: 'Does it suit the platform (Website, LinkedIn, newsletter, etc.)?', auto: true },
+      {
+        id: 'vpf-1',
+        label: 'Does it suit the platform (Website, LinkedIn, newsletter, etc.)?',
+        auto: true,
+      },
       { id: 'vpf-2', label: 'Is it scannable (bullets, short paras, hooks)?', auto: true },
-      { id: 'vpf-3', label: 'Does it have enough media such as images, graphs, infographics, video embeds, etc.?', auto: true },
+      {
+        id: 'vpf-3',
+        label:
+          'Does it have enough media such as images, graphs, infographics, video embeds, etc.?',
+        auto: true,
+      },
     ],
   },
 ]
@@ -223,13 +272,28 @@ Here is how you can supercharge your content strategy:
 - Never settle for generic advice.`
 
 function downloadQaPdf(report, meta) {
-  import('../../utils/generateQaPdf').then(m => m.downloadQaPdf(report, meta))
+  import('../../utils/generateQaPdf').then((m) => m.downloadQaPdf(report, meta))
 }
 
 export default function ContentQaPage() {
-  const { register, handleSubmit, control, watch, formState: { errors }, reset: resetForm, setValue } = useForm({
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    formState: { errors },
+    reset: resetForm,
+    setValue,
+  } = useForm({
     resolver: zodResolver(contentQaSchema),
-    defaultValues: { content: '', title: '', targetKeyword: '', platform: 'website', targetAudience: '', preferredProvider: 'openrouter' },
+    defaultValues: {
+      content: '',
+      title: '',
+      targetKeyword: '',
+      platform: 'website',
+      targetAudience: '',
+      preferredProvider: 'openrouter',
+    },
   })
 
   const content = watch('content')
@@ -256,10 +320,18 @@ export default function ContentQaPage() {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false)
   const [speechRate, setSpeechRate] = useState(1.0)
 
-  const [analyzeContentQa, { isLoading: isAnalyzing, reset: resetMutation }] = useAnalyzeContentQaMutation()
+  const [analyzeContentQa, { isLoading: isAnalyzing, reset: resetMutation }] =
+    useAnalyzeContentQaMutation()
   const [polishContentQa, { isLoading: isPolishing }] = usePolishContentQaMutation()
 
-  const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose, triggerPopup } = useLeadPopup('content-qa')
+  const {
+    popupEnabled,
+    showPopup,
+    setShowPopup,
+    handlePopupSubmit,
+    handlePopupClose,
+    triggerPopup,
+  } = useLeadPopup('content-qa')
   const { isFieldEnabled } = useToolFields('content-qa')
 
   const wordCount = content.trim().split(/\s+/).filter(Boolean).length
@@ -335,13 +407,17 @@ export default function ContentQaPage() {
 
       // Auto-expand categories that have issues
       const initialExpanded = {}
-      HIMANI_CATEGORIES_DEF.forEach(c => {
+      HIMANI_CATEGORIES_DEF.forEach((c) => {
         const catScore = data.report.categoryScores?.[c.id] || 100
         if (catScore < 85) initialExpanded[c.id] = true
       })
       setExpandedCats(initialExpanded)
     } catch (err) {
-      setError(err?.data?.error || err.message || 'Analysis failed. Please check your connection or AI provider.')
+      setError(
+        err?.data?.error ||
+          err.message ||
+          'Analysis failed. Please check your connection or AI provider.'
+      )
     }
   }
 
@@ -366,15 +442,22 @@ export default function ContentQaPage() {
 
   // Toggle checklist status manually
   const toggleStatus = (itemId) => {
-    setStatuses(prev => {
+    setStatuses((prev) => {
       const current = prev[itemId] || 'pending'
-      const next = current === 'pending' ? 'pass' : current === 'pass' ? 'warning' : current === 'warning' ? 'fail' : 'pass'
+      const next =
+        current === 'pending'
+          ? 'pass'
+          : current === 'pass'
+            ? 'warning'
+            : current === 'warning'
+              ? 'fail'
+              : 'pass'
       return { ...prev, [itemId]: next }
     })
   }
 
   const toggleCat = (catId) => {
-    setExpandedCats(prev => ({ ...prev, [catId]: !prev[catId] }))
+    setExpandedCats((prev) => ({ ...prev, [catId]: !prev[catId] }))
   }
 
   function getStatus(item) {
@@ -393,7 +476,9 @@ export default function ContentQaPage() {
     let totalWarning = 0
 
     for (const cat of HIMANI_CATEGORIES_DEF) {
-      let pass = 0, fail = 0, warning = 0
+      let pass = 0,
+        fail = 0,
+        warning = 0
       for (const item of cat.items) {
         const s = getStatus(item)
         if (s === 'pass') pass++
@@ -401,7 +486,7 @@ export default function ContentQaPage() {
         else if (s === 'warning') warning++
       }
       const assessed = pass + fail + warning
-      const catVal = assessed > 0 ? Math.round(((pass + (warning * 0.5)) / assessed) * 100) : 100
+      const catVal = assessed > 0 ? Math.round(((pass + warning * 0.5) / assessed) * 100) : 100
       catScores[cat.id] = catVal
       totalItems += assessed
       totalPass += pass
@@ -409,7 +494,12 @@ export default function ContentQaPage() {
       totalWarning += warning
     }
 
-    const overall = totalItems > 0 ? Math.round(Object.values(catScores).reduce((a, b) => a + b, 0) / Object.keys(catScores).length) : 0
+    const overall =
+      totalItems > 0
+        ? Math.round(
+            Object.values(catScores).reduce((a, b) => a + b, 0) / Object.keys(catScores).length
+          )
+        : 0
     return {
       cats: catScores,
       overall,
@@ -464,7 +554,11 @@ export default function ContentQaPage() {
       score: scores.overall,
       passed: scores.passed,
       total: scores.total,
-      date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+      date: new Date().toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      }),
     })
   }
 
@@ -500,21 +594,19 @@ Audited with Missive Digital Content QA Tool.`
     setTimeout(() => setCopiedAction(false), 2500)
   }
 
-
-
   // Filtered categories based on user filter pill
   const filteredCategories = useMemo(() => {
     if (filterMode === 'all') return HIMANI_CATEGORIES_DEF
-    return HIMANI_CATEGORIES_DEF.filter(cat => {
+    return HIMANI_CATEGORIES_DEF.filter((cat) => {
       const catItems = cat.items
       if (filterMode === 'needs_action') {
-        return catItems.some(i => ['fail', 'warning'].includes(getStatus(i)))
+        return catItems.some((i) => ['fail', 'warning'].includes(getStatus(i)))
       }
       if (filterMode === 'passed') {
-        return catItems.every(i => getStatus(i) === 'pass')
+        return catItems.every((i) => getStatus(i) === 'pass')
       }
       if (filterMode === 'manual') {
-        return catItems.some(i => !i.auto)
+        return catItems.some((i) => !i.auto)
       }
       return true
     })
@@ -525,7 +617,10 @@ Audited with Missive Digital Content QA Tool.`
       <LeadCaptureModal
         show={showPopup}
         onClose={handlePopupClose}
-        onSubmit={() => { handlePopupSubmit(); runAnalysis() }}
+        onSubmit={() => {
+          handlePopupSubmit()
+          runAnalysis()
+        }}
         toolSlug="content-qa"
         title="Unlock Himani's 12-Pillar Content QA Report"
         subtitle="Enter your details to generate your full quality breakdown and AI audit."
@@ -533,7 +628,10 @@ Audited with Missive Digital Content QA Tool.`
 
       {/* ── HERO BANNER (Site Brand Gradient: #0C81F3 to #EB8988) ──── */}
       <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }}
+        />
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
 
@@ -553,11 +651,15 @@ Audited with Missive Digital Content QA Tool.`
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 leading-[1.15]">
             <span className="text-gray-900">Content </span>
-            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">QA Checklist</span>
+            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
+              QA Checklist
+            </span>
           </h1>
           <p className="mt-4 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
             QA every piece of content written for your brand the way Himani does.
-            <span className="block text-sm text-gray-500 font-medium mt-1">12 Pillars • 34 Precision Checks • Zero AI Fluff & Zero Em Dashes</span>
+            <span className="block text-sm text-gray-500 font-medium mt-1">
+              12 Pillars • 34 Precision Checks • Zero AI Fluff & Zero Em Dashes
+            </span>
           </p>
 
           {!report && !isAnalyzing && (
@@ -578,11 +680,12 @@ Audited with Missive Digital Content QA Tool.`
       {/* ── MAIN CONTENT CONTAINER ─────────────────────────────────── */}
       <section className="py-10">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
-
           {/* ── INPUT FORM ────────────────────────────────────────── */}
           {!report && !isAnalyzing && (
-            <form onSubmit={handleSubmit(onFormValid)} className="bg-white rounded-3xl border border-gray-200 shadow-xl shadow-gray-200/50 p-6 sm:p-9 space-y-6">
-
+            <form
+              onSubmit={handleSubmit(onFormValid)}
+              className="bg-white rounded-3xl border border-gray-200 shadow-xl shadow-gray-200/50 p-6 sm:p-9 space-y-6"
+            >
               {/* Content Textarea */}
               {isFieldEnabled('content') && (
                 <div>
@@ -600,7 +703,9 @@ Audited with Missive Digital Content QA Tool.`
                     placeholder="Paste your blog post, article, LinkedIn draft, or newsletter content here..."
                     className={`w-full rounded-2xl border px-4 py-3.5 text-sm leading-relaxed text-gray-800 focus:ring-2 focus:ring-[#0C81F3] focus:border-[#0C81F3] outline-none transition-all resize-y min-h-[220px] ${errors.content ? 'border-red-400 ring-1 ring-red-200' : 'border-gray-300'}`}
                   />
-                  {errors.content && <p className="mt-1 text-xs text-red-600">{errors.content.message}</p>}
+                  {errors.content && (
+                    <p className="mt-1 text-xs text-red-600">{errors.content.message}</p>
+                  )}
                   <div className="flex justify-between mt-1.5 text-xs text-gray-500">
                     <span>Himani's Rule: Every line must earn its place.</span>
                     {wordCount > 0 && wordCount < 20 && (
@@ -614,7 +719,9 @@ Audited with Missive Digital Content QA Tool.`
               <div className="grid sm:grid-cols-2 gap-4">
                 {isFieldEnabled('title') && (
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Headline / H1 Title</label>
+                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                      Headline / H1 Title
+                    </label>
                     <input
                       type="text"
                       {...register('title')}
@@ -626,7 +733,9 @@ Audited with Missive Digital Content QA Tool.`
 
                 {isFieldEnabled('targetKeyword') && (
                   <div>
-                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Target Keyword</label>
+                    <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                      Target Keyword
+                    </label>
                     <input
                       type="text"
                       {...register('targetKeyword')}
@@ -640,7 +749,9 @@ Audited with Missive Digital Content QA Tool.`
               {/* Platform & Audience */}
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Target Platform</label>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                    Target Platform
+                  </label>
                   <select
                     {...register('platform')}
                     className="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm bg-white focus:ring-2 focus:ring-[#0C81F3] focus:border-[#0C81F3] outline-none font-medium"
@@ -654,7 +765,9 @@ Audited with Missive Digital Content QA Tool.`
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Target Audience & Voice (Optional)</label>
+                  <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
+                    Target Audience & Voice (Optional)
+                  </label>
                   <input
                     type="text"
                     {...register('targetAudience')}
@@ -665,8 +778,13 @@ Audited with Missive Digital Content QA Tool.`
               </div>
 
               {/* AI Model Selector */}
-              <Controller control={control} name="preferredProvider"
-                render={({ field }) => <ModelSelector value={field.value} onChange={field.onChange} />} />
+              <Controller
+                control={control}
+                name="preferredProvider"
+                render={({ field }) => (
+                  <ModelSelector value={field.value} onChange={field.onChange} />
+                )}
+              />
 
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-3.5 text-sm text-red-700 flex items-center gap-2">
@@ -702,7 +820,10 @@ Audited with Missive Digital Content QA Tool.`
               <h3 className="text-lg font-bold text-gray-900">QA Audit Failed</h3>
               <p className="text-sm text-gray-600 mt-2">{error}</p>
               <button
-                onClick={() => { setError(null); setReport(null) }}
+                onClick={() => {
+                  setError(null)
+                  setReport(null)
+                }}
                 className="mt-5 px-6 py-2.5 rounded-full bg-gray-900 text-sm font-semibold text-white hover:bg-black transition-all"
               >
                 Try Again
@@ -715,7 +836,6 @@ Audited with Missive Digital Content QA Tool.`
           {/* ═════════════════════════════════════════════════════════ */}
           {report && !isAnalyzing && (
             <div id="himani-qa-results" className="space-y-8">
-
               {/* Top Navigation & Action Bar */}
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
                 <div className="flex items-center gap-3">
@@ -739,7 +859,11 @@ Audited with Missive Digital Content QA Tool.`
                     onClick={handleCopyActionPlan}
                     className="px-3.5 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center gap-1.5 transition-all"
                   >
-                    {copiedAction ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedAction ? (
+                      <Check className="w-3.5 h-3.5 text-green-600" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
                     <span>{copiedAction ? 'Copied Plan!' : 'Copy Plan'}</span>
                   </button>
                   <button
@@ -763,20 +887,26 @@ Audited with Missive Digital Content QA Tool.`
               {/* ── SCORE HERO CARD ─────────────────────────────────── */}
               <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 shadow-sm">
                 <div className="grid md:grid-cols-12 gap-6 items-center">
-
                   {/* Left Column: Overall Himani Score */}
                   <div className="md:col-span-4 text-center md:text-left md:border-r md:border-gray-100 md:pr-6">
-                    <span className="text-xs font-bold uppercase tracking-wider text-[#0C81F3]">Overall Himani Score</span>
+                    <span className="text-xs font-bold uppercase tracking-wider text-[#0C81F3]">
+                      Overall Himani Score
+                    </span>
                     <div className="flex items-baseline justify-center md:justify-start gap-2 mt-2">
-                      <span className={`text-6xl sm:text-7xl font-extrabold tracking-tight ${getScoreColor(scores.overall)}`}>
+                      <span
+                        className={`text-6xl sm:text-7xl font-extrabold tracking-tight ${getScoreColor(scores.overall)}`}
+                      >
                         {scores.overall}
                       </span>
                       <span className="text-2xl font-bold text-gray-400">/100</span>
                     </div>
 
                     <div className="mt-3">
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold border ${getScoreBg(scores.overall)}`}>
-                        {report.ai?.publicationReadiness || (scores.overall >= 80 ? 'Ready to Publish' : 'Minor Polish Needed')}
+                      <span
+                        className={`inline-block px-3 py-1 rounded-full text-xs font-bold border ${getScoreBg(scores.overall)}`}
+                      >
+                        {report.ai?.publicationReadiness ||
+                          (scores.overall >= 80 ? 'Ready to Publish' : 'Minor Polish Needed')}
                       </span>
                     </div>
                     <p className="text-xs text-gray-500 mt-2 font-medium">
@@ -786,31 +916,38 @@ Audited with Missive Digital Content QA Tool.`
 
                   {/* Right Column: 4 Signature Quick Alert Cards */}
                   <div className="md:col-span-8 grid sm:grid-cols-2 gap-3.5">
-
                     {/* Em Dash Sentinel */}
-                    <div className={`p-4 rounded-2xl border ${report.quickStats?.emDashesCount === 0 ? 'bg-emerald-50/80 border-emerald-200' : 'bg-red-50/80 border-red-200'}`}>
+                    <div
+                      className={`p-4 rounded-2xl border ${report.quickStats?.emDashesCount === 0 ? 'bg-emerald-50/80 border-emerald-200' : 'bg-red-50/80 border-red-200'}`}
+                    >
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
                           🚫 Em Dashes Detected
                         </span>
-                        <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${report.quickStats?.emDashesCount === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}>
+                        <span
+                          className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${report.quickStats?.emDashesCount === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}
+                        >
                           {report.quickStats?.emDashesCount || 0}
                         </span>
                       </div>
                       <p className="text-[11px] text-gray-600">
                         {report.quickStats?.emDashesCount === 0
-                          ? "✓ Strict Himani rule satisfied: zero em dashes."
+                          ? '✓ Strict Himani rule satisfied: zero em dashes.'
                           : `Found ${report.quickStats.emDashesCount} em dash(es). Replace with commas or sentence breaks.`}
                       </p>
                     </div>
 
                     {/* AI Cliches & Buzzwords */}
-                    <div className={`p-4 rounded-2xl border ${report.quickStats?.aiPhrasesCount === 0 ? 'bg-emerald-50/80 border-emerald-200' : 'bg-amber-50/80 border-amber-200'}`}>
+                    <div
+                      className={`p-4 rounded-2xl border ${report.quickStats?.aiPhrasesCount === 0 ? 'bg-emerald-50/80 border-emerald-200' : 'bg-amber-50/80 border-amber-200'}`}
+                    >
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
                           🤖 Robotic AI Cliches
                         </span>
-                        <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${report.quickStats?.aiPhrasesCount === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                        <span
+                          className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${report.quickStats?.aiPhrasesCount === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}
+                        >
                           {report.quickStats?.aiPhrasesCount || 0}
                         </span>
                       </div>
@@ -828,21 +965,27 @@ Audited with Missive Digital Content QA Tool.`
                           🗣 Read Aloud Cadence
                         </span>
                         <span className="text-xs font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
-                          ~{Math.ceil((report.quickStats?.estimatedReadAloudTimeSec || 60) / 60)} min speech
+                          ~{Math.ceil((report.quickStats?.estimatedReadAloudTimeSec || 60) / 60)}{' '}
+                          min speech
                         </span>
                       </div>
                       <p className="text-[11px] text-purple-800/80">
-                        Flesch Ease: <strong>{report.quickStats?.fleschScore || 65}/100</strong>. Test audio flow in the studio tab.
+                        Flesch Ease: <strong>{report.quickStats?.fleschScore || 65}/100</strong>.
+                        Test audio flow in the studio tab.
                       </p>
                     </div>
 
                     {/* Insight-First Hook */}
-                    <div className={`p-4 rounded-2xl border ${report.statuses?.['ins-1'] === 'pass' ? 'bg-emerald-50/80 border-emerald-200' : 'bg-blue-50/80 border-blue-200'}`}>
+                    <div
+                      className={`p-4 rounded-2xl border ${report.statuses?.['ins-1'] === 'pass' ? 'bg-emerald-50/80 border-emerald-200' : 'bg-blue-50/80 border-blue-200'}`}
+                    >
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
                           ⚡ Insight-First Opening
                         </span>
-                        <span className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${report.statuses?.['ins-1'] === 'pass' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}`}>
+                        <span
+                          className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${report.statuses?.['ins-1'] === 'pass' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}`}
+                        >
                           {report.statuses?.['ins-1'] === 'pass' ? 'Passed' : 'Needs Polish'}
                         </span>
                       </div>
@@ -852,7 +995,6 @@ Audited with Missive Digital Content QA Tool.`
                           : 'Intro has throat-clearing setup. Start with the core insight.'}
                       </p>
                     </div>
-
                   </div>
                 </div>
 
@@ -893,7 +1035,9 @@ Audited with Missive Digital Content QA Tool.`
                     className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all ${activeTab === 'grid' ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-gray-500 hover:text-gray-900'}`}
                   >
                     <ClipboardCheck className="w-4 h-4" />
-                    <span>12-Pillar Checklist ({scores.passed}/{scores.total})</span>
+                    <span>
+                      12-Pillar Checklist ({scores.passed}/{scores.total})
+                    </span>
                   </button>
 
                   <button
@@ -933,13 +1077,18 @@ Audited with Missive Digital Content QA Tool.`
                   {/* Filter Pills */}
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Filter:</span>
+                      <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
+                        Filter:
+                      </span>
                       {[
                         { id: 'all', label: `All 12 Pillars (${scores.total})` },
-                        { id: 'needs_action', label: `Needs Action (${scores.failed + scores.warnings})` },
+                        {
+                          id: 'needs_action',
+                          label: `Needs Action (${scores.failed + scores.warnings})`,
+                        },
                         { id: 'passed', label: `Passed (${scores.passed})` },
                         { id: 'manual', label: 'Manual Review' },
-                      ].map(f => (
+                      ].map((f) => (
                         <button
                           key={f.id}
                           onClick={() => setFilterMode(f.id)}
@@ -952,23 +1101,26 @@ Audited with Missive Digital Content QA Tool.`
 
                     <button
                       onClick={() => {
-                        const allOpen = Object.keys(expandedCats).length === HIMANI_CATEGORIES_DEF.length
+                        const allOpen =
+                          Object.keys(expandedCats).length === HIMANI_CATEGORIES_DEF.length
                         if (allOpen) setExpandedCats({})
                         else {
                           const all = {}
-                          HIMANI_CATEGORIES_DEF.forEach(c => all[c.id] = true)
+                          HIMANI_CATEGORIES_DEF.forEach((c) => (all[c.id] = true))
                           setExpandedCats(all)
                         }
                       }}
                       className="text-xs font-semibold text-[#0C81F3] hover:underline"
                     >
-                      {Object.keys(expandedCats).length === HIMANI_CATEGORIES_DEF.length ? 'Collapse All' : 'Expand All Details'}
+                      {Object.keys(expandedCats).length === HIMANI_CATEGORIES_DEF.length
+                        ? 'Collapse All'
+                        : 'Expand All Details'}
                     </button>
                   </div>
 
                   {/* 2-Column Responsive Card Grid */}
                   <div className="grid md:grid-cols-2 gap-5">
-                    {filteredCategories.map(cat => {
+                    {filteredCategories.map((cat) => {
                       const catScore = scores.cats[cat.id] ?? 100
                       const isExpanded = expandedCats[cat.id]
                       const aiCat = report.ai?.categories?.[cat.id]
@@ -990,24 +1142,34 @@ Audited with Missive Digital Content QA Tool.`
                                 </div>
                                 <div>
                                   <div className="flex items-center gap-2">
-                                    <span className="text-xs font-bold text-gray-400">#{cat.number}</span>
+                                    <span className="text-xs font-bold text-gray-400">
+                                      #{cat.number}
+                                    </span>
                                     <h3 className="text-sm font-bold text-gray-900">{cat.label}</h3>
                                   </div>
-                                  <p className="text-[11px] text-gray-500">{cat.items.length} quality checks</p>
+                                  <p className="text-[11px] text-gray-500">
+                                    {cat.items.length} quality checks
+                                  </p>
                                 </div>
                               </div>
 
                               <div className="flex items-center gap-2.5">
-                                <span className={`text-xs font-extrabold px-2.5 py-1 rounded-full border ${getScoreBg(catScore)}`}>
+                                <span
+                                  className={`text-xs font-extrabold px-2.5 py-1 rounded-full border ${getScoreBg(catScore)}`}
+                                >
                                   {catScore}%
                                 </span>
-                                {isExpanded ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronRight className="w-4 h-4 text-gray-400" />}
+                                {isExpanded ? (
+                                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                                ) : (
+                                  <ChevronRight className="w-4 h-4 text-gray-400" />
+                                )}
                               </div>
                             </button>
 
                             {/* Checklist Items */}
                             <div className="px-4 pb-4 space-y-1.5 border-t border-gray-100 pt-3">
-                              {cat.items.map(item => {
+                              {cat.items.map((item) => {
                                 const st = getStatus(item)
                                 const evidenceText = report.evidence?.[item.id]
 
@@ -1029,7 +1191,9 @@ Audited with Missive Digital Content QA Tool.`
 
                                     <div className="flex-1">
                                       <div className="flex items-center justify-between gap-2">
-                                        <span className={`text-xs leading-snug ${st === 'pass' ? 'text-gray-800 font-medium' : st === 'warning' ? 'text-amber-900 font-semibold' : 'text-rose-900 font-semibold'}`}>
+                                        <span
+                                          className={`text-xs leading-snug ${st === 'pass' ? 'text-gray-800 font-medium' : st === 'warning' ? 'text-amber-900 font-semibold' : 'text-rose-900 font-semibold'}`}
+                                        >
                                           {item.label}
                                         </span>
                                         {item.auto ? (
@@ -1061,9 +1225,14 @@ Audited with Missive Digital Content QA Tool.`
                             <div className="bg-blue-50/40 p-4 border-t border-blue-100 text-xs space-y-2">
                               {aiCat.issues?.length > 0 && (
                                 <div>
-                                  <span className="font-bold text-rose-700 block mb-1">Detected Issues:</span>
+                                  <span className="font-bold text-rose-700 block mb-1">
+                                    Detected Issues:
+                                  </span>
                                   {aiCat.issues.map((issue, idx) => (
-                                    <p key={idx} className="text-gray-700 text-[11px] mb-0.5 flex items-start gap-1">
+                                    <p
+                                      key={idx}
+                                      className="text-gray-700 text-[11px] mb-0.5 flex items-start gap-1"
+                                    >
                                       <span className="text-rose-500">•</span>
                                       {issue}
                                     </p>
@@ -1072,9 +1241,14 @@ Audited with Missive Digital Content QA Tool.`
                               )}
                               {aiCat.suggestions?.length > 0 && (
                                 <div>
-                                  <span className="font-bold text-[#0C81F3] block mb-1">Himani's Suggestions:</span>
+                                  <span className="font-bold text-[#0C81F3] block mb-1">
+                                    Himani's Suggestions:
+                                  </span>
                                   {aiCat.suggestions.map((s, idx) => (
-                                    <p key={idx} className="text-gray-700 text-[11px] mb-0.5 flex items-start gap-1">
+                                    <p
+                                      key={idx}
+                                      className="text-gray-700 text-[11px] mb-0.5 flex items-start gap-1"
+                                    >
                                       <span className="text-[#0C81F3]">→</span>
                                       {s}
                                     </p>
@@ -1099,7 +1273,10 @@ Audited with Missive Digital Content QA Tool.`
                   {report.highlights?.length > 0 ? (
                     <div className="space-y-3">
                       {report.highlights.map((h, i) => (
-                        <div key={i} className={`p-3 rounded-xl border text-sm ${h.severity === 'error' ? 'bg-red-50 border-red-200 text-red-800' : h.severity === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-blue-50 border-blue-200 text-blue-800'}`}>
+                        <div
+                          key={i}
+                          className={`p-3 rounded-xl border text-sm ${h.severity === 'error' ? 'bg-red-50 border-red-200 text-red-800' : h.severity === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-blue-50 border-blue-200 text-blue-800'}`}
+                        >
                           <span className="font-bold">{h.label || 'Flag'}:</span> {h.message}
                         </div>
                       ))}
@@ -1116,13 +1293,19 @@ Audited with Missive Digital Content QA Tool.`
               {activeTab === 'read_aloud' && (
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
                   <h3 className="text-sm font-bold text-gray-900 mb-4">Read Aloud Audio Studio</h3>
-                  <p className="text-sm text-gray-600 mb-4">Listen to your content to check cadence and flow.</p>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Listen to your content to check cadence and flow.
+                  </p>
                   <div className="flex items-center gap-4">
                     <button
                       onClick={handleToggleSpeech}
                       className="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-sm font-semibold flex items-center gap-2"
                     >
-                      {isPlayingAudio ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                      {isPlayingAudio ? (
+                        <VolumeX className="w-4 h-4" />
+                      ) : (
+                        <Volume2 className="w-4 h-4" />
+                      )}
                       {isPlayingAudio ? 'Stop' : 'Play'}
                     </button>
                     <div className="flex items-center gap-2">
@@ -1147,7 +1330,9 @@ Audited with Missive Digital Content QA Tool.`
               {/* ═════════════════════════════════════════════════════ */}
               {activeTab === 'polish' && (
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-                  <h3 className="text-sm font-bold text-gray-900 mb-4">✨ One-Click Himani Polish</h3>
+                  <h3 className="text-sm font-bold text-gray-900 mb-4">
+                    ✨ One-Click Himani Polish
+                  </h3>
                   {isPolishing ? (
                     <p className="text-sm text-gray-500">Polishing your content...</p>
                   ) : polishedResult ? (
@@ -1156,7 +1341,9 @@ Audited with Missive Digital Content QA Tool.`
                         {polishedResult}
                       </div>
                       <button
-                        onClick={() => { navigator.clipboard.writeText(polishedResult) }}
+                        onClick={() => {
+                          navigator.clipboard.writeText(polishedResult)
+                        }}
                         className="mt-3 px-4 py-2 text-xs font-semibold text-[#0C81F3] bg-blue-50 rounded-lg hover:bg-blue-100"
                       >
                         Copy Polished Content

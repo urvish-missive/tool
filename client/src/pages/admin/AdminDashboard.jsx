@@ -35,8 +35,11 @@ export default function AdminDashboard() {
     <div className="space-y-6">
       {/* Stats Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        {statCards.map(card => (
-          <div key={card.label} className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm">
+        {statCards.map((card) => (
+          <div
+            key={card.label}
+            className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm"
+          >
             <div className="flex items-center gap-2 mb-2">
               <span className="text-lg">{card.icon}</span>
               <span className="text-xs text-gray-500">{card.label}</span>
@@ -51,15 +54,22 @@ export default function AdminDashboard() {
         <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
           <h3 className="text-base font-semibold text-gray-900 mb-4">Tool Status</h3>
           <div className="space-y-3">
-            {stats.toolConfigs?.map(tool => (
-              <div key={tool.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0">
+            {stats.toolConfigs?.map((tool) => (
+              <div
+                key={tool.id}
+                className="flex items-center justify-between py-2 border-b border-gray-100 last:border-0"
+              >
                 <div className="flex items-center gap-3">
-                  <div className={`w-2.5 h-2.5 rounded-full ${tool.enabled ? 'bg-green-500' : 'bg-red-400'}`} />
+                  <div
+                    className={`w-2.5 h-2.5 rounded-full ${tool.enabled ? 'bg-green-500' : 'bg-red-400'}`}
+                  />
                   <span className="text-sm font-medium text-gray-900">{tool.name}</span>
                 </div>
                 <div className="flex items-center gap-4 text-xs text-gray-500">
                   <span>Limit: {tool.hourlyLimit}/hr</span>
-                  <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${tool.enabled ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+                  <span
+                    className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${tool.enabled ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}
+                  >
                     {tool.enabled ? 'Active' : 'Disabled'}
                   </span>
                 </div>
@@ -75,17 +85,22 @@ export default function AdminDashboard() {
             <p className="text-sm text-gray-400 py-8 text-center">No leads yet</p>
           ) : (
             <div className="space-y-3">
-              {stats.leadsBySource.map(item => {
-                const maxCount = Math.max(...stats.leadsBySource.map(s => s.count))
+              {stats.leadsBySource.map((item) => {
+                const maxCount = Math.max(...stats.leadsBySource.map((s) => s.count))
                 const pct = maxCount ? (item.count / maxCount) * 100 : 0
                 return (
                   <div key={item.source}>
                     <div className="flex justify-between text-sm mb-1">
-                      <span className="font-medium text-gray-700 capitalize">{item.source.replace(/-/g, ' ')}</span>
+                      <span className="font-medium text-gray-700 capitalize">
+                        {item.source.replace(/-/g, ' ')}
+                      </span>
                       <span className="text-gray-500">{item.count}</span>
                     </div>
                     <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                      <div className="h-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] rounded-full transition-all" style={{ width: `${pct}%` }} />
+                      <div
+                        className="h-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] rounded-full transition-all"
+                        style={{ width: `${pct}%` }}
+                      />
                     </div>
                   </div>
                 )
@@ -98,7 +113,7 @@ export default function AdminDashboard() {
       {/* Recent Activity */}
       <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
         <h3 className="text-base font-semibold text-gray-900 mb-4">Recent Activity</h3>
-        {(!stats.recentActivity || stats.recentActivity.length === 0) ? (
+        {!stats.recentActivity || stats.recentActivity.length === 0 ? (
           <p className="text-sm text-gray-400 py-8 text-center">No activity yet</p>
         ) : (
           <div className="space-y-2">
@@ -120,15 +135,22 @@ export default function AdminDashboard() {
                 'ROI Calculator': '💰',
               }
               return (
-                <div key={i} className="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0">
+                <div
+                  key={i}
+                  className="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0"
+                >
                   <span className="text-base">{toolIcons[item.tool] || '🛠️'}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${toolColors[item.tool] || 'bg-gray-100 text-gray-600'}`}>
+                      <span
+                        className={`px-2 py-0.5 rounded-full text-[11px] font-medium ${toolColors[item.tool] || 'bg-gray-100 text-gray-600'}`}
+                      >
                         {item.tool}
                       </span>
                       {item.score != null && (
-                        <span className={`text-xs font-semibold ${item.score >= 70 ? 'text-green-600' : item.score >= 40 ? 'text-yellow-600' : 'text-red-500'}`}>
+                        <span
+                          className={`text-xs font-semibold ${item.score >= 70 ? 'text-green-600' : item.score >= 40 ? 'text-yellow-600' : 'text-red-500'}`}
+                        >
                           {item.score}/100
                         </span>
                       )}
@@ -149,7 +171,9 @@ export default function AdminDashboard() {
       <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-base font-semibold text-gray-900">Recent Leads</h3>
-          <a href="/admin/leads" className="text-sm text-[#0C81F3] hover:underline">View All →</a>
+          <a href="/admin/leads" className="text-sm text-[#0C81F3] hover:underline">
+            View All →
+          </a>
         </div>
         {!stats.recentLeads || stats.recentLeads.length === 0 ? (
           <p className="text-sm text-gray-400 py-8 text-center">No leads yet</p>
@@ -165,7 +189,7 @@ export default function AdminDashboard() {
                 </tr>
               </thead>
               <tbody>
-                {stats.recentLeads.map(lead => (
+                {stats.recentLeads.map((lead) => (
                   <tr key={lead.id} className="border-b border-gray-50 hover:bg-gray-50">
                     <td className="py-2.5 text-gray-900 font-medium">{lead.name}</td>
                     <td className="py-2.5 text-gray-500">{lead.email}</td>
@@ -174,7 +198,9 @@ export default function AdminDashboard() {
                         {lead.source?.replace(/-/g, ' ') || 'unknown'}
                       </span>
                     </td>
-                    <td className="py-2.5 text-gray-400">{new Date(lead.createdAt).toLocaleDateString()}</td>
+                    <td className="py-2.5 text-gray-400">
+                      {new Date(lead.createdAt).toLocaleDateString()}
+                    </td>
                   </tr>
                 ))}
               </tbody>

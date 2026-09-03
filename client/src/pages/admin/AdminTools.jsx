@@ -82,18 +82,20 @@ export default function AdminTools() {
     }
   }, [data?.tools])
 
-  const tools = localTools.length > 0 ? localTools : (data?.tools || [])
+  const tools = localTools.length > 0 ? localTools : data?.tools || []
 
   const updateTool = async (id, updates) => {
     // 1. Optimistic instant local update
-    setLocalTools(prev => prev.map(t => {
-      if (t.id !== id) return t
-      const next = { ...t, ...updates }
-      if (updates.formFields && typeof updates.formFields === 'object') {
-        next.formFields = JSON.stringify(updates.formFields)
-      }
-      return next
-    }))
+    setLocalTools((prev) =>
+      prev.map((t) => {
+        if (t.id !== id) return t
+        const next = { ...t, ...updates }
+        if (updates.formFields && typeof updates.formFields === 'object') {
+          next.formFields = JSON.stringify(updates.formFields)
+        }
+        return next
+      })
+    )
 
     // 2. Persist to API in background
     try {
@@ -105,16 +107,18 @@ export default function AdminTools() {
   }
 
   const updateFormField = (toolId, toolSlug, fieldKey, enabled) => {
-    const tool = tools.find(t => t.id === toolId)
+    const tool = tools.find((t) => t.id === toolId)
     let currentFields = {}
-    try { currentFields = tool?.formFields ? JSON.parse(tool.formFields) : {} } catch {}
+    try {
+      currentFields = tool?.formFields ? JSON.parse(tool.formFields) : {}
+    } catch {}
 
     const updatedFields = {
       ...currentFields,
       [fieldKey]: {
         ...(currentFields[fieldKey] || {}),
         enabled,
-        label: TOOL_FIELDS[toolSlug]?.find(f => f.key === fieldKey)?.label || fieldKey,
+        label: TOOL_FIELDS[toolSlug]?.find((f) => f.key === fieldKey)?.label || fieldKey,
       },
     }
 
@@ -134,18 +138,25 @@ export default function AdminTools() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">Tool Management</h2>
-          <p className="text-sm text-gray-500">Enable/disable tools, configure fields, and set rate limits</p>
+          <p className="text-sm text-gray-500">
+            Enable/disable tools, configure fields, and set rate limits
+          </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {tools.map(tool => {
+        {tools.map((tool) => {
           let currentFields = {}
-          try { currentFields = tool.formFields ? JSON.parse(tool.formFields) : {} } catch {}
+          try {
+            currentFields = tool.formFields ? JSON.parse(tool.formFields) : {}
+          } catch {}
           const fieldDefs = TOOL_FIELDS[tool.slug] || []
 
           return (
-            <div key={tool.id} className={`bg-white border rounded-xl p-6 shadow-sm transition-all ${tool.enabled ? 'border-gray-200' : 'border-red-200 bg-red-50/30'}`}>
+            <div
+              key={tool.id}
+              className={`bg-white border rounded-xl p-6 shadow-sm transition-all ${tool.enabled ? 'border-gray-200' : 'border-red-200 bg-red-50/30'}`}
+            >
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <h3 className="text-base font-semibold text-gray-900">{tool.name}</h3>
@@ -157,7 +168,9 @@ export default function AdminTools() {
                   onClick={() => updateTool(tool.id, { enabled: !tool.enabled })}
                   className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none ${tool.enabled ? 'bg-green-500' : 'bg-gray-300'}`}
                 >
-                  <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${tool.enabled ? 'translate-x-6' : 'translate-x-1'}`} />
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${tool.enabled ? 'translate-x-6' : 'translate-x-1'}`}
+                  />
                 </button>
               </div>
 
@@ -180,21 +193,29 @@ export default function AdminTools() {
               {/* Rate Limits */}
               <div className="grid grid-cols-2 gap-3 mb-4">
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Hourly Limit</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Hourly Limit
+                  </label>
                   <input
                     type="number"
                     value={tool.hourlyLimit}
-                    onChange={(e) => updateTool(tool.id, { hourlyLimit: parseInt(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      updateTool(tool.id, { hourlyLimit: parseInt(e.target.value) || 0 })
+                    }
                     className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-[#0C81F3] focus:outline-none"
                     min="1"
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-600 mb-1">Daily Limit</label>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Daily Limit
+                  </label>
                   <input
                     type="number"
                     value={tool.dailyLimit}
-                    onChange={(e) => updateTool(tool.id, { dailyLimit: parseInt(e.target.value) || 0 })}
+                    onChange={(e) =>
+                      updateTool(tool.id, { dailyLimit: parseInt(e.target.value) || 0 })
+                    }
                     className="w-full bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 focus:border-[#0C81F3] focus:outline-none"
                     min="1"
                   />
@@ -205,9 +226,11 @@ export default function AdminTools() {
               {fieldDefs.length > 0 && (
                 <div className="border-t border-gray-100 pt-4 mb-4">
                   <p className="text-xs font-medium text-gray-600 mb-1">Form Fields</p>
-                  <p className="text-[10px] text-gray-400 mb-2">Show or hide input fields in the tool form</p>
+                  <p className="text-[10px] text-gray-400 mb-2">
+                    Show or hide input fields in the tool form
+                  </p>
                   <div className="flex flex-wrap gap-2">
-                    {fieldDefs.map(field => {
+                    {fieldDefs.map((field) => {
                       const isEnabled = currentFields[field.key]?.enabled !== false
                       return (
                         <button
@@ -232,15 +255,19 @@ export default function AdminTools() {
               <div className="border-t border-gray-100 pt-4 space-y-4">
                 {/* Required Fields (inline form after results) */}
                 <div>
-                  <p className="text-xs font-medium text-gray-600 mb-1">Required Fields (Bottom Form)</p>
-                  <p className="text-[10px] text-gray-400 mb-2">Fields shown in the lead form at the bottom of tool results</p>
+                  <p className="text-xs font-medium text-gray-600 mb-1">
+                    Required Fields (Bottom Form)
+                  </p>
+                  <p className="text-[10px] text-gray-400 mb-2">
+                    Fields shown in the lead form at the bottom of tool results
+                  </p>
                   <div className="flex flex-wrap gap-2">
                     {[
                       { key: 'requireEmail', label: 'Email' },
                       { key: 'requireName', label: 'Name' },
                       { key: 'requirePhone', label: 'Phone' },
                       { key: 'requireCompany', label: 'Company' },
-                    ].map(field => (
+                    ].map((field) => (
                       <button
                         type="button"
                         key={field.key}
@@ -261,15 +288,21 @@ export default function AdminTools() {
                 <div className="bg-gray-50 rounded-lg p-3 border border-gray-100">
                   <div className="flex items-center justify-between mb-2">
                     <div>
-                      <p className="text-xs font-medium text-gray-600">Lead Popup (Before Tool Use)</p>
-                      <p className="text-[10px] text-gray-400">Show a popup form before users can access this tool</p>
+                      <p className="text-xs font-medium text-gray-600">
+                        Lead Popup (Before Tool Use)
+                      </p>
+                      <p className="text-[10px] text-gray-400">
+                        Show a popup form before users can access this tool
+                      </p>
                     </div>
                     <button
                       type="button"
                       onClick={() => updateTool(tool.id, { showLeadPopup: !tool.showLeadPopup })}
                       className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer focus:outline-none ${tool.showLeadPopup ? 'bg-[#0C81F3]' : 'bg-gray-300'}`}
                     >
-                      <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${tool.showLeadPopup ? 'translate-x-6' : 'translate-x-1'}`} />
+                      <span
+                        className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${tool.showLeadPopup ? 'translate-x-6' : 'translate-x-1'}`}
+                      />
                     </button>
                   </div>
 
@@ -282,7 +315,7 @@ export default function AdminTools() {
                           { key: 'requireEmail', label: 'Email', icon: '✉️' },
                           { key: 'requirePhone', label: 'Phone', icon: '📞' },
                           { key: 'requireCompany', label: 'Company', icon: '🏢' },
-                        ].map(field => (
+                        ].map((field) => (
                           <button
                             type="button"
                             key={`popup-${field.key}`}
@@ -299,10 +332,14 @@ export default function AdminTools() {
                         ))}
                       </div>
                       <p className="text-[10px] text-gray-400 mt-2">
-                        {tool.requireName && tool.requireEmail ? '✓ Name and Email will be required in the popup' :
-                         tool.requireEmail ? '✓ Email will be required in the popup' :
-                         tool.requireName ? '✓ Name will be required in the popup' :
-                         'No fields marked as required — all optional'}</p>
+                        {tool.requireName && tool.requireEmail
+                          ? '✓ Name and Email will be required in the popup'
+                          : tool.requireEmail
+                            ? '✓ Email will be required in the popup'
+                            : tool.requireName
+                              ? '✓ Name will be required in the popup'
+                              : 'No fields marked as required — all optional'}
+                      </p>
                     </div>
                   )}
                 </div>

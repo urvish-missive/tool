@@ -101,8 +101,8 @@ export default function UnifiedToolLoader({
                   isActive
                     ? 'text-slate-900 font-bold bg-white p-2 rounded-lg shadow-sm border border-slate-200/80'
                     : isDone
-                    ? 'text-slate-500 font-medium px-2 py-1'
-                    : 'text-slate-400 px-2 py-1'
+                      ? 'text-slate-500 font-medium px-2 py-1'
+                      : 'text-slate-400 px-2 py-1'
                 }`}
               >
                 {isDone ? (

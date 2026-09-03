@@ -26,7 +26,13 @@ const NAV_ITEMS = [
             { icon: '🤖', label: 'AI SEO', href: '#' },
             { icon: '📱', label: 'CAF Framework', href: '#' },
             { icon: '🎯', label: 'GEO Readiness Score', href: '#' },
-            { icon: '📊', label: 'Telecom AI SEO', badge: 'BLOG', badgeColor: 'bg-white text-gray-900', href: '#' },
+            {
+              icon: '📊',
+              label: 'Telecom AI SEO',
+              badge: 'BLOG',
+              badgeColor: 'bg-white text-gray-900',
+              href: '#',
+            },
           ],
         },
       ],
@@ -89,7 +95,13 @@ const NAV_ITEMS = [
           items: [
             { icon: '✏️', label: 'Blog', href: '#' },
             { icon: '✅', label: 'Content QA Checklist', href: '/content-qa' },
-            { icon: '🔍', label: 'SEO Strategies', badge: 'WEBINAR', badgeColor: 'bg-white text-gray-900', href: '#' },
+            {
+              icon: '🔍',
+              label: 'SEO Strategies',
+              badge: 'WEBINAR',
+              badgeColor: 'bg-white text-gray-900',
+              href: '#',
+            },
             { icon: '📊', label: 'Case Study', href: '#' },
           ],
         },
@@ -103,20 +115,58 @@ const NAV_ITEMS = [
         {
           items: [
             { icon: '📝', label: 'AI Content Analyzer', href: '/content-analyzer' },
-            { icon: '✅', label: 'Content QA Checklist', badge: 'NEW', badgeColor: 'bg-green-500 text-white', href: '/content-qa' },
-            { icon: '💡', label: 'Blog Topic Generator', badgeColor: 'bg-green-500 text-white', href: '/blog-topic-generator' },
-            { icon: '❓', label: 'FAQ Generator', badgeColor: 'bg-purple-500 text-white', href: '/faq-generator' },
-            { icon: '🎨', label: 'Logo Maker', badgeColor: 'bg-blue-500 text-white', href: '/logo-maker' },
+            {
+              icon: '✅',
+              label: 'Content QA Checklist',
+              badge: 'NEW',
+              badgeColor: 'bg-green-500 text-white',
+              href: '/content-qa',
+            },
+            {
+              icon: '💡',
+              label: 'Blog Topic Generator',
+              badgeColor: 'bg-green-500 text-white',
+              href: '/blog-topic-generator',
+            },
+            {
+              icon: '❓',
+              label: 'FAQ Generator',
+              badgeColor: 'bg-purple-500 text-white',
+              href: '/faq-generator',
+            },
+            {
+              icon: '🎨',
+              label: 'Logo Maker',
+              badgeColor: 'bg-blue-500 text-white',
+              href: '/logo-maker',
+            },
             { icon: '💰', label: 'SEO ROI Calculator', href: '/seo-roi-calculator' },
           ],
         },
         {
           items: [
-            { icon: '📈', label: 'Google Rank Checker', badge: 'NEW', badgeColor: 'bg-blue-600 text-white', href: '/google-rank-checker' },
+            {
+              icon: '📈',
+              label: 'Google Rank Checker',
+              badge: 'NEW',
+              badgeColor: 'bg-blue-600 text-white',
+              href: '/google-rank-checker',
+            },
             { icon: '🔍', label: 'SEO Website Audit', href: '/seo-audit' },
             { icon: '🎯', label: 'Keyword Research', href: '/keyword-research' },
-            { icon: '🕵️', label: 'Competitor Analysis', badgeColor: 'bg-red-500 text-white', href: '/competitor-analysis' },
-            { icon: '🗺️', label: 'XML Sitemap Generator', badge: 'NEW', badgeColor: 'bg-emerald-500 text-white', href: '/xml-sitemap-generator' },
+            {
+              icon: '🕵️',
+              label: 'Competitor Analysis',
+              badgeColor: 'bg-red-500 text-white',
+              href: '/competitor-analysis',
+            },
+            {
+              icon: '🗺️',
+              label: 'XML Sitemap Generator',
+              badge: 'NEW',
+              badgeColor: 'bg-emerald-500 text-white',
+              href: '/xml-sitemap-generator',
+            },
           ],
         },
       ],
@@ -135,7 +185,11 @@ const NAV_ITEMS = [
         {
           items: [
             { icon: '📞', label: '+91 95370 95025', href: 'tel:+919537095025' },
-            { icon: '✉️', label: 'hello@missivedigital.com', href: 'mailto:hello@missivedigital.com' },
+            {
+              icon: '✉️',
+              label: 'hello@missivedigital.com',
+              href: 'mailto:hello@missivedigital.com',
+            },
             { icon: '📍', label: '825, Iconic Shyamal, Ahmedabad, 380015', href: '#' },
           ],
         },
@@ -155,7 +209,9 @@ export default function Navbar() {
   const disabledTools = useMemo(() => {
     const disabled = new Set()
     if (toolsData?.success && toolsData?.tools) {
-      toolsData.tools.forEach(t => { if (!t.enabled) disabled.add(t.slug) })
+      toolsData.tools.forEach((t) => {
+        if (!t.enabled) disabled.add(t.slug)
+      })
     }
     return disabled
   }, [toolsData])
@@ -181,7 +237,11 @@ export default function Navbar() {
 
   return (
     <div className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 lg:px-8 pt-4" ref={navRef}>
-      <nav className="max-w-6xl mx-auto bg-white/90 backdrop-blur-xl rounded-2xl shadow-[0_2px_20px_rgba(0,0,0,0.08)] border border-white/60 px-4 sm:px-6" role="navigation" aria-label="Main navigation">
+      <nav
+        className="max-w-6xl mx-auto bg-white/90 backdrop-blur-xl rounded-2xl shadow-[0_2px_20px_rgba(0,0,0,0.08)] border border-white/60 px-4 sm:px-6"
+        role="navigation"
+        aria-label="Main navigation"
+      >
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
@@ -194,7 +254,9 @@ export default function Navbar() {
           {/* Desktop nav */}
           <div className="hidden lg:flex items-center gap-1">
             {NAV_ITEMS.map((item, idx) => (
-              <div key={item.label} className="relative"
+              <div
+                key={item.label}
+                className="relative"
                 onMouseEnter={() => item.dropdown && handleMouseEnter(idx)}
                 onMouseLeave={item.dropdown ? handleMouseLeave : undefined}
               >
@@ -220,28 +282,41 @@ export default function Navbar() {
                     onMouseEnter={() => handleMouseEnter(idx)}
                     onMouseLeave={handleMouseLeave}
                   >
-                    <div className="p-6" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)' }}>
-                      <div className={`grid gap-8 ${item.dropdown.columns.length === 1 ? 'grid-cols-1' : item.dropdown.columns.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                    <div
+                      className="p-6"
+                      style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)' }}
+                    >
+                      <div
+                        className={`grid gap-8 ${item.dropdown.columns.length === 1 ? 'grid-cols-1' : item.dropdown.columns.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}
+                      >
                         {item.dropdown.columns.map((col, ci) => (
                           <div key={ci} className="space-y-0.5 min-w-0">
-                            {col.items.filter(sub => {
-                              const slug = TOOL_HREF_SLUGS[sub.href]
-                              return !slug || !disabledTools.has(slug)
-                            }).map((sub) => (
-                              <a
-                                key={sub.label}
-                                href={sub.href}
-                                className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/15 hover:text-white transition-colors text-[13px]"
-                              >
-                                {sub.icon && <span className="text-sm w-5 h-5 flex items-center justify-center shrink-0 leading-none">{sub.icon}</span>}
-                                <span className="leading-snug">{sub.label}</span>
-                                {sub.badge && (
-                                  <span className={`ml-auto shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${sub.badgeColor}`}>
-                                    {sub.badge}
-                                  </span>
-                                )}
-                              </a>
-                            ))}
+                            {col.items
+                              .filter((sub) => {
+                                const slug = TOOL_HREF_SLUGS[sub.href]
+                                return !slug || !disabledTools.has(slug)
+                              })
+                              .map((sub) => (
+                                <a
+                                  key={sub.label}
+                                  href={sub.href}
+                                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/15 hover:text-white transition-colors text-[13px]"
+                                >
+                                  {sub.icon && (
+                                    <span className="text-sm w-5 h-5 flex items-center justify-center shrink-0 leading-none">
+                                      {sub.icon}
+                                    </span>
+                                  )}
+                                  <span className="leading-snug">{sub.label}</span>
+                                  {sub.badge && (
+                                    <span
+                                      className={`ml-auto shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${sub.badgeColor}`}
+                                    >
+                                      {sub.badge}
+                                    </span>
+                                  )}
+                                </a>
+                              ))}
                           </div>
                         ))}
                       </div>
@@ -254,7 +329,10 @@ export default function Navbar() {
 
           {/* CTA + Mobile toggle */}
           <div className="flex items-center gap-3">
-            <a href="#" className="hidden sm:inline-flex items-center rounded-full bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 transition-colors shadow-sm">
+            <a
+              href="#"
+              className="hidden sm:inline-flex items-center rounded-full bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 transition-colors shadow-sm"
+            >
               Book a Consultation
             </a>
             <button
@@ -264,12 +342,28 @@ export default function Navbar() {
               aria-expanded={mobileOpen}
             >
               {mobileOpen ? (
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               ) : (
-                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+                  />
                 </svg>
               )}
             </button>
@@ -288,36 +382,67 @@ export default function Navbar() {
                       className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl"
                     >
                       {item.label}
-                      <svg className={`w-4 h-4 text-gray-400 transition-transform ${mobileExpanded === idx ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+                      <svg
+                        className={`w-4 h-4 text-gray-400 transition-transform ${mobileExpanded === idx ? 'rotate-180' : ''}`}
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={2}
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                        />
                       </svg>
                     </button>
                     {mobileExpanded === idx && (
                       <div className="pl-4 pb-2">
-                        {item.dropdown.columns.flatMap(col => col.items).filter(sub => {
-                          const slug = TOOL_HREF_SLUGS[sub.href]
-                          return !slug || !disabledTools.has(slug)
-                        }).map((sub) => (
-                          <a key={sub.label} href={sub.href} className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 rounded-lg">
-                            {sub.icon && <span className="text-sm w-5 h-5 flex items-center justify-center shrink-0">{sub.icon}</span>}
-                            {sub.label}
-                            {sub.badge && (
-                              <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${sub.badgeColor}`}>{sub.badge}</span>
-                            )}
-                          </a>
-                        ))}
+                        {item.dropdown.columns
+                          .flatMap((col) => col.items)
+                          .filter((sub) => {
+                            const slug = TOOL_HREF_SLUGS[sub.href]
+                            return !slug || !disabledTools.has(slug)
+                          })
+                          .map((sub) => (
+                            <a
+                              key={sub.label}
+                              href={sub.href}
+                              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 rounded-lg"
+                            >
+                              {sub.icon && (
+                                <span className="text-sm w-5 h-5 flex items-center justify-center shrink-0">
+                                  {sub.icon}
+                                </span>
+                              )}
+                              {sub.label}
+                              {sub.badge && (
+                                <span
+                                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${sub.badgeColor}`}
+                                >
+                                  {sub.badge}
+                                </span>
+                              )}
+                            </a>
+                          ))}
                       </div>
                     )}
                   </>
                 ) : (
-                  <a href={item.href} className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl">
+                  <a
+                    href={item.href}
+                    className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl"
+                  >
                     {item.label}
                   </a>
                 )}
               </div>
             ))}
             <div className="px-4 pt-2">
-              <a href="#" className="block w-full text-center rounded-full bg-gray-900 px-5 py-3 text-sm font-semibold text-white hover:bg-gray-800">
+              <a
+                href="#"
+                className="block w-full text-center rounded-full bg-gray-900 px-5 py-3 text-sm font-semibold text-white hover:bg-gray-800"
+              >
                 Book a Consultation
               </a>
             </div>

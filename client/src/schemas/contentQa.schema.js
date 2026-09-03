@@ -1,10 +1,16 @@
 import { z } from 'zod'
 
 export const contentQaSchema = z.object({
-  content: z.string().trim().min(20, 'Content must be at least 20 characters.').max(50000, 'Content must be under 50,000 characters.'),
+  content: z
+    .string()
+    .trim()
+    .min(20, 'Content must be at least 20 characters.')
+    .max(50000, 'Content must be under 50,000 characters.'),
   title: z.string().trim().max(200).optional().or(z.literal('')),
   targetKeyword: z.string().trim().max(100).optional().or(z.literal('')),
-  platform: z.enum(['website', 'linkedin', 'newsletter', 'landing_page', 'social']).default('website'),
+  platform: z
+    .enum(['website', 'linkedin', 'newsletter', 'landing_page', 'social'])
+    .default('website'),
   targetAudience: z.string().trim().max(200).optional().or(z.literal('')),
   preferredProvider: z.enum(['openrouter', 'gemini', 'groq']).default('openrouter'),
 })

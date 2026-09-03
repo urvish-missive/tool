@@ -17,7 +17,13 @@ function PriorityBadge({ priority }) {
     MEDIUM: 'bg-amber-100 text-amber-700',
     LOW: 'bg-green-100 text-green-700',
   }
-  return <span className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${colors[p] || 'bg-gray-100 text-gray-700'}`}>{p}</span>
+  return (
+    <span
+      className={`inline-block px-2 py-0.5 rounded text-xs font-semibold ${colors[p] || 'bg-gray-100 text-gray-700'}`}
+    >
+      {p}
+    </span>
+  )
 }
 
 export default function AnalysisReport({ report }) {
@@ -25,20 +31,33 @@ export default function AnalysisReport({ report }) {
     <div className="space-y-8">
       {/* Overall Score */}
       <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-8 text-center">
-        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Overall Score</h3>
+        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+          Overall Score
+        </h3>
         <ScoreRing score={report.overall_score} size={140} strokeWidth={10} />
         <p className="mt-4 text-lg font-medium text-gray-700 max-w-lg mx-auto">
-          {report.overall_score >= 80 ? 'Excellent' : report.overall_score >= 60 ? 'Good' : report.overall_score >= 40 ? 'Needs Improvement' : 'Significant Issues'}
+          {report.overall_score >= 80
+            ? 'Excellent'
+            : report.overall_score >= 60
+              ? 'Good'
+              : report.overall_score >= 40
+                ? 'Needs Improvement'
+                : 'Significant Issues'}
         </p>
       </div>
 
       {/* Score Cards */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-        {Object.entries(SCORE_LABELS).slice(1).map(([key, label]) => (
-          <div key={key} className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 text-center">
-            <ScoreRing score={report[key]} size={70} strokeWidth={5} label={label} />
-          </div>
-        ))}
+        {Object.entries(SCORE_LABELS)
+          .slice(1)
+          .map(([key, label]) => (
+            <div
+              key={key}
+              className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 text-center"
+            >
+              <ScoreRing score={report[key]} size={70} strokeWidth={5} label={label} />
+            </div>
+          ))}
       </div>
 
       {/* Executive Summary */}
@@ -72,8 +91,12 @@ export default function AnalysisReport({ report }) {
                   <span className="text-red-500">🔴</span>
                   <span className="font-semibold text-red-800">{issue.issue}</span>
                 </div>
-                <p className="text-sm text-red-700 mt-1"><strong>Why it matters:</strong> {issue.why_it_matters}</p>
-                <p className="text-sm text-red-700 mt-1"><strong>How to fix:</strong> {issue.action}</p>
+                <p className="text-sm text-red-700 mt-1">
+                  <strong>Why it matters:</strong> {issue.why_it_matters}
+                </p>
+                <p className="text-sm text-red-700 mt-1">
+                  <strong>How to fix:</strong> {issue.action}
+                </p>
               </div>
             ))}
           </div>
@@ -104,8 +127,12 @@ export default function AnalysisReport({ report }) {
                   <PriorityBadge priority={rec.priority} />
                   <span className="font-semibold text-gray-900">{rec.title}</span>
                 </div>
-                <p className="text-sm text-gray-600"><strong>Why:</strong> {rec.why}</p>
-                <p className="text-sm text-gray-600 mt-1"><strong>How to improve:</strong> {rec.how}</p>
+                <p className="text-sm text-gray-600">
+                  <strong>Why:</strong> {rec.why}
+                </p>
+                <p className="text-sm text-gray-600 mt-1">
+                  <strong>How to improve:</strong> {rec.how}
+                </p>
               </div>
             ))}
           </div>
@@ -132,20 +159,28 @@ export default function AnalysisReport({ report }) {
           <div className="grid sm:grid-cols-2 gap-6">
             {report.heading_recommendations.current?.length > 0 && (
               <div>
-                <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Current</h4>
+                <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                  Current
+                </h4>
                 <ul className="space-y-1.5 text-sm text-gray-700">
                   {report.heading_recommendations.current.map((h, i) => (
-                    <li key={i} className="bg-gray-50 rounded px-3 py-1.5">{h}</li>
+                    <li key={i} className="bg-gray-50 rounded px-3 py-1.5">
+                      {h}
+                    </li>
                   ))}
                 </ul>
               </div>
             )}
             {report.heading_recommendations.suggested?.length > 0 && (
               <div>
-                <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">Suggested</h4>
+                <h4 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
+                  Suggested
+                </h4>
                 <ul className="space-y-1.5 text-sm text-gray-700">
                   {report.heading_recommendations.suggested.map((h, i) => (
-                    <li key={i} className="bg-blue-50 rounded px-3 py-1.5">{h}</li>
+                    <li key={i} className="bg-blue-50 rounded px-3 py-1.5">
+                      {h}
+                    </li>
                   ))}
                 </ul>
               </div>
@@ -162,7 +197,10 @@ export default function AnalysisReport({ report }) {
               <li key={i}>{q}</li>
             ))}
           </ol>
-          <button disabled className="mt-4 px-4 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed">
+          <button
+            disabled
+            className="mt-4 px-4 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed"
+          >
             Generate FAQ Schema — Coming Soon
           </button>
         </Section>
@@ -194,7 +232,9 @@ export default function AnalysisReport({ report }) {
               <tbody>
                 {report.action_plan.map((item, i) => (
                   <tr key={i} className="border-b border-gray-100">
-                    <td className="py-2.5 pr-4"><PriorityBadge priority={item.priority} /></td>
+                    <td className="py-2.5 pr-4">
+                      <PriorityBadge priority={item.priority} />
+                    </td>
                     <td className="py-2.5 pr-4 font-medium text-gray-900">{item.task}</td>
                     <td className="py-2.5 text-gray-600">{item.reason}</td>
                   </tr>
@@ -234,7 +274,9 @@ export default function AnalysisReport({ report }) {
 function Section({ title, children, accent }) {
   const borderColors = { red: 'border-red-200', amber: 'border-amber-200' }
   return (
-    <div className={`bg-white rounded-2xl border ${borderColors[accent] || 'border-gray-200'} shadow-sm p-6 sm:p-8`}>
+    <div
+      className={`bg-white rounded-2xl border ${borderColors[accent] || 'border-gray-200'} shadow-sm p-6 sm:p-8`}
+    >
       <h3 className="text-lg font-semibold text-gray-900 mb-4">{title}</h3>
       {children}
     </div>

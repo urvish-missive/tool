@@ -20,7 +20,8 @@ const TOOLS = [
   {
     id: 'content_analyzer',
     title: 'Content Analyzer',
-    description: 'AI-driven on-page SEO analyzer with real-time scoring, content gaps, readability, and strategic insights.',
+    description:
+      'AI-driven on-page SEO analyzer with real-time scoring, content gaps, readability, and strategic insights.',
     icon: '📊',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/content-analyzer',
@@ -29,7 +30,8 @@ const TOOLS = [
   {
     id: 'seo_audit',
     title: 'SEO Audit',
-    description: 'Deep technical SEO website crawler analyzing meta tags, headings, schema markup, and performance.',
+    description:
+      'Deep technical SEO website crawler analyzing meta tags, headings, schema markup, and performance.',
     icon: '🔍',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/seo-audit',
@@ -38,7 +40,8 @@ const TOOLS = [
   {
     id: 'keyword_research',
     title: 'Keyword Research',
-    description: 'Discover high-intent keyword opportunities, topic clusters, search intent, and long-tail ideas.',
+    description:
+      'Discover high-intent keyword opportunities, topic clusters, search intent, and long-tail ideas.',
     icon: '🎯',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/keyword-research',
@@ -47,7 +50,8 @@ const TOOLS = [
   {
     id: 'blog_topic_generator',
     title: 'Blog Topic Generator',
-    description: 'Generate catchy, SEO-optimized blog topic ideas with headlines, target keywords, and content briefs.',
+    description:
+      'Generate catchy, SEO-optimized blog topic ideas with headlines, target keywords, and content briefs.',
     icon: '💡',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/blog-topic-generator',
@@ -56,7 +60,8 @@ const TOOLS = [
   {
     id: 'logo_maker',
     title: 'AI Logo Maker',
-    description: 'Create unique, customizable SVG vector logos for your brand with instant downloads in multiple formats.',
+    description:
+      'Create unique, customizable SVG vector logos for your brand with instant downloads in multiple formats.',
     icon: '🎨',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/logo-maker',
@@ -65,7 +70,8 @@ const TOOLS = [
   {
     id: 'content_qa',
     title: 'Content QA Checklist',
-    description: 'Comprehensive 12-pillar pre-publish QA checklist to catch errors, polish tone, and verify claims.',
+    description:
+      'Comprehensive 12-pillar pre-publish QA checklist to catch errors, polish tone, and verify claims.',
     icon: '✅',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/content-qa',
@@ -74,7 +80,8 @@ const TOOLS = [
   {
     id: 'faq_generator',
     title: 'FAQ Generator',
-    description: 'Generate high-converting FAQs formulated to win Google Featured Snippets and valid Schema.org JSON-LD.',
+    description:
+      'Generate high-converting FAQs formulated to win Google Featured Snippets and valid Schema.org JSON-LD.',
     icon: '❓',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/faq-generator',
@@ -83,7 +90,8 @@ const TOOLS = [
   {
     id: 'competitor_analysis',
     title: 'Competitor Analysis',
-    description: 'Reverse-engineer competitor rankings, find content gaps, and get a customized 10x outrank playbook.',
+    description:
+      'Reverse-engineer competitor rankings, find content gaps, and get a customized 10x outrank playbook.',
     icon: '⚔️',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/competitor-analysis',
@@ -92,7 +100,8 @@ const TOOLS = [
   {
     id: 'seo_roi_calculator',
     title: 'SEO ROI Calculator',
-    description: 'Model organic growth scenarios, calculate break-even timelines, and build an executive business case.',
+    description:
+      'Model organic growth scenarios, calculate break-even timelines, and build an executive business case.',
     icon: '💰',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/seo-roi-calculator',
@@ -101,7 +110,8 @@ const TOOLS = [
   {
     id: 'xml_sitemap_generator',
     title: 'XML Sitemap Generator',
-    description: 'Deep crawler creating Google-compliant XML sitemaps with image tags, hreflang alternates, and Search Console readiness.',
+    description:
+      'Deep crawler creating Google-compliant XML sitemaps with image tags, hreflang alternates, and Search Console readiness.',
     icon: '🗺️',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/xml-sitemap-generator',
@@ -110,7 +120,8 @@ const TOOLS = [
   {
     id: 'google_rank_checker',
     title: 'Google Rank Checker',
-    description: 'Real-time Google search rankings with top 10 competitor landscape, SERP features breakdown, and 10x outrank roadmap.',
+    description:
+      'Real-time Google search rankings with top 10 competitor landscape, SERP features breakdown, and 10x outrank roadmap.',
     icon: '📈',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/google-rank-checker',
@@ -124,19 +135,27 @@ export default function Home() {
   const disabled = useMemo(() => {
     const d = new Set()
     if (toolsData?.success && toolsData?.tools) {
-      toolsData.tools.forEach(t => { if (!t.enabled) d.add(t.slug) })
+      toolsData.tools.forEach((t) => {
+        if (!t.enabled) d.add(t.slug)
+      })
     }
     return d
   }, [toolsData])
 
-  const visibleTools = TOOLS.filter(t => !disabled.has(TOOL_SLUG_MAP[t.id]))
+  const visibleTools = TOOLS.filter((t) => !disabled.has(TOOL_SLUG_MAP[t.id]))
 
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <main className="flex-1">
         {/* Hero */}
         <section className="relative overflow-hidden !pt-36 sm:!pt-40 py-16 sm:py-20 lg:py-28">
-          <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />
+          <div
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)',
+              opacity: 0.08,
+            }}
+          />
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
           <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
@@ -145,10 +164,14 @@ export default function Home() {
             </span>
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
               <span className="text-gray-900">Himani's </span>
-              <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">SEO Tools</span>
+              <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
+                SEO Tools
+              </span>
             </h1>
             <p className="mt-6 text-base sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed px-2">
-              Bespoke, AI-powered SEO & content intelligence tools crafted by <strong>Himani Kankaria</strong> and the <strong>Missive Digital</strong> team. The exact battle-tested frameworks we use to rank clients on Google.
+              Bespoke, AI-powered SEO & content intelligence tools crafted by{' '}
+              <strong>Himani Kankaria</strong> and the <strong>Missive Digital</strong> team. The
+              exact battle-tested frameworks we use to rank clients on Google.
             </p>
           </div>
         </section>
@@ -167,7 +190,9 @@ export default function Home() {
                   <div className="p-6 sm:p-8">
                     <div className="flex items-start justify-between mb-4">
                       <span className="text-4xl">{tool.icon}</span>
-                      <span className={`px-3 py-1 bg-gradient-to-r ${tool.color} text-white text-xs font-bold rounded-full`}>
+                      <span
+                        className={`px-3 py-1 bg-gradient-to-r ${tool.color} text-white text-xs font-bold rounded-full`}
+                      >
                         {tool.badge}
                       </span>
                     </div>
@@ -209,17 +234,25 @@ export default function Home() {
                   </div>
 
                   <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-                    Why We Created <span className="bg-gradient-to-r from-[#67A7FF] to-[#F7B7B3] bg-clip-text text-transparent">Himani's SEO Tools</span>
+                    Why We Created{' '}
+                    <span className="bg-gradient-to-r from-[#67A7FF] to-[#F7B7B3] bg-clip-text text-transparent">
+                      Himani's SEO Tools
+                    </span>
                   </h3>
 
                   <p className="text-sm sm:text-base text-slate-300 leading-relaxed italic">
-                    "Search algorithms evolve every month, but Google always rewards depth, relevance, and human intent. We built these AI tools at Missive Digital to give growth leaders and creators the exact frameworks we use for our high-growth clients."
+                    "Search algorithms evolve every month, but Google always rewards depth,
+                    relevance, and human intent. We built these AI tools at Missive Digital to give
+                    growth leaders and creators the exact frameworks we use for our high-growth
+                    clients."
                   </p>
 
                   <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-white/10 text-xs text-slate-400">
                     <div>
                       <strong className="text-white text-sm block">Himani Kankaria</strong>
-                      <span>Founder & CEO, Missive Digital • International SEO & Content Strategist</span>
+                      <span>
+                        Founder & CEO, Missive Digital • International SEO & Content Strategist
+                      </span>
                     </div>
 
                     <a

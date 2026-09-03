@@ -1,5 +1,19 @@
 import { useState, useRef } from 'react'
-import { Sparkles, Download, RefreshCw, Wand2, Check, Lightbulb, Image as ImageIcon, Globe, Smartphone, CreditCard, Layout, Moon, Sun } from 'lucide-react'
+import {
+  Sparkles,
+  Download,
+  RefreshCw,
+  Wand2,
+  Check,
+  Lightbulb,
+  Image as ImageIcon,
+  Globe,
+  Smartphone,
+  CreditCard,
+  Layout,
+  Moon,
+  Sun,
+} from 'lucide-react'
 import ModelSelector from '../shared/ModelSelector'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import { useGenerateLogoVariationsMutation } from '../../services/apiSlice'
@@ -101,7 +115,8 @@ function LogoVariationCard({ variation, isSelected, onSelect, onDownload }) {
 }
 
 export default function LogoMakerPage() {
-  const [generateLogoVariations, { isLoading: isGenerating, reset: resetMutation }] = useGenerateLogoVariationsMutation()
+  const [generateLogoVariations, { isLoading: isGenerating, reset: resetMutation }] =
+    useGenerateLogoVariationsMutation()
   const [brandName, setBrandName] = useState('')
   const [description, setDescription] = useState('')
   const [industry, setIndustry] = useState('tech')
@@ -147,7 +162,9 @@ export default function LogoMakerPage() {
         document.getElementById('logo-results')?.scrollIntoView({ behavior: 'smooth' })
       }, 100)
     } catch (err) {
-      setErrorMessage(err?.data?.error || err.message || 'Failed to generate logos. Please try again.')
+      setErrorMessage(
+        err?.data?.error || err.message || 'Failed to generate logos. Please try again.'
+      )
     }
   }
 
@@ -205,7 +222,10 @@ export default function LogoMakerPage() {
     <div className="min-h-screen bg-slate-50/50 pb-20">
       {/* Hero */}
       <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }}
+        />
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
@@ -215,10 +235,13 @@ export default function LogoMakerPage() {
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight mb-4">
             <span className="text-gray-900">AI Vector Logo </span>
-            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">Generator</span>
+            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
+              Generator
+            </span>
           </h1>
           <p className="mt-3 text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Generate clean, scalable vector SVG logos with custom color palettes and real-world website and business card mockups.
+            Generate clean, scalable vector SVG logos with custom color palettes and real-world
+            website and business card mockups.
           </p>
         </div>
       </section>
@@ -227,7 +250,10 @@ export default function LogoMakerPage() {
       <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Input Form */}
         {!variations && !isGenerating && (
-          <form onSubmit={handleGenerate} className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 space-y-6">
+          <form
+            onSubmit={handleGenerate}
+            className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 space-y-6"
+          >
             <div>
               <label className="block text-sm font-bold text-slate-800 mb-1.5">
                 Brand or Company Name <span className="text-rose-500">*</span>
@@ -246,7 +272,8 @@ export default function LogoMakerPage() {
 
             <div>
               <label className="block text-sm font-bold text-slate-800 mb-1.5">
-                Brand Description & Mission <span className="text-xs font-normal text-slate-500">(Optional)</span>
+                Brand Description & Mission{' '}
+                <span className="text-xs font-normal text-slate-500">(Optional)</span>
               </label>
               <textarea
                 value={description}
@@ -260,27 +287,35 @@ export default function LogoMakerPage() {
 
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-bold text-slate-800 mb-1.5">Industry Vertical</label>
+                <label className="block text-sm font-bold text-slate-800 mb-1.5">
+                  Industry Vertical
+                </label>
                 <select
                   value={industry}
                   onChange={(e) => setIndustry(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none"
                 >
                   {INDUSTRIES.map((i) => (
-                    <option key={i.value} value={i.value}>{i.label}</option>
+                    <option key={i.value} value={i.value}>
+                      {i.label}
+                    </option>
                   ))}
                 </select>
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-800 mb-1.5">Design Aesthetic</label>
+                <label className="block text-sm font-bold text-slate-800 mb-1.5">
+                  Design Aesthetic
+                </label>
                 <select
                   value={style}
                   onChange={(e) => setStyle(e.target.value)}
                   className="w-full px-4 py-3 rounded-xl border border-slate-300 bg-white text-slate-900 text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none"
                 >
                   {STYLES.map((s) => (
-                    <option key={s.value} value={s.value}>{s.label} — {s.desc}</option>
+                    <option key={s.value} value={s.value}>
+                      {s.label} — {s.desc}
+                    </option>
                   ))}
                 </select>
               </div>
@@ -337,7 +372,10 @@ export default function LogoMakerPage() {
             <div className="flex flex-wrap items-center justify-between gap-4 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
               <div>
                 <h3 className="text-xl font-bold text-slate-900">Generated Vector Logos</h3>
-                <p className="text-xs text-slate-500">4 scalable SVG variations for <strong className="text-slate-800">{brandName}</strong></p>
+                <p className="text-xs text-slate-500">
+                  4 scalable SVG variations for{' '}
+                  <strong className="text-slate-800">{brandName}</strong>
+                </p>
               </div>
 
               <div className="flex items-center gap-2">
@@ -367,8 +405,12 @@ export default function LogoMakerPage() {
 
                 <div className="p-6 border-t border-slate-100 flex flex-wrap items-center justify-between gap-4 bg-white">
                   <div>
-                    <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">Selected Logo</span>
-                    <h4 className="font-bold text-slate-900 text-lg capitalize">{selectedVariation.style} Style</h4>
+                    <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">
+                      Selected Logo
+                    </span>
+                    <h4 className="font-bold text-slate-900 text-lg capitalize">
+                      {selectedVariation.style} Style
+                    </h4>
                   </div>
 
                   <button
@@ -387,15 +429,21 @@ export default function LogoMakerPage() {
               <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                   <div>
-                    <h4 className="font-bold text-slate-900 text-base">Real-World Brand Mockup Preview</h4>
-                    <p className="text-xs text-slate-500">Test how your logo renders across real digital and physical touchpoints.</p>
+                    <h4 className="font-bold text-slate-900 text-base">
+                      Real-World Brand Mockup Preview
+                    </h4>
+                    <p className="text-xs text-slate-500">
+                      Test how your logo renders across real digital and physical touchpoints.
+                    </p>
                   </div>
 
                   <div className="inline-flex rounded-xl p-1 bg-slate-100 border border-slate-200">
                     <button
                       onClick={() => setMockupView('web')}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
-                        mockupView === 'web' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
+                        mockupView === 'web'
+                          ? 'bg-white text-slate-900 shadow-xs'
+                          : 'text-slate-600'
                       }`}
                     >
                       <Globe className="w-3.5 h-3.5" />
@@ -404,7 +452,9 @@ export default function LogoMakerPage() {
                     <button
                       onClick={() => setMockupView('card')}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
-                        mockupView === 'card' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
+                        mockupView === 'card'
+                          ? 'bg-white text-slate-900 shadow-xs'
+                          : 'text-slate-600'
                       }`}
                     >
                       <CreditCard className="w-3.5 h-3.5" />
@@ -413,7 +463,9 @@ export default function LogoMakerPage() {
                     <button
                       onClick={() => setMockupView('avatar')}
                       className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
-                        mockupView === 'avatar' ? 'bg-white text-slate-900 shadow-xs' : 'text-slate-600'
+                        mockupView === 'avatar'
+                          ? 'bg-white text-slate-900 shadow-xs'
+                          : 'text-slate-600'
                       }`}
                     >
                       <Smartphone className="w-3.5 h-3.5" />
@@ -427,13 +479,18 @@ export default function LogoMakerPage() {
                   <div className="border border-slate-300 rounded-2xl overflow-hidden shadow-inner bg-slate-900 text-white">
                     <div className="px-6 py-4 flex items-center justify-between border-b border-slate-800">
                       <div className="w-48 max-h-12 overflow-hidden flex items-center">
-                        <LogoSVG svg={selectedVariation.svg} className="w-full scale-75 origin-left" />
+                        <LogoSVG
+                          svg={selectedVariation.svg}
+                          className="w-full scale-75 origin-left"
+                        />
                       </div>
                       <div className="hidden md:flex items-center gap-6 text-xs text-slate-300 font-medium">
                         <span>Products</span>
                         <span>Solutions</span>
                         <span>Pricing</span>
-                        <span className="px-3 py-1 rounded-lg bg-blue-600 text-white font-bold">Get Started</span>
+                        <span className="px-3 py-1 rounded-lg bg-blue-600 text-white font-bold">
+                          Get Started
+                        </span>
                       </div>
                     </div>
                     <div className="p-12 text-center text-slate-400 text-xs">
@@ -446,13 +503,24 @@ export default function LogoMakerPage() {
                   <div className="grid sm:grid-cols-2 gap-4 pt-2">
                     <div className="bg-slate-900 text-white p-8 rounded-2xl aspect-16/10 flex flex-col justify-between shadow-md">
                       <div className="w-40">
-                        <LogoSVG svg={selectedVariation.svg} className="w-full scale-90 origin-left" />
+                        <LogoSVG
+                          svg={selectedVariation.svg}
+                          className="w-full scale-90 origin-left"
+                        />
                       </div>
-                      <div className="text-[10px] text-slate-400">Premium Matte Card • Front View</div>
+                      <div className="text-[10px] text-slate-400">
+                        Premium Matte Card • Front View
+                      </div>
                     </div>
 
                     <div className="bg-white text-slate-900 p-8 rounded-2xl aspect-16/10 flex flex-col justify-between border border-slate-200 shadow-md">
-                      <div className="text-right text-xs font-bold text-slate-800">Alex Morgan<br/><span className="text-[10px] text-slate-400 font-normal">Founder & CEO</span></div>
+                      <div className="text-right text-xs font-bold text-slate-800">
+                        Alex Morgan
+                        <br />
+                        <span className="text-[10px] text-slate-400 font-normal">
+                          Founder & CEO
+                        </span>
+                      </div>
                       <div className="text-[11px] text-slate-500 font-mono space-y-0.5">
                         <div>hello@{brandName.toLowerCase().replace(/\s+/g, '')}.com</div>
                         <div>www.{brandName.toLowerCase().replace(/\s+/g, '')}.com</div>
@@ -480,7 +548,9 @@ export default function LogoMakerPage() {
             {/* All Variations Grid */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h4 className="font-bold text-slate-800 text-sm">All Variations — Click to Choose</h4>
+                <h4 className="font-bold text-slate-800 text-sm">
+                  All Variations — Click to Choose
+                </h4>
                 <button
                   onClick={handleRegenerateWithColors}
                   disabled={isGenerating}

@@ -1,7 +1,15 @@
 import { useState } from 'react'
 import { useGetAdminLeadsQuery, useDeleteAdminLeadMutation } from '../../services/apiSlice'
 
-const SOURCES = ['', 'content-analyzer', 'seo-audit', 'keyword-research', 'blog-topics', 'logo-maker', 'seo-roi']
+const SOURCES = [
+  '',
+  'content-analyzer',
+  'seo-audit',
+  'keyword-research',
+  'blog-topics',
+  'logo-maker',
+  'seo-roi',
+]
 
 export default function AdminLeads() {
   const [search, setSearch] = useState('')
@@ -41,8 +49,16 @@ export default function AdminLeads() {
   const exportCSV = () => {
     if (leads.length === 0) return
     const headers = ['Name', 'Email', 'Company', 'Website', 'Phone', 'Source', 'Date']
-    const rows = leads.map(l => [l.name, l.email, l.company || '', l.website || '', l.phone || '', l.source || '', new Date(l.createdAt).toLocaleDateString()])
-    const csv = [headers.join(','), ...rows.map(r => r.map(v => `"${v}"`).join(','))].join('\n')
+    const rows = leads.map((l) => [
+      l.name,
+      l.email,
+      l.company || '',
+      l.website || '',
+      l.phone || '',
+      l.source || '',
+      new Date(l.createdAt).toLocaleDateString(),
+    ])
+    const csv = [headers.join(','), ...rows.map((r) => r.map((v) => `"${v}"`).join(','))].join('\n')
     const blob = new Blob([csv], { type: 'text/csv' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
@@ -59,7 +75,10 @@ export default function AdminLeads() {
           <h2 className="text-lg font-semibold text-gray-900">Leads</h2>
           <p className="text-sm text-gray-500">{pagination.total} total leads</p>
         </div>
-        <button onClick={exportCSV} className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors">
+        <button
+          onClick={exportCSV}
+          className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+        >
           📥 Export CSV
         </button>
       </div>
@@ -70,22 +89,30 @@ export default function AdminLeads() {
           <input
             type="text"
             value={search}
-            onChange={e => setSearch(e.target.value)}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Search name, email, company..."
             className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 placeholder-gray-400 focus:border-[#0C81F3] focus:outline-none"
           />
-          <button type="submit" className="px-4 py-2.5 bg-[#0C81F3] text-white rounded-xl text-sm font-medium hover:bg-[#0a6cd4] transition-colors">
+          <button
+            type="submit"
+            className="px-4 py-2.5 bg-[#0C81F3] text-white rounded-xl text-sm font-medium hover:bg-[#0a6cd4] transition-colors"
+          >
             Search
           </button>
         </form>
         <select
           value={source}
-          onChange={e => { setSource(e.target.value); setPage(1) }}
+          onChange={(e) => {
+            setSource(e.target.value)
+            setPage(1)
+          }}
           className="bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm text-gray-900 focus:border-[#0C81F3] focus:outline-none appearance-none cursor-pointer"
         >
           <option value="">All Sources</option>
-          {SOURCES.filter(Boolean).map(s => (
-            <option key={s} value={s}>{s.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase())}</option>
+          {SOURCES.filter(Boolean).map((s) => (
+            <option key={s} value={s}>
+              {s.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}
+            </option>
           ))}
         </select>
       </div>
@@ -93,7 +120,9 @@ export default function AdminLeads() {
       {/* Table */}
       <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm">
         {isLoading ? (
-          <div className="flex items-center justify-center py-16"><div className="w-8 h-8 border-4 border-gray-200 border-t-[#0C81F3] rounded-full animate-spin" /></div>
+          <div className="flex items-center justify-center py-16">
+            <div className="w-8 h-8 border-4 border-gray-200 border-t-[#0C81F3] rounded-full animate-spin" />
+          </div>
         ) : leads.length === 0 ? (
           <div className="py-16 text-center text-gray-400">
             <span className="text-3xl block mb-2">👥</span>
@@ -113,8 +142,11 @@ export default function AdminLeads() {
                 </tr>
               </thead>
               <tbody>
-                {leads.map(lead => (
-                  <tr key={lead.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                {leads.map((lead) => (
+                  <tr
+                    key={lead.id}
+                    className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
+                  >
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#0C81F3]/20 to-[#EB8988]/20 flex items-center justify-center text-[11px] font-bold text-gray-600">
@@ -131,10 +163,17 @@ export default function AdminLeads() {
                       </span>
                     </td>
                     <td className="px-4 py-3 text-gray-400 text-xs">
-                      {new Date(lead.createdAt).toLocaleDateString()} {new Date(lead.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      {new Date(lead.createdAt).toLocaleDateString()}{' '}
+                      {new Date(lead.createdAt).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button onClick={() => handleDelete(lead.id)} className="text-xs text-gray-400 hover:text-red-500 transition-colors">
+                      <button
+                        onClick={() => handleDelete(lead.id)}
+                        className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                      >
                         Delete
                       </button>
                     </td>
@@ -148,17 +187,19 @@ export default function AdminLeads() {
         {/* Pagination */}
         {pagination.pages > 1 && (
           <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-            <p className="text-xs text-gray-400">Page {pagination.page} of {pagination.pages}</p>
+            <p className="text-xs text-gray-400">
+              Page {pagination.page} of {pagination.pages}
+            </p>
             <div className="flex gap-1">
               <button
-                onClick={() => setPage(p => Math.max(1, p - 1))}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
                 className="px-3 py-1.5 text-xs rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
               >
                 Previous
               </button>
               <button
-                onClick={() => setPage(p => Math.min(pagination.pages, p + 1))}
+                onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
                 disabled={page === pagination.pages}
                 className="px-3 py-1.5 text-xs rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
               >
