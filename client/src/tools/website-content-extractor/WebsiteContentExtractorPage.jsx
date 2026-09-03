@@ -1,7 +1,6 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import {
   useExtractWebsiteContentMutation,
-  useAskWebsiteQuestionMutation,
 } from '../../services/apiSlice'
 import ModelSelector from '../shared/ModelSelector'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
@@ -11,8 +10,6 @@ import {
   Globe,
   Search,
   Sparkles,
-  Send,
-  MessageSquare,
   FileText,
   ShieldCheck,
   Building,
@@ -52,47 +49,10 @@ const LOADING_STEPS = [
   'Synthesizing clean markdown & generating AI entity profile',
 ]
 
-const PRESET_QUESTIONS = [
-  {
-    icon: '👤',
-    label: 'Who is the owner?',
-    q: 'Who is the owner, founder, or company behind this website, and what evidence supports this?',
-  },
-  {
-    icon: '🏢',
-    label: 'What does this business do?',
-    q: 'What is the core purpose of this website, what products or services do they offer, and who is their target audience?',
-  },
-  {
-    icon: '💰',
-    label: 'Pricing & Packages',
-    q: 'What are their pricing plans, packages, or costs mentioned on the page?',
-  },
-  {
-    icon: '📞',
-    label: 'Contact & Location',
-    q: 'What are all the contact details, emails, phone numbers, physical office locations, or social handles listed on this website?',
-  },
-  {
-    icon: '📋',
-    label: '5 Key Takeaways',
-    q: 'Provide a 5-bullet executive summary highlighting the most critical points from this page.',
-  },
-  {
-    icon: '🛡️',
-    label: 'Is this site legit?',
-    q: 'Analyze the trust signals, E-E-A-T credentials, and legitimacy of this website based on the extracted content.',
-  },
-]
-
 const FAQ_ITEMS = [
   {
     q: 'How does the Website Content Extractor work?',
     a: 'Our crawler securely fetches the page HTML, strips clutter (scripts, styles, cookie banners, navigation menus, ads), and extracts structured metadata, JSON-LD schemas, heading hierarchies, contact details, and clean markdown text.',
-  },
-  {
-    q: 'How does the AI Question & Answer feature answer questions?',
-    a: 'Unlike generic AI bots that hallucinate, our AI Assistant is strictly grounded in the extracted text and metadata of the target website. It cites exact evidence quotes from the page to prove its answers.',
   },
   {
     q: 'How does it detect the owner of the website?',
@@ -116,19 +76,13 @@ export default function WebsiteContentExtractorPage() {
 
   // API Mutations
   const [extractWebsite, { isLoading: isExtracting }] = useExtractWebsiteContentMutation()
-  const [askQuestion, { isLoading: isAnswering }] = useAskWebsiteQuestionMutation()
 
   // Result & UI State
   const [extractedData, setExtractedData] = useState(null)
   const [error, setError] = useState('')
-  const [activeTab, setActiveTab] = useState('qa') // 'qa' | 'overview' | 'content' | 'metadata'
+  const [activeTab, setActiveTab] = useState('overview') // 'overview' | 'content' | 'metadata'
   const [copiedKey, setCopiedKey] = useState(null)
   const [expandedFaq, setExpandedFaq] = useState(null)
-
-  // Q&A Chat State
-  const [questionInput, setQuestionInput] = useState('')
-  const [currentAskingQuestion, setCurrentAskingQuestion] = useState('')
-  const [chatHistory, setChatHistory] = useState([])
 
   // Lead Popup Integration
   const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose } =
@@ -175,25 +129,6 @@ export default function WebsiteContentExtractorPage() {
       }).unwrap()
 
       setExtractedData(result)
-      // Initialize Q&A history with auto-generated greeting/summary
-      if (result.aiOverview) {
-        setChatHistory([
-          {
-            role: 'assistant',
-            question: 'Executive Overview',
-            answer: result.aiOverview.executiveSummary,
-            confidence: 'High',
-            evidenceQuotes: result.aiOverview.detectedOwner?.evidence
-              ? [result.aiOverview.detectedOwner.evidence]
-              : [],
-            sourceSection: 'AI Intelligence Overview',
-            followUpQuestions: result.aiOverview.suggestedQuestions || [],
-            timestamp: new Date().toISOString(),
-          },
-        ])
-      } else {
-        setChatHistory([])
-      }
 
       // Smooth scroll to results
       setTimeout(() => {
@@ -213,68 +148,10 @@ export default function WebsiteContentExtractorPage() {
     }
   }
 
-  // Handle Asking Question
-  const handleAskQuestion = async (customQ = null) => {
-    const qToSend = (customQ || questionInput).trim()
-    if (!qToSend || isAnswering) return
-
-    setQuestionInput('')
-    setCurrentAskingQuestion(qToSend)
-
-    const previousTurns = [...chatHistory]
-
-    try {
-      const response = await askQuestion({
-        url: extractedData.url,
-        question: qToSend,
-        extractedData,
-        chatHistory: previousTurns.map((t) => ({
-          role: t.role || (t.question ? 'assistant' : 'user'),
-          content: t.answer || t.content || t.question,
-        })),
-        preferredProvider,
-      }).unwrap()
-
-      // Reverse order: Prepend new Q&A turn so latest click is on top
-      setChatHistory((prev) => [
-        {
-          role: 'assistant',
-          question: qToSend,
-          answer: response.answer,
-          confidence: response.confidence,
-          evidenceQuotes: response.evidenceQuotes || [],
-          sourceSection: response.sourceSection || 'Website Content',
-          followUpQuestions: response.followUpQuestions || [],
-          timestamp: new Date().toISOString(),
-        },
-        ...prev,
-      ])
-    } catch (err) {
-      setChatHistory((prev) => [
-        {
-          role: 'assistant',
-          question: qToSend,
-          answer: `⚠️ Sorry, unable to answer this question: ${err?.data?.error || err.message}`,
-          confidence: 'Low',
-          evidenceQuotes: [],
-          sourceSection: 'Error',
-          followUpQuestions: [],
-          timestamp: new Date().toISOString(),
-        },
-        ...prev,
-      ])
-    } finally {
-      setCurrentAskingQuestion('')
-    }
-  }
-
-  // Reset form
   const handleReset = () => {
     setUrl('')
     setExtractedData(null)
     setError('')
-    setChatHistory([])
-    setCurrentAskingQuestion('')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -334,7 +211,7 @@ export default function WebsiteContentExtractorPage() {
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight mb-4">
             <span className="text-gray-900">Website Content </span>
             <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
-              Extractor & AI Q&A
+              Extractor & AI Analysis
             </span>
           </h1>
 
@@ -527,20 +404,6 @@ export default function WebsiteContentExtractorPage() {
             </div>            {/* Navigation Tabs */}
             <div className="flex border-b border-slate-200 bg-white rounded-t-3xl sm:px-6 px-3 pt-1 gap-1 sm:gap-3 overflow-x-auto shadow-2xs">
               <button
-                onClick={() => setActiveTab('qa')}
-                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
-                  activeTab === 'qa'
-                    ? 'border-[#0C81F3] text-[#0C81F3]'
-                    : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}>
-                <MessageSquare className="w-4 h-4" />
-                AI Q&A Assistant
-                <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[10px] font-bold">
-                  Ground Truth
-                </span>
-              </button>
-
-              <button
                 onClick={() => setActiveTab('overview')}
                 className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                   activeTab === 'overview'
@@ -577,198 +440,7 @@ export default function WebsiteContentExtractorPage() {
               </button>
             </div>
 
-            {/* TAB 1: AI Q&A ASSISTANT */}
-            {activeTab === 'qa' && (
-              <div className="bg-white rounded-b-3xl border border-slate-200 p-4 sm:p-6 space-y-5 shadow-sm">
-                {/* Preset Chips */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
-                    <Sparkles className="w-4 h-4 text-[#0C81F3]" />
-                    Instant Questions Grounded in this Website
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {PRESET_QUESTIONS.map((item, idx) => (
-                      <button
-                        key={idx}
-                        onClick={() => handleAskQuestion(item.q)}
-                        disabled={isAnswering}
-                        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-blue-50/70 border border-slate-200 hover:border-[#0C81F3]/40 text-slate-700 hover:text-[#0C81F3] text-xs font-semibold transition-all cursor-pointer shadow-2xs"
-                      >
-                        <span className="text-sm">{item.icon}</span>
-                        <span>{item.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Question Input Box */}
-                <div className="">
-                  <div className="relative flex items-center">
-                    <input
-                      type="text"
-                      placeholder="Ask any question about this website (e.g. Who is the founder? What is their pricing? Where are they located?)"
-                      value={questionInput}
-                      onChange={(e) => setQuestionInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault()
-                          handleAskQuestion()
-                        }
-                      }}
-                      disabled={isAnswering}
-                      className="w-full pl-5 pr-14 py-3.5 bg-slate-50 border border-slate-300 rounded-2xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 focus:border-[#0C81F3] transition-all"
-                    />
-                    <button
-                      onClick={() => handleAskQuestion()}
-                      disabled={!questionInput.trim() || isAnswering}
-                      className="absolute right-2.5 p-2.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:opacity-95 text-white rounded-xl disabled:opacity-40 transition-all cursor-pointer shadow-sm"
-                    >
-                      <Send className="w-4 h-4" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Chat Stream / Q&A Dialogue */}
-                <div className="space-y-4 pt-3 border-t border-slate-100">
-                  {/* Active Question Loader at the Top */}
-                  {isAnswering && (
-                    <div className="space-y-3 animate-pulse">
-                      {currentAskingQuestion && (
-                        <div className="flex items-start gap-3">
-                          <div className="w-7 h-7 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
-                            Q
-                          </div>
-                          <div className="p-3.5 bg-slate-100 rounded-2xl text-slate-900 text-sm font-bold max-w-2xl shadow-2xs">
-                            {currentAskingQuestion}
-                          </div>
-                        </div>
-                      )}
-                      <div className="flex items-start gap-3">
-                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#0C81F3] to-[#EB8988] text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
-                          AI
-                        </div>
-                        <div className="flex-1 flex items-center gap-3 p-5 bg-slate-50 border border-slate-200 rounded-2xl shadow-2xs">
-                          <RefreshCw className="w-4 h-4 animate-spin text-[#0C81F3]" />
-                          <span className="text-sm font-semibold text-slate-700">
-                            Analyzing extracted website text and verifying evidence...
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {chatHistory.length === 0 && !isAnswering ? (
-                    <div className="p-10 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                      <MessageSquare className="w-10 h-10 mx-auto mb-3 text-slate-300" />
-                      <p className="text-sm font-bold text-slate-700">No questions asked yet.</p>
-                      <p className="text-xs text-slate-500 mt-1">Click one of the instant questions above or type your own question.</p>
-                    </div>
-                  ) : (
-                    chatHistory.map((item, idx) => (
-                      <div key={idx} className="space-y-3">
-                        {/* Question Bubble */}
-                        {item.question && (
-                          <div className="flex items-start gap-3">
-                            <div className="w-7 h-7 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
-                              Q
-                            </div>
-                            <div className="p-3.5 bg-slate-100 rounded-2xl text-slate-900 text-sm font-bold max-w-2xl shadow-2xs">
-                              {item.question}
-                            </div>
-                          </div>
-                        )}
-
-                        {/* Answer Card */}
-                        <div className="flex items-start gap-3">
-                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#0C81F3] to-[#EB8988] text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
-                            AI
-                          </div>
-                          <div className="flex-1 bg-slate-50/80 border border-slate-200 rounded-2xl p-5 sm:p-6 space-y-4 shadow-2xs">
-                            <div className="flex items-center justify-between gap-2 border-b border-slate-200/60 pb-3">
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
-                                    item.confidence === 'High'
-                                      ? 'bg-emerald-100 text-emerald-800'
-                                      : item.confidence === 'Medium'
-                                        ? 'bg-amber-100 text-amber-800'
-                                        : 'bg-slate-200 text-slate-700'
-                                  }`}
-                                >
-                                  {item.confidence || 'Grounded'} Confidence
-                                </span>
-                                {item.sourceSection && (
-                                  <span className="text-xs text-slate-500 font-medium">
-                                    Section: {item.sourceSection}
-                                  </span>
-                                )}
-                              </div>
-                              <button
-                                onClick={() => handleCopy(item.answer, `ans-${idx}`)}
-                                className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 font-semibold cursor-pointer"
-                              >
-                                {copiedKey === `ans-${idx}` ? (
-                                  <>
-                                    <Check className="w-3.5 h-3.5 text-emerald-600" />
-                                    Copied
-                                  </>
-                                ) : (
-                                  <>
-                                    <Copy className="w-3.5 h-3.5" />
-                                    Copy
-                                  </>
-                                )}
-                              </button>
-                            </div>
-
-                            {/* Markdown Rendered Content */}
-                            <div className="prose prose-sm max-w-none text-slate-800 leading-relaxed whitespace-pre-line text-sm">
-                              {item.answer}
-                            </div>
-
-                            {/* Evidence Quotes */}
-                            {item.evidenceQuotes && item.evidenceQuotes.length > 0 && (
-                              <div className="mt-3 p-3.5 bg-white rounded-xl border border-slate-200/80 space-y-2">
-                                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
-                                  <ShieldCheck className="w-4 h-4 text-[#0C81F3]" />
-                                  Evidence Quoted from Website:
-                                </div>
-                                {item.evidenceQuotes.map((q, qIdx) => (
-                                  <blockquote
-                                    key={qIdx}
-                                    className="text-xs text-slate-600 italic border-l-2 border-[#0C81F3] pl-3 my-1 leading-relaxed"
-                                  >
-                                    "{q}"
-                                  </blockquote>
-                                ))}
-                              </div>
-                            )}
-
-                            {/* Follow-up Suggestions */}
-                            {item.followUpQuestions && item.followUpQuestions.length > 0 && (
-                              <div className="pt-2 flex flex-wrap items-center gap-2">
-                                <span className="text-[11px] text-slate-400 font-semibold">Suggested follow-ups:</span>
-                                {item.followUpQuestions.map((fq, fIdx) => (
-                                  <button
-                                    key={fIdx}
-                                    onClick={() => handleAskQuestion(fq)}
-                                    className="text-xs px-3 py-1.5 rounded-lg bg-white hover:bg-blue-50 border border-slate-200 text-slate-700 hover:text-[#0C81F3] transition-colors cursor-pointer shadow-2xs"
-                                  >
-                                    {fq}
-                                  </button>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* TAB 2: OVERVIEW & OWNERSHIP CLUES */}
+            {/* TAB 1: OVERVIEW & OWNERSHIP CLUES */}
             {activeTab === 'overview' && (
               <div className="space-y-6">
                 {/* Metric Summary Cards */}
@@ -1028,7 +700,7 @@ export default function WebsiteContentExtractorPage() {
               </div>
             )}
 
-            {/* TAB 3: EXTRACTED CLEAN CONTENT & STRUCTURE */}
+            {/* TAB 2: EXTRACTED CLEAN CONTENT & STRUCTURE */}
             {activeTab === 'content' && (
               <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-sm">
                 {/* Content Toolbar */}
@@ -1103,7 +775,7 @@ export default function WebsiteContentExtractorPage() {
               </div>
             )}
 
-            {/* TAB 4: SEO & METADATA */}
+            {/* TAB 3: SEO & METADATA */}
             {activeTab === 'metadata' && (
               <div className="space-y-6">
                 {/* Meta Tags Table */}
@@ -1221,7 +893,7 @@ export default function WebsiteContentExtractorPage() {
           <div className="text-center space-y-2">
             <h3 className="text-2xl sm:text-3xl font-bold text-slate-900">Frequently Asked Questions</h3>
             <p className="text-sm text-slate-600">
-              Everything you need to know about website content extraction and grounded AI Q&A
+              Everything you need to know about website content extraction and analysis
             </p>
           </div>
 
