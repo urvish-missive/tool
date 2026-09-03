@@ -55,6 +55,14 @@ const TOOL_FIELDS = {
     { key: 'metaDescription', label: 'Meta Description', icon: '📄' },
     { key: 'urlSlug', label: 'URL Slug', icon: '🌐' },
   ],
+  'xml-sitemap-generator': [
+    { key: 'websiteUrl', label: 'Website URL', icon: '🌐' },
+    { key: 'maxPages', label: 'Max URLs', icon: '🔢' },
+    { key: 'crawlDepth', label: 'Crawl Depth', icon: '📊' },
+    { key: 'includeImages', label: 'Include Images', icon: '🖼️' },
+    { key: 'changefreq', label: 'Change Frequency', icon: '⏱️' },
+    { key: 'priority', label: 'Priority', icon: '⭐' },
+  ],
 }
 
 export default function AdminTools() {

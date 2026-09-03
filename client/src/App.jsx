@@ -12,6 +12,7 @@ import LogoMakerPage from './tools/logo-maker/LogoMakerPage'
 import FaqGeneratorPage from './tools/faq-generator/FaqGeneratorPage'
 import CompetitorAnalysisPage from './tools/competitor-analysis/CompetitorAnalysisPage'
 import ContentQaPage from './tools/content-qa/ContentQaPage'
+import XmlSitemapGeneratorPage from './tools/xml-sitemap-generator/XmlSitemapGeneratorPage'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -48,6 +49,7 @@ export default function App() {
                 <Route path="/competitor-analysis" element={<ToolGuard toolPath="/competitor-analysis"><CompetitorAnalysisPage /></ToolGuard>} />
                 <Route path="/seo-roi-calculator" element={<ToolGuard toolPath="/seo-roi-calculator"><SeoRoiPage /></ToolGuard>} />
                 <Route path="/content-qa" element={<ToolGuard toolPath="/content-qa"><ContentQaPage /></ToolGuard>} />
+                <Route path="/xml-sitemap-generator" element={<ToolGuard toolPath="/xml-sitemap-generator"><XmlSitemapGeneratorPage /></ToolGuard>} />
               </Routes>
             </main>
             <Footer />

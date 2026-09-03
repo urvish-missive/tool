@@ -1,75 +1,73 @@
-import { useState } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { seoAuditSchema } from '../../schemas/seoAudit.schema'
+import { normalizeUrl } from '../../utils/normalizeUrl'
 import ModelSelector from '../shared/ModelSelector'
 import useToolFields from '../../hooks/useToolFields'
 
 const COUNTRIES = ['United States', 'United Kingdom', 'India', 'Canada', 'Australia', 'Germany', 'France', 'Japan', 'Brazil', 'Other']
 
 export default function AuditForm({ onSubmit, isLoading }) {
-  const [websiteUrl, setWebsiteUrl] = useState('')
-  const [targetKeyword, setTargetKeyword] = useState('')
-  const [country, setCountry] = useState('')
-  const [aiModel, setAiModel] = useState('openrouter')
-  const [error, setError] = useState('')
   const { isFieldEnabled } = useToolFields('seo-audit')
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    setError('')
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(seoAuditSchema),
+    defaultValues: {
+      websiteUrl: '',
+      targetKeyword: '',
+      country: '',
+      preferredProvider: 'openrouter',
+    },
+  })
 
-    if (isFieldEnabled('url')) {
-      if (!websiteUrl.trim()) {
-        setError('Please enter a website URL.')
-        return
-      }
-      try {
-        const parsed = new URL(websiteUrl.trim())
-        if (!['http:', 'https:'].includes(parsed.protocol)) {
-          setError('Please enter a valid HTTP or HTTPS URL.')
-          return
-        }
-      } catch {
-        setError('Please enter a valid website URL (e.g. https://example.com)')
-        return
-      }
-    }
-
+  const onValid = (data) => {
     onSubmit({
-      websiteUrl: websiteUrl.trim(),
-      targetKeyword: targetKeyword.trim() || undefined,
-      country: country || undefined,
-      preferredProvider: aiModel,
+      websiteUrl: normalizeUrl(data.websiteUrl),
+      targetKeyword: data.targetKeyword || undefined,
+      country: data.country || undefined,
+      preferredProvider: data.preferredProvider,
     })
   }
 
+  const fieldError = (name) => errors[name]?.message
+
   return (
-    <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-200 shadow-lg shadow-gray-200/50 p-6 sm:p-8 space-y-5">
+    <form onSubmit={handleSubmit(onValid)} className="bg-white rounded-2xl border border-gray-200 shadow-lg shadow-gray-200/50 p-6 sm:p-8 space-y-5">
       {/* Website URL */}
       <div>
         <label htmlFor="website-url" className="block text-sm font-semibold text-gray-900 mb-1">Website URL *</label>
         <input
           id="website-url"
-          type="url"
-          required
-          value={websiteUrl}
-          onChange={(e) => setWebsiteUrl(e.target.value)}
-          placeholder="https://example.com"
-          className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          type="text"
+          {...register('websiteUrl')}
+          placeholder="example.com or https://example.com"
+          className={`w-full rounded-lg border px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none ${fieldError('websiteUrl') ? 'border-red-400 ring-1 ring-red-200' : 'border-gray-300'}`}
         />
+        {fieldError('websiteUrl') && (
+          <p className="mt-1 text-xs text-red-600">{fieldError('websiteUrl')}</p>
+        )}
       </div>
 
       {/* Target Keyword */}
       {isFieldEnabled('keyword') && (
-      <div>
-        <label htmlFor="audit-keyword" className="block text-sm font-semibold text-gray-900 mb-1">Target Keyword (optional)</label>
-        <input
-          id="audit-keyword"
-          type="text"
-          value={targetKeyword}
-          onChange={(e) => setTargetKeyword(e.target.value)}
-          placeholder="e.g. enterprise SEO services"
-          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-        />
-      </div>
+        <div>
+          <label htmlFor="audit-keyword" className="block text-sm font-semibold text-gray-900 mb-1">Target Keyword (optional)</label>
+          <input
+            id="audit-keyword"
+            type="text"
+            {...register('targetKeyword')}
+            placeholder="e.g. enterprise SEO services"
+            className={`w-full rounded-lg border px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none ${fieldError('targetKeyword') ? 'border-red-400 ring-1 ring-red-200' : 'border-gray-300'}`}
+          />
+          {fieldError('targetKeyword') && (
+            <p className="mt-1 text-xs text-red-600">{fieldError('targetKeyword')}</p>
+          )}
+        </div>
       )}
 
       {/* Country + AI Model */}
@@ -78,23 +76,21 @@ export default function AuditForm({ onSubmit, isLoading }) {
           <label htmlFor="audit-country" className="block text-sm font-semibold text-gray-900 mb-1">Country / Market (optional)</label>
           <select
             id="audit-country"
-            value={country}
-            onChange={(e) => setCountry(e.target.value)}
+            {...register('country')}
             className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
           >
             <option value="">Select country...</option>
             {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
           </select>
         </div>
-        <ModelSelector value={aiModel} onChange={setAiModel} />
+        <Controller
+          control={control}
+          name="preferredProvider"
+          render={({ field }) => (
+            <ModelSelector value={field.value} onChange={field.onChange} />
+          )}
+        />
       </div>
-
-      {/* Error */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700" role="alert">
-          {error}
-        </div>
-      )}
 
       {/* Submit */}
       <button type="submit" disabled={isLoading}

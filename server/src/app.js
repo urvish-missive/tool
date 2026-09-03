@@ -13,6 +13,7 @@ import logoRoutes from './routes/logoRoutes.js'
 import faqRoutes from './routes/faqRoutes.js'
 import competitorRoutes from './routes/competitorRoutes.js'
 import contentQaRoutes from './routes/contentQaRoutes.js'
+import sitemapRoutes from './routes/sitemapRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 import { toolAccess } from './middleware/toolAccess.js'
 import prisma from './utils/prisma.js'
@@ -59,6 +60,7 @@ app.use('/api/logo', toolAccess('logo-maker'), logoRoutes)
 app.use('/api/faqs', toolAccess('faq-generator'), faqRoutes)
 app.use('/api/competitors', toolAccess('competitor-analyzer'), competitorRoutes)
 app.use('/api/content-qa', toolAccess('content-qa'), contentQaRoutes)
+app.use('/api/sitemap', toolAccess('xml-sitemap-generator'), sitemapRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -175,9 +177,40 @@ async function seedDefaults() {
       })},
       { slug: 'faq-generator', name: 'FAQ Generator', description: 'Generate SEO-friendly FAQ questions and answers', dailyLimit: 80, hourlyLimit: 15, formFields: JSON.stringify({}) },
       { slug: 'competitor-analyzer', name: 'Competitor Analyzer', description: 'Analyze competitor websites for SEO insights', dailyLimit: 40, hourlyLimit: 8, formFields: JSON.stringify({}) },
+      { slug: 'xml-sitemap-generator', name: 'XML Sitemap Generator', description: 'Generate, crawl, and validate SEO-compliant XML sitemaps', dailyLimit: 60, hourlyLimit: 15, formFields: JSON.stringify({
+        websiteUrl: { enabled: true, label: 'Website URL', required: true },
+        maxPages: { enabled: true, label: 'Max URLs', required: false },
+        crawlDepth: { enabled: true, label: 'Crawl Depth', required: false },
+        includeImages: { enabled: true, label: 'Include Images', required: false },
+        changefreq: { enabled: true, label: 'Change Frequency', required: false },
+        priority: { enabled: true, label: 'Priority', required: false },
+      })},
     ]
     await prisma.toolConfig.createMany({ data: tools })
     console.log('✓ Default tool configs created')
+  } else {
+    // Ensure xml-sitemap-generator exists if database was already initialized
+    const sitemapTool = await prisma.toolConfig.findUnique({ where: { slug: 'xml-sitemap-generator' } })
+    if (!sitemapTool) {
+      await prisma.toolConfig.create({
+        data: {
+          slug: 'xml-sitemap-generator',
+          name: 'XML Sitemap Generator',
+          description: 'Generate, crawl, and validate SEO-compliant XML sitemaps',
+          dailyLimit: 60,
+          hourlyLimit: 15,
+          formFields: JSON.stringify({
+            websiteUrl: { enabled: true, label: 'Website URL', required: true },
+            maxPages: { enabled: true, label: 'Max URLs', required: false },
+            crawlDepth: { enabled: true, label: 'Crawl Depth', required: false },
+            includeImages: { enabled: true, label: 'Include Images', required: false },
+            changefreq: { enabled: true, label: 'Change Frequency', required: false },
+            priority: { enabled: true, label: 'Priority', required: false },
+          }),
+        },
+      })
+      console.log('✓ XML Sitemap Generator tool config seeded')
+    }
   }
 }
 

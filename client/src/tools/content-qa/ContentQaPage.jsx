@@ -1,4 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Sparkles,
   CheckCircle2,
@@ -52,6 +54,7 @@ import { useLeadPopup } from '../../components/useLeadPopup'
 import useToolFields from '../../hooks/useToolFields'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import { useAnalyzeContentQaMutation, usePolishContentQaMutation } from '../../services/apiSlice'
+import { contentQaSchema, parseContentQaForm } from '../../schemas/contentQa.schema'
 
 // ── 12 PILLARS DEFINITION (Matching Himani Kankaria's Checklist) ────
 const HIMANI_CATEGORIES_DEF = [
@@ -217,34 +220,42 @@ Here is how you can supercharge your content strategy:
 - Ensure your paragraphs are bite-sized and engaging.
 - Never settle for generic advice.`
 
+function downloadQaPdf(report, meta) {
+  import('../../utils/generateQaPdf').then(m => m.downloadQaPdf(report, meta))
+}
+
 export default function ContentQaPage() {
-  const [content, setContent] = useState('')
-  const [title, setTitle] = useState('')
-  const [targetKeyword, setTargetKeyword] = useState('')
-  const [platform, setPlatform] = useState('website')
-  const [targetAudience, setTargetAudience] = useState('')
-  const [aiModel, setAiModel] = useState('openrouter')
-  const [validationError, setValidationError] = useState('')
-  const [loadingStepIdx, setLoadingStepIdx] = useState(0)
+  const { register, handleSubmit, control, watch, formState: { errors }, reset: resetForm, setValue } = useForm({
+    resolver: zodResolver(contentQaSchema),
+    defaultValues: { content: '', title: '', targetKeyword: '', platform: 'website', targetAudience: '', preferredProvider: 'openrouter' },
+  })
+
+  const content = watch('content')
+  const title = watch('title')
+  const targetKeyword = watch('targetKeyword')
+  const platform = watch('platform')
+  const targetAudience = watch('targetAudience')
+  const aiModel = watch('preferredProvider')
+
   const [report, setReport] = useState(null)
-  const [analyzeContentQa, { isLoading: isAnalyzing, reset: resetMutation }] = useAnalyzeContentQaMutation()
-  const [polishContentQa, { isLoading: isPolishing }] = usePolishContentQaMutation()
   const [qaId, setQaId] = useState(null)
   const [statuses, setStatuses] = useState({})
   const [expandedCats, setExpandedCats] = useState({})
   const [error, setError] = useState(null)
-  const [activeTab, setActiveTab] = useState('grid') // 'grid' | 'inspector' | 'read_aloud' | 'polish'
-  const [filterMode, setFilterMode] = useState('all') // 'all' | 'needs_action' | 'passed' | 'manual'
+  const [activeTab, setActiveTab] = useState('grid')
+  const [filterMode, setFilterMode] = useState('all')
   const [copiedAction, setCopiedAction] = useState(false)
 
   // One-Click Polish State
   const [polishedResult, setPolishedResult] = useState(null)
   const [polishError, setPolishError] = useState(null)
-  const [copiedPolished, setCopiedPolished] = useState(false)
 
   // Speech Synthesizer State
   const [isPlayingAudio, setIsPlayingAudio] = useState(false)
   const [speechRate, setSpeechRate] = useState(1.0)
+
+  const [analyzeContentQa, { isLoading: isAnalyzing, reset: resetMutation }] = useAnalyzeContentQaMutation()
+  const [polishContentQa, { isLoading: isPolishing }] = usePolishContentQaMutation()
 
   const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose, triggerPopup } = useLeadPopup('content-qa')
   const { isFieldEnabled } = useToolFields('content-qa')
@@ -253,15 +264,11 @@ export default function ContentQaPage() {
   const charCount = content.length
 
   const handleReset = () => {
-    setContent('')
-    setTitle('')
-    setTargetKeyword('')
-    setTargetAudience('')
+    resetForm()
     setReport(null)
     setQaId(null)
     setStatuses({})
     setPolishedResult(null)
-    setValidationError('')
     setError(null)
     resetMutation()
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -286,41 +293,36 @@ export default function ContentQaPage() {
   }, [])
 
   const handleLoadSample = () => {
-    setTitle('How to Elevate Your Content Strategy with First-Hand Insights')
-    setTargetKeyword('content strategy')
-    setPlatform('website')
-    setTargetAudience('B2B Content Marketers & Agency Leaders')
-    setContent(SAMPLE_CONTENT)
+    setValue('title', 'How to Elevate Your Content Strategy with First-Hand Insights')
+    setValue('targetKeyword', 'content strategy')
+    setValue('platform', 'website')
+    setValue('targetAudience', 'B2B Content Marketers & Agency Leaders')
+    setValue('content', SAMPLE_CONTENT)
   }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setValidationError('')
-
-    if (isFieldEnabled('content') && (!content.trim() || content.trim().length < 20)) {
-      setValidationError('Please enter at least 20 characters of content to run the QA Checklist.')
-      return
-    }
-
+  const onFormValid = (formData) => {
     if (popupEnabled) {
       triggerPopup()
       return
     }
-    runAnalysis()
+    runAnalysis(formData)
   }
 
-  const runAnalysis = async () => {
+  const runAnalysis = async (formData) => {
+    const parsed = parseContentQaForm(formData || watch())
+    if (!parsed.success) return
+
     setError(null)
     setReport(null)
     setPolishedResult(null)
     try {
       const data = await analyzeContentQa({
-        content: content.trim(),
-        title: title.trim() || undefined,
-        targetKeyword: targetKeyword.trim() || undefined,
-        platform,
-        targetAudience: targetAudience.trim() || undefined,
-        preferredProvider: aiModel,
+        content: parsed.data.content,
+        title: parsed.data.title,
+        targetKeyword: parsed.data.targetKeyword,
+        platform: parsed.data.platform,
+        targetAudience: parsed.data.targetAudience,
+        preferredProvider: parsed.data.preferredProvider,
       }).unwrap()
 
       setReport(data.report)
@@ -544,12 +546,10 @@ Audited with Missive Digital Content QA Tool.`
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
 
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          {/* Brand Free Tool Badge */}
           <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase shadow-sm">
             Free QA Tool
           </span>
 
-          {/* Himani Signature Framework Tag */}
           <div className="flex items-center justify-center gap-2 mb-4">
             <div className="w-7 h-7 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] flex items-center justify-center text-white font-bold text-xs shadow-sm">
               HK
@@ -589,7 +589,7 @@ Audited with Missive Digital Content QA Tool.`
 
           {/* ── INPUT FORM ────────────────────────────────────────── */}
           {!report && !isAnalyzing && (
-            <form onSubmit={handleSubmit} className="bg-white rounded-3xl border border-gray-200 shadow-xl shadow-gray-200/50 p-6 sm:p-9 space-y-6">
+            <form onSubmit={handleSubmit(onFormValid)} className="bg-white rounded-3xl border border-gray-200 shadow-xl shadow-gray-200/50 p-6 sm:p-9 space-y-6">
 
               {/* Content Textarea */}
               {isFieldEnabled('content') && (
@@ -603,12 +603,12 @@ Audited with Missive Digital Content QA Tool.`
                     </span>
                   </div>
                   <textarea
-                    value={content}
-                    onChange={e => setContent(e.target.value)}
+                    {...register('content')}
                     rows={12}
                     placeholder="Paste your blog post, article, LinkedIn draft, or newsletter content here..."
-                    className="w-full rounded-2xl border border-gray-300 px-4 py-3.5 text-sm leading-relaxed text-gray-800 focus:ring-2 focus:ring-[#0C81F3] focus:border-[#0C81F3] outline-none transition-all resize-y min-h-[220px]"
+                    className={`w-full rounded-2xl border px-4 py-3.5 text-sm leading-relaxed text-gray-800 focus:ring-2 focus:ring-[#0C81F3] focus:border-[#0C81F3] outline-none transition-all resize-y min-h-[220px] ${errors.content ? 'border-red-400 ring-1 ring-red-200' : 'border-gray-300'}`}
                   />
+                  {errors.content && <p className="mt-1 text-xs text-red-600">{errors.content.message}</p>}
                   <div className="flex justify-between mt-1.5 text-xs text-gray-500">
                     <span>Himani's Rule: Every line must earn its place.</span>
                     {wordCount > 0 && wordCount < 20 && (
@@ -625,8 +625,7 @@ Audited with Missive Digital Content QA Tool.`
                     <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Headline / H1 Title</label>
                     <input
                       type="text"
-                      value={title}
-                      onChange={e => setTitle(e.target.value)}
+                      {...register('title')}
                       placeholder="e.g. 7 Content QA Secrets to 10x Readability"
                       className="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-[#0C81F3] focus:border-[#0C81F3] outline-none"
                     />
@@ -638,8 +637,7 @@ Audited with Missive Digital Content QA Tool.`
                     <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Target Keyword</label>
                     <input
                       type="text"
-                      value={targetKeyword}
-                      onChange={e => setTargetKeyword(e.target.value)}
+                      {...register('targetKeyword')}
                       placeholder="e.g. content QA checklist"
                       className="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-[#0C81F3] focus:border-[#0C81F3] outline-none"
                     />
@@ -652,8 +650,7 @@ Audited with Missive Digital Content QA Tool.`
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Target Platform</label>
                   <select
-                    value={platform}
-                    onChange={e => setPlatform(e.target.value)}
+                    {...register('platform')}
                     className="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm bg-white focus:ring-2 focus:ring-[#0C81F3] focus:border-[#0C81F3] outline-none font-medium"
                   >
                     <option value="website">Website / Long-form Blog Post</option>
@@ -668,8 +665,7 @@ Audited with Missive Digital Content QA Tool.`
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Target Audience & Voice (Optional)</label>
                   <input
                     type="text"
-                    value={targetAudience}
-                    onChange={e => setTargetAudience(e.target.value)}
+                    {...register('targetAudience')}
                     placeholder="e.g. B2B Founders, Marketing Directors"
                     className="w-full rounded-xl border border-gray-300 px-3.5 py-2.5 text-sm focus:ring-2 focus:ring-[#0C81F3] focus:border-[#0C81F3] outline-none"
                   />
@@ -677,16 +673,16 @@ Audited with Missive Digital Content QA Tool.`
               </div>
 
               {/* AI Model Selector */}
-              <ModelSelector value={aiModel} onChange={setAiModel} />
+              <Controller control={control} name="preferredProvider"
+                render={({ field }) => <ModelSelector value={field.value} onChange={field.onChange} />} />
 
-              {validationError && (
+              {error && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-3.5 text-sm text-red-700 flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 shrink-0" />
-                  <span>{validationError}</span>
+                  <span>{error}</span>
                 </div>
               )}
 
-              {/* Submit CTA Button (Site Theme Gradient) */}
               <button
                 type="submit"
                 disabled={isAnalyzing}
@@ -799,7 +795,7 @@ Audited with Missive Digital Content QA Tool.`
                   {/* Right Column: 4 Signature Quick Alert Cards */}
                   <div className="md:col-span-8 grid sm:grid-cols-2 gap-3.5">
 
-                    {/* Em Dash Sentinel (Himani Rule: 0 Em Dashes) */}
+                    {/* Em Dash Sentinel */}
                     <div className={`p-4 rounded-2xl border ${report.quickStats?.emDashesCount === 0 ? 'bg-emerald-50/80 border-emerald-200' : 'bg-red-50/80 border-red-200'}`}>
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
@@ -978,7 +974,7 @@ Audited with Missive Digital Content QA Tool.`
                     </button>
                   </div>
 
-                  {/* 2-Column Responsive Card Grid (Mirroring Himani's Infographic Cheat Sheet) */}
+                  {/* 2-Column Responsive Card Grid */}
                   <div className="grid md:grid-cols-2 gap-5">
                     {filteredCategories.map(cat => {
                       const catScore = scores.cats[cat.id] ?? 100
@@ -1077,19 +1073,18 @@ Audited with Missive Digital Content QA Tool.`
                                   {aiCat.issues.map((issue, idx) => (
                                     <p key={idx} className="text-gray-700 text-[11px] mb-0.5 flex items-start gap-1">
                                       <span className="text-rose-500">•</span>
-                                      <span>{issue}</span>
+                                      {issue}
                                     </p>
                                   ))}
                                 </div>
                               )}
-
                               {aiCat.suggestions?.length > 0 && (
-                                <div className="mt-2">
-                                  <span className="font-bold text-blue-900 block mb-1">Himani's Fix Suggestion:</span>
-                                  {aiCat.suggestions.map((sug, idx) => (
+                                <div>
+                                  <span className="font-bold text-[#0C81F3] block mb-1">Himani's Suggestions:</span>
+                                  {aiCat.suggestions.map((s, idx) => (
                                     <p key={idx} className="text-gray-700 text-[11px] mb-0.5 flex items-start gap-1">
                                       <span className="text-[#0C81F3]">→</span>
-                                      <span>{sug}</span>
+                                      {s}
                                     </p>
                                   ))}
                                 </div>
@@ -1104,266 +1099,99 @@ Audited with Missive Digital Content QA Tool.`
               )}
 
               {/* ═════════════════════════════════════════════════════ */}
-              {/* TAB 2: LIVE CONTENT INSPECTOR WITH HIGHLIGHTS       */}
+              {/* TAB 2: LIVE CONTENT INSPECTOR                       */}
               {/* ═════════════════════════════════════════════════════ */}
               {activeTab === 'inspector' && (
-                <div className="space-y-6">
-                  <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 shadow-sm">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-gray-100">
-                      <div>
-                        <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                          <Eye className="w-4 h-4 text-[#0C81F3]" />
-                          Interactive Content Inspector
-                        </h3>
-                        <p className="text-xs text-gray-500 mt-0.5">
-                          Highlighted terms violate Himani's checklist rules (e.g. em dashes, robotic phrases, filler sentences).
-                        </p>
-                      </div>
-
-                      {/* Legend */}
-                      <div className="flex flex-wrap gap-2 text-xs">
-                        <span className="px-2.5 py-1 rounded-lg bg-red-100 text-red-800 font-semibold flex items-center gap-1">
-                          <span className="w-2 h-2 rounded-full bg-red-500" /> Em Dash (Strict 0 Rule)
-                        </span>
-                        <span className="px-2.5 py-1 rounded-lg bg-purple-100 text-purple-800 font-semibold flex items-center gap-1">
-                          <span className="w-2 h-2 rounded-full bg-purple-500" /> AI / Robotic Cliché
-                        </span>
-                        <span className="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 font-semibold flex items-center gap-1">
-                          <span className="w-2 h-2 rounded-full bg-amber-500" /> Filler / Fluff
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Flagged Items Summary */}
-                    {report.highlights?.length > 0 ? (
-                      <div className="mt-6 space-y-3">
-                        <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider">
-                          Detected Violations ({report.highlights.length}):
-                        </h4>
-                        <div className="grid sm:grid-cols-2 gap-3">
-                          {report.highlights.map((hl, idx) => (
-                            <div
-                              key={idx}
-                              className={`p-3.5 rounded-2xl border ${hl.type === 'em-dash' ? 'bg-red-50/60 border-red-200' : hl.type === 'ai-cliche' ? 'bg-purple-50/60 border-purple-200' : 'bg-amber-50/60 border-amber-200'}`}
-                            >
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="text-xs font-bold text-gray-900">
-                                  "{hl.text}"
-                                </span>
-                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${hl.type === 'em-dash' ? 'bg-red-200 text-red-800' : hl.type === 'ai-cliche' ? 'bg-purple-200 text-purple-800' : 'bg-amber-200 text-amber-800'}`}>
-                                  {hl.type}
-                                </span>
-                              </div>
-                              <p className="text-[11px] text-gray-600 mb-1.5">{hl.reason}</p>
-                              <div className="text-[11px] font-medium text-emerald-800 bg-emerald-50 px-2.5 py-1 rounded-lg border border-emerald-200">
-                                💡 Fix: {hl.suggestion}
-                              </div>
-                            </div>
-                          ))}
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                  <h3 className="text-sm font-bold text-gray-900 mb-4">Live Content Inspector</h3>
+                  {report.highlights?.length > 0 ? (
+                    <div className="space-y-3">
+                      {report.highlights.map((h, i) => (
+                        <div key={i} className={`p-3 rounded-xl border text-sm ${h.severity === 'error' ? 'bg-red-50 border-red-200 text-red-800' : h.severity === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-blue-50 border-blue-200 text-blue-800'}`}>
+                          <span className="font-bold">{h.label || 'Flag'}:</span> {h.message}
                         </div>
-                      </div>
-                    ) : (
-                      <div className="mt-6 text-center py-8 bg-emerald-50/50 rounded-2xl border border-emerald-100">
-                        <CheckCircle2 className="w-8 h-8 text-emerald-600 mx-auto mb-2" />
-                        <h4 className="text-sm font-bold text-emerald-900">Flawless Human Flow!</h4>
-                        <p className="text-xs text-emerald-700 mt-1">Zero em dashes, zero detectable AI cliches, and zero filler phrases found.</p>
-                      </div>
-                    )}
-
-                    {/* Raw Content Viewer */}
-                    <div className="mt-6 pt-6 border-t border-gray-100">
-                      <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Original Text:</h4>
-                      <div className="bg-gray-50 p-4 rounded-2xl border border-gray-200/80 text-xs font-mono leading-relaxed text-gray-800 whitespace-pre-wrap max-h-96 overflow-y-auto">
-                        {content}
-                      </div>
+                      ))}
                     </div>
-                  </div>
+                  ) : (
+                    <p className="text-sm text-gray-500">No content flags detected.</p>
+                  )}
                 </div>
               )}
 
               {/* ═════════════════════════════════════════════════════ */}
-              {/* TAB 3: READ ALOUD AUDIO STUDIO                       */}
+              {/* TAB 3: READ ALOUD AUDIO STUDIO                     */}
               {/* ═════════════════════════════════════════════════════ */}
               {activeTab === 'read_aloud' && (
-                <div className="space-y-6">
-                  <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 shadow-sm text-center max-w-2xl mx-auto">
-                    <div className="w-14 h-14 rounded-2xl bg-purple-100 text-purple-600 flex items-center justify-center mx-auto mb-4">
-                      <Volume2 className="w-7 h-7" />
-                    </div>
-                    <h3 className="text-lg font-bold text-gray-900">Pillar 2: Read Aloud Voice Simulator</h3>
-                    <p className="text-xs text-gray-500 mt-1 max-w-md mx-auto">
-                      Himani's rule: If it sounds stiff or awkward when spoken out loud, it won't connect with your reader.
-                    </p>
-
-                    {/* Audio Player Controls */}
-                    <div className="mt-6 p-6 rounded-2xl bg-purple-50/60 border border-purple-100 space-y-4">
-                      <div className="flex items-center justify-center gap-4">
-                        <button
-                          onClick={handleToggleSpeech}
-                          className={`w-14 h-14 rounded-full flex items-center justify-center text-white transition-all shadow-md ${isPlayingAudio ? 'bg-red-600 hover:bg-red-700' : 'bg-purple-600 hover:bg-purple-700'}`}
-                        >
-                          {isPlayingAudio ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6 ml-0.5" />}
-                        </button>
-                        {isPlayingAudio && (
-                          <button
-                            onClick={handleStopSpeech}
-                            className="p-3 rounded-full bg-gray-200 hover:bg-gray-300 text-gray-700 transition-all"
-                            title="Reset Audio"
-                          >
-                            <RotateCcw className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
-
-                      <div className="text-xs font-bold text-purple-950">
-                        {isPlayingAudio ? '🎙 Reading Content Aloud (Listen for rhythm & breath pauses)...' : 'Click Play to test speech flow'}
-                      </div>
-
-                      {/* Speed Adjustment */}
-                      <div className="flex items-center justify-center gap-2 pt-2">
-                        <span className="text-xs text-gray-500 font-medium">Speed:</span>
-                        {[0.8, 1.0, 1.2].map(rate => (
-                          <button
-                            key={rate}
-                            onClick={() => {
-                              setSpeechRate(rate)
-                              if (isPlayingAudio) handleStopSpeech()
-                            }}
-                            className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${speechRate === rate ? 'bg-purple-600 text-white' : 'bg-white border border-purple-200 text-purple-900 hover:bg-purple-100'}`}
-                          >
-                            {rate}x
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Voice Assessment Metrics */}
-                    <div className="mt-6 grid grid-cols-2 gap-3 text-left">
-                      <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200">
-                        <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold block">Reading Ease</span>
-                        <span className="text-base font-extrabold text-gray-900">{report.quickStats?.fleschScore || 65} / 100</span>
-                        <p className="text-[11px] text-gray-500 mt-0.5">
-                          {report.quickStats?.fleschScore >= 60 ? 'Natural conversational rhythm' : 'Dense sentence structure'}
-                        </p>
-                      </div>
-
-                      <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200">
-                        <span className="text-[10px] uppercase tracking-wider text-gray-500 font-bold block">Avg Words / Sentence</span>
-                        <span className="text-base font-extrabold text-gray-900">{report.quickStats?.avgWordsPerSentence || 14} words</span>
-                        <p className="text-[11px] text-gray-500 mt-0.5">
-                          {report.quickStats?.avgWordsPerSentence <= 18 ? 'Crisp & breathable' : 'Trim lines > 25 words'}
-                        </p>
-                      </div>
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                  <h3 className="text-sm font-bold text-gray-900 mb-4">Read Aloud Audio Studio</h3>
+                  <p className="text-sm text-gray-600 mb-4">Listen to your content to check cadence and flow.</p>
+                  <div className="flex items-center gap-4">
+                    <button
+                      onClick={handleToggleSpeech}
+                      className="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-sm font-semibold flex items-center gap-2"
+                    >
+                      {isPlayingAudio ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+                      {isPlayingAudio ? 'Stop' : 'Play'}
+                    </button>
+                    <div className="flex items-center gap-2">
+                      <label className="text-xs font-semibold text-gray-600">Speed:</label>
+                      <input
+                        type="range"
+                        min="0.5"
+                        max="2"
+                        step="0.1"
+                        value={speechRate}
+                        onChange={(e) => setSpeechRate(parseFloat(e.target.value))}
+                        className="w-24"
+                      />
+                      <span className="text-xs text-gray-500">{speechRate}x</span>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* ═════════════════════════════════════════════════════ */}
-              {/* TAB 4: ONE-CLICK HIMANI POLISH (AI OPTIMIZER)        */}
+              {/* TAB 4: ONE-CLICK HIMANI POLISH                     */}
               {/* ═════════════════════════════════════════════════════ */}
               {activeTab === 'polish' && (
-                <div className="space-y-6">
+                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
+                  <h3 className="text-sm font-bold text-gray-900 mb-4">✨ One-Click Himani Polish</h3>
                   {isPolishing ? (
-                    <div className="bg-white rounded-3xl border border-gray-200 p-12 text-center max-w-md mx-auto">
-                      <div className="w-12 h-12 rounded-full border-4 border-[#0C81F3] border-t-transparent animate-spin mx-auto mb-4" />
-                      <h3 className="text-lg font-bold text-gray-900">Applying 100% Himani Polish...</h3>
-                      <p className="text-xs text-gray-500 mt-1">Removing em dashes, humanizing voice, and elevating insight-first structure.</p>
-                    </div>
-                  ) : polishError ? (
-                    <div className="bg-white rounded-3xl border border-red-200 p-8 text-center max-w-md mx-auto">
-                      <AlertTriangle className="w-10 h-10 text-red-500 mx-auto mb-2" />
-                      <h3 className="text-base font-bold text-gray-900">Polish Failed</h3>
-                      <p className="text-xs text-gray-600 mt-1">{polishError}</p>
+                    <p className="text-sm text-gray-500">Polishing your content...</p>
+                  ) : polishedResult ? (
+                    <div>
+                      <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-800 whitespace-pre-wrap max-h-96 overflow-y-auto">
+                        {polishedResult}
+                      </div>
                       <button
-                        onClick={runHimaniPolish}
-                        className="mt-4 px-5 py-2 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold hover:opacity-90"
+                        onClick={() => { navigator.clipboard.writeText(polishedResult) }}
+                        className="mt-3 px-4 py-2 text-xs font-semibold text-[#0C81F3] bg-blue-50 rounded-lg hover:bg-blue-100"
                       >
-                        Try Again
+                        Copy Polished Content
                       </button>
                     </div>
-                  ) : polishedResult ? (
-                    <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 shadow-sm space-y-6">
-
-                      {/* Header Badge */}
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-6 border-b border-gray-100">
-                        <div>
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-[#0C81F3] border border-blue-200/60 mb-2">
-                            <Sparkles className="w-3.5 h-3.5 text-[#0C81F3]" />
-                            Himani-fied Edition (100% Compliant)
-                          </span>
-                          <h3 className="text-lg font-bold text-gray-900">{polishedResult.polishedTitle}</h3>
-                        </div>
-
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => {
-                              navigator.clipboard.writeText(polishedResult.polishedContent)
-                              setCopiedPolished(true)
-                              setTimeout(() => setCopiedPolished(false), 2000)
-                            }}
-                            className="px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:from-[#0D73D1] hover:to-[#E77771] rounded-xl flex items-center gap-1.5 transition-all shadow-sm"
-                          >
-                            {copiedPolished ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                            <span>{copiedPolished ? 'Copied Polished Draft!' : 'Copy Polished Draft'}</span>
-                          </button>
-                          <button
-                            onClick={runHimaniPolish}
-                            className="p-2 text-gray-500 hover:text-gray-900 hover:bg-gray-100 rounded-xl transition-all"
-                            title="Regenerate Polish"
-                          >
-                            <RefreshCw className="w-4 h-4" />
-                          </button>
-                        </div>
-                      </div>
-
-                      {/* Improvements Made */}
-                      {polishedResult.improvementsMade?.length > 0 && (
-                        <div className="bg-blue-50/50 p-4 rounded-2xl border border-blue-100">
-                          <h4 className="text-xs font-bold text-blue-950 uppercase tracking-wider mb-2">Key Refinements Applied:</h4>
-                          <div className="grid sm:grid-cols-2 gap-2">
-                            {polishedResult.improvementsMade.map((imp, idx) => (
-                              <div key={idx} className="text-xs text-gray-800 flex items-start gap-1.5">
-                                <span className="text-emerald-600 font-bold shrink-0">✓</span>
-                                <span>{imp}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Polished Content Box */}
-                      <div>
-                        <h4 className="text-xs font-bold text-gray-700 uppercase tracking-wider mb-2">Optimized Content Draft:</h4>
-                        <div className="bg-gray-50 p-6 rounded-2xl border border-gray-200 text-sm leading-relaxed text-gray-900 whitespace-pre-wrap font-sans">
-                          {polishedResult.polishedContent}
-                        </div>
-                      </div>
-                    </div>
-                  ) : null}
+                  ) : (
+                    <button
+                      onClick={runHimaniPolish}
+                      className="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-sm font-semibold flex items-center gap-2"
+                    >
+                      <Wand2 className="w-4 h-4" />
+                      Polish Now
+                    </button>
+                  )}
                 </div>
               )}
 
-              {/* ── FOOTER CALL TO ACTION (Brand Gradient) ──────────── */}
-              <div className="relative overflow-hidden rounded-3xl p-8 sm:p-10 text-center bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] shadow-xl shadow-blue-500/10">
-                <div className="relative z-10 max-w-xl mx-auto">
-                  <h3 className="text-2xl sm:text-3xl font-extrabold text-white">Need Hands-On Editorial Mastery?</h3>
-                  <p className="mt-2 text-white/90 text-sm leading-relaxed">
-                    Our team of seasoned content strategists can polish, structure, and scale your brand's content the way Himani does.
-                  </p>
-                </div>
-              </div>
-
+              {/* Lead Form */}
               <DynamicLeadForm
                 toolSlug="content-qa"
-                relatedIdField="contentQaId"
+                relatedIdField="qaId"
                 relatedIdValue={qaId}
-                title="Get Expert Editorial Support"
-                subtitle="Connect with Missive Digital's content optimization specialists."
+                title="Get Your Free Content Strategy"
+                subtitle="Our experts will review your QA report and share a personalized content improvement plan."
               />
             </div>
           )}
-
         </div>
       </section>
     </div>

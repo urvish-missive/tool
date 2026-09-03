@@ -12,6 +12,7 @@ const TOOL_SLUG_MAP = {
   competitor_analysis: 'competitor-analyzer',
   seo_roi_calculator: 'seo-roi',
   content_qa: 'content-qa',
+  xml_sitemap_generator: 'xml-sitemap-generator',
 }
 
 const TOOLS = [
@@ -95,6 +96,15 @@ const TOOLS = [
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/seo-roi-calculator',
     badge: 'Free Tool',
+  },
+  {
+    id: 'xml_sitemap_generator',
+    title: 'XML Sitemap Generator',
+    description: 'Deep crawler creating Google-compliant XML sitemaps with image tags, hreflang alternates, and Search Console readiness.',
+    icon: '🗺️',
+    color: 'from-[#0C81F3] to-[#EB8988]',
+    path: '/xml-sitemap-generator',
+    badge: 'New Tool',
   },
 ]
 

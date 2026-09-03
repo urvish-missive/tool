@@ -1,4 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useResearchKeywordsMutation } from '../../services/apiSlice'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
@@ -6,6 +8,8 @@ import { useLeadPopup } from '../../components/useLeadPopup'
 import ModelSelector from '../shared/ModelSelector'
 import useToolFields from '../../hooks/useToolFields'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
+import { keywordResearchSchema, parseKeywordResearchForm } from '../../schemas/keywordResearch.schema'
+import { normalizeUrl } from '../../utils/normalizeUrl'
 
 const COUNTRIES = ['United States', 'United Kingdom', 'Canada', 'Australia', 'India', 'Germany', 'France', 'UAE', 'Singapore', 'Other']
 const BUSINESS_TYPES = ['B2B', 'B2C', 'E-commerce', 'SaaS', 'Agency', 'Local Business', 'Publisher', 'Enterprise', 'Other']
@@ -185,12 +189,12 @@ function ContentOpportunities({ opportunities }) {
 
 
 export default function KeywordResearchPage() {
-  const [seedKeyword, setSeedKeyword] = useState('')
-  const [websiteUrl, setWebsiteUrl] = useState('')
-  const [country, setCountry] = useState('United States')
-  const [businessType, setBusinessType] = useState('B2B')
-  const [aiModel, setAiModel] = useState('openrouter')
-  const [validationError, setValidationError] = useState('')
+  const { register, handleSubmit, control, watch, formState: { errors } } = useForm({
+    resolver: zodResolver(keywordResearchSchema),
+    defaultValues: { seedKeyword: '', websiteUrl: '', country: 'United States', businessType: 'B2B', preferredProvider: 'openrouter' },
+  })
+  const seedKeyword = watch('seedKeyword')
+  const websiteUrl = watch('websiteUrl')
   const [loadingStep, setLoadingStep] = useState('understand')
   const [report, setReport] = useState(null)
   const [researchId, setResearchId] = useState(null)
@@ -216,39 +220,29 @@ export default function KeywordResearchPage() {
   }, [data])
 
   const runResearch = useCallback((form) => {
+    const parsed = parseKeywordResearchForm(form)
+    if (!parsed.success) return
     researchKeywords({
-      seedKeyword: form.seedKeyword?.trim() || undefined,
-      websiteUrl: form.websiteUrl?.trim() || undefined,
-      country: form.country,
-      businessType: form.businessType,
-      preferredProvider: form.aiModel,
+      seedKeyword: parsed.data.seedKeyword || undefined,
+      websiteUrl: parsed.data.websiteUrl || undefined,
+      country: parsed.data.country,
+      businessType: parsed.data.businessType,
+      preferredProvider: parsed.data.preferredProvider,
     })
   }, [researchKeywords])
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    setValidationError('')
-    const hasKeyword = isFieldEnabled('seedKeyword') && seedKeyword.trim().length >= 2
-    const hasUrl = isFieldEnabled('websiteUrl') && websiteUrl.trim().length > 0
-    if (!hasKeyword && !hasUrl) { setValidationError('Please enter a seed keyword or website URL (at least one is required).'); return }
-    if (hasKeyword && seedKeyword.trim().length < 2) { setValidationError('Keyword must be at least 2 characters.'); return }
-    if (hasUrl) {
-      try { new URL(websiteUrl.trim()) } catch { setValidationError('Please enter a valid website URL (e.g. https://example.com)'); return }
-    }
+  const onFormValid = (data) => {
     if (popupEnabled) {
-      setPendingForm({ seedKeyword, websiteUrl, country, businessType, aiModel })
+      setPendingForm(data)
       triggerPopup()
       return
     }
-    runResearch({ seedKeyword, websiteUrl, country, businessType, aiModel })
+    runResearch(data)
   }
 
   const handleReset = () => {
-    setSeedKeyword('')
-    setWebsiteUrl('')
     setReport(null)
     setResearchId(null)
-    setValidationError('')
     resetMutation()
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
@@ -287,41 +281,44 @@ export default function KeywordResearchPage() {
       <section className="py-8 sm:py-12">
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           {!report && !isLoading && (
-            <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-200 shadow-lg shadow-gray-200/50 p-6 sm:p-8 space-y-5 max-w-2xl mx-auto">
+            <form onSubmit={handleSubmit(onFormValid)} className="bg-white rounded-2xl border border-gray-200 shadow-lg shadow-gray-200/50 p-6 sm:p-8 space-y-5 max-w-2xl mx-auto">
               {isFieldEnabled('seedKeyword') && (
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-1">Seed Keyword</label>
-                <input type="text" maxLength={100} value={seedKeyword} onChange={e => setSeedKeyword(e.target.value)}
-                  placeholder="e.g. enterprise SEO" className="w-full rounded-lg border border-gray-300 px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+                <input type="text" maxLength={100} {...register('seedKeyword')}
+                  placeholder="e.g. enterprise SEO"
+                  className={`w-full rounded-lg border px-4 py-3 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none ${errors.seedKeyword ? 'border-red-400 ring-1 ring-red-200' : 'border-gray-300'}`} />
+                {errors.seedKeyword && <p className="mt-1 text-xs text-red-600">{errors.seedKeyword.message}</p>}
               </div>
               )}
               {isFieldEnabled('websiteUrl') && (
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-1">Website URL (optional)</label>
-                <input type="url" value={websiteUrl} onChange={e => setWebsiteUrl(e.target.value)} placeholder="https://example.com"
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+                <input type="text" {...register('websiteUrl')} placeholder="example.com or https://example.com"
+                  className={`w-full rounded-lg border px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none ${errors.websiteUrl ? 'border-red-400 ring-1 ring-red-200' : 'border-gray-300'}`} />
+                {errors.websiteUrl && <p className="mt-1 text-xs text-red-600">{errors.websiteUrl.message}</p>}
               </div>
               )}
               <div className="grid sm:grid-cols-3 gap-4">
                 {isFieldEnabled('country') && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-1">Country</label>
-                  <select value={country} onChange={e => setCountry(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white">
-                    {COUNTRIES.map(c => <option key={c}>{c}</option>)}
+                  <select {...register('country')} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white">
+                    {COUNTRIES.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
                 )}
                 {isFieldEnabled('businessType') && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-900 mb-1">Business Type</label>
-                  <select value={businessType} onChange={e => setBusinessType(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white">
-                    {BUSINESS_TYPES.map(b => <option key={b}>{b}</option>)}
+                  <select {...register('businessType')} className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm bg-white">
+                    {BUSINESS_TYPES.map(b => <option key={b} value={b}>{b}</option>)}
                   </select>
                 </div>
                 )}
-                <ModelSelector value={aiModel} onChange={setAiModel} />
+                <Controller control={control} name="preferredProvider"
+                  render={({ field }) => <ModelSelector value={field.value} onChange={field.onChange} />} />
               </div>
-              {validationError && <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">{validationError}</div>}
               <button type="submit" disabled={isLoading} className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-8 py-3.5 text-sm font-semibold text-white hover:from-[#0D73D1] hover:to-[#E77771] disabled:opacity-50 transition-all shadow-lg shadow-[#0C81F3]/25">
                 Generate Keyword Ideas
               </button>

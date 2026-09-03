@@ -169,6 +169,8 @@ model Lead {
   competitorAnalysis  CompetitorAnalysis? @relation(fields: [competitorAnalysisId], references: [id])
   contentQaId         String?           @db.ObjectId
   contentQa           ContentQA?        @relation(fields: [contentQaId], references: [id])
+  sitemapId           String?           @db.ObjectId
+  sitemap             SitemapGeneration? @relation(fields: [sitemapId], references: [id])
   createdAt          DateTime          @default(now())
 
   @@index([email])
@@ -263,6 +265,21 @@ model ContentQA {
   leads           Lead[]
 
   @@index([createdAt])
+}
+
+model SitemapGeneration {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  websiteUrl      String?
+  totalUrls       Int      @default(0)
+  totalImages     Int      @default(0)
+  xmlContent      String
+  sourceType      String   @default("crawler") // "crawler" | "manual" | "validator"
+  settingsJson    String?
+  createdAt       DateTime @default(now())
+  leads           Lead[]
+
+  @@index([createdAt])
+  @@index([websiteUrl])
 }
 
 // ─── Admin & Tool Management ────────────────────────────

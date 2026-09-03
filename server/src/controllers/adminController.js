@@ -114,7 +114,7 @@ export async function getStats(req, res) {
     })
 
     // Recent activity across all tools
-    const [recentAnalyses, recentAudits, recentKeywords, recentBlogs, recentLogos, recentRois] = await Promise.all([
+    const [recentAnalyses, recentAudits, recentKeywords, recentBlogs, recentLogos, recentRois, recentSitemaps] = await Promise.all([
       prisma.analysis.findMany({ orderBy: { createdAt: 'desc' }, take: 10,
         select: { id: true, targetKeyword: true, overallScore: true, createdAt: true } }),
       prisma.audit.findMany({ orderBy: { createdAt: 'desc' }, take: 10,
@@ -127,8 +127,8 @@ export async function getStats(req, res) {
         select: { id: true, brandName: true, industry: true, createdAt: true } }),
       prisma.rOICalculation.findMany({ orderBy: { createdAt: 'desc' }, take: 10,
         select: { id: true, monthlySeoInvestment: true, currency: true, createdAt: true } }),
-      prisma.contentQA.findMany({ orderBy: { createdAt: 'desc' }, take: 10,
-        select: { id: true, title: true, targetKeyword: true, overallScore: true, createdAt: true } }),
+      prisma.sitemapGeneration.findMany({ orderBy: { createdAt: 'desc' }, take: 10,
+        select: { id: true, websiteUrl: true, totalUrls: true, createdAt: true } }).catch(() => []),
     ])
 
     const recentActivity = [
@@ -138,6 +138,7 @@ export async function getStats(req, res) {
       ...recentBlogs.map(b => ({ tool: 'Blog Topic Generator', detail: b.niche, goal: b.contentGoal, createdAt: b.createdAt, id: b.id })),
       ...recentLogos.map(l => ({ tool: 'Logo Maker', detail: l.brandName, industry: l.industry, createdAt: l.createdAt, id: l.id })),
       ...recentRois.map(r => ({ tool: 'ROI Calculator', detail: `${r.currency} ${r.monthlySeoInvestment}/mo investment`, createdAt: r.createdAt, id: r.id })),
+      ...((recentSitemaps || []).map(s => ({ tool: 'XML Sitemap Generator', detail: s.websiteUrl || 'Direct Generation', score: null, createdAt: s.createdAt, id: s.id }))),
     ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 15)
 
     res.json({
@@ -407,6 +408,7 @@ async function getToolCount(tool) {
     'logo-maker': () => prisma.generatedLogo.count(),
     'seo-roi': () => prisma.rOICalculation.count(),
     'content-qa': () => prisma.contentQA.count(),
+    'xml-sitemap-generator': () => prisma.sitemapGeneration.count().catch(() => 0),
   }
   return counts[tool] ? counts[tool]() : 0
 }
@@ -420,6 +422,7 @@ function formatActivity(tool, record) {
     'logo-maker': 'Logo Maker',
     'seo-roi': 'ROI Calculator',
     'content-qa': 'Content QA',
+    'xml-sitemap-generator': 'XML Sitemap Generator',
   }
   const base = { id: record.id, tool, toolName: toolNames[tool] || tool, createdAt: record.createdAt }
 
@@ -438,6 +441,8 @@ function formatActivity(tool, record) {
       return { ...base, detail: `${record.currency} ${record.monthlySeoInvestment}/mo`, score: null, subdetail: `${record.campaignMonths} months campaign` }
     case 'content-qa':
       return { ...base, detail: record.title || record.targetKeyword || 'Untitled', score: record.overallScore, subdetail: null }
+    case 'xml-sitemap-generator':
+      return { ...base, detail: record.websiteUrl || 'Direct Generation', score: null, subdetail: `${record.totalUrls || 0} URLs generated` }
     default:
       return base
   }

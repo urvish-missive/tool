@@ -10,6 +10,8 @@ const TOOL_SLUG_MAP = {
   '/logo-maker': 'logo-maker',
   '/faq-generator': 'faq-generator',
   '/competitor-analysis': 'competitor-analyzer',
+  '/content-qa': 'content-qa',
+  '/xml-sitemap-generator': 'xml-sitemap-generator',
 }
 
 export default function ToolGuard({ toolPath, children }) {

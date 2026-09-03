@@ -1,7 +1,10 @@
 import { useState, useMemo } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useGenerateFaqsMutation } from '../../services/apiSlice'
 import ModelSelector from '../shared/ModelSelector'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
+import { faqGeneratorSchema, parseFaqGeneratorForm } from '../../schemas/faqGenerator.schema'
 import {
   HelpCircle,
   Sparkles,
@@ -42,19 +45,21 @@ const INTENT_BADGES = {
 }
 
 export default function FaqGeneratorPage() {
-  const [topic, setTopic] = useState('')
-  const [targetKeywords, setTargetKeywords] = useState('')
-  const [count, setCount] = useState(8)
-  const [preferredProvider, setPreferredProvider] = useState('openrouter')
+  const { register, handleSubmit, control, watch, formState: { errors }, reset: resetForm, setValue } = useForm({
+    resolver: zodResolver(faqGeneratorSchema),
+    defaultValues: { topic: '', targetKeywords: '', count: 8, preferredProvider: 'openrouter' },
+  })
+
+  const topic = watch('topic')
   const [generateFaqs, { isLoading, reset: resetMutation }] = useGenerateFaqsMutation()
-  
+
   const [dataResult, setDataResult] = useState(null)
   const [error, setError] = useState('')
   const [copiedState, setCopiedState] = useState(null)
   const [expandedItems, setExpandedItems] = useState({})
   const [filterType, setFilterType] = useState('all')
-  const [activeTab, setActiveTab] = useState('faqs') // 'faqs' | 'serp' | 'schema' | 'export'
-  const [serpDevice, setSerpDevice] = useState('desktop') // 'desktop' | 'mobile'
+  const [activeTab, setActiveTab] = useState('faqs')
+  const [serpDevice, setSerpDevice] = useState('desktop')
   const [serpExpanded, setSerpExpanded] = useState({})
 
   const faqs = dataResult?.faqs || []
@@ -62,41 +67,38 @@ export default function FaqGeneratorPage() {
   const paa = dataResult?.peopleAlsoAsk || []
   const summary = dataResult?.summary || ''
 
-  const handleGenerate = async (e) => {
-    e.preventDefault()
-    if (!topic.trim() || topic.trim().length < 2) {
-      setError('Please enter a topic (at least 2 characters)')
+  const onFormValid = (formData) => {
+    const parsed = parseFaqGeneratorForm(formData)
+    if (!parsed.success) {
+      setError(parsed.error)
       return
     }
     setError('')
     setDataResult(null)
 
-    try {
-      const result = await generateFaqs({
-        topic: topic.trim(),
-        targetKeywords: targetKeywords.trim() || undefined,
-        count: Number(count),
-        preferredProvider,
-      }).unwrap()
-
-      setDataResult(result)
-      const expanded = {}
-      result.faqs?.forEach((_, i) => (expanded[i] = true))
-      setExpandedItems(expanded)
-      setSerpExpanded({ 0: true, 1: true })
-
-      setTimeout(() => {
-        document.getElementById('faq-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-      }, 100)
-    } catch (err) {
-      setError(err?.data?.error || 'Failed to generate FAQs. Please try again.')
-    }
+    generateFaqs({
+      topic: parsed.data.topic,
+      targetKeywords: parsed.data.targetKeywords,
+      count: Number(parsed.data.count),
+      preferredProvider: parsed.data.preferredProvider,
+    }).unwrap()
+      .then(result => {
+        setDataResult(result)
+        const expanded = {}
+        result.faqs?.forEach((_, i) => (expanded[i] = true))
+        setExpandedItems(expanded)
+        setSerpExpanded({ 0: true, 1: true })
+        setTimeout(() => {
+          document.getElementById('faq-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        }, 100)
+      })
+      .catch(err => {
+        setError(err?.data?.error || 'Failed to generate FAQs. Please try again.')
+      })
   }
 
   const handleReset = () => {
-    setTopic('')
-    setTargetKeywords('')
-    setCount(8)
+    resetForm()
     setDataResult(null)
     setError('')
     setExpandedItems({})
@@ -131,7 +133,6 @@ export default function FaqGeneratorPage() {
     return faqs.filter((f) => (f.type || '').toLowerCase() === filterType)
   }, [faqs, filterType])
 
-  // Export formats
   const markdownText = useMemo(() => {
     return faqs.map(f => {
       let content = `### ${f.question}\n\n${f.answer}\n`
@@ -217,7 +218,7 @@ export default function FaqGeneratorPage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Input Form Card */}
         <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10 backdrop-blur-sm">
-          <form onSubmit={handleGenerate} className="space-y-6">
+          <form onSubmit={handleSubmit(onFormValid)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Topic Input */}
               <div className="md:col-span-2">
@@ -228,14 +229,13 @@ export default function FaqGeneratorPage() {
                   <input
                     id="topic"
                     type="text"
-                    value={topic}
-                    onChange={(e) => setTopic(e.target.value)}
+                    {...register('topic')}
                     placeholder="e.g., Technical SEO Audit, Organic Coffee Subscription, SaaS Lead Generation"
-                    className="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 placeholder:text-slate-400 font-medium transition-all text-base"
-                    required
+                    className={`w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 placeholder:text-slate-400 font-medium transition-all text-base ${errors.topic ? 'border-red-400 ring-1 ring-red-200' : 'border-slate-300'}`}
                   />
                   <HelpCircle className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
                 </div>
+                {errors.topic && <p className="mt-1 text-xs text-red-600">{errors.topic.message}</p>}
               </div>
 
               {/* Target Keywords */}
@@ -246,8 +246,7 @@ export default function FaqGeneratorPage() {
                 <input
                   id="keywords"
                   type="text"
-                  value={targetKeywords}
-                  onChange={(e) => setTargetKeywords(e.target.value)}
+                  {...register('targetKeywords')}
                   placeholder="e.g., best seo audit, site audit cost, technical seo checklist"
                   className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 placeholder:text-slate-400 text-sm transition-all"
                 />
@@ -255,36 +254,37 @@ export default function FaqGeneratorPage() {
 
               {/* Count Selector */}
               <div>
-                <label htmlFor="count" className="block text-sm font-bold text-slate-800 mb-2">
+                <label className="block text-sm font-bold text-slate-800 mb-2">
                   Number of FAQs
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {[4, 6, 8, 12].map((num) => (
-                    <button
-                      key={num}
-                      type="button"
-                      onClick={() => setCount(num)}
-                      className={`py-2.5 px-3 text-xs sm:text-sm font-semibold rounded-xl border transition-all cursor-pointer ${
-                        count === num
-                          ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white border-transparent shadow-sm'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                      }`}
-                    >
-                      {num} FAQs
-                    </button>
-                  ))}
-                </div>
+                <Controller control={control} name="count"
+                  render={({ field }) => (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                      {[4, 6, 8, 12].map((num) => (
+                        <button
+                          key={num}
+                          type="button"
+                          onClick={() => field.onChange(num)}
+                          className={`py-2.5 px-3 text-xs sm:text-sm font-semibold rounded-xl border transition-all cursor-pointer ${
+                            field.value === num
+                              ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white border-transparent shadow-sm'
+                              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                          }`}
+                        >
+                          {num} FAQs
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                />
               </div>
             </div>
 
             {/* Model Selector & Submit */}
             <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
               <div className="w-full sm:w-auto sm:min-w-[190px]">
-                <ModelSelector
-                  value={preferredProvider}
-                  onChange={setPreferredProvider}
-                  compact={true}
-                />
+                <Controller control={control} name="preferredProvider"
+                  render={({ field }) => <ModelSelector value={field.value} onChange={field.onChange} compact={true} />} />
               </div>
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
@@ -310,7 +310,7 @@ export default function FaqGeneratorPage() {
                   ) : (
                     <>
                       <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-                      <span>Generate Optimized FAQs</span>
+                      <span>Generate FAQ Content & Schema</span>
                     </>
                   )}
                 </button>
@@ -328,479 +328,219 @@ export default function FaqGeneratorPage() {
         {/* Loading State */}
         {isLoading && (
           <UnifiedToolLoader
-            title="Synthesizing High-Converting FAQs & Schema..."
-            subtitle={`Mining search queries, Featured Snippets, and People Also Ask questions for "${topic}".`}
+            title="Generating Featured Snippet-Optimized FAQs..."
+            subtitle="Analyzing search intent, crafting concise answers, and building valid Schema.org JSON-LD."
             steps={[
-              'Analyzing topic intent & keyword entities',
-              'Mining Google "People Also Ask" questions',
-              'Drafting concise, authoritative answers',
-              'Structuring bulleted steps & comparison criteria',
-              'Generating valid Schema.org FAQPage JSON-LD',
+              'Analyzing topic & competitive SERP landscape',
+              'Generating question variations & PAA opportunities',
+              'Crafting concise Featured Snippet-ready answers',
+              'Building FAQ Schema.org JSON-LD markup',
+              'Optimizing for Informational, Commercial & Transactional intent',
             ]}
           />
         )}
 
-        {/* Results Section */}
-        {dataResult && (
+        {/* Results */}
+        {dataResult && !isLoading && (
           <div id="faq-results" className="space-y-6 animate-fade-in">
-            {/* Executive Strategy Banner */}
-            {summary && (
-              <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-white/10 shrink-0">
-                    <Sparkles className="w-5 h-5 text-[#67A7FF]" />
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-xs tracking-wide text-blue-300 uppercase mb-1">
-                      SEO Placement Strategy
-                    </h3>
-                    <p className="text-slate-100 text-sm sm:text-base leading-relaxed">
-                      {summary}
-                    </p>
-                  </div>
+            {/* Summary Card */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-base font-bold text-slate-900">FAQ Research Report</h3>
+                  <p className="text-sm text-slate-500 mt-1">{summary}</p>
                 </div>
+                <button onClick={handleReset} className="px-4 py-2 text-sm font-medium text-[#0C81F3] hover:bg-blue-50 rounded-lg">
+                  ← New Research
+                </button>
               </div>
-            )}
+            </div>
 
-            {/* People Also Ask Insights */}
-            {paa?.length > 0 && (
-              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
-                <div className="flex items-center gap-2 mb-3">
-                  <Search className="w-4 h-4 text-indigo-600" />
-                  <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                    Google "People Also Ask" Query Clusters
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {paa.map((q, idx) => (
-                    <span
-                      key={idx}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium border border-slate-200 transition-colors"
+            {/* Tab Navigation */}
+            <div className="border-b border-slate-200">
+              <div className="flex flex-wrap gap-2 sm:gap-4">
+                {[
+                  { id: 'faqs', label: 'FAQs', icon: HelpCircle },
+                  { id: 'serp', label: 'SERP Preview', icon: Search },
+                  { id: 'schema', label: 'Schema JSON-LD', icon: Code },
+                  { id: 'export', label: 'Export', icon: Download },
+                ].map(tab => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all ${activeTab === tab.id ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-slate-500 hover:text-slate-900'}`}
+                  >
+                    <tab.icon className="w-4 h-4" />
+                    <span>{tab.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* FAQ List Tab */}
+            {activeTab === 'faqs' && (
+              <div className="space-y-4">
+                {/* Filter Pills */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {[
+                    { id: 'all', label: `All (${faqs.length})` },
+                    ...QUESTION_TYPES.filter(t => t.value !== 'all' && faqs.some(f => (f.type || '').toLowerCase() === t.value)).map(t => ({ id: t.value, label: t.label })),
+                  ].map(f => (
+                    <button
+                      key={f.id}
+                      onClick={() => setFilterType(f.id)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${filterType === f.id ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
                     >
-                      <Tag className="w-3 h-3 text-slate-400" />
-                      {q}
-                    </span>
+                      {f.label}
+                    </button>
+                  ))}
+                </div>
+
+                {/* FAQ Items */}
+                <div className="space-y-3">
+                  {filteredFaqs.map((faq, i) => (
+                    <div key={i} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                      <button
+                        onClick={() => toggleExpand(i)}
+                        className="w-full flex items-center justify-between p-4 sm:p-5 text-left hover:bg-slate-50 transition-colors"
+                      >
+                        <div className="flex items-start gap-3 flex-1 min-w-0">
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white flex items-center justify-center text-xs font-bold shrink-0">
+                            {i + 1}
+                          </div>
+                          <div className="min-w-0">
+                            <h4 className="text-sm font-bold text-slate-900">{faq.question}</h4>
+                            {faq.type && (
+                              <span className={`inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${INTENT_BADGES[faq.type] || 'bg-slate-50 text-slate-700 border-slate-200'}`}>
+                                {faq.type}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        {expandedItems[i] ? <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />}
+                      </button>
+
+                      {expandedItems[i] && (
+                        <div className="px-5 pb-5 border-t border-slate-100 pt-4">
+                          <p className="text-sm text-slate-700 leading-relaxed">{faq.answer}</p>
+                          {faq.bulletPoints?.length > 0 && (
+                            <ul className="mt-3 space-y-1.5">
+                              {faq.bulletPoints.map((bp, j) => (
+                                <li key={j} className="text-sm text-slate-600 flex items-start gap-2">
+                                  <span className="text-[#0C81F3] mt-1 shrink-0">•</span>
+                                  {bp}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                          <button
+                            onClick={() => triggerCopy(faq.question + '\n\n' + faq.answer, `faq-${i}`)}
+                            className="mt-3 px-3 py-1.5 text-xs font-semibold text-[#0C81F3] bg-blue-50 rounded-lg hover:bg-blue-100"
+                          >
+                            {copiedState === `faq-${i}` ? '✓ Copied' : 'Copy FAQ'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* View Tab Switcher */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-1.5 flex flex-wrap gap-1">
-              <button
-                onClick={() => setActiveTab('faqs')}
-                className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${
-                  activeTab === 'faqs'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <List className="w-4 h-4" />
-                <span>Interactive FAQs ({faqs.length})</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('serp')}
-                className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${
-                  activeTab === 'serp'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <Globe className="w-4 h-4" />
-                <span>Google SERP Preview</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('schema')}
-                className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${
-                  activeTab === 'schema'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <Code className="w-4 h-4" />
-                <span>Schema.org JSON-LD</span>
-              </button>
-              <button
-                onClick={() => setActiveTab('export')}
-                className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${
-                  activeTab === 'export'
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <Download className="w-4 h-4" />
-                <span>Quick Export Suite</span>
-              </button>
-            </div>
-
-            {/* TAB 1: INTERACTIVE FAQS */}
-            {activeTab === 'faqs' && (
-              <div className="space-y-4">
-                {/* Filter and Global Controls */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-wrap items-center justify-between gap-3">
-                  {/* Category Filter Pills */}
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    {QUESTION_TYPES.map((type) => {
-                      const countForType = type.value === 'all'
-                        ? faqs.length
-                        : faqs.filter(f => (f.type || '').toLowerCase() === type.value).length
-                      
-                      if (type.value !== 'all' && countForType === 0) return null
-
-                      return (
-                        <button
-                          key={type.value}
-                          onClick={() => setFilterType(type.value)}
-                          className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all ${
-                            filterType === type.value
-                              ? 'bg-slate-900 text-white'
-                              : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                          }`}
-                        >
-                          {type.label} ({countForType})
-                        </button>
-                      )
-                    })}
-                  </div>
-
-                  {/* Expand / Collapse All */}
-                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-600">
-                    <button
-                      onClick={() => toggleAllExpand(true)}
-                      className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 transition-colors"
-                    >
-                      Expand All
+            {/* SERP Preview Tab */}
+            {activeTab === 'serp' && (
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <h3 className="text-sm font-bold text-slate-900">Google SERP Preview</h3>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setSerpDevice('desktop')} className={`px-3 py-1 rounded-lg text-xs font-semibold ${serpDevice === 'desktop' ? 'bg-blue-50 text-blue-700' : 'text-slate-500'}`}>
+                      <Monitor className="w-3.5 h-3.5 inline mr-1" />Desktop
                     </button>
-                    <button
-                      onClick={() => toggleAllExpand(false)}
-                      className="px-2.5 py-1 rounded bg-slate-100 hover:bg-slate-200 transition-colors"
-                    >
-                      Collapse All
+                    <button onClick={() => setSerpDevice('mobile')} className={`px-3 py-1 rounded-lg text-xs font-semibold ${serpDevice === 'mobile' ? 'bg-blue-50 text-blue-700' : 'text-slate-500'}`}>
+                      <Smartphone className="w-3.5 h-3.5 inline mr-1" />Mobile
                     </button>
                   </div>
                 </div>
-
-                {/* FAQ Cards List */}
-                <div className="space-y-3">
-                  {filteredFaqs.map((faq, idx) => {
-                    const isExpanded = !!expandedItems[idx]
-                    const intentClass = INTENT_BADGES[faq.searchIntent] || 'bg-slate-100 text-slate-700 border-slate-200'
-
-                    return (
-                      <div
-                        key={faq.id || idx}
-                        className="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition-all overflow-hidden"
-                      >
-                        {/* Header Bar */}
-                        <div
-                          onClick={() => toggleExpand(idx)}
-                          className="px-5 py-4 flex items-start justify-between gap-4 cursor-pointer select-none bg-white hover:bg-slate-50/70 transition-colors"
-                        >
-                          <div className="flex items-start gap-3.5 flex-1">
-                            <span className="w-6 h-6 rounded-lg bg-blue-100 text-blue-700 font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">
-                              {idx + 1}
-                            </span>
-                            <div className="space-y-1.5 flex-1">
-                              <h4 className="text-base font-bold text-slate-900 leading-snug">
-                                {faq.question}
-                              </h4>
-                              <div className="flex flex-wrap items-center gap-2 text-xs">
-                                {faq.searchIntent && (
-                                  <span className={`px-2 py-0.5 rounded-md font-semibold border ${intentClass}`}>
-                                    {faq.searchIntent}
-                                  </span>
-                                )}
-                                {faq.type && (
-                                  <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-medium capitalize">
-                                    Type: {faq.type}
-                                  </span>
-                                )}
-                                {faq.targetKeyword && (
-                                  <span className="text-slate-500 font-medium">
-                                    Target: <strong className="text-slate-700">{faq.targetKeyword}</strong>
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-2 shrink-0">
-                            {isExpanded ? (
-                              <ChevronUp className="w-5 h-5 text-slate-400" />
-                            ) : (
-                              <ChevronDown className="w-5 h-5 text-slate-400" />
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Expandable Body */}
-                        {isExpanded && (
-                          <div className="px-6 pb-5 pt-2 border-t border-slate-100 bg-slate-50/40">
-                            <p className="text-slate-800 text-sm sm:text-base leading-relaxed mb-3">
-                              {faq.answer}
-                            </p>
-
-                            {/* Bullet points if any */}
-                            {faq.bulletPoints?.length > 0 && (
-                              <div className="mb-4 pl-4 border-l-2 border-blue-400 space-y-1">
-                                {faq.bulletPoints.map((b, bIdx) => (
-                                  <div key={bIdx} className="text-sm text-slate-700 flex items-start gap-2">
-                                    <span className="text-blue-500 font-bold mt-0.5">•</span>
-                                    <span>{b}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-
-                            {/* Action Tools */}
-                            <div className="pt-3 border-t border-slate-200/70 flex flex-wrap items-center justify-between gap-2">
-                              <span className="text-xs text-slate-500">
-                                {faq.answer.split(' ').length} words • Formatted for Direct Answer Featured Snippets
-                              </span>
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    triggerCopy(`${faq.question}\n\n${faq.answer}`, `faq-${idx}`)
-                                  }}
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold shadow-2xs transition-colors"
-                                >
-                                  {copiedState === `faq-${idx}` ? (
-                                    <>
-                                      <Check className="w-3.5 h-3.5 text-emerald-600" />
-                                      <span className="text-emerald-700">Copied</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Copy className="w-3.5 h-3.5 text-slate-500" />
-                                      <span>Copy Q&A</span>
-                                    </>
-                                  )}
-                                </button>
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    const detailsCode = `<details>\n  <summary><strong>${faq.question}</strong></summary>\n  <p>${faq.answer}</p>\n</details>`
-                                    triggerCopy(detailsCode, `html-${idx}`)
-                                  }}
-                                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold shadow-2xs transition-colors"
-                                >
-                                  {copiedState === `html-${idx}` ? (
-                                    <>
-                                      <Check className="w-3.5 h-3.5 text-emerald-600" />
-                                      <span className="text-emerald-700">HTML Copied</span>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <Code className="w-3.5 h-3.5 text-slate-500" />
-                                      <span>Copy HTML Tag</span>
-                                    </>
-                                  )}
-                                </button>
-                              </div>
-                            </div>
-                          </div>
+                <div className={`bg-white rounded-xl border border-slate-200 p-5 ${serpDevice === 'mobile' ? 'max-w-sm' : 'max-w-2xl'}`}>
+                  <div className="text-xs text-green-700 mb-1">https://example.com › faq</div>
+                  <h3 className="text-blue-700 text-base font-medium hover:underline cursor-pointer">{topic || 'FAQ Topic'}</h3>
+                  <p className="text-xs text-slate-600 mt-1 line-clamp-2">{faqs[0]?.answer?.substring(0, 160)}...</p>
+                  {faqs.slice(0, 3).map((faq, i) => (
+                    <div key={i} className="mt-3 pt-3 border-t border-slate-100">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-800">{faq.question}</span>
+                        {serpExpanded[i] ? (
+                          <ChevronUp className="w-3.5 h-3.5 text-slate-400 cursor-pointer" onClick={() => toggleSerpFaq(i)} />
+                        ) : (
+                          <ChevronDown className="w-3.5 h-3.5 text-slate-400 cursor-pointer" onClick={() => toggleSerpFaq(i)} />
                         )}
                       </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
-
-            {/* TAB 2: GOOGLE SERP PREVIEW */}
-            {activeTab === 'serp' && (
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-6">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900">Google Rich Snippet Live Simulator</h3>
-                    <p className="text-xs text-slate-500">Preview how your FAQs will display and expand inside Google Search Results.</p>
-                  </div>
-                  <div className="inline-flex rounded-xl p-1 bg-slate-100 border border-slate-200">
-                    <button
-                      onClick={() => setSerpDevice('desktop')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
-                        serpDevice === 'desktop'
-                          ? 'bg-white text-slate-900 shadow-xs'
-                          : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      <Monitor className="w-3.5 h-3.5" />
-                      <span>Desktop</span>
-                    </button>
-                    <button
-                      onClick={() => setSerpDevice('mobile')}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all ${
-                        serpDevice === 'mobile'
-                          ? 'bg-white text-slate-900 shadow-xs'
-                          : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      <Smartphone className="w-3.5 h-3.5" />
-                      <span>Mobile</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Simulated Google Search Result Container */}
-                <div className={`mx-auto bg-white rounded-2xl border border-slate-200 p-6 shadow-sm ${
-                  serpDevice === 'mobile' ? 'max-w-md shadow-lg border-slate-300' : 'max-w-3xl'
-                }`}>
-                  {/* Google Breadcrumb & Domain */}
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <div className="w-5 h-5 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">
-                      G
-                    </div>
-                    <div className="text-xs text-slate-700 leading-none">
-                      <span className="font-medium text-slate-900">yourdomain.com</span>
-                      <span className="text-slate-400 mx-1">›</span>
-                      <span className="text-slate-500">{topic.toLowerCase().replace(/\s+/g, '-')}</span>
-                    </div>
-                  </div>
-
-                  {/* Title Link */}
-                  <h3 className="text-blue-800 text-lg font-medium hover:underline cursor-pointer leading-snug mb-1.5">
-                    {topic}: Complete Guide & Frequently Asked Questions (2025)
-                  </h3>
-
-                  {/* Snippet Description */}
-                  <p className="text-slate-600 text-xs sm:text-sm leading-relaxed mb-4">
-                    Explore authoritative answers to the most common questions regarding {topic}. Learn actionable best practices, implementation steps, and key tips.
-                  </p>
-
-                  {/* Accordion List under SERP result */}
-                  <div className="border-t border-slate-100 pt-3 space-y-2">
-                    <div className="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1 flex items-center gap-1">
-                      <Layers className="w-3 h-3" />
-                      <span>Google Rich Results FAQ Accordion</span>
-                    </div>
-                    {faqs.slice(0, 4).map((faq, i) => {
-                      const isExpanded = !!serpExpanded[i]
-                      return (
-                        <div key={i} className="border border-slate-200 rounded-lg overflow-hidden">
-                          <div
-                            onClick={() => toggleSerpFaq(i)}
-                            className="px-3.5 py-2.5 flex items-center justify-between text-xs sm:text-sm font-semibold text-slate-800 cursor-pointer hover:bg-slate-50 transition-colors"
-                          >
-                            <span>{faq.question}</span>
-                            {isExpanded ? (
-                              <ChevronUp className="w-4 h-4 text-slate-400" />
-                            ) : (
-                              <ChevronDown className="w-4 h-4 text-slate-400" />
-                            )}
-                          </div>
-                          {isExpanded && (
-                            <div className="px-3.5 pb-3 text-xs sm:text-sm text-slate-600 bg-slate-50/50 leading-relaxed border-t border-slate-100">
-                              {faq.answer}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 3: SCHEMA.ORG JSON-LD */}
-            {activeTab === 'schema' && (
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-bold text-slate-900">Valid Schema.org FAQPage JSON-LD</h3>
-                      <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                        Valid Syntax
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Paste this script tag into the <code className="text-blue-600 bg-blue-50 px-1 py-0.5 rounded font-mono">&lt;head&gt;</code> of your page.
-                    </p>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => triggerCopy(`<script type="application/ld+json">\n${jsonLdString}\n</script>`, 'schema-script')}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-colors"
-                    >
-                      {copiedState === 'schema-script' ? (
-                        <>
-                          <Check className="w-4 h-4" />
-                          <span>Script Copied!</span>
-                        </>
-                      ) : (
-                        <>
-                          <Copy className="w-4 h-4" />
-                          <span>Copy &lt;script&gt; Code</span>
-                        </>
+                      {serpExpanded[i] && (
+                        <p className="text-xs text-slate-600 mt-1">{faq.answer}</p>
                       )}
-                    </button>
-                    <button
-                      onClick={() => handleDownloadFile(jsonLdString, `faq-schema-${topic.toLowerCase().replace(/\s+/g, '-')}.json`, 'application/json')}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors"
-                    >
-                      <Download className="w-4 h-4" />
-                      <span>Download JSON</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="relative rounded-xl overflow-hidden border border-slate-800 bg-slate-950 p-4">
-                  <pre className="text-emerald-400 font-mono text-xs sm:text-sm overflow-x-auto max-h-96 leading-relaxed">
-                    {jsonLdString}
-                  </pre>
+                    </div>
+                  ))}
                 </div>
               </div>
             )}
 
-            {/* TAB 4: QUICK EXPORT SUITE */}
-            {activeTab === 'export' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* HTML Details / Summary Block */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-bold text-slate-900 text-base">HTML &lt;details&gt; Semantic Code</h4>
-                      <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono font-semibold">HTML5</span>
-                    </div>
-                    <p className="text-xs text-slate-500 mb-4">
-                      Native accordion markup that works out of the box with zero JavaScript.
-                    </p>
-                    <pre className="text-xs font-mono bg-slate-900 text-slate-200 p-3 rounded-xl max-h-48 overflow-y-auto mb-4">
-                      {htmlDetailsText}
-                    </pre>
-                  </div>
+            {/* Schema Tab */}
+            {activeTab === 'schema' && (
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-bold text-slate-900">FAQ Schema.org JSON-LD</h3>
                   <button
-                    onClick={() => triggerCopy(htmlDetailsText, 'export-html')}
-                    className="w-full py-2.5 rounded-xl border border-slate-300 text-slate-800 font-bold hover:bg-slate-50 transition-colors text-sm flex items-center justify-center gap-2"
+                    onClick={() => triggerCopy(jsonLdString, 'schema')}
+                    className="px-3 py-1.5 text-xs font-semibold text-[#0C81F3] bg-blue-50 rounded-lg hover:bg-blue-100 flex items-center gap-1.5"
                   >
-                    {copiedState === 'export-html' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                    <span>{copiedState === 'export-html' ? 'Copied HTML!' : 'Copy HTML Markup'}</span>
+                    {copiedState === 'schema' ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedState === 'schema' ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
+                <pre className="bg-slate-900 text-slate-100 p-4 rounded-xl text-xs overflow-x-auto max-h-96">
+                  {jsonLdString}
+                </pre>
+              </div>
+            )}
 
-                {/* Markdown FAQ Block */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between">
-                  <div>
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-bold text-slate-900 text-base">Markdown Format</h4>
-                      <span className="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-mono font-semibold">.md</span>
-                    </div>
-                    <p className="text-xs text-slate-500 mb-4">
-                      Ready to paste into Notion, Obsidian, GitHub, Ghost, or markdown blog editors.
-                    </p>
-                    <pre className="text-xs font-mono bg-slate-900 text-slate-200 p-3 rounded-xl max-h-48 overflow-y-auto mb-4">
-                      {markdownText}
-                    </pre>
-                  </div>
-                  <button
-                    onClick={() => triggerCopy(markdownText, 'export-md')}
-                    className="w-full py-2.5 rounded-xl border border-slate-300 text-slate-800 font-bold hover:bg-slate-50 transition-colors text-sm flex items-center justify-center gap-2"
-                  >
-                    {copiedState === 'export-md' ? <Check className="w-4 h-4 text-emerald-600" /> : <Copy className="w-4 h-4" />}
-                    <span>{copiedState === 'export-md' ? 'Copied Markdown!' : 'Copy Markdown'}</span>
+            {/* Export Tab */}
+            {activeTab === 'export' && (
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+                <h3 className="text-sm font-bold text-slate-900">Export Options</h3>
+                <div className="grid sm:grid-cols-3 gap-3">
+                  <button onClick={() => handleDownloadFile(markdownText, 'faqs.md', 'text/markdown')}
+                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left">
+                    <FileText className="w-5 h-5 text-[#0C81F3] mb-2" />
+                    <div className="text-sm font-bold text-slate-900">Markdown</div>
+                    <div className="text-xs text-slate-500">.md file for docs</div>
                   </button>
+                  <button onClick={() => handleDownloadFile(htmlDetailsText, 'faqs.html', 'text/html')}
+                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left">
+                    <Code className="w-5 h-5 text-purple-600 mb-2" />
+                    <div className="text-sm font-bold text-slate-900">HTML Details</div>
+                    <div className="text-xs text-slate-500">Collapsible FAQ HTML</div>
+                  </button>
+                  <button onClick={() => handleDownloadFile(jsonLdString, 'faq-schema.json', 'application/json')}
+                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left">
+                    <Layers className="w-5 h-5 text-emerald-600 mb-2" />
+                    <div className="text-sm font-bold text-slate-900">JSON-LD Schema</div>
+                    <div className="text-xs text-slate-500">For your website</div>
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* People Also Ask */}
+            {paa.length > 0 && activeTab === 'faqs' && (
+              <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                <h3 className="text-sm font-bold text-slate-900 mb-3">People Also Ask</h3>
+                <div className="space-y-2">
+                  {paa.map((q, i) => (
+                    <div key={i} className="flex items-center gap-2 text-sm text-slate-700 bg-slate-50 rounded-lg px-3 py-2">
+                      <span className="text-[#0C81F3] shrink-0">?</span>
+                      {q}
+                    </div>
+                  ))}
                 </div>
               </div>
             )}

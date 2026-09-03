@@ -28,6 +28,7 @@ export default function Footer() {
               <li><a href="/faq-generator" className="hover:text-white transition-colors">FAQ Generator</a></li>
               <li><a href="/competitor-analysis" className="hover:text-white transition-colors">Competitor Analysis</a></li>
               <li><a href="/seo-roi-calculator" className="hover:text-white transition-colors">ROI Calculator</a></li>
+              <li><a href="/xml-sitemap-generator" className="hover:text-white transition-colors">XML Sitemap Generator</a></li>
             </ul>
           </div>
 

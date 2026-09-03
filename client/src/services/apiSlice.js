@@ -135,6 +135,24 @@ export const apiSlice = createApi({
       }),
     }),
 
+    // POST /api/sitemap/generate
+    generateSitemap: builder.mutation({
+      query: (payload) => ({
+        url: '/sitemap/generate',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
+    // POST /api/sitemap/validate
+    validateSitemap: builder.mutation({
+      query: (payload) => ({
+        url: '/sitemap/validate',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
     // GET /api/health
     healthCheck: builder.query({
       query: () => '/health',
@@ -221,6 +239,8 @@ export const {
   useAnalyzeContentQaMutation,
   usePolishContentQaMutation,
   useGenerateLogoVariationsMutation,
+  useGenerateSitemapMutation,
+  useValidateSitemapMutation,
   useHealthCheckQuery,
   useGetPublicToolsQuery,
   useAdminLoginMutation,

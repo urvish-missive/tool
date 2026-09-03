@@ -1,10 +1,13 @@
 import { useState, useEffect, useMemo } from 'react'
+import { useForm, Controller } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useCalculateROIMutation } from '../../services/apiSlice'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import ModelSelector from '../shared/ModelSelector'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
+import { seoRoiSchema, parseSeoRoiForm } from '../../schemas/seoRoi.schema'
 import {
   Calculator,
   TrendingUp,
@@ -53,7 +56,6 @@ function FinancialTrajectoryChart({ monthlyData, currency, breakEvenMonth }) {
 
   if (!monthlyData?.length) return null
 
-  // Calculate cumulative investment and cumulative revenue for each month
   let cumInv = 0
   let cumRev = 0
   const series = monthlyData.map((d, i) => {
@@ -80,7 +82,6 @@ function FinancialTrajectoryChart({ monthlyData, currency, breakEvenMonth }) {
   const getX = (i) => paddingX + (i / Math.max(series.length - 1, 1)) * usableWidth
   const getY = (val) => chartHeight - paddingY - (Math.max(val, 0) / maxVal) * usableHeight
 
-  // Generate SVG path strings
   const revPath = series.map((s, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${getY(s.cumRev)}`).join(' ')
   const invPath = series.map((s, i) => `${i === 0 ? 'M' : 'L'} ${getX(i)} ${getY(s.cumInv)}`).join(' ')
   const revArea = `${revPath} L ${getX(series.length - 1)} ${chartHeight - paddingY} L ${getX(0)} ${chartHeight - paddingY} Z`
@@ -112,7 +113,6 @@ function FinancialTrajectoryChart({ monthlyData, currency, breakEvenMonth }) {
         </div>
       </div>
 
-      {/* SVG Chart */}
       <div className="overflow-x-auto">
         <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="w-full max-w-2xl mx-auto overflow-visible font-sans">
           <defs>
@@ -122,21 +122,14 @@ function FinancialTrajectoryChart({ monthlyData, currency, breakEvenMonth }) {
             </linearGradient>
           </defs>
 
-          {/* Grid lines */}
           <line x1={paddingX} y1={paddingY} x2={chartWidth - paddingX} y2={paddingY} stroke="#334155" strokeDasharray="3 3" />
           <line x1={paddingX} y1={chartHeight / 2} x2={chartWidth - paddingX} y2={chartHeight / 2} stroke="#334155" strokeDasharray="3 3" />
           <line x1={paddingX} y1={chartHeight - paddingY} x2={chartWidth - paddingX} y2={chartHeight - paddingY} stroke="#475569" />
 
-          {/* Revenue Area Fill */}
           <path d={revArea} fill="url(#revGrad)" />
-
-          {/* Investment Line */}
           <path d={invPath} fill="none" stroke="#60a5fa" strokeWidth="2.5" strokeDasharray="4 4" />
-
-          {/* Revenue Line */}
           <path d={revPath} fill="none" stroke="#34d399" strokeWidth="3.5" strokeLinecap="round" />
 
-          {/* Points & Interactive Hover */}
           {series.map((s, i) => {
             const x = getX(i)
             const yRev = getY(s.cumRev)
@@ -144,15 +137,10 @@ function FinancialTrajectoryChart({ monthlyData, currency, breakEvenMonth }) {
 
             return (
               <g key={i} className="cursor-pointer" onMouseEnter={() => setHoveredIdx(i)} onMouseLeave={() => setHoveredIdx(null)}>
-                {/* Break even marker vertical highlight */}
                 {isBreakEven && (
                   <line x1={x} y1={paddingY} x2={x} y2={chartHeight - paddingY} stroke="#10b981" strokeWidth="1.5" strokeDasharray="2 2" />
                 )}
-
-                {/* Point dot */}
                 <circle cx={x} cy={yRev} r={isBreakEven ? 6 : 4} fill={isBreakEven ? '#10b981' : '#34d399'} stroke="#0f172a" strokeWidth="2" />
-
-                {/* Month label on X axis */}
                 <text x={x} y={chartHeight - 10} textAnchor="middle" fontSize="10" fill="#94a3b8" fontWeight="600">
                   M{s.month}
                 </text>
@@ -162,7 +150,6 @@ function FinancialTrajectoryChart({ monthlyData, currency, breakEvenMonth }) {
         </svg>
       </div>
 
-      {/* Hover info panel */}
       {hoveredIdx !== null && series[hoveredIdx] && (
         <div className="mt-4 p-3 rounded-xl bg-slate-800/90 border border-slate-700 flex flex-wrap items-center justify-between text-xs gap-3">
           <span className="font-bold text-slate-200">Month {series[hoveredIdx].month} Projections:</span>
@@ -180,34 +167,46 @@ function FinancialTrajectoryChart({ monthlyData, currency, breakEvenMonth }) {
 }
 
 export default function SeoRoiPage() {
-  const [currency, setCurrency] = useState('USD')
-  const [traffic, setTraffic] = useState(15000)
-  const [leads, setLeads] = useState(120)
-  const [customerValue, setCustomerValue] = useState(2500)
-  const [investment, setInvestment] = useState(2500)
-  const [duration, setDuration] = useState(12)
-  const [activePreset, setActivePreset] = useState('Moderate') // 'Conservative' | 'Moderate' | 'Aggressive'
-  const [preferredProvider, setPreferredProvider] = useState('openrouter')
+  const { register, handleSubmit, control, watch, formState: { errors }, reset: resetForm } = useForm({
+    resolver: zodResolver(seoRoiSchema),
+    defaultValues: { traffic: 15000, leads: 120, customerValue: 2500, investment: 2500, duration: 12, currency: 'USD', preferredProvider: 'openrouter' },
+  })
+
+  const currency = watch('currency')
+  const duration = watch('duration')
+  const [activePreset, setActivePreset] = useState('Moderate')
 
   const [calculateROI, { isLoading, reset: resetMutation }] = useCalculateROIMutation()
   const [results, setResults] = useState(null)
   const [error, setError] = useState('')
   const [copiedKey, setCopiedKey] = useState(null)
 
-  const handleCalculate = async (e) => {
-    e?.preventDefault()
+  const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose, triggerPopup } = useLeadPopup('seo-roi')
+
+  const onFormValid = (formData) => {
+    if (popupEnabled) {
+      triggerPopup()
+      return
+    }
+    runCalculation(formData)
+  }
+
+  const runCalculation = async (formData) => {
+    const parsed = parseSeoRoiForm(formData || watch())
+    if (!parsed.success) return
+
     setError('')
     setResults(null)
 
     try {
       const res = await calculateROI({
-        monthlyTraffic: Number(traffic),
-        baselineLeads: Number(leads),
-        averageCustomerValue: Number(customerValue),
-        monthlySeoInvestment: Number(investment),
-        campaignMonths: Number(duration),
-        currency,
-        preferredProvider,
+        monthlyTraffic: Number(parsed.data.traffic),
+        baselineLeads: Number(parsed.data.leads),
+        averageCustomerValue: Number(parsed.data.customerValue),
+        monthlySeoInvestment: Number(parsed.data.investment),
+        campaignMonths: Number(parsed.data.duration),
+        currency: parsed.data.currency,
+        preferredProvider: parsed.data.preferredProvider,
       }).unwrap()
 
       setResults(res)
@@ -220,11 +219,7 @@ export default function SeoRoiPage() {
   }
 
   const handleReset = () => {
-    setTraffic(15000)
-    setLeads(120)
-    setCustomerValue(2500)
-    setInvestment(2500)
-    setDuration(12)
+    resetForm()
     setResults(null)
     setError('')
     resetMutation()
@@ -281,6 +276,15 @@ export default function SeoRoiPage() {
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20">
+      <LeadCaptureModal
+        show={showPopup}
+        onClose={handlePopupClose}
+        onSubmit={() => { handlePopupSubmit(); runCalculation() }}
+        toolSlug="seo-roi"
+        title="Get Your Free SEO ROI Analysis"
+        subtitle="Enter your details to unlock the SEO ROI Calculator."
+      />
+
       {/* Hero Header */}
       <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
         <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />
@@ -305,14 +309,13 @@ export default function SeoRoiPage() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Form Card */}
         <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10">
-          <form onSubmit={handleCalculate} className="space-y-6">
+          <form onSubmit={handleSubmit(onFormValid)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Currency */}
               <div>
                 <label className="block text-sm font-bold text-slate-800 mb-2">Currency</label>
                 <select
-                  value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
+                  {...register('currency')}
                   className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm bg-white font-medium"
                 >
                   {CURRENCIES.map((c) => (
@@ -326,11 +329,10 @@ export default function SeoRoiPage() {
                 <label className="block text-sm font-bold text-slate-800 mb-2">Monthly Organic Visitors</label>
                 <input
                   type="number"
-                  value={traffic}
-                  onChange={(e) => setTraffic(Math.max(100, Number(e.target.value)))}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium"
-                  required
+                  {...register('traffic')}
+                  className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium ${errors.traffic ? 'border-red-400 ring-1 ring-red-200' : 'border-slate-300'}`}
                 />
+                {errors.traffic && <p className="mt-1 text-xs text-red-600">{errors.traffic.message}</p>}
               </div>
 
               {/* Baseline Leads */}
@@ -338,10 +340,8 @@ export default function SeoRoiPage() {
                 <label className="block text-sm font-bold text-slate-800 mb-2">Current Monthly Leads</label>
                 <input
                   type="number"
-                  value={leads}
-                  onChange={(e) => setLeads(Math.max(0, Number(e.target.value)))}
+                  {...register('leads')}
                   className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium"
-                  required
                 />
               </div>
 
@@ -350,11 +350,10 @@ export default function SeoRoiPage() {
                 <label className="block text-sm font-bold text-slate-800 mb-2">Average Customer Value (LTV)</label>
                 <input
                   type="number"
-                  value={customerValue}
-                  onChange={(e) => setCustomerValue(Math.max(10, Number(e.target.value)))}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium"
-                  required
+                  {...register('customerValue')}
+                  className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium ${errors.customerValue ? 'border-red-400 ring-1 ring-red-200' : 'border-slate-300'}`}
                 />
+                {errors.customerValue && <p className="mt-1 text-xs text-red-600">{errors.customerValue.message}</p>}
               </div>
 
               {/* Monthly Investment */}
@@ -362,43 +361,43 @@ export default function SeoRoiPage() {
                 <label className="block text-sm font-bold text-slate-800 mb-2">Planned Monthly SEO Spend</label>
                 <input
                   type="number"
-                  value={investment}
-                  onChange={(e) => setInvestment(Math.max(100, Number(e.target.value)))}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium"
-                  required
+                  {...register('investment')}
+                  className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium ${errors.investment ? 'border-red-400 ring-1 ring-red-200' : 'border-slate-300'}`}
                 />
+                {errors.investment && <p className="mt-1 text-xs text-red-600">{errors.investment.message}</p>}
               </div>
 
               {/* Horizon Duration */}
               <div>
                 <label className="block text-sm font-bold text-slate-800 mb-2">Campaign Duration</label>
-                <div className="grid grid-cols-4 gap-2">
-                  {DURATIONS.map((m) => (
-                    <button
-                      key={m}
-                      type="button"
-                      onClick={() => setDuration(m)}
-                      className={`py-3 text-xs font-bold rounded-xl border transition-all ${
-                        duration === m
-                          ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white border-transparent shadow-sm'
-                          : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                      }`}
-                    >
-                      {m} Mo
-                    </button>
-                  ))}
-                </div>
+                <Controller control={control} name="duration"
+                  render={({ field }) => (
+                    <div className="grid grid-cols-4 gap-2">
+                      {DURATIONS.map((m) => (
+                        <button
+                          key={m}
+                          type="button"
+                          onClick={() => field.onChange(m)}
+                          className={`py-3 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
+                            field.value === m
+                              ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white border-transparent shadow-sm'
+                              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                          }`}
+                        >
+                          {m} Mo
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                />
               </div>
             </div>
 
             {/* Model Selector & Actions */}
             <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
               <div className="w-full sm:w-auto sm:min-w-[190px]">
-                <ModelSelector
-                  value={preferredProvider}
-                  onChange={setPreferredProvider}
-                  compact={true}
-                />
+                <Controller control={control} name="preferredProvider"
+                  render={({ field }) => <ModelSelector value={field.value} onChange={field.onChange} compact={true} />} />
               </div>
 
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
@@ -483,7 +482,6 @@ export default function SeoRoiPage() {
                   </button>
                 </div>
 
-                {/* Phased Roadmap */}
                 {aiReport.phasedRoadmap?.length > 0 && (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
                     {aiReport.phasedRoadmap.map((p, i) => (
@@ -569,7 +567,6 @@ export default function SeoRoiPage() {
 
             {/* Strategic Insights & Growth Levers */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Key Insights */}
               <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
                 <div className="flex items-center gap-2">
                   <Lightbulb className="w-5 h-5 text-amber-500" />
@@ -585,7 +582,6 @@ export default function SeoRoiPage() {
                 </ul>
               </div>
 
-              {/* Largest Levers & PPC Comparison */}
               <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
                 <div className="flex items-center gap-2">
                   <TrendingUp className="w-5 h-5 text-blue-600" />
@@ -606,6 +602,13 @@ export default function SeoRoiPage() {
                 )}
               </div>
             </div>
+
+            {/* Lead Form */}
+            <DynamicLeadForm
+              toolSlug="seo-roi"
+              title="Get Your Free SEO Strategy"
+              subtitle="Our experts will review your ROI analysis and share a personalized growth plan."
+            />
           </div>
         )}
       </div>
