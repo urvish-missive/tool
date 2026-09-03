@@ -21,11 +21,6 @@ import {
   ChevronUp,
   CheckCircle2,
   Server,
-  FileCode2,
-  Sliders,
-  Eye,
-  Info,
-  ArrowDown,
 } from 'lucide-react'
 
 const LOADING_STEPS = [
@@ -134,10 +129,6 @@ export default function WebsiteTechInspectorPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const scrollToSection = (id) => {
-    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20">
       {/* Dynamic Font Loader for Live Preview */}
@@ -179,7 +170,7 @@ export default function WebsiteTechInspectorPage() {
           </h1>
 
           <p className="mt-3 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Discover any website's complete color palette, technology stack, CMS, and Google Font typography. View all insights together in one unified design intelligence dashboard.
+            Discover any website's complete color palette, technology stack, CMS, and Google Font typography in a compact, space-efficient dashboard.
           </p>
         </div>
       </section>
@@ -187,7 +178,7 @@ export default function WebsiteTechInspectorPage() {
       {/* Main Container */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Form Card */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10 transition-all">
+        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-8 transition-all">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <label htmlFor="tech-inspector-url-input" className="block text-sm font-bold text-slate-800">
@@ -288,541 +279,504 @@ export default function WebsiteTechInspectorPage() {
           </div>
         )}
 
-        {/* Unified Card-Wise Results Dashboard */}
+        {/* Space-Utilized Results Dashboard */}
         {results && !isLoading && (
-          <div id="tech-inspector-results" className="space-y-8 pt-2">
-            {/* Top Quick Overview Banner & Jump Navigation */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-              <div className="flex items-center gap-3.5">
+          <div id="tech-inspector-results" className="space-y-6 pt-1">
+            {/* Top Quick Overview Banner */}
+            <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3 min-w-0">
                 {results.favicon ? (
                   <img
                     src={results.favicon}
                     alt="favicon"
-                    className="w-10 h-10 rounded-xl p-1 border border-slate-200 bg-white object-contain shadow-2xs"
+                    className="w-9 h-9 rounded-xl p-1 border border-slate-200 bg-white object-contain shadow-2xs shrink-0"
                     onError={(e) => {
                       e.target.style.display = 'none'
                     }}
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-xl bg-blue-100 text-[#0C81F3] flex items-center justify-center font-bold text-sm shadow-2xs">
+                  <div className="w-9 h-9 rounded-xl bg-blue-100 text-[#0C81F3] flex items-center justify-center font-bold text-xs shadow-2xs shrink-0">
                     {results.hostname?.charAt(0)?.toUpperCase() || 'W'}
                   </div>
                 )}
-                <div>
+                <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg sm:text-xl font-bold text-slate-900 truncate max-w-md">
+                    <h2 className="text-base sm:text-lg font-bold text-slate-900 truncate">
                       {results.pageTitle || results.hostname}
                     </h2>
                     <a
                       href={results.websiteUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-slate-400 hover:text-[#0C81F3] transition-colors"
-                      title="Open website in new tab"
+                      className="text-slate-400 hover:text-[#0C81F3] transition-colors shrink-0"
+                      title="Open website"
                     >
-                      <ExternalLink className="w-4 h-4" />
+                      <ExternalLink className="w-3.5 h-3.5" />
                     </a>
                   </div>
-                  <p className="text-xs text-slate-500 font-mono mt-0.5">{results.websiteUrl}</p>
+                  <p className="text-xs text-slate-500 font-mono truncate">{results.websiteUrl}</p>
                 </div>
               </div>
 
-              {/* Quick Jump Pills */}
-              <div className="flex flex-wrap items-center gap-2">
-                <button
-                  onClick={() => scrollToSection('card-colors')}
-                  className="px-3.5 py-1.5 rounded-full bg-blue-50 hover:bg-blue-100 text-[#0C81F3] text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
-                >
-                  <Palette className="w-3.5 h-3.5" />
-                  <span>Colors ({results.colors?.palette?.length || 0})</span>
-                </button>
-                <button
-                  onClick={() => scrollToSection('card-tech')}
-                  className="px-3.5 py-1.5 rounded-full bg-emerald-50 hover:bg-emerald-100 text-emerald-700 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
-                >
-                  <Cpu className="w-3.5 h-3.5" />
-                  <span>Tech ({results.tech?.totalDetected || 0})</span>
-                </button>
-                <button
-                  onClick={() => scrollToSection('card-fonts')}
-                  className="px-3.5 py-1.5 rounded-full bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
-                >
-                  <Type className="w-3.5 h-3.5" />
-                  <span>Fonts ({results.fonts?.length || 0})</span>
-                </button>
-                <button
-                  onClick={() => scrollToSection('card-health')}
-                  className="px-3.5 py-1.5 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
-                >
-                  <Layers className="w-3.5 h-3.5" />
-                  <span>Assets</span>
-                </button>
-              </div>
-            </div>
-
-            {/* CARD 1: THEME COLORS & PALETTE */}
-            <div id="card-colors" className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-2xl bg-blue-50 text-[#0C81F3]">
-                    <Palette className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-slate-900">Theme Colors & Brand Palette</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Extracted brand colors, CSS root variables, and computed palette shades
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => handleCopy(results.colors?.primary, 'primary-hex')}
-                    className="px-3 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
-                  >
-                    {copiedKey === 'primary-hex' ? 'Copied' : `Primary: ${results.colors?.primary}`}
-                  </button>
-                </div>
-              </div>
-
-              {/* Brand Colors 3-Pillar Row */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                {/* Primary Color */}
-                <div className="border border-slate-200 rounded-2xl p-5 space-y-3 shadow-2xs bg-slate-50/50">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Brand Primary</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-50 text-[#0C81F3]">
-                      Dominant
-                    </span>
-                  </div>
+              {/* Top Meta Stats Pills */}
+              <div className="flex items-center gap-2 flex-wrap shrink-0">
+                <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-xs">
                   <div
-                    className="h-24 rounded-xl shadow-inner flex items-end p-3 transition-transform hover:scale-[1.01]"
+                    className="w-3.5 h-3.5 rounded-full border border-black/15 shrink-0"
                     style={{ backgroundColor: results.colors?.primary }}
-                  >
-                    <span className="text-xs font-mono font-bold px-2 py-0.5 rounded backdrop-blur-md bg-black/40 text-white">
-                      {results.colors?.primary}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-xs text-slate-500">Main button & hero color</span>
-                    <button
-                      onClick={() => handleCopy(results.colors?.primary, 'copy-primary')}
-                      className="text-xs font-bold text-[#0C81F3] hover:underline cursor-pointer"
-                    >
-                      {copiedKey === 'copy-primary' ? 'Copied' : 'Copy Hex'}
-                    </button>
-                  </div>
+                  />
+                  <span className="font-mono font-bold text-slate-800">{results.colors?.primary}</span>
                 </div>
-
-                {/* Secondary Color */}
-                <div className="border border-slate-200 rounded-2xl p-5 space-y-3 shadow-2xs bg-slate-50/50">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Brand Secondary</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-pink-50 text-pink-700">
-                      Secondary
-                    </span>
-                  </div>
-                  <div
-                    className="h-24 rounded-xl shadow-inner flex items-end p-3 transition-transform hover:scale-[1.01]"
-                    style={{ backgroundColor: results.colors?.secondary }}
-                  >
-                    <span className="text-xs font-mono font-bold px-2 py-0.5 rounded backdrop-blur-md bg-black/40 text-white">
-                      {results.colors?.secondary}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-xs text-slate-500">Supporting gradient shade</span>
-                    <button
-                      onClick={() => handleCopy(results.colors?.secondary, 'copy-secondary')}
-                      className="text-xs font-bold text-[#0C81F3] hover:underline cursor-pointer"
-                    >
-                      {copiedKey === 'copy-secondary' ? 'Copied' : 'Copy Hex'}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Accent Color */}
-                <div className="border border-slate-200 rounded-2xl p-5 space-y-3 shadow-2xs bg-slate-50/50">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">Accent Highlight</span>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-50 text-sky-700">
-                      Accent
-                    </span>
-                  </div>
-                  <div
-                    className="h-24 rounded-xl shadow-inner flex items-end p-3 transition-transform hover:scale-[1.01]"
-                    style={{ backgroundColor: results.colors?.accent }}
-                  >
-                    <span className="text-xs font-mono font-bold px-2 py-0.5 rounded backdrop-blur-md bg-black/40 text-white">
-                      {results.colors?.accent}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between pt-1">
-                    <span className="text-xs text-slate-500">Links, badges & tags</span>
-                    <button
-                      onClick={() => handleCopy(results.colors?.accent, 'copy-accent')}
-                      className="text-xs font-bold text-[#0C81F3] hover:underline cursor-pointer"
-                    >
-                      {copiedKey === 'copy-accent' ? 'Copied' : 'Copy Hex'}
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Complete Palette Swatches */}
-              <div className="space-y-3 pt-2">
-                <div className="flex items-center justify-between text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  <span>Full Extracted Palette ({results.colors?.palette?.length || 0})</span>
-                  <span className="text-slate-400 font-normal">Click any swatch to copy HEX</span>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3.5">
-                  {results.colors?.palette?.map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="border border-slate-200 rounded-2xl overflow-hidden shadow-2xs hover:shadow-md transition-all group bg-white"
-                    >
-                      <div
-                        className="h-16 w-full relative flex items-end justify-end p-1.5 cursor-pointer"
-                        style={{ backgroundColor: item.hex }}
-                        onClick={() => handleCopy(item.hex, `swatch-${idx}`)}
-                        title="Click to copy HEX"
-                      >
-                        <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-black/40 text-white backdrop-blur-xs opacity-0 group-hover:opacity-100 transition-opacity">
-                          {copiedKey === `swatch-${idx}` ? 'Copied!' : 'Copy'}
-                        </span>
-                      </div>
-                      <div className="p-2.5 space-y-0.5">
-                        <div className="flex items-center justify-between">
-                          <span className="font-mono text-xs font-bold text-slate-900">{item.hex}</span>
-                          <span
-                            className={`text-[9px] font-bold px-1.5 py-0.2 rounded ${
-                              item.wcagRating === 'WCAG AA'
-                                ? 'bg-emerald-50 text-emerald-700'
-                                : 'bg-slate-100 text-slate-500'
-                            }`}
-                          >
-                            {item.wcagRating}
-                          </span>
-                        </div>
-                        <div className="text-[10px] text-slate-500 truncate">{item.role}</div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Design Token Code Exporter */}
-              <div className="pt-2 border-t border-slate-100 space-y-3">
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <Code className="w-4 h-4 text-[#0C81F3]" />
-                    <span className="text-xs font-bold text-slate-800 uppercase tracking-wider">
-                      Export Design Tokens Code Snippet
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <div className="p-1 bg-slate-100 rounded-xl border border-slate-200 flex items-center text-xs font-bold">
-                      <button
-                        onClick={() => setCodeSnippetTab('css')}
-                        className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
-                          codeSnippetTab === 'css' ? 'bg-white text-[#0C81F3] shadow-xs' : 'text-slate-600'
-                        }`}
-                      >
-                        CSS Variables
-                      </button>
-                      <button
-                        onClick={() => setCodeSnippetTab('tailwind')}
-                        className={`px-3 py-1 rounded-lg transition-colors cursor-pointer ${
-                          codeSnippetTab === 'tailwind' ? 'bg-white text-[#0C81F3] shadow-xs' : 'text-slate-600'
-                        }`}
-                      >
-                        Tailwind Config
-                      </button>
-                    </div>
-
-                    <button
-                      onClick={() =>
-                        handleCopy(
-                          codeSnippetTab === 'css'
-                            ? results.colors?.snippets?.cssVariables
-                            : results.colors?.snippets?.tailwind,
-                          'snippet-copy'
-                        )
-                      }
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors cursor-pointer shadow-2xs"
-                    >
-                      {copiedKey === 'snippet-copy' ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>Copy Code</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-slate-900 text-slate-200 font-mono text-xs overflow-x-auto shadow-inner max-h-48">
-                  <pre>
-                    {codeSnippetTab === 'css'
-                      ? results.colors?.snippets?.cssVariables
-                      : results.colors?.snippets?.tailwind}
-                  </pre>
-                </div>
-              </div>
-            </div>
-
-            {/* CARD 2: TECH STACK & FRAMEWORKS */}
-            <div id="card-tech" className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-2xl bg-emerald-50 text-emerald-700">
-                    <Cpu className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-slate-900">Technology Stack & CMS</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Detected platforms, frontend libraries, analytics tags, and web servers
-                    </p>
-                  </div>
-                </div>
-
-                <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-                  {results.tech?.totalDetected || 0} Technologies
+                <span className="px-2.5 py-1 rounded-full bg-blue-50 text-[#0C81F3] text-xs font-bold">
+                  {results.colors?.palette?.length || 0} Colors
                 </span>
-              </div>
-
-              {results.tech?.totalDetected === 0 ? (
-                <div className="p-8 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                  <Cpu className="w-10 h-10 mx-auto mb-2 text-slate-300" />
-                  <p className="text-sm font-bold text-slate-700">No public framework signatures found.</p>
-                  <p className="text-xs text-slate-500 mt-0.5">This website may be a custom vanilla build or uses minified proprietary bundles.</p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  {Object.entries(results.tech?.byCategory || {}).map(([categoryName, items]) => (
-                    <div key={categoryName} className="space-y-3">
-                      <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-1.5">
-                        <span>{categoryName}</span>
-                        <span>{items.length}</span>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5">
-                        {items.map((techItem, idx) => (
-                          <div
-                            key={idx}
-                            className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-between shadow-2xs hover:border-slate-300 transition-colors"
-                          >
-                            <div className="flex items-center gap-2.5 min-w-0">
-                              <span className="text-lg w-6 h-6 flex items-center justify-center shrink-0">
-                                {techItem.icon || '⚡'}
-                              </span>
-                              <div className="truncate">
-                                <div className="text-sm font-bold text-slate-900 truncate">
-                                  {techItem.name}
-                                </div>
-                                {techItem.version && (
-                                  <span className="text-[10px] font-mono text-slate-500">
-                                    v{techItem.version}
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-
-                            <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 shrink-0">
-                              {techItem.confidence}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* CARD 3: GOOGLE FONTS & TYPOGRAPHY */}
-            <div id="card-fonts" className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-2xl bg-purple-50 text-purple-700">
-                    <Type className="w-5 h-5" />
-                  </div>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-slate-900">Google Fonts & Typography</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Font families, weights, import rules, and interactive live specimen preview
-                    </p>
-                  </div>
-                </div>
-
-                <span className="text-xs font-bold px-3 py-1 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+                <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold">
+                  {results.tech?.totalDetected || 0} Tech Stack
+                </span>
+                <span className="px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 text-xs font-bold">
                   {results.fonts?.length || 0} Fonts
                 </span>
               </div>
+            </div>
 
-              {/* Live Specimen Input */}
-              <div className="space-y-2">
-                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
-                  Type Custom Text for Live Font Rendering
-                </label>
-                <input
-                  type="text"
-                  value={previewText}
-                  onChange={(e) => setPreviewText(e.target.value)}
-                  placeholder="Type custom text to preview live typography..."
-                  className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 focus:border-[#0C81F3] transition-all"
-                />
-              </div>
-
-              {results.fonts?.length === 0 ? (
-                <div className="p-8 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                  <Type className="w-10 h-10 mx-auto mb-2 text-slate-300" />
-                  <p className="text-sm font-bold text-slate-700">No external Google Fonts detected.</p>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    This site may rely on system fallback stacks (e.g. system-ui, -apple-system, Arial) or self-hosted web fonts.
-                  </p>
-                </div>
-              ) : (
+            {/* ROW 1: 2-COLUMN GRID (THEME COLORS & TECH STACK SIDE-BY-SIDE) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
+              {/* CARD 1: THEME COLORS & PALETTE (COMPACT) */}
+              <div id="card-colors" className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm flex flex-col justify-between space-y-5">
                 <div className="space-y-4">
-                  {results.fonts?.map((font, idx) => (
-                    <div
-                      key={idx}
-                      className="p-5 sm:p-6 rounded-2xl border border-slate-200 bg-slate-50/60 space-y-3"
-                    >
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-200/60 pb-3">
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <h4 className="text-lg font-black text-slate-900">{font.family}</h4>
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
-                              {font.source}
+                  {/* Card Header */}
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-blue-50 text-[#0C81F3]">
+                        <Palette className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-slate-900">Theme Colors & Palette</h3>
+                        <p className="text-[11px] text-slate-500">CSS root variables & computed brand shades</p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-bold text-slate-400">
+                      {results.colors?.palette?.length || 0} shades
+                    </span>
+                  </div>
+
+                  {/* Brand 3-Pillar Compact Swatch Row */}
+                  <div className="grid grid-cols-3 gap-2.5">
+                    {/* Primary */}
+                    <div className="border border-slate-200 rounded-xl p-2.5 bg-slate-50/50 space-y-1.5 shadow-2xs">
+                      <div className="text-[10px] font-bold uppercase text-slate-500 truncate">Primary</div>
+                      <div
+                        className="h-10 rounded-lg shadow-inner flex items-end p-1.5 cursor-pointer group"
+                        style={{ backgroundColor: results.colors?.primary }}
+                        onClick={() => handleCopy(results.colors?.primary, 'primary-hex')}
+                        title="Click to copy"
+                      >
+                        <span className="text-[9px] font-mono font-bold px-1 rounded bg-black/40 text-white truncate">
+                          {results.colors?.primary}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-[10px]">
+                        <span className="text-slate-400 truncate">Dominant</span>
+                        <button
+                          onClick={() => handleCopy(results.colors?.primary, 'copy-primary')}
+                          className="text-[#0C81F3] font-bold hover:underline cursor-pointer"
+                        >
+                          {copiedKey === 'copy-primary' ? 'Copied' : 'Copy'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Secondary */}
+                    <div className="border border-slate-200 rounded-xl p-2.5 bg-slate-50/50 space-y-1.5 shadow-2xs">
+                      <div className="text-[10px] font-bold uppercase text-slate-500 truncate">Secondary</div>
+                      <div
+                        className="h-10 rounded-lg shadow-inner flex items-end p-1.5 cursor-pointer group"
+                        style={{ backgroundColor: results.colors?.secondary }}
+                        onClick={() => handleCopy(results.colors?.secondary, 'sec-hex')}
+                        title="Click to copy"
+                      >
+                        <span className="text-[9px] font-mono font-bold px-1 rounded bg-black/40 text-white truncate">
+                          {results.colors?.secondary}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-[10px]">
+                        <span className="text-slate-400 truncate">Support</span>
+                        <button
+                          onClick={() => handleCopy(results.colors?.secondary, 'copy-secondary')}
+                          className="text-[#0C81F3] font-bold hover:underline cursor-pointer"
+                        >
+                          {copiedKey === 'copy-secondary' ? 'Copied' : 'Copy'}
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Accent */}
+                    <div className="border border-slate-200 rounded-xl p-2.5 bg-slate-50/50 space-y-1.5 shadow-2xs">
+                      <div className="text-[10px] font-bold uppercase text-slate-500 truncate">Accent</div>
+                      <div
+                        className="h-10 rounded-lg shadow-inner flex items-end p-1.5 cursor-pointer group"
+                        style={{ backgroundColor: results.colors?.accent }}
+                        onClick={() => handleCopy(results.colors?.accent, 'acc-hex')}
+                        title="Click to copy"
+                      >
+                        <span className="text-[9px] font-mono font-bold px-1 rounded bg-black/40 text-white truncate">
+                          {results.colors?.accent}
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center text-[10px]">
+                        <span className="text-slate-400 truncate">Highlight</span>
+                        <button
+                          onClick={() => handleCopy(results.colors?.accent, 'copy-accent')}
+                          className="text-[#0C81F3] font-bold hover:underline cursor-pointer"
+                        >
+                          {copiedKey === 'copy-accent' ? 'Copied' : 'Copy'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Compact Palette Swatches Grid */}
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 uppercase tracking-wider">
+                      <span>Full Color Palette</span>
+                      <span className="text-slate-400 font-normal">Click swatch to copy</span>
+                    </div>
+
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-2">
+                      {results.colors?.palette?.map((item, idx) => (
+                        <div
+                          key={idx}
+                          onClick={() => handleCopy(item.hex, `swatch-${idx}`)}
+                          className="border border-slate-200 rounded-xl overflow-hidden hover:shadow-xs transition-all group bg-white cursor-pointer"
+                        >
+                          <div
+                            className="h-9 w-full relative flex items-center justify-center"
+                            style={{ backgroundColor: item.hex }}
+                          >
+                            <span className="text-[9px] font-mono font-bold px-1 rounded bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                              {copiedKey === `swatch-${idx}` ? '✓' : 'Copy'}
                             </span>
                           </div>
-                          <div className="flex flex-wrap items-center gap-1 mt-1">
-                            <span className="text-[11px] text-slate-500 font-semibold mr-1">Weights:</span>
-                            {font.weights?.map((w, wIdx) => (
-                              <span
-                                key={wIdx}
-                                className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-white text-slate-700 border border-slate-200"
+                          <div className="p-1 text-center">
+                            <div className="font-mono text-[10px] font-bold text-slate-800 truncate">
+                              {item.hex}
+                            </div>
+                            <div className="text-[8px] text-slate-400 truncate">{item.role}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Compact Token Exporter */}
+                <div className="pt-3 border-t border-slate-100 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700">
+                      <Code className="w-3.5 h-3.5 text-[#0C81F3]" />
+                      <span>Export Tokens</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <div className="p-0.5 bg-slate-100 rounded-lg flex text-[10px] font-bold">
+                        <button
+                          onClick={() => setCodeSnippetTab('css')}
+                          className={`px-2 py-0.5 rounded transition-colors cursor-pointer ${
+                            codeSnippetTab === 'css' ? 'bg-white text-[#0C81F3] shadow-xs' : 'text-slate-600'
+                          }`}
+                        >
+                          CSS
+                        </button>
+                        <button
+                          onClick={() => setCodeSnippetTab('tailwind')}
+                          className={`px-2 py-0.5 rounded transition-colors cursor-pointer ${
+                            codeSnippetTab === 'tailwind' ? 'bg-white text-[#0C81F3] shadow-xs' : 'text-slate-600'
+                          }`}
+                        >
+                          Tailwind
+                        </button>
+                      </div>
+
+                      <button
+                        onClick={() =>
+                          handleCopy(
+                            codeSnippetTab === 'css'
+                              ? results.colors?.snippets?.cssVariables
+                              : results.colors?.snippets?.tailwind,
+                            'snippet-copy'
+                          )
+                        }
+                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-[10px] font-bold transition-colors cursor-pointer shadow-2xs"
+                      >
+                        {copiedKey === 'snippet-copy' ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+                        <span>Copy</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-900 text-slate-200 font-mono text-[11px] overflow-x-auto shadow-inner max-h-32">
+                    <pre>
+                      {codeSnippetTab === 'css'
+                        ? results.colors?.snippets?.cssVariables
+                        : results.colors?.snippets?.tailwind}
+                    </pre>
+                  </div>
+                </div>
+              </div>
+
+              {/* CARD 2: TECH STACK & CMS (SPACE-UTILIZED & COMPACT) */}
+              <div id="card-tech" className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm flex flex-col justify-between space-y-4">
+                <div className="space-y-4">
+                  {/* Card Header */}
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div className="flex items-center gap-2.5">
+                      <div className="p-2 rounded-xl bg-emerald-50 text-emerald-700">
+                        <Cpu className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <h3 className="text-base font-bold text-slate-900">Technology Stack & CMS</h3>
+                        <p className="text-[11px] text-slate-500">CMS, libraries, analytics tags & servers</p>
+                      </div>
+                    </div>
+                    <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                      {results.tech?.totalDetected || 0} Detected
+                    </span>
+                  </div>
+
+                  {results.tech?.totalDetected === 0 ? (
+                    <div className="p-8 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                      <Cpu className="w-8 h-8 mx-auto mb-2 text-slate-300" />
+                      <p className="text-xs font-bold text-slate-700">No public framework signatures found.</p>
+                      <p className="text-[11px] text-slate-400 mt-0.5">Custom vanilla or obfuscated build.</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-4 overflow-y-auto max-h-[460px] pr-1">
+                      {Object.entries(results.tech?.byCategory || {}).map(([categoryName, items]) => (
+                        <div key={categoryName} className="space-y-2">
+                          <div className="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100 pb-1">
+                            <span>{categoryName}</span>
+                            <span className="text-slate-400">{items.length}</span>
+                          </div>
+
+                          {/* Space-Efficient Wrapped Chips */}
+                          <div className="flex flex-wrap gap-2">
+                            {items.map((techItem, idx) => (
+                              <div
+                                key={idx}
+                                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 shadow-2xs hover:border-slate-300 transition-colors"
                               >
-                                {w}
-                              </span>
+                                <span className="text-base shrink-0 leading-none">
+                                  {techItem.icon || '⚡'}
+                                </span>
+                                <div className="flex items-baseline gap-1.5">
+                                  <span className="text-xs font-bold text-slate-900">
+                                    {techItem.name}
+                                  </span>
+                                  {techItem.version && (
+                                    <span className="text-[10px] font-mono text-slate-500 font-medium">
+                                      v{techItem.version}
+                                    </span>
+                                  )}
+                                </div>
+                                <span className="text-[8px] font-extrabold px-1.5 py-0.2 rounded bg-emerald-100 text-emerald-800 uppercase">
+                                  {techItem.confidence}
+                                </span>
+                              </div>
                             ))}
                           </div>
                         </div>
-
-                        <div className="flex items-center gap-2">
-                          {font.importSnippet && (
-                            <button
-                              onClick={() => handleCopy(font.importSnippet, `font-import-${idx}`)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-xs font-semibold cursor-pointer shadow-2xs"
-                            >
-                              {copiedKey === `font-import-${idx}` ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                              Copy @import
-                            </button>
-                          )}
-
-                          {font.url && (
-                            <a
-                              href={font.url}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-colors shadow-2xs"
-                            >
-                              <ExternalLink className="w-3.5 h-3.5" />
-                              Google Fonts
-                            </a>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Live Specimen */}
-                      <div className="p-4 rounded-xl bg-white border border-slate-200 space-y-2">
-                        <div
-                          className="text-xl sm:text-2xl text-slate-900 leading-snug"
-                          style={{ fontFamily: `"${font.family}", sans-serif` }}
-                        >
-                          {previewText}
-                        </div>
-                        <div
-                          className="text-xs text-slate-500 leading-relaxed font-normal"
-                          style={{ fontFamily: `"${font.family}", sans-serif` }}
-                        >
-                          ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789 &%$@!?
-                        </div>
-                      </div>
+                      ))}
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
+
+                {/* Footer Server Tag */}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                  <span className="flex items-center gap-1.5">
+                    <Server className="w-3.5 h-3.5 text-slate-400" />
+                    Server: <strong className="text-slate-700">{results.stats?.server}</strong>
+                  </span>
+                  <span>
+                    Responsive Viewport: <strong className="text-emerald-600">{results.stats?.hasViewport ? 'Yes' : 'No'}</strong>
+                  </span>
+                </div>
+              </div>
             </div>
 
-            {/* CARD 4: DESIGN HEALTH & ASSETS */}
-            <div id="card-health" className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 rounded-2xl bg-amber-50 text-amber-700">
-                    <Layers className="w-5 h-5" />
+            {/* ROW 2: 2-COLUMN GRID (FONTS & ASSETS HEALTH) */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+              {/* CARD 3: GOOGLE FONTS & TYPOGRAPHY (2/3 WIDTH) */}
+              <div id="card-fonts" className="lg:col-span-2 bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-xl bg-purple-50 text-purple-700">
+                      <Type className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-slate-900">Google Fonts & Typography</h3>
+                      <p className="text-[11px] text-slate-500">Detected families, weights, and live specimen tester</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg sm:text-xl font-bold text-slate-900">Design Health & Page Assets</h3>
-                    <p className="text-xs text-slate-500 mt-0.5">
-                      Stylesheets, scripts, mobile viewport, and server configuration
+
+                  <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200">
+                    {results.fonts?.length || 0} Fonts
+                  </span>
+                </div>
+
+                {/* Live Specimen Input */}
+                <div className="space-y-1.5">
+                  <label className="block text-[11px] font-bold text-slate-600 uppercase tracking-wider">
+                    Interactive Live Font Specimen Tester
+                  </label>
+                  <input
+                    type="text"
+                    value={previewText}
+                    onChange={(e) => setPreviewText(e.target.value)}
+                    placeholder="Type custom text to preview live typography..."
+                    className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs sm:text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 focus:border-[#0C81F3] transition-all"
+                  />
+                </div>
+
+                {results.fonts?.length === 0 ? (
+                  <div className="p-6 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                    <Type className="w-8 h-8 mx-auto mb-1.5 text-slate-300" />
+                    <p className="text-xs font-bold text-slate-700">No external Google Fonts detected.</p>
+                    <p className="text-[11px] text-slate-400 mt-0.5">
+                      System fallback stacks (e.g. system-ui, Arial) or self-hosted fonts.
                     </p>
                   </div>
-                </div>
+                ) : (
+                  <div className="space-y-3">
+                    {results.fonts?.map((font, idx) => (
+                      <div
+                        key={idx}
+                        className="p-4 rounded-2xl border border-slate-200 bg-slate-50/60 space-y-2.5 shadow-2xs"
+                      >
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 border-b border-slate-200/60 pb-2">
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h4 className="text-base font-black text-slate-900">{font.family}</h4>
+                              <span className="text-[9px] font-bold px-2 py-0.2 rounded-full bg-purple-100 text-purple-800">
+                                {font.source}
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-1 mt-1">
+                              <span className="text-[10px] text-slate-500 font-semibold mr-1">Weights:</span>
+                              {font.weights?.map((w, wIdx) => (
+                                <span
+                                  key={wIdx}
+                                  className="text-[9px] font-mono font-bold px-1.5 py-0.2 rounded bg-white text-slate-700 border border-slate-200"
+                                >
+                                  {w}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2">
+                            {font.importSnippet && (
+                              <button
+                                onClick={() => handleCopy(font.importSnippet, `font-import-${idx}`)}
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 text-[11px] font-semibold cursor-pointer shadow-2xs"
+                              >
+                                {copiedKey === `font-import-${idx}` ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                                @import
+                              </button>
+                            )}
+
+                            {font.url && (
+                              <a
+                                href={font.url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-900 hover:bg-slate-800 text-white text-[11px] font-bold transition-colors shadow-2xs"
+                              >
+                                <ExternalLink className="w-3 h-3" />
+                                Google Fonts
+                              </a>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Live Specimen Rendering */}
+                        <div className="p-3 rounded-xl bg-white border border-slate-200 space-y-1">
+                          <div
+                            className="text-lg sm:text-xl text-slate-900 leading-snug"
+                            style={{ fontFamily: `"${font.family}", sans-serif` }}
+                          >
+                            {previewText}
+                          </div>
+                          <div
+                            className="text-[11px] text-slate-500 font-normal truncate"
+                            style={{ fontFamily: `"${font.family}", sans-serif` }}
+                          >
+                            ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789 &%$@!?
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
 
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    Stylesheets
+              {/* CARD 4: DESIGN HEALTH & PAGE ASSETS (1/3 WIDTH) */}
+              <div id="card-health" className="lg:col-span-1 bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div className="flex items-center gap-2.5">
+                    <div className="p-2 rounded-xl bg-amber-50 text-amber-700">
+                      <Layers className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold text-slate-900">Assets & Health</h3>
+                      <p className="text-[11px] text-slate-500">Resource breakdown</p>
+                    </div>
                   </div>
-                  <div className="text-2xl font-black text-slate-900">
-                    {results.stats?.stylesheetsCount || 0}
-                  </div>
-                  <div className="text-[11px] text-slate-500">Linked in &lt;head&gt;</div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    Scripts Loaded
+                <div className="grid grid-cols-2 gap-2.5">
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
+                    <div className="text-[10px] font-bold text-slate-500 uppercase">Stylesheets</div>
+                    <div className="text-xl font-black text-slate-900">
+                      {results.stats?.stylesheetsCount || 0}
+                    </div>
+                    <div className="text-[10px] text-slate-400">CSS links</div>
                   </div>
-                  <div className="text-2xl font-black text-slate-900">
-                    {results.stats?.scriptsCount || 0}
+
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
+                    <div className="text-[10px] font-bold text-slate-500 uppercase">Scripts</div>
+                    <div className="text-xl font-black text-slate-900">
+                      {results.stats?.scriptsCount || 0}
+                    </div>
+                    <div className="text-[10px] text-slate-400">External JS</div>
                   </div>
-                  <div className="text-[11px] text-slate-500">External JS bundles</div>
+
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
+                    <div className="text-[10px] font-bold text-slate-500 uppercase">Inline Styles</div>
+                    <div className="text-xl font-black text-slate-900">
+                      {results.stats?.inlineStylesCount || 0}
+                    </div>
+                    <div className="text-[10px] text-slate-400">&lt;style&gt; tags</div>
+                  </div>
+
+                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-0.5">
+                    <div className="text-[10px] font-bold text-slate-500 uppercase">Viewport</div>
+                    <div className="text-xl font-black text-emerald-600">
+                      {results.stats?.hasViewport ? 'Ready' : 'Missing'}
+                    </div>
+                    <div className="text-[10px] text-slate-400">Responsive tag</div>
+                  </div>
                 </div>
 
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    Inline Styles
+                {/* Server info box */}
+                <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1.5 text-[11px]">
+                  <div>
+                    <span className="text-slate-500 font-bold block">Web Server Software</span>
+                    <span className="font-mono font-bold text-slate-800">{results.stats?.server}</span>
                   </div>
-                  <div className="text-2xl font-black text-slate-900">
-                    {results.stats?.inlineStylesCount || 0}
+                  <div>
+                    <span className="text-slate-500 font-bold block">Content-Type</span>
+                    <span className="font-mono text-slate-600 truncate block">{results.stats?.contentType}</span>
                   </div>
-                  <div className="text-[11px] text-slate-500">&lt;style&gt; blocks</div>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-                  <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">
-                    Mobile Viewport
-                  </div>
-                  <div className="text-2xl font-black text-emerald-600">
-                    {results.stats?.hasViewport ? 'Ready' : 'Missing'}
-                  </div>
-                  <div className="text-[11px] text-slate-500">Responsive tag</div>
-                </div>
-              </div>
-
-              {/* Server Info */}
-              <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs">
-                <div className="flex items-center gap-2">
-                  <Server className="w-4 h-4 text-slate-500" />
-                  <span className="font-bold text-slate-700">Web Server Software:</span>
-                  <span className="font-mono font-bold text-slate-900">{results.stats?.server}</span>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <span className="font-bold text-slate-700">Content-Type:</span>
-                  <span className="font-mono text-slate-600 truncate">{results.stats?.contentType}</span>
                 </div>
               </div>
             </div>
