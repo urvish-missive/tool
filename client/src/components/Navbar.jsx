@@ -131,7 +131,6 @@ const NAV_ITEMS = [
             {
               icon: '📈',
               label: 'Google Rank Checker',
-              badge: 'POPULAR',
               badgeColor: 'bg-white text-gray-900',
               href: '/google-rank-checker',
             },
@@ -151,14 +150,12 @@ const NAV_ITEMS = [
             {
               icon: '🌐',
               label: 'Website Content Extractor',
-              badge: 'AI Q&A',
               badgeColor: 'bg-white text-gray-900',
               href: '/website-content-extractor',
             },
             {
               icon: '🖼️',
               label: 'Website Image Extractor',
-              badge: 'NEW',
               badgeColor: 'bg-amber-300 text-slate-950',
               href: '/website-image-extractor',
             },
@@ -170,7 +167,6 @@ const NAV_ITEMS = [
             {
               icon: '⚡',
               label: 'Tech & Theme Inspector',
-              badge: 'NEW',
               badgeColor: 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white',
               href: '/website-tech-inspector',
             },
