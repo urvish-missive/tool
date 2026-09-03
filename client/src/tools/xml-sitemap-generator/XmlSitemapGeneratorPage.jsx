@@ -28,6 +28,7 @@ import {
   Image as ImageIcon,
   XCircle,
   Calendar,
+  ListOrdered,
 } from 'lucide-react'
 
 const LOADING_STEPS = [
@@ -294,8 +295,8 @@ export default function XmlSitemapGeneratorPage() {
             <button
               onClick={() => { setMode('crawler'); setValidatorUrl(''); setValidatorXml('') }}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${mode === 'crawler'
-                  ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
             >
               <Globe className="w-4 h-4" />
@@ -305,8 +306,8 @@ export default function XmlSitemapGeneratorPage() {
             <button
               onClick={() => { setMode('manual'); setValidatorUrl(''); setValidatorXml('') }}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${mode === 'manual'
-                  ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
             >
               <ListOrdered className="w-4 h-4" />
@@ -316,8 +317,8 @@ export default function XmlSitemapGeneratorPage() {
             <button
               onClick={() => setMode('validator')}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${mode === 'validator'
-                  ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
+                : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                 }`}
             >
               <ShieldCheck className="w-4 h-4" />
@@ -730,8 +731,8 @@ export default function XmlSitemapGeneratorPage() {
                   <button
                     onClick={() => setActiveTab('xml')}
                     className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${activeTab === 'xml'
-                        ? 'bg-slate-900 text-white shadow-sm'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                       }`}
                   >
                     XML Code View
@@ -740,8 +741,8 @@ export default function XmlSitemapGeneratorPage() {
                   <button
                     onClick={() => setActiveTab('table')}
                     className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${activeTab === 'table'
-                        ? 'bg-slate-900 text-white shadow-sm'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                       }`}
                   >
                     Visual URL Table ({sitemapData.urls.length})
@@ -750,8 +751,8 @@ export default function XmlSitemapGeneratorPage() {
                   <button
                     onClick={() => setActiveTab('robots')}
                     className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${activeTab === 'robots'
-                        ? 'bg-slate-900 text-white shadow-sm'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                       }`}
                   >
                     Robots.txt Directive
@@ -760,8 +761,8 @@ export default function XmlSitemapGeneratorPage() {
                   <button
                     onClick={() => setActiveTab('index')}
                     className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${activeTab === 'index'
-                        ? 'bg-slate-900 text-white shadow-sm'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                       }`}
                   >
                     Sitemap Index
@@ -770,8 +771,8 @@ export default function XmlSitemapGeneratorPage() {
                   <button
                     onClick={() => setActiveTab('guide')}
                     className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${activeTab === 'guide'
-                        ? 'bg-slate-900 text-white shadow-sm'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                      ? 'bg-slate-900 text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
                       }`}
                   >
                     GSC Submission Guide
@@ -883,10 +884,10 @@ export default function XmlSitemapGeneratorPage() {
                             <td className="py-3 px-3">
                               <span
                                 className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${entry.priority >= 0.8
-                                    ? 'bg-blue-100 text-blue-800'
-                                    : entry.priority >= 0.6
-                                      ? 'bg-slate-100 text-slate-800'
-                                      : 'bg-amber-50 text-amber-800'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : entry.priority >= 0.6
+                                    ? 'bg-slate-100 text-slate-800'
+                                    : 'bg-amber-50 text-amber-800'
                                   }`}
                               >
                                 {Number(entry.priority).toFixed(1)}
@@ -1077,10 +1078,10 @@ export default function XmlSitemapGeneratorPage() {
                 <div className="flex items-center gap-4 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
                   <div
                     className={`w-16 h-16 rounded-full flex flex-col items-center justify-center font-extrabold text-white shadow-md ${validationData.healthScore >= 80
-                        ? 'bg-emerald-500'
-                        : validationData.healthScore >= 60
-                          ? 'bg-amber-500'
-                          : 'bg-rose-500'
+                      ? 'bg-emerald-500'
+                      : validationData.healthScore >= 60
+                        ? 'bg-amber-500'
+                        : 'bg-rose-500'
                       }`}
                   >
                     <span className="text-xl leading-none">{validationData.healthScore}</span>
@@ -1145,19 +1146,19 @@ export default function XmlSitemapGeneratorPage() {
                     <div
                       key={idx}
                       className={`p-4 rounded-2xl border text-xs sm:text-sm space-y-1.5 ${issue.severity === 'CRITICAL'
-                          ? 'bg-rose-50/70 border-rose-200 text-rose-950'
-                          : issue.severity === 'HIGH'
-                            ? 'bg-amber-50/70 border-amber-200 text-amber-950'
-                            : 'bg-blue-50/70 border-blue-200 text-blue-950'
+                        ? 'bg-rose-50/70 border-rose-200 text-rose-950'
+                        : issue.severity === 'HIGH'
+                          ? 'bg-amber-50/70 border-amber-200 text-amber-950'
+                          : 'bg-blue-50/70 border-blue-200 text-blue-950'
                         }`}
                     >
                       <div className="flex items-center gap-2 font-bold">
                         <span
                           className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase ${issue.severity === 'CRITICAL'
-                              ? 'bg-rose-200 text-rose-900'
-                              : issue.severity === 'HIGH'
-                                ? 'bg-amber-200 text-amber-900'
-                                : 'bg-blue-200 text-blue-900'
+                            ? 'bg-rose-200 text-rose-900'
+                            : issue.severity === 'HIGH'
+                              ? 'bg-amber-200 text-amber-900'
+                              : 'bg-blue-200 text-blue-900'
                             }`}
                         >
                           {issue.severity}
