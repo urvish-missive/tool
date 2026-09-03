@@ -19,16 +19,13 @@ import {
   Search,
   Zap,
   RefreshCw,
-  Layers,
-  Settings,
   ShieldCheck,
   Sparkles,
   ChevronDown,
   ChevronUp,
   Image as ImageIcon,
-  XCircle,
-  Calendar,
   ListOrdered,
+  Sliders,
 } from 'lucide-react'
 
 const LOADING_STEPS = [
