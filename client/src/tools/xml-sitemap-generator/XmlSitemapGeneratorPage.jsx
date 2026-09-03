@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import {
   useGenerateSitemapMutation,
   useValidateSitemapMutation,
@@ -23,17 +23,11 @@ import {
   Settings,
   ShieldCheck,
   Sparkles,
-  ListOrdered,
-  FileText,
-  HelpCircle,
   ChevronDown,
   ChevronUp,
   Image as ImageIcon,
-  CheckCircle,
   XCircle,
-  Sliders,
   Calendar,
-  Compass,
 } from 'lucide-react'
 
 const LOADING_STEPS = [

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useCheckRankMutation } from '../../services/apiSlice'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
@@ -7,10 +7,6 @@ import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import {
   Search,
   Globe,
-  Award,
-  TrendingUp,
-  BarChart3,
-  CheckCircle2,
   AlertTriangle,
   ExternalLink,
   Copy,
@@ -20,19 +16,13 @@ import {
   Sparkles,
   Smartphone,
   Monitor,
-  Flame,
   Zap,
   Target,
-  FileText,
   ChevronDown,
   ChevronUp,
-  HelpCircle,
   RefreshCw,
-  Crown,
   Eye,
   ArrowUpRight,
-  ShieldCheck,
-  Sliders,
   Compass,
 } from 'lucide-react'
 

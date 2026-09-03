@@ -161,8 +161,9 @@ export default function ContentAnalyzerPage() {
         </section>
 
         {/* Analyzer Form */}
+        {/* Analyzer Form / Results */}
         <section ref={formRef} className="py-8 sm:py-12">
-          <div className="max-w-3xl mx-auto px-4 sm:px-6">
+          <div className={`${status === 'success' ? 'max-w-5xl' : 'max-w-3xl'} mx-auto px-4 sm:px-6 transition-all duration-300`}>
             {status === 'idle' && (
               <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-gray-200 shadow-lg shadow-gray-200/50 p-6 sm:p-8 space-y-6">
                 {/* Content */}
@@ -179,61 +180,75 @@ export default function ContentAnalyzerPage() {
                   <div className="flex justify-between mt-1.5 text-xs text-gray-500">
                     <span>{charCount.toLocaleString()} / 50,000 characters</span>
                     {charCount > 0 && charCount < 100 && (
-                      <span className="text-amber-600">{100 - charCount} more needed</span>
+                      <span className="text-amber-600 font-semibold">{100 - charCount} more characters needed</span>
                     )}
                   </div>
                 </div>
 
-                {/* Target Keyword */}
-                {isFieldEnabled('keyword') && (
-                <div>
-                  <label htmlFor="target-keyword" className="block text-sm font-semibold text-gray-900 mb-1">Target Keyword (optional)</label>
-                  <input
-                    id="target-keyword"
-                    type="text"
-                    value={targetKeyword}
-                    onChange={(e) => setTargetKeyword(e.target.value)}
-                    placeholder="e.g. enterprise SEO services"
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                  />
-                </div>
-                )}
+                {/* Keywords Row */}
+                {(isFieldEnabled('keyword') || isFieldEnabled('secondaryKeywords')) && (
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    {isFieldEnabled('keyword') && (
+                      <div>
+                        <label htmlFor="target-keyword" className="block text-sm font-semibold text-gray-900 mb-1">Target Keyword (optional)</label>
+                        <input
+                          id="target-keyword"
+                          type="text"
+                          value={targetKeyword}
+                          onChange={(e) => setTargetKeyword(e.target.value)}
+                          placeholder="e.g. enterprise SEO services"
+                          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                        />
+                      </div>
+                    )}
 
-                {/* Secondary Keywords */}
-                {isFieldEnabled('secondaryKeywords') && (
-                <div>
-                  <label htmlFor="secondary-keywords" className="block text-sm font-semibold text-gray-900 mb-1">Secondary Keywords (optional)</label>
-                  <input
-                    id="secondary-keywords"
-                    type="text"
-                    value={secondaryKeywords}
-                    onChange={(e) => setSecondaryKeywords(e.target.value)}
-                    placeholder="e.g. technical SEO, enterprise SEO strategy"
-                    className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">Comma-separated</p>
-                </div>
-                )}
-
-                {/* Content Type + Search Intent + AI Model */}
-                <div className="grid sm:grid-cols-3 gap-4">
-                  {isFieldEnabled('contentType') && (
-                  <div>
-                    <label htmlFor="content-type" className="block text-sm font-semibold text-gray-900 mb-1">Content Type</label>
-                    <select id="content-type" value={contentType} onChange={(e) => setContentType(e.target.value)}
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
-                      {CONTENT_TYPES.map(t => <option key={t}>{t}</option>)}
-                    </select>
+                    {isFieldEnabled('secondaryKeywords') && (
+                      <div>
+                        <label htmlFor="secondary-keywords" className="block text-sm font-semibold text-gray-900 mb-1">Secondary Keywords (optional)</label>
+                        <input
+                          id="secondary-keywords"
+                          type="text"
+                          value={secondaryKeywords}
+                          onChange={(e) => setSecondaryKeywords(e.target.value)}
+                          placeholder="e.g. technical SEO, SEO audit (comma-separated)"
+                          className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                        />
+                      </div>
+                    )}
                   </div>
+                )}
+
+                {/* Content Type & Search Intent */}
+                <div className="grid sm:grid-cols-2 gap-4">
+                  {isFieldEnabled('contentType') && (
+                    <div>
+                      <label htmlFor="content-type" className="block text-sm font-semibold text-gray-900 mb-1">Content Type</label>
+                      <select
+                        id="content-type"
+                        value={contentType}
+                        onChange={(e) => setContentType(e.target.value)}
+                        className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                      >
+                        {CONTENT_TYPES.map(t => <option key={t}>{t}</option>)}
+                      </select>
+                    </div>
                   )}
                   <div>
-                    <label htmlFor="search-intent" className="block text-sm font-semibold text-gray-900 mb-1">Search Intent</label>
-                    <select id="search-intent" value={searchIntent} onChange={(e) => setSearchIntent(e.target.value)}
-                      className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
+                    <label htmlFor="search-intent" className="block text-sm font-semibold text-gray-900 mb-1">Target Search Intent</label>
+                    <select
+                      id="search-intent"
+                      value={searchIntent}
+                      onChange={(e) => setSearchIntent(e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white"
+                    >
                       {SEARCH_INTENTS.map(t => <option key={t}>{t}</option>)}
                     </select>
                   </div>
-                  <ModelSelector value={aiModel} onChange={setAiModel} />
+                </div>
+
+                {/* Model Selector */}
+                <div className="pt-2 border-t border-gray-100">
+                  <ModelSelector value={aiModel} onChange={setAiModel} compact={true} />
                 </div>
 
                 {/* Validation Error */}
@@ -245,7 +260,7 @@ export default function ContentAnalyzerPage() {
 
                 {/* Submit */}
                 <button type="submit"
-                  className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-8 py-3.5 text-sm font-semibold text-white hover:from-[#0D73D1] hover:to-[#E77771] transition-all shadow-lg shadow-[#0C81F3]/25 hover:shadow-[#0C81F3]/40">
+                  className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-8 py-3.5 text-sm font-semibold text-white hover:from-[#0D73D1] hover:to-[#E77771] transition-all shadow-lg shadow-[#0C81F3]/25 hover:shadow-[#0C81F3]/40 cursor-pointer">
                   Analyze Content
                 </button>
               </form>
@@ -264,7 +279,7 @@ export default function ContentAnalyzerPage() {
                 </svg>
                 <h3 className="text-lg font-semibold text-gray-900">Analysis Failed</h3>
                 <p className="text-gray-600 mt-2 max-w-md mx-auto">{errorMessage}</p>
-                <button onClick={handleReset} className="mt-4 px-6 py-2.5 rounded-lg bg-gray-100 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors">
+                <button onClick={handleReset} className="mt-4 px-6 py-2.5 rounded-lg bg-gray-100 text-sm font-medium text-gray-700 hover:bg-gray-200 transition-colors cursor-pointer">
                   Try Again
                 </button>
               </div>
@@ -272,31 +287,26 @@ export default function ContentAnalyzerPage() {
 
             {/* Report */}
             {status === 'success' && report && (
-              <div id="report-section" className="space-y-8">
-                <AIAnalyticsSection report={report} onReset={handleReset} />
-
-                {/* CTA */}
-                <div className="relative overflow-hidden rounded-3xl p-8 sm:p-12 text-center shadow-lg">
-                  <div className="absolute inset-0 bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988]" />
-                  <div className="absolute top-0 right-0 w-64 h-64 bg-white/15 rounded-full blur-2xl -translate-y-1/2 translate-x-1/4" />
-                  <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/15 rounded-full blur-2xl translate-y-1/2 -translate-x-1/4" />
-                  <div className="relative text-white">
-                    <span className="inline-block px-3.5 py-1 bg-white/20 text-white text-xs font-bold rounded-full mb-4 tracking-wide uppercase backdrop-blur-sm border border-white/20">Expert Review</span>
-                    <h3 className="text-2xl sm:text-3xl font-black text-white">Get a Professional SEO Strategy</h3>
-                    <p className="mt-3 text-white/90 max-w-lg mx-auto text-sm sm:text-base leading-relaxed font-medium">
-                      Want a deeper SEO analysis? Our SEO experts can review your content, competitors and search strategy.
-                    </p>
-                  </div>
-                </div>
+              <div id="report-section" className="space-y-10 animate-fade-in">
+                <AIAnalyticsSection
+                  report={report}
+                  onReset={handleReset}
+                  onEdit={() => {
+                    resetMutation()
+                    window.scrollTo({ top: 140, behavior: 'smooth' })
+                  }}
+                />
 
                 {/* Lead Form */}
-                <DynamicLeadForm
-                  toolSlug="content-analyzer"
-                  relatedIdField="analysisId"
-                  relatedIdValue={analysisId}
-                  title="Want a deeper SEO analysis?"
-                  subtitle="Our SEO experts can review your content, competitors and search strategy."
-                />
+                <div className="mt-12">
+                  <DynamicLeadForm
+                    toolSlug="content-analyzer"
+                    relatedIdField="analysisId"
+                    relatedIdValue={analysisId}
+                    title="Want Himani & Missive Digital to Optimize Your Content?"
+                    subtitle="Request a 1-on-1 strategy session with Himani Kankaria and Missive Digital's senior SEO specialists."
+                  />
+                </div>
               </div>
             )}
           </div>
