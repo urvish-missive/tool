@@ -30,26 +30,11 @@ const PILLARS_META = [
   { key: 'eeat_score', label: 'E-E-A-T Trust', icon: '🛡️', desc: 'First-hand experience, authority proof, and brand credibility' },
 ]
 
-function getScoreColor(val) {
-  if (val >= 80) return 'text-emerald-600'
-  if (val >= 60) return 'text-amber-500'
-  if (val >= 40) return 'text-orange-500'
-  return 'text-rose-500'
-}
-
-function getScoreBadge(val) {
-  if (val >= 80) return 'bg-emerald-100 text-emerald-800 border-emerald-200'
-  if (val >= 60) return 'bg-amber-100 text-amber-800 border-amber-200'
-  if (val >= 40) return 'bg-orange-100 text-orange-800 border-orange-200'
-  return 'bg-rose-100 text-rose-800 border-rose-200'
-}
-
-function getScoreBarGradient(val) {
-  if (val >= 80) return 'from-emerald-500 to-teal-400'
-  if (val >= 60) return 'from-blue-500 to-indigo-400'
-  if (val >= 40) return 'from-amber-500 to-orange-400'
-  return 'from-rose-500 to-pink-500'
-}
+import {
+  getScoreColor,
+  getScoreBadge,
+  getScoreBarGradient,
+} from '../utils/scoreHelpers'
 
 export default function AIAnalyticsSection({ report, onReset, onEdit }) {
   const [activeTab, setActiveTab] = useState('scores') // 'scores' | 'issues' | 'geo' | 'eeat' | 'plan'

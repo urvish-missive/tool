@@ -55,6 +55,7 @@ import useToolFields from '../../hooks/useToolFields'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import { useAnalyzeContentQaMutation, usePolishContentQaMutation } from '../../services/apiSlice'
 import { contentQaSchema, parseContentQaForm } from '../../schemas/contentQa.schema'
+import { getScoreColor, getScoreBg } from '../../utils/scoreHelpers'
 
 // ── 12 PILLARS DEFINITION (Matching Himani Kankaria's Checklist) ────
 const HIMANI_CATEGORIES_DEF = [
@@ -498,17 +499,7 @@ Audited with Missive Digital Content QA Tool.`
     setTimeout(() => setCopiedAction(false), 2500)
   }
 
-  const getScoreColor = (score) => {
-    if (score >= 80) return 'text-emerald-600'
-    if (score >= 60) return 'text-amber-600'
-    return 'text-rose-600'
-  }
 
-  const getScoreBg = (score) => {
-    if (score >= 80) return 'bg-emerald-50 border-emerald-200 text-emerald-800'
-    if (score >= 60) return 'bg-amber-50 border-amber-200 text-amber-800'
-    return 'bg-rose-50 border-rose-200 text-rose-800'
-  }
 
   // Filtered categories based on user filter pill
   const filteredCategories = useMemo(() => {
