@@ -198,6 +198,15 @@ export const apiSlice = createApi({
       }),
     }),
 
+    // POST /api/geo/analyze
+    analyzeGeo: builder.mutation({
+      query: (payload) => ({
+        url: '/geo/analyze',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
     // GET /api/health
     healthCheck: builder.query({
       query: () => '/health',
@@ -297,6 +306,7 @@ export const {
   useAskWebsiteQuestionMutation,
   useExtractWebsiteImagesMutation,
   useInspectWebsiteTechMutation,
+  useAnalyzeGeoMutation,
   useHealthCheckQuery,
   useGetPublicToolsQuery,
   useAdminLoginMutation,
