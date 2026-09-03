@@ -330,7 +330,7 @@ export default function GoogleRankCheckerPage() {
                       </label>
                       <button
                         type="button"
-                        onClick={() => setKeyword('himani kankaria')}
+                        onClick={() => setKeyword('missive digital')}
                         className="text-xs text-[#0C81F3] hover:underline font-semibold cursor-pointer"
                       >
                         Sample Keyword
