@@ -448,6 +448,29 @@ export default function GoogleRankCheckerPage() {
         {/* RESULTS DASHBOARD */}
         {rankData && !isLoading && (
           <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+            {/* DISCLAIMER BANNER — when results are AI estimates */}
+            {rankData.isEstimate && (
+              <div className="p-4 sm:p-5 rounded-2xl bg-amber-50 border-2 border-amber-300 shadow-sm">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center shrink-0">
+                    <AlertTriangle className="w-5 h-5 text-amber-600" />
+                  </div>
+                  <div className="space-y-1.5">
+                    <h4 className="font-bold text-amber-900 text-sm">⚠️ AI Estimate — Not a Verified Ranking</h4>
+                    <p className="text-xs sm:text-sm text-amber-800 leading-relaxed">
+                      {rankData.estimateReason}
+                    </p>
+                    <p className="text-xs text-amber-700">
+                      <strong>Confidence Level:</strong> {rankData.confidence}% — For accurate rankings, use{' '}
+                      <a href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer" className="underline font-semibold">Google Search Console</a>{' '}
+                      or a dedicated SERP tracking API like{' '}
+                      <a href="https://serpapi.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold">SerpAPI</a>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* HERO RANK BADGE CARD */}
             <div className="relative bg-gradient-to-br from-slate-900 via-[#101b33] to-[#1a1429] text-white p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-2xl overflow-hidden">
               <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-[#0C81F3]/20 via-[#EB8988]/20 to-transparent rounded-full blur-3xl pointer-events-none" />
@@ -458,9 +481,13 @@ export default function GoogleRankCheckerPage() {
                     <span className="px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-500/30 text-xs font-bold uppercase tracking-wider">
                       {rankData.countryName} ({rankData.device})
                     </span>
-                    {rankData.scrapedLive && (
+                    {rankData.scrapedLive ? (
                       <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold">
-                        Live SERP Verified
+                        ✅ Live SERP Verified
+                      </span>
+                    ) : (
+                      <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold">
+                        ⚠️ AI Estimate ({rankData.confidence || 30}% confidence)
                       </span>
                     )}
                   </div>
@@ -690,8 +717,10 @@ export default function GoogleRankCheckerPage() {
                 <div className="p-6 space-y-4">
                   <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
                     <p className="text-xs text-slate-500">
-                      Comparing against the top search results currently ranking on Google for{' '}
-                      <strong>"{rankData.keyword}"</strong>.
+                      {rankData.scrapedLive
+                        ? `Live-scraped results from Google for "${rankData.keyword}".`
+                        : `AI-estimated competitor landscape for "${rankData.keyword}". Results are approximate.`
+                      }
                     </p>
                     <input
                       type="text"
@@ -964,8 +993,13 @@ export default function GoogleRankCheckerPage() {
               <div className="flex items-center gap-2 text-xs text-slate-500">
                 <Compass className="w-4 h-4 text-[#0C81F3]" />
                 <span>
-                  Rank check completed for <strong>{rankData.domain}</strong> on Google{' '}
-                  {rankData.countryName}
+                  Rank check for <strong>{rankData.domain}</strong> on Google{' '}
+                  {rankData.countryName} —{' '}
+                  {rankData.scrapedLive ? (
+                    <span className="text-emerald-600 font-semibold">Live verified</span>
+                  ) : (
+                    <span className="text-amber-600 font-semibold">AI estimate (not verified)</span>
+                  )}
                 </span>
               </div>
 

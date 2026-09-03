@@ -145,8 +145,8 @@ async function analyzeSerpWithAI({ domain, keyword, country, device, liveResults
   const targetDomain = cleanDomain(domain)
   const countryName = COUNTRY_MAP[country.toUpperCase()]?.name || country
 
-  const prompt = `You are a world-class Google SERP Intelligence and Search Ranking engine.
-Analyze the current Google search landscape for:
+  const prompt = `You are a Google SERP Intelligence and Search Ranking analyst.
+Analyze the search landscape for:
 - Target Domain: "${targetDomain}"
 - Search Query / Keyword: "${keyword}"
 - Country / Location: "${countryName}"
@@ -154,15 +154,17 @@ Analyze the current Google search landscape for:
 
 ${
   liveResults && liveResults.length > 0
-    ? `Live scraped top SERP listings found:\n${JSON.stringify(liveResults.slice(0, 10), null, 2)}\n`
-    : ''
+    ? `LIVE SCRAPED SERP DATA (use this as primary source — this is REAL data from Google):\n${JSON.stringify(liveResults.slice(0, 15), null, 2)}\n\nIMPORTANT: The domain "${targetDomain}" ${liveResults.some(r => r.domain === targetDomain || r.domain.endsWith(`.${targetDomain}`)) ? 'WAS found in the live scraped results above.' : 'was NOT found in the live scraped results above. If it is not in the list above, set position to null.'}`
+    : `NOTE: No live SERP data was available. You DO NOT have access to real Google search results. Be explicit about this limitation. Set position to null unless you have very high confidence. Do NOT fabricate a ranking position.`
 }
 
-Provide a realistic, highly accurate SERP ranking evaluation for "${targetDomain}" on Google for "${keyword}".
+${liveResults && liveResults.length > 0 ? 'Using the live scraped data above, provide the ranking evaluation.' : 'Provide an honest estimate with low confidence. Mark isEstimate as true.'}
 
 Respond with ONLY a valid, raw JSON object matching this exact schema:
 {
-  "position": <integer 1 to 100 or null if not ranking in top 100>,
+  "position": <integer 1 to 100 or null if not ranking in top 100. ONLY set this from live scraped data. If no live data, set to null.>,
+  "confidence": <number 0-100 indicating how confident you are in this position. 90+ = live scraped data confirmed. 50-70 = estimated from partial data. Below 50 = pure guess — be honest.>,
+  "estimateReason": "<if position is not from live data, explain why it's an estimate: e.g. 'No live SERP data available. This is an AI estimate based on domain relevance analysis.'>",
   "rankingUrl": "<exact ranking URL on ${targetDomain} or null if not ranking>",
   "rankingTitle": "<page title tag of ranking URL or null>",
   "rankingSnippet": "<search snippet preview or null>",
@@ -314,6 +316,14 @@ export async function checkRank({
   const finalUrl = matchedUrl || aiData.rankingUrl || (finalPosition ? `https://${targetDomain}/` : null)
   const finalTitle = matchedTitle || aiData.rankingTitle || `${cleanKeyword} - ${targetDomain}`
   const finalSnippet = matchedSnippet || aiData.rankingSnippet || ''
+  
+  // Determine if this is a live result or AI estimate
+  const hasLiveData = Boolean(matchedPosition !== null)
+  const confidence = hasLiveData ? 95 : (aiData.confidence || 30)
+  const isEstimate = !hasLiveData
+  const estimateReason = hasLiveData
+    ? 'Position confirmed from live Google SERP scrape.'
+    : (aiData.estimateReason || 'No live SERP data was available. This is an AI-generated estimate, not a real ranking position.')
 
   // Top 10 competitors list
   let competitors = (liveData?.results?.length >= 5 ? liveData.results.slice(0, 10) : aiData.topCompetitors) || []
@@ -349,6 +359,9 @@ export async function checkRank({
     outrankPlaybook: aiData.outrankPlaybook || [],
     peopleAlsoAsk: aiData.peopleAlsoAsk || [],
     scrapedLive: Boolean(liveData?.results?.length),
+    isEstimate,
+    confidence,
+    estimateReason,
   }
 }
 
