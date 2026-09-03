@@ -12,6 +12,7 @@ const TOOL_SLUG_MAP = {
   '/competitor-analysis': 'competitor-analyzer',
   '/content-qa': 'content-qa',
   '/xml-sitemap-generator': 'xml-sitemap-generator',
+  '/google-rank-checker': 'google-rank-checker',
 }
 
 export default function ToolGuard({ toolPath, children }) {

@@ -139,6 +139,7 @@ export async function getStats(req, res) {
       ...recentLogos.map(l => ({ tool: 'Logo Maker', detail: l.brandName, industry: l.industry, createdAt: l.createdAt, id: l.id })),
       ...recentRois.map(r => ({ tool: 'ROI Calculator', detail: `${r.currency} ${r.monthlySeoInvestment}/mo investment`, createdAt: r.createdAt, id: r.id })),
       ...((recentSitemaps || []).map(s => ({ tool: 'XML Sitemap Generator', detail: s.websiteUrl || 'Direct Generation', score: null, createdAt: s.createdAt, id: s.id }))),
+      ...((await prisma.rankCheck?.findMany?.({ orderBy: { createdAt: 'desc' }, take: 10, select: { id: true, domain: true, keyword: true, position: true, createdAt: true } }).catch(() => [])) || []).map(r => ({ tool: 'Google Rank Checker', detail: `${r.domain} ("${r.keyword}")`, score: r.position ? `#${r.position}` : 'N/A', createdAt: r.createdAt, id: r.id })),
     ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 15)
 
     res.json({
@@ -409,6 +410,7 @@ async function getToolCount(tool) {
     'seo-roi': () => prisma.rOICalculation.count(),
     'content-qa': () => prisma.contentQA.count(),
     'xml-sitemap-generator': () => prisma.sitemapGeneration.count().catch(() => 0),
+    'google-rank-checker': () => prisma.rankCheck?.count?.().catch(() => 0) || 0,
   }
   return counts[tool] ? counts[tool]() : 0
 }
@@ -423,6 +425,7 @@ function formatActivity(tool, record) {
     'seo-roi': 'ROI Calculator',
     'content-qa': 'Content QA',
     'xml-sitemap-generator': 'XML Sitemap Generator',
+    'google-rank-checker': 'Google Rank Checker',
   }
   const base = { id: record.id, tool, toolName: toolNames[tool] || tool, createdAt: record.createdAt }
 
@@ -443,6 +446,8 @@ function formatActivity(tool, record) {
       return { ...base, detail: record.title || record.targetKeyword || 'Untitled', score: record.overallScore, subdetail: null }
     case 'xml-sitemap-generator':
       return { ...base, detail: record.websiteUrl || 'Direct Generation', score: null, subdetail: `${record.totalUrls || 0} URLs generated` }
+    case 'google-rank-checker':
+      return { ...base, detail: `${record.domain} ("${record.keyword}")`, score: record.position ? `#${record.position}` : 'N/A', subdetail: `${record.country || 'US'} (${record.device || 'desktop'})` }
     default:
       return base
   }

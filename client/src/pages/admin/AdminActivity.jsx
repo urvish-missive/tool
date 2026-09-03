@@ -10,6 +10,7 @@ const TOOLS = [
   { slug: 'logo-maker', label: 'Logo Maker', icon: '🎨', color: 'bg-blue-100 text-blue-700' },
   { slug: 'seo-roi', label: 'ROI Calculator', icon: '💰', color: 'bg-pink-100 text-pink-700' },
   { slug: 'xml-sitemap-generator', label: 'Sitemap Generator', icon: '🗺️', color: 'bg-teal-100 text-teal-700' },
+  { slug: 'google-rank-checker', label: 'Rank Checker', icon: '📈', color: 'bg-blue-100 text-blue-700' },
 ]
 
 export default function AdminActivity() {

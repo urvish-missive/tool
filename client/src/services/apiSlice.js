@@ -153,6 +153,15 @@ export const apiSlice = createApi({
       }),
     }),
 
+    // POST /api/rank/check
+    checkRank: builder.mutation({
+      query: (payload) => ({
+        url: '/rank/check',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
     // GET /api/health
     healthCheck: builder.query({
       query: () => '/health',
@@ -241,6 +250,7 @@ export const {
   useGenerateLogoVariationsMutation,
   useGenerateSitemapMutation,
   useValidateSitemapMutation,
+  useCheckRankMutation,
   useHealthCheckQuery,
   useGetPublicToolsQuery,
   useAdminLoginMutation,

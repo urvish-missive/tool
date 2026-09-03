@@ -63,6 +63,12 @@ const TOOL_FIELDS = {
     { key: 'changefreq', label: 'Change Frequency', icon: '⏱️' },
     { key: 'priority', label: 'Priority', icon: '⭐' },
   ],
+  'google-rank-checker': [
+    { key: 'domain', label: 'Domain / Website', icon: '🌐' },
+    { key: 'keyword', label: 'Target Keyword', icon: '🎯' },
+    { key: 'country', label: 'Country', icon: '🌍' },
+    { key: 'device', label: 'Device', icon: '📱' },
+  ],
 }
 
 export default function AdminTools() {

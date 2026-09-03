@@ -171,6 +171,8 @@ model Lead {
   contentQa           ContentQA?        @relation(fields: [contentQaId], references: [id])
   sitemapId           String?           @db.ObjectId
   sitemap             SitemapGeneration? @relation(fields: [sitemapId], references: [id])
+  rankCheckId         String?           @db.ObjectId
+  rankCheck           RankCheck?        @relation(fields: [rankCheckId], references: [id])
   createdAt          DateTime          @default(now())
 
   @@index([email])
@@ -280,6 +282,23 @@ model SitemapGeneration {
 
   @@index([createdAt])
   @@index([websiteUrl])
+}
+
+model RankCheck {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  domain       String
+  keyword      String
+  country      String   @default("US")
+  device       String   @default("desktop")
+  position     Int?     // 1 to 100, null if outside top 100
+  rankingUrl   String?
+  resultJson   String   // full SERP results, metrics & outrank playbook
+  createdAt    DateTime @default(now())
+  leads        Lead[]
+
+  @@index([createdAt])
+  @@index([domain])
+  @@index([keyword])
 }
 
 // ─── Admin & Tool Management ────────────────────────────

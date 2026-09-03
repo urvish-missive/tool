@@ -13,6 +13,7 @@ const TOOL_HREF_SLUGS = {
   '/seo-roi-calculator': 'seo-roi',
   '/content-qa': 'content-qa',
   '/xml-sitemap-generator': 'xml-sitemap-generator',
+  '/google-rank-checker': 'google-rank-checker',
 }
 
 const NAV_ITEMS = [
@@ -111,6 +112,7 @@ const NAV_ITEMS = [
             { icon: '💰', label: 'ROI Calculator', href: '/seo-roi-calculator' },
             { icon: '✅', label: 'Content QA', badge: 'NEW', badgeColor: 'bg-green-500 text-white', href: '/content-qa' },
             { icon: '🗺️', label: 'XML Sitemap Generator', badge: 'NEW', badgeColor: 'bg-emerald-500 text-white', href: '/xml-sitemap-generator' },
+            { icon: '📈', label: 'Google Rank Checker', badge: 'NEW', badgeColor: 'bg-blue-600 text-white', href: '/google-rank-checker' },
           ],
         },
       ],

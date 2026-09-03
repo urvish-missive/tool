@@ -13,6 +13,7 @@ const TOOL_SLUG_MAP = {
   seo_roi_calculator: 'seo-roi',
   content_qa: 'content-qa',
   xml_sitemap_generator: 'xml-sitemap-generator',
+  google_rank_checker: 'google-rank-checker',
 }
 
 const TOOLS = [
@@ -104,6 +105,15 @@ const TOOLS = [
     icon: '🗺️',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/xml-sitemap-generator',
+    badge: 'New Tool',
+  },
+  {
+    id: 'google_rank_checker',
+    title: 'Google Rank Checker',
+    description: 'Real-time Google search rankings with top 10 competitor landscape, SERP features breakdown, and 10x outrank roadmap.',
+    icon: '📈',
+    color: 'from-[#0C81F3] to-[#EB8988]',
+    path: '/google-rank-checker',
     badge: 'New Tool',
   },
 ]

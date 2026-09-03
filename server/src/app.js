@@ -14,6 +14,7 @@ import faqRoutes from './routes/faqRoutes.js'
 import competitorRoutes from './routes/competitorRoutes.js'
 import contentQaRoutes from './routes/contentQaRoutes.js'
 import sitemapRoutes from './routes/sitemapRoutes.js'
+import rankRoutes from './routes/rankRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 import { toolAccess } from './middleware/toolAccess.js'
 import prisma from './utils/prisma.js'
@@ -61,6 +62,7 @@ app.use('/api/faqs', toolAccess('faq-generator'), faqRoutes)
 app.use('/api/competitors', toolAccess('competitor-analyzer'), competitorRoutes)
 app.use('/api/content-qa', toolAccess('content-qa'), contentQaRoutes)
 app.use('/api/sitemap', toolAccess('xml-sitemap-generator'), sitemapRoutes)
+app.use('/api/rank', toolAccess('google-rank-checker'), rankRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -185,32 +187,63 @@ async function seedDefaults() {
         changefreq: { enabled: true, label: 'Change Frequency', required: false },
         priority: { enabled: true, label: 'Priority', required: false },
       })},
+      { slug: 'google-rank-checker', name: 'Google Rank Checker', description: 'Check search rankings and SERP intelligence on Google', dailyLimit: 50, hourlyLimit: 10, formFields: JSON.stringify({
+        domain: { enabled: true, label: 'Domain / Website', required: true },
+        keyword: { enabled: true, label: 'Target Keyword', required: true },
+        country: { enabled: true, label: 'Country', required: false },
+        device: { enabled: true, label: 'Device', required: false },
+      })},
     ]
     await prisma.toolConfig.createMany({ data: tools })
     console.log('✓ Default tool configs created')
   } else {
     // Ensure xml-sitemap-generator exists if database was already initialized
-    const sitemapTool = await prisma.toolConfig.findUnique({ where: { slug: 'xml-sitemap-generator' } })
-    if (!sitemapTool) {
-      await prisma.toolConfig.create({
-        data: {
-          slug: 'xml-sitemap-generator',
-          name: 'XML Sitemap Generator',
-          description: 'Generate, crawl, and validate SEO-compliant XML sitemaps',
-          dailyLimit: 60,
-          hourlyLimit: 15,
-          formFields: JSON.stringify({
-            websiteUrl: { enabled: true, label: 'Website URL', required: true },
-            maxPages: { enabled: true, label: 'Max URLs', required: false },
-            crawlDepth: { enabled: true, label: 'Crawl Depth', required: false },
-            includeImages: { enabled: true, label: 'Include Images', required: false },
-            changefreq: { enabled: true, label: 'Change Frequency', required: false },
-            priority: { enabled: true, label: 'Priority', required: false },
-          }),
-        },
-      })
-      console.log('✓ XML Sitemap Generator tool config seeded')
-    }
+    try {
+      const sitemapTool = await prisma.toolConfig.findUnique({ where: { slug: 'xml-sitemap-generator' } })
+      if (!sitemapTool) {
+        await prisma.toolConfig.create({
+          data: {
+            slug: 'xml-sitemap-generator',
+            name: 'XML Sitemap Generator',
+            description: 'Generate, crawl, and validate SEO-compliant XML sitemaps',
+            dailyLimit: 60,
+            hourlyLimit: 15,
+            formFields: JSON.stringify({
+              websiteUrl: { enabled: true, label: 'Website URL', required: true },
+              maxPages: { enabled: true, label: 'Max URLs', required: false },
+              crawlDepth: { enabled: true, label: 'Crawl Depth', required: false },
+              includeImages: { enabled: true, label: 'Include Images', required: false },
+              changefreq: { enabled: true, label: 'Change Frequency', required: false },
+              priority: { enabled: true, label: 'Priority', required: false },
+            }),
+          },
+        })
+        console.log('✓ XML Sitemap Generator tool config seeded')
+      }
+    } catch {}
+
+    // Ensure google-rank-checker exists if database was already initialized
+    try {
+      const rankTool = await prisma.toolConfig.findUnique({ where: { slug: 'google-rank-checker' } })
+      if (!rankTool) {
+        await prisma.toolConfig.create({
+          data: {
+            slug: 'google-rank-checker',
+            name: 'Google Rank Checker',
+            description: 'Check search rankings and SERP intelligence on Google',
+            dailyLimit: 50,
+            hourlyLimit: 10,
+            formFields: JSON.stringify({
+              domain: { enabled: true, label: 'Domain / Website', required: true },
+              keyword: { enabled: true, label: 'Target Keyword', required: true },
+              country: { enabled: true, label: 'Country', required: false },
+              device: { enabled: true, label: 'Device', required: false },
+            }),
+          },
+        })
+        console.log('✓ Google Rank Checker tool config seeded')
+      }
+    } catch {}
   }
 }
 
