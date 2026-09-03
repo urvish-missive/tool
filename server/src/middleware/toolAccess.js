@@ -27,6 +27,7 @@ export function toolAccess(toolSlug) {
           'logo-maker': { name: 'Logo Maker', description: 'Generate logo designs with AI' },
           'website-content-extractor': { name: 'Website Content Extractor & AI Q&A', description: 'Extract clean website content, metadata, schema, and answer questions with AI' },
           'website-image-extractor': { name: 'Website Image Extractor & Downloader', description: 'Extract all images, logos, SVGs, and social banners from any URL with 1-click downloads' },
+          'website-tech-inspector': { name: 'Website Tech & Theme Inspector', description: 'Extract website theme colors, technology stack, Google font families, and design specs' },
         }
         const info = defaults[toolSlug] || { name: toolSlug, description: '' }
         await prisma.toolConfig.create({

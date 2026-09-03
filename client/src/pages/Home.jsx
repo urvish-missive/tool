@@ -16,6 +16,7 @@ const TOOL_SLUG_MAP = {
   google_rank_checker: 'google-rank-checker',
   website_content_extractor: 'website-content-extractor',
   website_image_extractor: 'website-image-extractor',
+  website_tech_inspector: 'website-tech-inspector',
 }
 
 const TOOLS = [
@@ -147,6 +148,16 @@ const TOOLS = [
     icon: '🖼️',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/website-image-extractor',
+    badge: 'New Tool',
+  },
+  {
+    id: 'website_tech_inspector',
+    title: 'Website Tech & Theme Inspector',
+    description:
+      'Extract website theme color palettes, technology stack, CMS, and Google Font typography with 1-click token exports.',
+    icon: '⚡',
+    color: 'from-[#0C81F3] to-[#EB8988]',
+    path: '/website-tech-inspector',
     badge: 'New Tool',
   },
 ]

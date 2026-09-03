@@ -15,6 +15,7 @@ const TOOL_SLUG_MAP = {
   '/google-rank-checker': 'google-rank-checker',
   '/website-content-extractor': 'website-content-extractor',
   '/website-image-extractor': 'website-image-extractor',
+  '/website-tech-inspector': 'website-tech-inspector',
 }
 
 export default function ToolGuard({ toolPath, children }) {

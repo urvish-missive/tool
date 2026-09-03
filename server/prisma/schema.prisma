@@ -177,6 +177,8 @@ model Lead {
   extractedWebsite    ExtractedWebsite? @relation(fields: [extractedWebsiteId], references: [id])
   extractedImagesId   String?           @db.ObjectId
   extractedImages     ExtractedImageProject? @relation(fields: [extractedImagesId], references: [id])
+  extractedTechId     String?           @db.ObjectId
+  extractedTech       ExtractedTechProject? @relation(fields: [extractedTechId], references: [id])
   createdAt          DateTime          @default(now())
 
   @@index([email])
@@ -326,6 +328,21 @@ model ExtractedImageProject {
   totalImages        Int      @default(0)
   imagesJson         String   // JSON array of extracted image objects
   statsJson          String?  // JSON summary (formats, missing alt, dimensions)
+  createdAt          DateTime @default(now())
+  leads              Lead[]
+
+  @@index([createdAt])
+  @@index([websiteUrl])
+}
+
+model ExtractedTechProject {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  websiteUrl         String
+  hostname           String?
+  colorsJson         String   // JSON extracted color palette & CSS variables
+  techJson           String   // JSON detected tech stack categories
+  fontsJson          String   // JSON extracted Google Fonts & typography
+  statsJson          String?  // JSON page asset stats & health
   createdAt          DateTime @default(now())
   leads              Lead[]
 

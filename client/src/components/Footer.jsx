@@ -16,6 +16,7 @@ const FOOTER_TOOLS = [
   { label: 'Google Rank Checker', href: '/google-rank-checker', slug: 'google-rank-checker' },
   { label: 'Website Content Extractor', href: '/website-content-extractor', slug: 'website-content-extractor' },
   { label: 'Website Image Extractor', href: '/website-image-extractor', slug: 'website-image-extractor' },
+  { label: 'Tech & Theme Inspector', href: '/website-tech-inspector', slug: 'website-tech-inspector' },
 ]
 
 export default function Footer() {

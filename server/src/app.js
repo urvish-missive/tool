@@ -17,6 +17,7 @@ import sitemapRoutes from './routes/sitemapRoutes.js'
 import rankRoutes from './routes/rankRoutes.js'
 import extractorRoutes from './routes/extractorRoutes.js'
 import imageExtractorRoutes from './routes/imageExtractorRoutes.js'
+import techInspectorRoutes from './routes/techInspectorRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 import { toolAccess } from './middleware/toolAccess.js'
 import prisma from './utils/prisma.js'
@@ -67,6 +68,7 @@ app.use('/api/sitemap', toolAccess('xml-sitemap-generator'), sitemapRoutes)
 app.use('/api/rank', toolAccess('google-rank-checker'), rankRoutes)
 app.use('/api/extractor', toolAccess('website-content-extractor'), extractorRoutes)
 app.use('/api/image-extractor', toolAccess('website-image-extractor'), imageExtractorRoutes)
+app.use('/api/tech-inspector', toolAccess('website-tech-inspector'), techInspectorRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -204,6 +206,9 @@ async function seedDefaults() {
       { slug: 'website-image-extractor', name: 'Website Image Extractor & Downloader', description: 'Extract all images, logos, SVGs, and social banners from any URL with 1-click downloads', dailyLimit: 60, hourlyLimit: 15, formFields: JSON.stringify({
         url: { enabled: true, label: 'Website URL', required: true },
       })},
+      { slug: 'website-tech-inspector', name: 'Website Tech & Theme Inspector', description: 'Extract website theme colors, technology stack, Google font families, and design specs', dailyLimit: 60, hourlyLimit: 15, formFields: JSON.stringify({
+        url: { enabled: true, label: 'Website URL', required: true },
+      })},
     ]
     await prisma.toolConfig.createMany({ data: tools })
     console.log('✓ Default tool configs created')
@@ -294,6 +299,26 @@ async function seedDefaults() {
           },
         })
         console.log('✓ Website Image Extractor tool config seeded')
+      }
+    } catch {}
+
+    // Ensure website-tech-inspector exists if database was already initialized
+    try {
+      const techTool = await prisma.toolConfig.findUnique({ where: { slug: 'website-tech-inspector' } })
+      if (!techTool) {
+        await prisma.toolConfig.create({
+          data: {
+            slug: 'website-tech-inspector',
+            name: 'Website Tech & Theme Inspector',
+            description: 'Extract website theme colors, technology stack, Google font families, and design specs',
+            dailyLimit: 60,
+            hourlyLimit: 15,
+            formFields: JSON.stringify({
+              url: { enabled: true, label: 'Website URL', required: true },
+            }),
+          },
+        })
+        console.log('✓ Website Tech & Theme Inspector tool config seeded')
       }
     } catch {}
   }

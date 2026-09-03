@@ -16,6 +16,7 @@ const TOOL_HREF_SLUGS = {
   '/google-rank-checker': 'google-rank-checker',
   '/website-content-extractor': 'website-content-extractor',
   '/website-image-extractor': 'website-image-extractor',
+  '/website-tech-inspector': 'website-tech-inspector',
 }
 
 const NAV_ITEMS = [
@@ -115,41 +116,23 @@ const NAV_ITEMS = [
     dropdown: {
       columns: [
         {
+          title: 'Content & Strategy',
           items: [
             { icon: '📝', label: 'AI Content Analyzer', href: '/content-analyzer' },
-            {
-              icon: '✅',
-              label: 'Content QA Checklist',
-              badgeColor: 'bg-green-500 text-white',
-              href: '/content-qa',
-            },
-            {
-              icon: '💡',
-              label: 'Blog Topic Generator',
-              badgeColor: 'bg-green-500 text-white',
-              href: '/blog-topic-generator',
-            },
-            {
-              icon: '❓',
-              label: 'FAQ Generator',
-              badgeColor: 'bg-purple-500 text-white',
-              href: '/faq-generator',
-            },
-            {
-              icon: '🎨',
-              label: 'Logo Maker',
-              badgeColor: 'bg-blue-500 text-white',
-              href: '/logo-maker',
-            },
-            { icon: '💰', label: 'SEO ROI Calculator', href: '/seo-roi-calculator' },
+            { icon: '✅', label: 'Content QA Checklist', href: '/content-qa' },
+            { icon: '💡', label: 'Blog Topic Generator', href: '/blog-topic-generator' },
+            { icon: '❓', label: 'FAQ Generator', href: '/faq-generator' },
+            { icon: '🎨', label: 'Logo Maker', href: '/logo-maker' },
           ],
         },
         {
+          title: 'Rankings & Audits',
           items: [
             {
               icon: '📈',
               label: 'Google Rank Checker',
-              badgeColor: 'bg-blue-600 text-white',
+              badge: 'POPULAR',
+              badgeColor: 'bg-white text-gray-900',
               href: '/google-rank-checker',
             },
             { icon: '🔍', label: 'SEO Website Audit', href: '/seo-audit' },
@@ -157,27 +140,39 @@ const NAV_ITEMS = [
             {
               icon: '🕵️',
               label: 'Competitor Analysis',
-              badgeColor: 'bg-red-500 text-white',
               href: '/competitor-analysis',
             },
-            {
-              icon: '🗺️',
-              label: 'XML Sitemap Generator',
-              badgeColor: 'bg-emerald-500 text-white',
-              href: '/xml-sitemap-generator',
-            },
+            { icon: '💰', label: 'SEO ROI Calculator', href: '/seo-roi-calculator' },
+          ],
+        },
+        {
+          title: 'Crawling & Extraction',
+          items: [
             {
               icon: '🌐',
               label: 'Website Content Extractor',
-              badgeColor: 'bg-indigo-600 text-white',
+              badge: 'AI Q&A',
+              badgeColor: 'bg-white text-gray-900',
               href: '/website-content-extractor',
             },
             {
               icon: '🖼️',
               label: 'Website Image Extractor',
               badge: 'NEW',
-              badgeColor: 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white',
+              badgeColor: 'bg-amber-300 text-slate-950',
               href: '/website-image-extractor',
+            },
+            {
+              icon: '🗺️',
+              label: 'XML Sitemap Generator',
+              href: '/xml-sitemap-generator',
+            },
+            {
+              icon: '⚡',
+              label: 'Tech & Theme Inspector',
+              badge: 'NEW',
+              badgeColor: 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white',
+              href: '/website-tech-inspector',
             },
           ],
         },
@@ -290,45 +285,63 @@ export default function Navbar() {
                 {/* Desktop dropdown */}
                 {item.dropdown && activeDropdown === idx && (
                   <div
-                    className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-max rounded-2xl overflow-hidden shadow-2xl border border-white/40"
+                    className={`absolute top-full mt-3 rounded-2xl overflow-hidden shadow-2xl border border-white/40 z-50 ${
+                      idx >= 3 ? 'right-0' : 'left-1/2 -translate-x-1/2'
+                    } w-max max-w-[calc(100vw-2rem)]`}
                     onMouseEnter={() => handleMouseEnter(idx)}
                     onMouseLeave={handleMouseLeave}
                   >
                     <div
-                      className="p-6"
+                      className="p-5 sm:p-6"
                       style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)' }}
                     >
                       <div
-                        className={`grid gap-8 ${item.dropdown.columns.length === 1 ? 'grid-cols-1' : item.dropdown.columns.length === 2 ? 'grid-cols-2' : 'grid-cols-3'}`}
+                        className={`grid gap-5 sm:gap-6 ${
+                          item.dropdown.columns.length === 1
+                            ? 'grid-cols-1'
+                            : item.dropdown.columns.length === 2
+                              ? 'grid-cols-2'
+                              : 'grid-cols-3'
+                        }`}
                       >
                         {item.dropdown.columns.map((col, ci) => (
-                          <div key={ci} className="space-y-0.5 min-w-0">
+                          <div key={ci} className="space-y-1 min-w-[205px]">
+                            {col.title && (
+                              <div className="px-3 pb-2 text-[10px] font-extrabold uppercase tracking-widest text-white/75 border-b border-white/15 mb-1.5 flex items-center justify-between">
+                                <span>{col.title}</span>
+                              </div>
+                            )}
                             {col.items
                               .filter((sub) => {
                                 const slug = TOOL_HREF_SLUGS[sub.href]
                                 return !slug || !disabledTools.has(slug)
                               })
-                              .map((sub) => (
-                                <a
-                                  key={sub.label}
-                                  href={sub.href}
-                                  className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-white/90 hover:bg-white/15 hover:text-white transition-colors text-[13px]"
-                                >
-                                  {sub.icon && (
-                                    <span className="text-sm w-5 h-5 flex items-center justify-center shrink-0 leading-none">
-                                      {sub.icon}
-                                    </span>
-                                  )}
-                                  <span className="leading-snug">{sub.label}</span>
-                                  {sub.badge && (
-                                    <span
-                                      className={`ml-auto shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full ${sub.badgeColor}`}
-                                    >
-                                      {sub.badge}
-                                    </span>
-                                  )}
-                                </a>
-                              ))}
+                              .map((sub) => {
+                                const isInternal = sub.href && sub.href.startsWith('/')
+                                const LinkComponent = isInternal ? Link : 'a'
+                                return (
+                                  <LinkComponent
+                                    key={sub.label}
+                                    {...(isInternal ? { to: sub.href } : { href: sub.href })}
+                                    onClick={() => setActiveDropdown(null)}
+                                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-white/95 hover:bg-white/20 hover:text-white transition-all text-[13px] font-medium group"
+                                  >
+                                    {sub.icon && (
+                                      <span className="text-sm w-5 h-5 flex items-center justify-center shrink-0 leading-none group-hover:scale-110 transition-transform">
+                                        {sub.icon}
+                                      </span>
+                                    )}
+                                    <span className="leading-snug truncate">{sub.label}</span>
+                                    {sub.badge && (
+                                      <span
+                                        className={`ml-auto shrink-0 text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-2xs ${sub.badgeColor || 'bg-white text-gray-900'}`}
+                                      >
+                                        {sub.badge}
+                                      </span>
+                                    )}
+                                  </LinkComponent>
+                                )
+                              })}
                           </div>
                         ))}
                       </div>
@@ -409,34 +422,50 @@ export default function Navbar() {
                       </svg>
                     </button>
                     {mobileExpanded === idx && (
-                      <div className="pl-4 pb-2">
-                        {item.dropdown.columns
-                          .flatMap((col) => col.items)
-                          .filter((sub) => {
-                            const slug = TOOL_HREF_SLUGS[sub.href]
-                            return !slug || !disabledTools.has(slug)
-                          })
-                          .map((sub) => (
-                            <a
-                              key={sub.label}
-                              href={sub.href}
-                              className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 rounded-lg"
-                            >
-                              {sub.icon && (
-                                <span className="text-sm w-5 h-5 flex items-center justify-center shrink-0">
-                                  {sub.icon}
-                                </span>
-                              )}
-                              {sub.label}
-                              {sub.badge && (
-                                <span
-                                  className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full ${sub.badgeColor}`}
-                                >
-                                  {sub.badge}
-                                </span>
-                              )}
-                            </a>
-                          ))}
+                      <div className="pl-4 pb-2 space-y-3">
+                        {item.dropdown.columns.map((col, cIdx) => (
+                          <div key={cIdx} className="space-y-1">
+                            {col.title && (
+                              <div className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400 px-4 pt-2">
+                                {col.title}
+                              </div>
+                            )}
+                            {col.items
+                              .filter((sub) => {
+                                const slug = TOOL_HREF_SLUGS[sub.href]
+                                return !slug || !disabledTools.has(slug)
+                              })
+                              .map((sub) => {
+                                const isInternal = sub.href && sub.href.startsWith('/')
+                                const LinkComponent = isInternal ? Link : 'a'
+                                return (
+                                  <LinkComponent
+                                    key={sub.label}
+                                    {...(isInternal ? { to: sub.href } : { href: sub.href })}
+                                    onClick={() => {
+                                      setMobileOpen(false)
+                                      setMobileExpanded(null)
+                                    }}
+                                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-50"
+                                  >
+                                    {sub.icon && (
+                                      <span className="text-sm w-5 h-5 flex items-center justify-center shrink-0">
+                                        {sub.icon}
+                                      </span>
+                                    )}
+                                    <span className="truncate">{sub.label}</span>
+                                    {sub.badge && (
+                                      <span
+                                        className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full ${sub.badgeColor || 'bg-gray-100 text-gray-800'}`}
+                                      >
+                                        {sub.badge}
+                                      </span>
+                                    )}
+                                  </LinkComponent>
+                                )
+                              })}
+                          </div>
+                        ))}
                       </div>
                     )}
                   </>

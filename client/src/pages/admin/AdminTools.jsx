@@ -76,6 +76,9 @@ const TOOL_FIELDS = {
   'website-image-extractor': [
     { key: 'url', label: 'Website URL', icon: '🌐' },
   ],
+  'website-tech-inspector': [
+    { key: 'url', label: 'Website URL', icon: '🌐' },
+  ],
 }
 
 export default function AdminTools() {

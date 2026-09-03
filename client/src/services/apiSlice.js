@@ -189,6 +189,15 @@ export const apiSlice = createApi({
       }),
     }),
 
+    // POST /api/tech-inspector/inspect
+    inspectWebsiteTech: builder.mutation({
+      query: (payload) => ({
+        url: '/tech-inspector/inspect',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
     // GET /api/health
     healthCheck: builder.query({
       query: () => '/health',
@@ -287,6 +296,7 @@ export const {
   useExtractWebsiteContentMutation,
   useAskWebsiteQuestionMutation,
   useExtractWebsiteImagesMutation,
+  useInspectWebsiteTechMutation,
   useHealthCheckQuery,
   useGetPublicToolsQuery,
   useAdminLoginMutation,
