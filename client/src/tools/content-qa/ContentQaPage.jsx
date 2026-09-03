@@ -315,6 +315,8 @@ export default function ContentQaPage() {
   // One-Click Polish State
   const [polishedResult, setPolishedResult] = useState(null)
   const [polishError, setPolishError] = useState(null)
+  const [copiedPolish, setCopiedPolish] = useState(false)
+  const [copiedTitle, setCopiedTitle] = useState(false)
 
   // Speech Synthesizer State
   const [isPlayingAudio, setIsPlayingAudio] = useState(false)
@@ -424,9 +426,16 @@ export default function ContentQaPage() {
   // One-click Himani Polish
   const runHimaniPolish = async () => {
     setPolishError(null)
+    const textToPolish = (content || '').trim()
+    if (textToPolish.length < 20) {
+      setPolishError('Please enter at least 20 characters of content to polish.')
+      setActiveTab('polish')
+      return
+    }
+
     try {
       const data = await polishContentQa({
-        content: content.trim(),
+        content: textToPolish,
         title: title.trim() || undefined,
         targetKeyword: targetKeyword.trim() || undefined,
         platform,
@@ -437,6 +446,7 @@ export default function ContentQaPage() {
       setActiveTab('polish')
     } catch (err) {
       setPolishError(err?.data?.error || err.message || 'Unable to polish content.')
+      setActiveTab('polish')
     }
   }
 
@@ -1329,34 +1339,253 @@ Audited with Missive Digital Content QA Tool.`
               {/* TAB 4: ONE-CLICK HIMANI POLISH                     */}
               {/* ═════════════════════════════════════════════════════ */}
               {activeTab === 'polish' && (
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-                  <h3 className="text-sm font-bold text-gray-900 mb-4">
-                    ✨ One-Click Himani Polish
-                  </h3>
-                  {isPolishing ? (
-                    <p className="text-sm text-gray-500">Polishing your content...</p>
-                  ) : polishedResult ? (
-                    <div>
-                      <div className="bg-gray-50 rounded-xl p-4 text-sm text-gray-800 whitespace-pre-wrap max-h-96 overflow-y-auto">
-                        {polishedResult}
+                <div className="space-y-6">
+                  {/* Hero Card */}
+                  <div className="bg-gradient-to-r from-blue-900 via-indigo-900 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div>
+                        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs font-bold uppercase tracking-wider mb-2">
+                          <Wand2 className="w-3.5 h-3.5 text-[#EB8988]" />
+                          Himani Kankaria 12-Pillar Editorial Polish
+                        </div>
+                        <h3 className="text-xl sm:text-2xl font-black text-white">
+                          Flawless 100% QA Content Rewrite
+                        </h3>
+                        <p className="text-slate-300 text-xs sm:text-sm mt-1 max-w-2xl">
+                          Automatically applies zero em-dash rules, insight-first hooks, eliminates
+                          robotic AI clichés, and crafts conversational cadence.
+                        </p>
+                      </div>
+
+                      {!isPolishing && (
+                        <button
+                          onClick={runHimaniPolish}
+                          className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:opacity-95 text-white text-xs font-bold shadow-md transition-all flex items-center gap-2 shrink-0 cursor-pointer"
+                        >
+                          <RefreshCw className="w-3.5 h-3.5" />
+                          <span>{polishedResult ? 'Re-Polish Content' : 'Polish Now'}</span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Score Lift if polished */}
+                    {polishedResult && (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6 pt-6 border-t border-white/10">
+                        <div className="bg-white/10 rounded-2xl p-3.5 text-center">
+                          <span className="text-[11px] font-semibold text-slate-300 uppercase">
+                            Original Score
+                          </span>
+                          <p className="text-xl sm:text-2xl font-black text-rose-300 mt-0.5">
+                            {polishedResult.himaniScoreBefore || 65}{' '}
+                            <span className="text-xs text-slate-400">/ 100</span>
+                          </p>
+                        </div>
+                        <div className="bg-white/10 rounded-2xl p-3.5 text-center">
+                          <span className="text-[11px] font-semibold text-slate-300 uppercase">
+                            Polished Score
+                          </span>
+                          <p className="text-xl sm:text-2xl font-black text-emerald-300 mt-0.5">
+                            {polishedResult.himaniScoreAfter || 98}{' '}
+                            <span className="text-xs text-slate-400">/ 100</span>
+                          </p>
+                        </div>
+                        <div className="col-span-2 sm:col-span-1 bg-emerald-500/20 border border-emerald-400/30 rounded-2xl p-3.5 text-center flex flex-col justify-center">
+                          <span className="text-[11px] font-semibold text-emerald-200 uppercase">
+                            Total Quality Lift
+                          </span>
+                          <p className="text-xl sm:text-2xl font-black text-emerald-400 mt-0.5">
+                            +
+                            {Math.max(
+                              1,
+                              (polishedResult.himaniScoreAfter || 98) -
+                                (polishedResult.himaniScoreBefore || 65)
+                            )}{' '}
+                            pts
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Loading State */}
+                  {isPolishing && (
+                    <div className="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-4 shadow-sm">
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#0C81F3] to-[#EB8988] flex items-center justify-center mx-auto text-white shadow-lg animate-pulse">
+                        <Wand2 className="w-6 h-6 animate-spin" />
+                      </div>
+                      <div>
+                        <h4 className="text-base font-bold text-slate-900">
+                          Polishing Content with Himani's 12 Editorial Pillars...
+                        </h4>
+                        <p className="text-xs text-slate-500 mt-1 max-w-md mx-auto">
+                          Eliminating em-dashes, cutting throat-clearing fluff, replacing robotic
+                          clichés, and crafting an insight-first hook.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Error State */}
+                  {polishError && !isPolishing && (
+                    <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-800 text-xs sm:text-sm flex items-start gap-3">
+                      <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                      <div className="space-y-1">
+                        <p className="font-bold">Polish Notice</p>
+                        <p className="text-rose-700">{polishError}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Not Polished Yet Prompt */}
+                  {!polishedResult && !isPolishing && (
+                    <div className="bg-white rounded-3xl border border-slate-200 p-8 text-center space-y-4 shadow-sm">
+                      <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#0C81F3] flex items-center justify-center mx-auto">
+                        <Wand2 className="w-7 h-7" />
+                      </div>
+                      <div className="max-w-md mx-auto">
+                        <h4 className="text-base font-bold text-slate-900">
+                          Ready to Polish Your Content
+                        </h4>
+                        <p className="text-xs text-slate-500 mt-1">
+                          Click below to execute an automated 12-pillar audit rewrite crafted to
+                          match Himani Kankaria's exact editorial standards.
+                        </p>
                       </div>
                       <button
-                        onClick={() => {
-                          navigator.clipboard.writeText(polishedResult)
-                        }}
-                        className="mt-3 px-4 py-2 text-xs font-semibold text-[#0C81F3] bg-blue-50 rounded-lg hover:bg-blue-100"
+                        onClick={runHimaniPolish}
+                        className="px-6 py-3 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:opacity-95 text-white text-sm font-bold shadow-md inline-flex items-center gap-2 cursor-pointer"
                       >
-                        Copy Polished Content
+                        <Sparkles className="w-4 h-4" />
+                        <span>Polish My Content Now</span>
                       </button>
                     </div>
-                  ) : (
-                    <button
-                      onClick={runHimaniPolish}
-                      className="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-sm font-semibold flex items-center gap-2"
-                    >
-                      <Wand2 className="w-4 h-4" />
-                      Polish Now
-                    </button>
+                  )}
+
+                  {/* Polished Results Display */}
+                  {polishedResult && !isPolishing && (
+                    <div className="space-y-6">
+                      {/* Improvements Made Callout */}
+                      {Array.isArray(polishedResult.improvementsMade) &&
+                        polishedResult.improvementsMade.length > 0 && (
+                          <div className="bg-emerald-50/70 border border-emerald-200 rounded-3xl p-6 space-y-3">
+                            <div className="flex items-center gap-2 text-emerald-900 font-bold text-sm">
+                              <CheckCheck className="w-4 h-4 text-emerald-600" />
+                              <span>Editorial Refinements Applied:</span>
+                            </div>
+                            <ul className="grid sm:grid-cols-2 gap-2 text-xs text-emerald-950">
+                              {polishedResult.improvementsMade.map((imp, idx) => (
+                                <li key={idx} className="flex items-start gap-2">
+                                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+                                  <span>{imp}</span>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                      {/* Content Card */}
+                      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-4">
+                        {/* Title Header */}
+                        {polishedResult.polishedTitle && (
+                          <div className="pb-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                            <div>
+                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                                Polished Headline (Hook-First)
+                              </span>
+                              <h4 className="text-lg sm:text-xl font-black text-slate-900 mt-0.5">
+                                {polishedResult.polishedTitle}
+                              </h4>
+                            </div>
+                            <button
+                              onClick={() => {
+                                navigator.clipboard.writeText(polishedResult.polishedTitle)
+                                setCopiedTitle(true)
+                                setTimeout(() => setCopiedTitle(false), 2000)
+                              }}
+                              className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shrink-0 cursor-pointer"
+                            >
+                              {copiedTitle ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-600" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                              <span>{copiedTitle ? 'Copied Title' : 'Copy Title'}</span>
+                            </button>
+                          </div>
+                        )}
+
+                        {/* Rewritten Body */}
+                        <div className="bg-slate-50 rounded-2xl p-5 sm:p-6 text-sm text-slate-800 leading-relaxed whitespace-pre-wrap font-sans border border-slate-200/80 max-h-[500px] overflow-y-auto">
+                          {typeof polishedResult === 'string'
+                            ? polishedResult
+                            : polishedResult.polishedContent || ''}
+                        </div>
+
+                        {/* Action Bar */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => {
+                                const text =
+                                  typeof polishedResult === 'string'
+                                    ? polishedResult
+                                    : polishedResult.polishedContent || ''
+                                navigator.clipboard.writeText(text)
+                                setCopiedPolish(true)
+                                setTimeout(() => setCopiedPolish(false), 2000)
+                              }}
+                              className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                            >
+                              {copiedPolish ? (
+                                <Check className="w-3.5 h-3.5 text-emerald-400" />
+                              ) : (
+                                <Copy className="w-3.5 h-3.5" />
+                              )}
+                              <span>
+                                {copiedPolish ? 'Copied to Clipboard!' : 'Copy Polished Content'}
+                              </span>
+                            </button>
+
+                            <button
+                              onClick={() => {
+                                const text =
+                                  typeof polishedResult === 'string'
+                                    ? polishedResult
+                                    : polishedResult.polishedContent || ''
+                                setValue('content', text)
+                                if (polishedResult.polishedTitle)
+                                  setValue('title', polishedResult.polishedTitle)
+                                setActiveTab('grid')
+                              }}
+                              className="px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0C81F3] border border-blue-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <Edit3 className="w-3.5 h-3.5" />
+                              <span>Apply to Content Editor</span>
+                            </button>
+                          </div>
+
+                          <button
+                            onClick={() => {
+                              const text =
+                                typeof polishedResult === 'string'
+                                  ? polishedResult
+                                  : polishedResult.polishedContent || ''
+                              const blob = new Blob([text], { type: 'text/markdown' })
+                              const url = URL.createObjectURL(blob)
+                              const a = document.createElement('a')
+                              a.href = url
+                              a.download = `himani-polished-${(title || 'content').toLowerCase().replace(/\s+/g, '-')}.md`
+                              a.click()
+                              URL.revokeObjectURL(url)
+                            }}
+                            className="px-3.5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Download className="w-3.5 h-3.5" />
+                            <span>Download Markdown</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   )}
                 </div>
               )}

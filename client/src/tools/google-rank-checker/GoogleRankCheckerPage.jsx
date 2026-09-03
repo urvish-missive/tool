@@ -456,15 +456,33 @@ export default function GoogleRankCheckerPage() {
                     <AlertTriangle className="w-5 h-5 text-amber-600" />
                   </div>
                   <div className="space-y-1.5">
-                    <h4 className="font-bold text-amber-900 text-sm">⚠️ AI Estimate — Not a Verified Ranking</h4>
+                    <h4 className="font-bold text-amber-900 text-sm">
+                      ⚠️ AI Estimate — Not a Verified Ranking
+                    </h4>
                     <p className="text-xs sm:text-sm text-amber-800 leading-relaxed">
                       {rankData.estimateReason}
                     </p>
                     <p className="text-xs text-amber-700">
-                      <strong>Confidence Level:</strong> {rankData.confidence}% — For accurate rankings, use{' '}
-                      <a href="https://search.google.com/search-console" target="_blank" rel="noopener noreferrer" className="underline font-semibold">Google Search Console</a>{' '}
+                      <strong>Confidence Level:</strong> {rankData.confidence}% — For accurate
+                      rankings, use{' '}
+                      <a
+                        href="https://search.google.com/search-console"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline font-semibold"
+                      >
+                        Google Search Console
+                      </a>{' '}
                       or a dedicated SERP tracking API like{' '}
-                      <a href="https://serpapi.com" target="_blank" rel="noopener noreferrer" className="underline font-semibold">SerpAPI</a>.
+                      <a
+                        href="https://serpapi.com"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline font-semibold"
+                      >
+                        SerpAPI
+                      </a>
+                      .
                     </p>
                   </div>
                 </div>
@@ -719,8 +737,7 @@ export default function GoogleRankCheckerPage() {
                     <p className="text-xs text-slate-500">
                       {rankData.scrapedLive
                         ? `Live-scraped results from Google for "${rankData.keyword}".`
-                        : `AI-estimated competitor landscape for "${rankData.keyword}". Results are approximate.`
-                      }
+                        : `AI-estimated competitor landscape for "${rankData.keyword}". Results are approximate.`}
                     </p>
                     <input
                       type="text"
@@ -993,8 +1010,8 @@ export default function GoogleRankCheckerPage() {
               <div className="flex items-center gap-2 text-xs text-slate-500">
                 <Compass className="w-4 h-4 text-[#0C81F3]" />
                 <span>
-                  Rank check for <strong>{rankData.domain}</strong> on Google{' '}
-                  {rankData.countryName} —{' '}
+                  Rank check for <strong>{rankData.domain}</strong> on Google {rankData.countryName}{' '}
+                  —{' '}
                   {rankData.scrapedLive ? (
                     <span className="text-emerald-600 font-semibold">Live verified</span>
                   ) : (
