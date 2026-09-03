@@ -175,6 +175,8 @@ model Lead {
   rankCheck           RankCheck?        @relation(fields: [rankCheckId], references: [id])
   extractedWebsiteId  String?           @db.ObjectId
   extractedWebsite    ExtractedWebsite? @relation(fields: [extractedWebsiteId], references: [id])
+  extractedImagesId   String?           @db.ObjectId
+  extractedImages     ExtractedImageProject? @relation(fields: [extractedImagesId], references: [id])
   createdAt          DateTime          @default(now())
 
   @@index([email])
@@ -311,6 +313,19 @@ model ExtractedWebsite {
   wordCount          Int      @default(0)
   extractedDataJson  String   // full structured extraction (metadata, headings, contacts, links, markdown)
   aiSummaryJson      String?  // AI entity & executive overview
+  createdAt          DateTime @default(now())
+  leads              Lead[]
+
+  @@index([createdAt])
+  @@index([websiteUrl])
+}
+
+model ExtractedImageProject {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  websiteUrl         String
+  totalImages        Int      @default(0)
+  imagesJson         String   // JSON array of extracted image objects
+  statsJson          String?  // JSON summary (formats, missing alt, dimensions)
   createdAt          DateTime @default(now())
   leads              Lead[]
 

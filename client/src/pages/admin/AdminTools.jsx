@@ -73,6 +73,9 @@ const TOOL_FIELDS = {
     { key: 'url', label: 'Website URL', icon: '🌐' },
     { key: 'extractAIOverview', label: 'AI Overview', icon: '✨' },
   ],
+  'website-image-extractor': [
+    { key: 'url', label: 'Website URL', icon: '🌐' },
+  ],
 }
 
 export default function AdminTools() {

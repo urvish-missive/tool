@@ -15,6 +15,7 @@ const TOOL_SLUG_MAP = {
   xml_sitemap_generator: 'xml-sitemap-generator',
   google_rank_checker: 'google-rank-checker',
   website_content_extractor: 'website-content-extractor',
+  website_image_extractor: 'website-image-extractor',
 }
 
 const TOOLS = [
@@ -136,6 +137,16 @@ const TOOLS = [
     icon: '🌐',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/website-content-extractor',
+    badge: 'New Tool',
+  },
+  {
+    id: 'website_image_extractor',
+    title: 'Website Image Extractor',
+    description:
+      'Extract all high-res images, vector SVGs, logos, and social share graphics with SEO alt text analysis and bulk download.',
+    icon: '🖼️',
+    color: 'from-[#0C81F3] to-[#EB8988]',
+    path: '/website-image-extractor',
     badge: 'New Tool',
   },
 ]

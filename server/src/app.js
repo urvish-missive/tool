@@ -16,6 +16,7 @@ import contentQaRoutes from './routes/contentQaRoutes.js'
 import sitemapRoutes from './routes/sitemapRoutes.js'
 import rankRoutes from './routes/rankRoutes.js'
 import extractorRoutes from './routes/extractorRoutes.js'
+import imageExtractorRoutes from './routes/imageExtractorRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 import { toolAccess } from './middleware/toolAccess.js'
 import prisma from './utils/prisma.js'
@@ -65,6 +66,7 @@ app.use('/api/content-qa', toolAccess('content-qa'), contentQaRoutes)
 app.use('/api/sitemap', toolAccess('xml-sitemap-generator'), sitemapRoutes)
 app.use('/api/rank', toolAccess('google-rank-checker'), rankRoutes)
 app.use('/api/extractor', toolAccess('website-content-extractor'), extractorRoutes)
+app.use('/api/image-extractor', toolAccess('website-image-extractor'), imageExtractorRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -199,6 +201,9 @@ async function seedDefaults() {
         url: { enabled: true, label: 'Website URL', required: true },
         extractAIOverview: { enabled: true, label: 'AI Overview', required: false },
       })},
+      { slug: 'website-image-extractor', name: 'Website Image Extractor & Downloader', description: 'Extract all images, logos, SVGs, and social banners from any URL with 1-click downloads', dailyLimit: 60, hourlyLimit: 15, formFields: JSON.stringify({
+        url: { enabled: true, label: 'Website URL', required: true },
+      })},
     ]
     await prisma.toolConfig.createMany({ data: tools })
     console.log('✓ Default tool configs created')
@@ -269,6 +274,26 @@ async function seedDefaults() {
           },
         })
         console.log('✓ Website Content Extractor tool config seeded')
+      }
+    } catch {}
+
+    // Ensure website-image-extractor exists if database was already initialized
+    try {
+      const imageTool = await prisma.toolConfig.findUnique({ where: { slug: 'website-image-extractor' } })
+      if (!imageTool) {
+        await prisma.toolConfig.create({
+          data: {
+            slug: 'website-image-extractor',
+            name: 'Website Image Extractor & Downloader',
+            description: 'Extract all images, logos, SVGs, and social banners from any URL with 1-click downloads',
+            dailyLimit: 60,
+            hourlyLimit: 15,
+            formFields: JSON.stringify({
+              url: { enabled: true, label: 'Website URL', required: true },
+            }),
+          },
+        })
+        console.log('✓ Website Image Extractor tool config seeded')
       }
     } catch {}
   }

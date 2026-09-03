@@ -15,6 +15,7 @@ const FOOTER_TOOLS = [
   { label: 'XML Sitemap Generator', href: '/xml-sitemap-generator', slug: 'xml-sitemap-generator' },
   { label: 'Google Rank Checker', href: '/google-rank-checker', slug: 'google-rank-checker' },
   { label: 'Website Content Extractor', href: '/website-content-extractor', slug: 'website-content-extractor' },
+  { label: 'Website Image Extractor', href: '/website-image-extractor', slug: 'website-image-extractor' },
 ]
 
 export default function Footer() {

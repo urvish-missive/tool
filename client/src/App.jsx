@@ -15,6 +15,7 @@ import ContentQaPage from './tools/content-qa/ContentQaPage'
 import XmlSitemapGeneratorPage from './tools/xml-sitemap-generator/XmlSitemapGeneratorPage'
 import GoogleRankCheckerPage from './tools/google-rank-checker/GoogleRankCheckerPage'
 import WebsiteContentExtractorPage from './tools/website-content-extractor/WebsiteContentExtractorPage'
+import WebsiteImageExtractorPage from './tools/website-image-extractor/WebsiteImageExtractorPage'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -137,6 +138,14 @@ export default function App() {
                     element={
                       <ToolGuard toolPath="/website-content-extractor">
                         <WebsiteContentExtractorPage />
+                      </ToolGuard>
+                    }
+                  />
+                  <Route
+                    path="/website-image-extractor"
+                    element={
+                      <ToolGuard toolPath="/website-image-extractor">
+                        <WebsiteImageExtractorPage />
                       </ToolGuard>
                     }
                   />

@@ -180,6 +180,15 @@ export const apiSlice = createApi({
       }),
     }),
 
+    // POST /api/image-extractor/extract
+    extractWebsiteImages: builder.mutation({
+      query: (payload) => ({
+        url: '/image-extractor/extract',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
     // GET /api/health
     healthCheck: builder.query({
       query: () => '/health',
@@ -277,6 +286,7 @@ export const {
   useCheckRankMutation,
   useExtractWebsiteContentMutation,
   useAskWebsiteQuestionMutation,
+  useExtractWebsiteImagesMutation,
   useHealthCheckQuery,
   useGetPublicToolsQuery,
   useAdminLoginMutation,
