@@ -42,6 +42,7 @@ export default [
         },
       ],
       'no-useless-assignment': 'warn',
+      'no-empty': 'warn',
     },
   },
   prettierConfig,

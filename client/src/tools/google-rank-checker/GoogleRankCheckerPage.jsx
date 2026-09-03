@@ -320,7 +320,7 @@ export default function GoogleRankCheckerPage() {
                       </label>
                       <button
                         type="button"
-                        onClick={() => setKeyword('seo content analyzer')}
+                        onClick={() => setKeyword('himani kankaria')}
                         className="text-xs text-[#0C81F3] hover:underline font-semibold cursor-pointer"
                       >
                         Sample Keyword
@@ -348,7 +348,7 @@ export default function GoogleRankCheckerPage() {
                       </label>
                       <button
                         type="button"
-                        onClick={() => setBatchKeywords('seo content analyzer\nseo audit tool\nkeyword research tool\nfaq generator')}
+                        onClick={() => setBatchKeywords('himani kankaria\nseo audit tool\nkeyword research tool\nfaq generator')}
                         className="text-xs text-[#0C81F3] hover:underline font-semibold cursor-pointer"
                       >
                         Sample Keywords
@@ -357,7 +357,7 @@ export default function GoogleRankCheckerPage() {
                     <textarea
                       rows={3}
                       required
-                      placeholder="seo content analyzer&#10;seo website audit&#10;keyword research tool"
+                      placeholder="himani kankaria&#10;seo website audit&#10;keyword research tool"
                       value={batchKeywords}
                       onChange={(e) => setBatchKeywords(e.target.value)}
                       className="w-full p-3 bg-slate-50 border border-slate-200 rounded-2xl text-slate-900 text-xs sm:text-sm font-mono focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3] focus:border-transparent transition-all"

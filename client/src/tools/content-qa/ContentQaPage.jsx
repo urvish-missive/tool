@@ -16,6 +16,7 @@ import {
   BookOpen,
   ChevronDown,
   ChevronUp,
+  ChevronRight,
   SlidersHorizontal,
   Wand2,
   Share2,
