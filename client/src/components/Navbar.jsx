@@ -118,7 +118,6 @@ const NAV_ITEMS = [
             {
               icon: '✅',
               label: 'Content QA Checklist',
-              badge: 'NEW',
               badgeColor: 'bg-green-500 text-white',
               href: '/content-qa',
             },
@@ -148,7 +147,6 @@ const NAV_ITEMS = [
             {
               icon: '📈',
               label: 'Google Rank Checker',
-              badge: 'NEW',
               badgeColor: 'bg-blue-600 text-white',
               href: '/google-rank-checker',
             },
@@ -163,7 +161,6 @@ const NAV_ITEMS = [
             {
               icon: '🗺️',
               label: 'XML Sitemap Generator',
-              badge: 'NEW',
               badgeColor: 'bg-emerald-500 text-white',
               href: '/xml-sitemap-generator',
             },
