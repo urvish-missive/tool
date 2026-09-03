@@ -12,7 +12,7 @@ export const contentQaSchema = z.object({
     .enum(['website', 'linkedin', 'newsletter', 'landing_page', 'social'])
     .default('website'),
   targetAudience: z.string().trim().max(200).optional().or(z.literal('')),
-  preferredProvider: z.enum(['openrouter', 'gemini', 'groq']).default('openrouter'),
+  preferredProvider: z.enum(['openrouter', 'gemini', 'gemini-3.5-flash', 'gemini-3.7-flash', 'groq']).default('openrouter'),
 })
 
 export function parseContentQaForm(data) {

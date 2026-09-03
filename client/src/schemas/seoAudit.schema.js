@@ -22,7 +22,7 @@ export const seoAuditSchema = z.object({
   websiteUrl: urlField,
   targetKeyword: z.string().trim().max(100).optional().or(z.literal('')),
   country: z.string().optional().or(z.literal('')),
-  preferredProvider: z.enum(['openrouter', 'gemini', 'groq']).default('openrouter'),
+  preferredProvider: z.enum(['openrouter', 'gemini', 'gemini-3.5-flash', 'gemini-3.7-flash', 'groq']).default('openrouter'),
 })
 
 export function parseSeoAuditForm(data) {

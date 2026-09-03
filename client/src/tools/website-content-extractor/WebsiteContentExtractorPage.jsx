@@ -71,7 +71,7 @@ const FAQ_ITEMS = [
 export default function WebsiteContentExtractorPage() {
   // Input State
   const [url, setUrl] = useState('')
-  const [preferredProvider, setPreferredProvider] = useState('gemini')
+  const [preferredProvider, setPreferredProvider] = useState('gemini-3.7-flash')
   const [extractAIOverview, setExtractAIOverview] = useState(true)
 
   // API Mutations

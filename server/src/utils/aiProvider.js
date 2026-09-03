@@ -5,6 +5,20 @@ import { fetchWithTimeout, extractAndCleanJSON } from './helpers.js'
 const AI_TIMEOUT = 45000
 
 const PROVIDERS = {
+  'gemini-3.5-flash': {
+    url: process.env.AI_API_URL || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+    model: process.env.GEMINI_3_5_MODEL || 'gemini-3.5-flash',
+    key: process.env.AI_API_KEY,
+    headerName: 'Authorization',
+    headerPrefix: 'Bearer ',
+  },
+  'gemini-3.7-flash': {
+    url: process.env.AI_API_URL || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+    model: process.env.GEMINI_3_7_MODEL || process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-3.7-flash',
+    key: process.env.AI_API_KEY,
+    headerName: 'Authorization',
+    headerPrefix: 'Bearer ',
+  },
   gemini: {
     url: process.env.AI_API_URL || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
     model: process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-3.7-flash',
@@ -94,13 +108,18 @@ async function callProvider(providerName, messages, options = {}) {
 export async function callAI(messages, options = {}) {
   const { preferredProvider, ...callOpts } = options
 
+  // Normalize provider alias
+  let targetProvider = preferredProvider
+  if (targetProvider === 'gemini-3.5' || targetProvider === 'gemini_3_5') targetProvider = 'gemini-3.5-flash'
+  if (targetProvider === 'gemini-3.7' || targetProvider === 'gemini_3_7') targetProvider = 'gemini-3.7-flash'
+
   // Determine provider order
   // If a specific provider is selected, ONLY use that one (no fallback)
-  const providerOrder = preferredProvider
-    ? [preferredProvider]
-    : Object.keys(PROVIDERS).filter(p => PROVIDERS[p].key)
+  const providerOrder = targetProvider
+    ? [targetProvider]
+    : ['gemini-3.7-flash', 'groq', 'openrouter', 'gemini-3.5-flash'].filter(p => PROVIDERS[p]?.key)
 
-  console.log(`AI provider: ${providerOrder.join(' → ')}${preferredProvider ? ' (strict)' : ' (auto-fallback)'}`)
+  console.log(`AI provider: ${providerOrder.join(' → ')}${targetProvider ? ' (strict)' : ' (auto-fallback)'}`)
   const errors = []
 
   for (const providerName of providerOrder) {

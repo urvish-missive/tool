@@ -21,8 +21,29 @@ const MODELS = [
     ),
   },
   {
-    value: 'gemini',
-    label: 'Gemini',
+    value: 'gemini-3.5-flash',
+    label: 'Gemini 3.5 Flash',
+    description: 'Google AI direct',
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        className="w-4 h-4"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      >
+        <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d="M9 9.563C9 9.252 9.252 9 9.563 9h.874c.311 0 .563.252.563.563v4.874a.563.563 0 01-.563.563h-.874A.563.563 0 019 14.437V9.564zM14.437 9c-.311 0-.563.252-.563.563v4.874c0 .311.252.563.563.563h.874c.311 0 .563-.252.563-.563V9.563A.563.563 0 0015.311 9h-.874z"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    ),
+  },
+  {
+    value: 'gemini-3.7-flash',
+    label: 'Gemini 3.7 Flash',
     description: 'Google AI direct',
     icon: (
       <svg
@@ -59,13 +80,14 @@ const MODELS = [
   },
 ]
 
-export default function ModelSelector({ value = 'gemini', onChange }) {
+export default function ModelSelector({ value = 'gemini-3.7-flash', onChange, compact = false, label = 'AI Model' }) {
   const [open, setOpen] = useState(false)
-  const selected = MODELS.find((m) => m.value === value) || MODELS[0]
+  const normalizedValue = value === 'gemini' ? 'gemini-3.7-flash' : value
+  const selected = MODELS.find((m) => m.value === normalizedValue) || MODELS[0]
 
   return (
     <div className="relative">
-      <label className="block text-sm font-semibold text-gray-900 mb-1">AI Model</label>
+      <label className="block text-sm font-semibold text-gray-900 mb-1">{label}</label>
       <button
         type="button"
         onClick={() => setOpen(!open)}
@@ -93,38 +115,41 @@ export default function ModelSelector({ value = 'gemini', onChange }) {
         <>
           <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
           <div className="absolute z-20 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden">
-            {MODELS.map((model) => (
-              <button
-                key={model.value}
-                type="button"
-                onClick={() => {
-                  onChange(model.value)
-                  setOpen(false)
-                }}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
-                  value === model.value ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
-                }`}
-              >
-                <span className={value === model.value ? 'text-blue-500' : 'text-gray-400'}>
-                  {model.icon}
-                </span>
-                <div className="text-left">
-                  <div className="font-medium">{model.label}</div>
-                  <div className="text-xs text-gray-400">{model.description}</div>
-                </div>
-                {value === model.value && (
-                  <svg
-                    className="w-4 h-4 text-blue-500 ml-auto shrink-0"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    strokeWidth={2.5}
-                    stroke="currentColor"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                  </svg>
-                )}
-              </button>
-            ))}
+            {MODELS.map((model) => {
+              const isSelected = normalizedValue === model.value
+              return (
+                <button
+                  key={model.value}
+                  type="button"
+                  onClick={() => {
+                    onChange(model.value)
+                    setOpen(false)
+                  }}
+                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
+                    isSelected ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                  }`}
+                >
+                  <span className={isSelected ? 'text-blue-500' : 'text-gray-400'}>
+                    {model.icon}
+                  </span>
+                  <div className="text-left">
+                    <div className="font-medium">{model.label}</div>
+                    <div className="text-xs text-gray-400">{model.description}</div>
+                  </div>
+                  {isSelected && (
+                    <svg
+                      className="w-4 h-4 text-blue-500 ml-auto shrink-0"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2.5}
+                      stroke="currentColor"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                    </svg>
+                  )}
+                </button>
+              )
+            })}
           </div>
         </>
       )}

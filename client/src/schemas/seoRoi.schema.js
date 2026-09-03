@@ -9,7 +9,7 @@ export const seoRoiSchema = z.object({
     .number()
     .refine((v) => [3, 6, 12, 24].includes(v), 'Duration must be 3, 6, 12, or 24 months.'),
   currency: z.enum(['USD', 'GBP', 'EUR', 'INR', 'AUD', 'CAD', 'AED']).default('USD'),
-  preferredProvider: z.enum(['openrouter', 'gemini', 'groq']).default('openrouter'),
+  preferredProvider: z.enum(['openrouter', 'gemini', 'gemini-3.5-flash', 'gemini-3.7-flash', 'groq']).default('openrouter'),
 })
 
 export function parseSeoRoiForm(data) {

@@ -249,9 +249,6 @@ export default function Navbar() {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
             <img src="/logo.png" alt="Missive Digital" className="h-8 w-auto" />
-            <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full bg-gradient-to-r from-[#0C81F3]/10 to-[#EB8988]/15 border border-[#0C81F3]/20 text-[10px] font-bold text-slate-700 tracking-tight">
-              by Himani Kankaria
-            </span>
           </Link>
 
           {/* Desktop nav */}
