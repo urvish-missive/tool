@@ -25,6 +25,7 @@ export function toolAccess(toolSlug) {
           'seo-roi': { name: 'SEO ROI Calculator', description: 'Estimate SEO ROI and organic traffic' },
           'blog-topics': { name: 'Blog Topic Generator', description: 'Generate blog topics and content ideas' },
           'logo-maker': { name: 'Logo Maker', description: 'Generate logo designs with AI' },
+          'website-content-extractor': { name: 'Website Content Extractor & AI Q&A', description: 'Extract clean website content, metadata, schema, and answer questions with AI' },
         }
         const info = defaults[toolSlug] || { name: toolSlug, description: '' }
         await prisma.toolConfig.create({

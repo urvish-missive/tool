@@ -14,6 +14,7 @@ import CompetitorAnalysisPage from './tools/competitor-analysis/CompetitorAnalys
 import ContentQaPage from './tools/content-qa/ContentQaPage'
 import XmlSitemapGeneratorPage from './tools/xml-sitemap-generator/XmlSitemapGeneratorPage'
 import GoogleRankCheckerPage from './tools/google-rank-checker/GoogleRankCheckerPage'
+import WebsiteContentExtractorPage from './tools/website-content-extractor/WebsiteContentExtractorPage'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -128,6 +129,14 @@ export default function App() {
                     element={
                       <ToolGuard toolPath="/google-rank-checker">
                         <GoogleRankCheckerPage />
+                      </ToolGuard>
+                    }
+                  />
+                  <Route
+                    path="/website-content-extractor"
+                    element={
+                      <ToolGuard toolPath="/website-content-extractor">
+                        <WebsiteContentExtractorPage />
                       </ToolGuard>
                     }
                   />

@@ -1,4 +1,39 @@
+import { useMemo } from 'react'
+import { Link } from 'react-router-dom'
+import { useGetPublicToolsQuery } from '../services/apiSlice'
+
+const FOOTER_TOOLS = [
+  { label: 'Content Analyzer', href: '/content-analyzer', slug: 'content-analyzer' },
+  { label: 'SEO Website Audit', href: '/seo-audit', slug: 'seo-audit' },
+  { label: 'Keyword Research', href: '/keyword-research', slug: 'keyword-research' },
+  { label: 'Blog Topic Generator', href: '/blog-topic-generator', slug: 'blog-topics' },
+  { label: 'Logo Maker', href: '/logo-maker', slug: 'logo-maker' },
+  { label: 'Content QA Checklist', href: '/content-qa', slug: 'content-qa' },
+  { label: 'FAQ Generator', href: '/faq-generator', slug: 'faq-generator' },
+  { label: 'Competitor Analysis', href: '/competitor-analysis', slug: 'competitor-analyzer' },
+  { label: 'ROI Calculator', href: '/seo-roi-calculator', slug: 'seo-roi' },
+  { label: 'XML Sitemap Generator', href: '/xml-sitemap-generator', slug: 'xml-sitemap-generator' },
+  { label: 'Google Rank Checker', href: '/google-rank-checker', slug: 'google-rank-checker' },
+  { label: 'Website Content Extractor', href: '/website-content-extractor', slug: 'website-content-extractor' },
+]
+
 export default function Footer() {
+  const { data: toolsData } = useGetPublicToolsQuery()
+
+  const disabledTools = useMemo(() => {
+    const disabled = new Set()
+    if (toolsData?.success && toolsData?.tools) {
+      toolsData.tools.forEach((t) => {
+        if (!t.enabled) disabled.add(t.slug)
+      })
+    }
+    return disabled
+  }, [toolsData])
+
+  const visibleTools = useMemo(() => {
+    return FOOTER_TOOLS.filter((tool) => !disabledTools.has(tool.slug))
+  }, [disabledTools])
+
   return (
     <footer className="bg-[#1a1a2e] text-gray-400">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-14 lg:py-20">
@@ -40,60 +75,17 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Himani's SEO Tools */}
+          {/* Himani's SEO Tools — Dynamic & Filtered by Admin Status */}
           <div>
             <h3 className="text-white font-semibold text-base mb-5">Himani's SEO Tools</h3>
             <ul className="space-y-3 text-sm">
-              <li>
-                <a href="/content-analyzer" className="hover:text-white transition-colors">
-                  Content Analyzer
-                </a>
-              </li>
-              <li>
-                <a href="/seo-audit" className="hover:text-white transition-colors">
-                  SEO Website Audit
-                </a>
-              </li>
-              <li>
-                <a href="/keyword-research" className="hover:text-white transition-colors">
-                  Keyword Research
-                </a>
-              </li>
-              <li>
-                <a href="/blog-topic-generator" className="hover:text-white transition-colors">
-                  Blog Topic Generator
-                </a>
-              </li>
-              <li>
-                <a href="/logo-maker" className="hover:text-white transition-colors">
-                  Logo Maker
-                </a>
-              </li>
-              <li>
-                <a href="/faq-generator" className="hover:text-white transition-colors">
-                  FAQ Generator
-                </a>
-              </li>
-              <li>
-                <a href="/competitor-analysis" className="hover:text-white transition-colors">
-                  Competitor Analysis
-                </a>
-              </li>
-              <li>
-                <a href="/seo-roi-calculator" className="hover:text-white transition-colors">
-                  ROI Calculator
-                </a>
-              </li>
-              <li>
-                <a href="/xml-sitemap-generator" className="hover:text-white transition-colors">
-                  XML Sitemap Generator
-                </a>
-              </li>
-              <li>
-                <a href="/google-rank-checker" className="hover:text-white transition-colors">
-                  Google Rank Checker
-                </a>
-              </li>
+              {visibleTools.map((tool) => (
+                <li key={tool.slug}>
+                  <Link to={tool.href} className="hover:text-white transition-colors">
+                    {tool.label}
+                  </Link>
+                </li>
+              ))}
             </ul>
           </div>
 

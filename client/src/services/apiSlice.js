@@ -162,6 +162,24 @@ export const apiSlice = createApi({
       }),
     }),
 
+    // POST /api/extractor/extract
+    extractWebsiteContent: builder.mutation({
+      query: (payload) => ({
+        url: '/extractor/extract',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
+    // POST /api/extractor/ask
+    askWebsiteQuestion: builder.mutation({
+      query: (payload) => ({
+        url: '/extractor/ask',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
     // GET /api/health
     healthCheck: builder.query({
       query: () => '/health',
@@ -257,6 +275,8 @@ export const {
   useGenerateSitemapMutation,
   useValidateSitemapMutation,
   useCheckRankMutation,
+  useExtractWebsiteContentMutation,
+  useAskWebsiteQuestionMutation,
   useHealthCheckQuery,
   useGetPublicToolsQuery,
   useAdminLoginMutation,

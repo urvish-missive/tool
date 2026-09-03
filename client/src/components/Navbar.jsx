@@ -14,6 +14,7 @@ const TOOL_HREF_SLUGS = {
   '/content-qa': 'content-qa',
   '/xml-sitemap-generator': 'xml-sitemap-generator',
   '/google-rank-checker': 'google-rank-checker',
+  '/website-content-extractor': 'website-content-extractor',
 }
 
 const NAV_ITEMS = [
@@ -163,6 +164,12 @@ const NAV_ITEMS = [
               label: 'XML Sitemap Generator',
               badgeColor: 'bg-emerald-500 text-white',
               href: '/xml-sitemap-generator',
+            },
+            {
+              icon: '🌐',
+              label: 'Website Content Extractor',
+              badgeColor: 'bg-indigo-600 text-white',
+              href: '/website-content-extractor',
             },
           ],
         },

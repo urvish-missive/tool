@@ -173,6 +173,8 @@ model Lead {
   sitemap             SitemapGeneration? @relation(fields: [sitemapId], references: [id])
   rankCheckId         String?           @db.ObjectId
   rankCheck           RankCheck?        @relation(fields: [rankCheckId], references: [id])
+  extractedWebsiteId  String?           @db.ObjectId
+  extractedWebsite    ExtractedWebsite? @relation(fields: [extractedWebsiteId], references: [id])
   createdAt          DateTime          @default(now())
 
   @@index([email])
@@ -299,6 +301,21 @@ model RankCheck {
   @@index([createdAt])
   @@index([domain])
   @@index([keyword])
+}
+
+model ExtractedWebsite {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  websiteUrl         String
+  title              String?
+  metaDescription    String?
+  wordCount          Int      @default(0)
+  extractedDataJson  String   // full structured extraction (metadata, headings, contacts, links, markdown)
+  aiSummaryJson      String?  // AI entity & executive overview
+  createdAt          DateTime @default(now())
+  leads              Lead[]
+
+  @@index([createdAt])
+  @@index([websiteUrl])
 }
 
 // ─── Admin & Tool Management ────────────────────────────

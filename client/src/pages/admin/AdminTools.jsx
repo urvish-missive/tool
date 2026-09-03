@@ -69,6 +69,10 @@ const TOOL_FIELDS = {
     { key: 'country', label: 'Country', icon: '🌍' },
     { key: 'device', label: 'Device', icon: '📱' },
   ],
+  'website-content-extractor': [
+    { key: 'url', label: 'Website URL', icon: '🌐' },
+    { key: 'extractAIOverview', label: 'AI Overview', icon: '✨' },
+  ],
 }
 
 export default function AdminTools() {

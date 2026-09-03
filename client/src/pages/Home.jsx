@@ -14,6 +14,7 @@ const TOOL_SLUG_MAP = {
   content_qa: 'content-qa',
   xml_sitemap_generator: 'xml-sitemap-generator',
   google_rank_checker: 'google-rank-checker',
+  website_content_extractor: 'website-content-extractor',
 }
 
 const TOOLS = [
@@ -125,6 +126,16 @@ const TOOLS = [
     icon: '📈',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/google-rank-checker',
+    badge: 'New Tool',
+  },
+  {
+    id: 'website_content_extractor',
+    title: 'Website Content Extractor',
+    description:
+      'Extract clean text, metadata, schema, and ownership clues with grounded AI Q&A answering anything about the site.',
+    icon: '🌐',
+    color: 'from-[#0C81F3] to-[#EB8988]',
+    path: '/website-content-extractor',
     badge: 'New Tool',
   },
 ]

@@ -15,6 +15,7 @@ import competitorRoutes from './routes/competitorRoutes.js'
 import contentQaRoutes from './routes/contentQaRoutes.js'
 import sitemapRoutes from './routes/sitemapRoutes.js'
 import rankRoutes from './routes/rankRoutes.js'
+import extractorRoutes from './routes/extractorRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 import { toolAccess } from './middleware/toolAccess.js'
 import prisma from './utils/prisma.js'
@@ -63,6 +64,7 @@ app.use('/api/competitors', toolAccess('competitor-analyzer'), competitorRoutes)
 app.use('/api/content-qa', toolAccess('content-qa'), contentQaRoutes)
 app.use('/api/sitemap', toolAccess('xml-sitemap-generator'), sitemapRoutes)
 app.use('/api/rank', toolAccess('google-rank-checker'), rankRoutes)
+app.use('/api/extractor', toolAccess('website-content-extractor'), extractorRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -193,6 +195,10 @@ async function seedDefaults() {
         country: { enabled: true, label: 'Country', required: false },
         device: { enabled: true, label: 'Device', required: false },
       })},
+      { slug: 'website-content-extractor', name: 'Website Content Extractor & AI Q&A', description: 'Extract clean website content, metadata, schema, and answer questions with AI', dailyLimit: 60, hourlyLimit: 15, formFields: JSON.stringify({
+        url: { enabled: true, label: 'Website URL', required: true },
+        extractAIOverview: { enabled: true, label: 'AI Overview', required: false },
+      })},
     ]
     await prisma.toolConfig.createMany({ data: tools })
     console.log('✓ Default tool configs created')
@@ -242,6 +248,27 @@ async function seedDefaults() {
           },
         })
         console.log('✓ Google Rank Checker tool config seeded')
+      }
+    } catch {}
+
+    // Ensure website-content-extractor exists if database was already initialized
+    try {
+      const extractorTool = await prisma.toolConfig.findUnique({ where: { slug: 'website-content-extractor' } })
+      if (!extractorTool) {
+        await prisma.toolConfig.create({
+          data: {
+            slug: 'website-content-extractor',
+            name: 'Website Content Extractor & AI Q&A',
+            description: 'Extract clean website content, metadata, schema, and answer questions with AI',
+            dailyLimit: 60,
+            hourlyLimit: 15,
+            formFields: JSON.stringify({
+              url: { enabled: true, label: 'Website URL', required: true },
+              extractAIOverview: { enabled: true, label: 'AI Overview', required: false },
+            }),
+          },
+        })
+        console.log('✓ Website Content Extractor tool config seeded')
       }
     } catch {}
   }
