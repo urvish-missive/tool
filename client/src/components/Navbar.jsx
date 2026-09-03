@@ -103,16 +103,20 @@ const NAV_ITEMS = [
         {
           items: [
             { icon: '📝', label: 'AI Content Analyzer', href: '/content-analyzer' },
+            { icon: '✅', label: 'Content QA Checklist', badge: 'NEW', badgeColor: 'bg-green-500 text-white', href: '/content-qa' },
+            { icon: '💡', label: 'Blog Topic Generator', badgeColor: 'bg-green-500 text-white', href: '/blog-topic-generator' },
+            { icon: '❓', label: 'FAQ Generator', badgeColor: 'bg-purple-500 text-white', href: '/faq-generator' },
+            { icon: '🎨', label: 'Logo Maker', badgeColor: 'bg-blue-500 text-white', href: '/logo-maker' },
+            { icon: '💰', label: 'SEO ROI Calculator', href: '/seo-roi-calculator' },
+          ],
+        },
+        {
+          items: [
+            { icon: '📈', label: 'Google Rank Checker', badge: 'NEW', badgeColor: 'bg-blue-600 text-white', href: '/google-rank-checker' },
             { icon: '🔍', label: 'SEO Website Audit', href: '/seo-audit' },
             { icon: '🎯', label: 'Keyword Research', href: '/keyword-research' },
-            { icon: '💡', label: 'Blog Topic Generator', badgeColor: 'bg-green-500 text-white', href: '/blog-topic-generator' },
-            { icon: '🎨', label: 'Logo Maker',badgeColor: 'bg-blue-500 text-white', href: '/logo-maker' },
-            { icon: '❓', label: 'FAQ Generator', badgeColor: 'bg-purple-500 text-white', href: '/faq-generator' },
             { icon: '🕵️', label: 'Competitor Analysis', badgeColor: 'bg-red-500 text-white', href: '/competitor-analysis' },
-            { icon: '💰', label: 'ROI Calculator', href: '/seo-roi-calculator' },
-            { icon: '✅', label: 'Content QA', badge: 'NEW', badgeColor: 'bg-green-500 text-white', href: '/content-qa' },
             { icon: '🗺️', label: 'XML Sitemap Generator', badge: 'NEW', badgeColor: 'bg-emerald-500 text-white', href: '/xml-sitemap-generator' },
-            { icon: '📈', label: 'Google Rank Checker', badge: 'NEW', badgeColor: 'bg-blue-600 text-white', href: '/google-rank-checker' },
           ],
         },
       ],
