@@ -1,4 +1,3 @@
-import { extractAndCleanJSON, clampScore } from '../../utils/helpers.js'
 import { callAIAndParseJSON, getConfiguredProviders } from '../../utils/aiProvider.js'
 
 const SYSTEM_PROMPT = `You are a principal technical SEO architect and web performance consultant.
