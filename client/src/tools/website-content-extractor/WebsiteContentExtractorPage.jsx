@@ -40,6 +40,7 @@ import {
   BookOpen,
   ArrowRight,
   ShieldAlert,
+  Zap,
 } from 'lucide-react'
 
 const LOADING_STEPS = [
@@ -91,7 +92,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'How does the AI Question & Answer feature answer questions?',
-    a: 'Unlike generic AI bots that make up information, our AI Assistant is strictly grounded in the extracted text and metadata of the target website. It cites exact evidence quotes from the page to prove its answers.',
+    a: 'Unlike generic AI bots that hallucinate, our AI Assistant is strictly grounded in the extracted text and metadata of the target website. It cites exact evidence quotes from the page to prove its answers.',
   },
   {
     q: 'How does it detect the owner of the website?',
@@ -99,7 +100,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Can I export the extracted text or markdown?',
-    a: 'Yes! You can copy the clean formatted text, copy the markdown with heading hierarchy preserved, or download the full structured extraction as JSON or TXT with one click.',
+    a: 'Yes! You can copy the clean formatted text, copy the markdown with heading hierarchy preserved, or download the full structured extraction as JSON, Markdown, or TXT with one click.',
   },
   {
     q: 'Are private or internal IP addresses blocked?',
@@ -126,6 +127,7 @@ export default function WebsiteContentExtractorPage() {
 
   // Q&A Chat State
   const [questionInput, setQuestionInput] = useState('')
+  const [currentAskingQuestion, setCurrentAskingQuestion] = useState('')
   const [chatHistory, setChatHistory] = useState([])
 
   // Lead Popup Integration
@@ -217,13 +219,7 @@ export default function WebsiteContentExtractorPage() {
     if (!qToSend || isAnswering) return
 
     setQuestionInput('')
-
-    // Append user question optimistically
-    const newChatTurn = {
-      role: 'user',
-      content: qToSend,
-      timestamp: new Date().toISOString(),
-    }
+    setCurrentAskingQuestion(qToSend)
 
     const previousTurns = [...chatHistory]
 
@@ -239,8 +235,8 @@ export default function WebsiteContentExtractorPage() {
         preferredProvider,
       }).unwrap()
 
+      // Reverse order: Prepend new Q&A turn so latest click is on top
       setChatHistory((prev) => [
-        ...prev,
         {
           role: 'assistant',
           question: qToSend,
@@ -251,10 +247,10 @@ export default function WebsiteContentExtractorPage() {
           followUpQuestions: response.followUpQuestions || [],
           timestamp: new Date().toISOString(),
         },
+        ...prev,
       ])
     } catch (err) {
       setChatHistory((prev) => [
-        ...prev,
         {
           role: 'assistant',
           question: qToSend,
@@ -265,7 +261,10 @@ export default function WebsiteContentExtractorPage() {
           followUpQuestions: [],
           timestamp: new Date().toISOString(),
         },
+        ...prev,
       ])
+    } finally {
+      setCurrentAskingQuestion('')
     }
   }
 
@@ -275,6 +274,7 @@ export default function WebsiteContentExtractorPage() {
     setExtractedData(null)
     setError('')
     setChatHistory([])
+    setCurrentAskingQuestion('')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -305,37 +305,52 @@ export default function WebsiteContentExtractorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-10 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50/50 pb-20">
       {/* Lead Capture Modal */}
       <LeadCaptureModal
-        isOpen={showPopup}
+        show={showPopup}
         onClose={handlePopupClose}
         onSubmitSuccess={onLeadModalSuccess}
         toolSlug="website-content-extractor"
+        title="Unlock Free Website Content Extractor"
+        subtitle="Extract clean text, analyze JSON-LD schema, and ask AI questions grounded directly in website content."
       />
 
-      <div className="max-w-6xl mx-auto space-y-8">
-        {/* Header Hero */}
-        <div className="text-center space-y-4">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-blue-700 text-xs font-semibold tracking-wide uppercase shadow-xs">
-            <Sparkles className="w-3.5 h-3.5 text-blue-600" />
-            AI Website Intelligence
+      {/* Hero Header matching Missive Digital Brand Theme */}
+      <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }}
+        />
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
+
+        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase shadow-sm">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Himani's SEO Tools • Missive Digital</span>
           </div>
 
-          <h1 className="text-4xl sm:text-5xl font-extrabold text-slate-900 tracking-tight">
-            Website Content Extractor <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">& AI Q&A</span>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight mb-4">
+            <span className="text-gray-900">Website Content </span>
+            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
+              Extractor & AI Q&A
+            </span>
           </h1>
 
-          <p className="max-w-2xl mx-auto text-base sm:text-lg text-slate-600">
-            Extract clean article text, metadata, headings, structured schema, and ownership clues from any URL. Ask questions and get answers grounded directly in the website content.
+          <p className="mt-3 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+            Extract clean article text, metadata, headings, structured schema, and ownership clues from any URL. Ask AI questions grounded strictly in the website content with evidence quotes.
           </p>
         </div>
+      </section>
 
+      {/* Main Container */}
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Search & Extraction Form Card */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 transition-all hover:shadow-md">
+        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10 transition-all">
           <form onSubmit={handleExtractSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label htmlFor="website-url-input" className="block text-sm font-semibold text-slate-800">
+              <label htmlFor="website-url-input" className="block text-sm font-bold text-slate-800">
                 Website or Web Page URL <span className="text-rose-500">*</span>
               </label>
               <div className="relative flex items-center">
@@ -346,13 +361,13 @@ export default function WebsiteContentExtractorPage() {
                   placeholder="https://example.com or company.com/about"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  className="w-full pl-12 pr-28 py-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm sm:text-base"
+                  className="w-full pl-12 pr-28 py-3.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 focus:border-[#0C81F3] transition-all text-sm sm:text-base font-medium"
                 />
                 {url && (
                   <button
                     type="button"
                     onClick={() => setUrl('')}
-                    className="absolute right-24 text-xs font-medium text-slate-400 hover:text-slate-600"
+                    className="absolute right-24 text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors"
                   >
                     Clear
                   </button>
@@ -365,25 +380,25 @@ export default function WebsiteContentExtractorPage() {
                       if (text) setUrl(text.trim())
                     } catch {}
                   }}
-                  className="absolute right-3 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-medium transition-colors"
+                  className="absolute right-3 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition-colors shadow-2xs"
                 >
                   Paste
                 </button>
               </div>
             </div>
 
-            {/* Options Row */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pt-2 border-t border-slate-100">
+            {/* Options & Action Row */}
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-5 border-t border-slate-100">
               <div className="flex flex-wrap items-center gap-4">
-                <div className="w-48">
-                  <ModelSelector value={preferredProvider} onChange={setPreferredProvider} />
+                <div className="w-full sm:w-48">
+                  <ModelSelector value={preferredProvider} onChange={setPreferredProvider} compact={true} />
                 </div>
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"
                     checked={extractAIOverview}
                     onChange={(e) => setExtractAIOverview(e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    className="w-4 h-4 rounded border-slate-300 text-[#0C81F3] focus:ring-[#0C81F3]"
                   />
                   <span className="text-xs font-medium text-slate-700">
                     Deep AI Entity Synthesis & Overview
@@ -391,32 +406,43 @@ export default function WebsiteContentExtractorPage() {
                 </label>
               </div>
 
-              <button
-                type="submit"
-                disabled={isExtracting}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold text-sm sm:text-base shadow-sm hover:shadow-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isExtracting ? (
-                  <>
-                    <RefreshCw className="w-4 h-4 animate-spin" />
-                    Extracting Content...
-                  </>
-                ) : (
-                  <>
-                    <Sparkles className="w-4 h-4" />
-                    Extract & Analyze
-                  </>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+                {extractedData && (
+                  <button
+                    type="button"
+                    onClick={handleReset}
+                    className="w-full sm:w-auto px-5 py-3 rounded-full border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-sm text-center cursor-pointer order-2 sm:order-1"
+                  >
+                    Reset
+                  </button>
                 )}
-              </button>
+                <button
+                  type="submit"
+                  disabled={isExtracting}
+                  className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-6 sm:px-8 py-3.5 text-sm sm:text-base font-bold text-white hover:opacity-95 active:scale-[0.98] disabled:opacity-50 transition-all shadow-md hover:shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
+                >
+                  {isExtracting ? (
+                    <>
+                      <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin shrink-0" />
+                      <span>Extracting Content...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Zap className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                      <span>Extract & Analyze</span>
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </form>
 
           {/* Error message */}
           {error && (
-            <div className="mt-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm flex items-start gap-3">
+            <div className="mt-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm flex items-start gap-3 shadow-xs">
               <AlertCircle className="w-5 h-5 shrink-0 text-rose-600 mt-0.5" />
               <div>
-                <p className="font-semibold">Extraction Error</p>
+                <p className="font-bold">Extraction Error</p>
                 <p>{error}</p>
               </div>
             </div>
@@ -436,102 +462,92 @@ export default function WebsiteContentExtractorPage() {
 
         {/* Extracted Results Dashboard */}
         {extractedData && !isExtracting && (
-          <div id="extractor-results" className="space-y-6 pt-4">
-            {/* Top Quick Bar */}
-            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div id="extractor-results" className="space-y-6 pt-2">
+            {/* Top Quick Summary Bar */}
+            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="flex items-center gap-3.5">
                 {extractedData.metadata?.favicon ? (
                   <img
                     src={extractedData.metadata.favicon}
                     alt="favicon"
-                    className="w-8 h-8 rounded-md p-0.5 border border-slate-200 bg-white object-contain"
+                    className="w-10 h-10 rounded-xl p-1 border border-slate-200 bg-white object-contain shadow-2xs"
                     onError={(e) => {
                       e.target.style.display = 'none'
                     }}
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-md bg-blue-100 text-blue-600 flex items-center justify-center font-bold text-xs">
+                  <div className="w-10 h-10 rounded-xl bg-blue-100 text-[#0C81F3] flex items-center justify-center font-bold text-sm shadow-2xs">
                     {extractedData.hostname?.charAt(0)?.toUpperCase() || 'W'}
                   </div>
                 )}
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg font-bold text-slate-900 truncate max-w-md">
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-900 truncate max-w-md">
                       {extractedData.metadata?.title || extractedData.hostname}
                     </h2>
                     <a
                       href={extractedData.url}
                       target="_blank"
                       rel="noreferrer"
-                      className="text-slate-400 hover:text-blue-600"
+                      className="text-slate-400 hover:text-[#0C81F3] transition-colors"
                       title="Open website in new tab"
                     >
                       <ExternalLink className="w-4 h-4" />
                     </a>
                   </div>
-                  <p className="text-xs text-slate-500 font-mono">{extractedData.url}</p>
+                  <p className="text-xs text-slate-500 font-mono mt-0.5">{extractedData.url}</p>
                 </div>
               </div>
 
               {/* Action Badges & Buttons */}
               <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-bold">
                   <FileText className="w-3.5 h-3.5 text-slate-500" />
                   {extractedData.content?.wordCount?.toLocaleString() || 0} words
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-semibold">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-bold">
                   <Clock className="w-3.5 h-3.5 text-slate-500" />
                   ~{extractedData.content?.readingTimeMinutes || 1} min read
                 </span>
                 {extractedData.aiOverview?.detectedOwner?.name && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-semibold">
-                    <Building className="w-3.5 h-3.5 text-indigo-600" />
+                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-[#0C81F3] text-xs font-bold">
+                    <Building className="w-3.5 h-3.5" />
                     {extractedData.aiOverview.detectedOwner.name}
                   </span>
                 )}
 
-                <div className="relative group">
-                  <button
-                    onClick={() => handleDownload('json')}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors"
-                  >
-                    <Download className="w-3.5 h-3.5" />
-                    Export
-                  </button>
-                </div>
-
                 <button
-                  onClick={handleReset}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors"
+                  onClick={() => handleDownload('json')}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
                 >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  New URL
+                  <Download className="w-3.5 h-3.5" />
+                  Export JSON
                 </button>
               </div>
             </div>
 
             {/* Navigation Tabs */}
-            <div className="flex border-b border-slate-200 bg-white rounded-t-xl px-4 pt-2 gap-2 overflow-x-auto">
+            <div className="flex border-b border-slate-200 bg-white rounded-t-3xl px-6 pt-3 gap-3 overflow-x-auto shadow-2xs">
               <button
                 onClick={() => setActiveTab('qa')}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+                className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                   activeTab === 'qa'
-                    ? 'border-blue-600 text-blue-600'
+                    ? 'border-[#0C81F3] text-[#0C81F3]'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
                 }`}
               >
                 <MessageSquare className="w-4 h-4" />
                 AI Q&A Assistant
-                <span className="px-1.5 py-0.5 rounded-full bg-blue-100 text-blue-700 text-[10px] font-bold">
+                <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[10px] font-bold">
                   Ground Truth
                 </span>
               </button>
 
               <button
                 onClick={() => setActiveTab('overview')}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+                className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                   activeTab === 'overview'
-                    ? 'border-blue-600 text-blue-600'
+                    ? 'border-[#0C81F3] text-[#0C81F3]'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
                 }`}
               >
@@ -541,9 +557,9 @@ export default function WebsiteContentExtractorPage() {
 
               <button
                 onClick={() => setActiveTab('content')}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+                className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                   activeTab === 'content'
-                    ? 'border-blue-600 text-blue-600'
+                    ? 'border-[#0C81F3] text-[#0C81F3]'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
                 }`}
               >
@@ -553,9 +569,9 @@ export default function WebsiteContentExtractorPage() {
 
               <button
                 onClick={() => setActiveTab('metadata')}
-                className={`flex items-center gap-2 px-4 py-3 text-sm font-semibold border-b-2 transition-all whitespace-nowrap ${
+                className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                   activeTab === 'metadata'
-                    ? 'border-blue-600 text-blue-600'
+                    ? 'border-[#0C81F3] text-[#0C81F3]'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
                 }`}
               >
@@ -566,61 +582,115 @@ export default function WebsiteContentExtractorPage() {
 
             {/* TAB 1: AI Q&A ASSISTANT */}
             {activeTab === 'qa' && (
-              <div className="bg-white rounded-b-2xl border border-slate-200 p-6 space-y-6 shadow-xs">
+              <div className="bg-white rounded-b-3xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-sm">
                 {/* Preset Chips */}
-                <div className="space-y-2.5">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-slate-700 uppercase tracking-wider">
-                    <Sparkles className="w-3.5 h-3.5 text-blue-600" />
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
+                    <Sparkles className="w-4 h-4 text-[#0C81F3]" />
                     Instant Questions Grounded in this Website
                   </div>
-                  <div className="flex flex-wrap gap-2">
+                  <div className="flex flex-wrap gap-2.5">
                     {PRESET_QUESTIONS.map((item, idx) => (
                       <button
                         key={idx}
                         onClick={() => handleAskQuestion(item.q)}
                         disabled={isAnswering}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-blue-50 border border-slate-200 hover:border-blue-200 text-slate-700 hover:text-blue-700 text-xs font-medium transition-all"
+                        className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-slate-50 hover:bg-blue-50/70 border border-slate-200 hover:border-[#0C81F3]/40 text-slate-700 hover:text-[#0C81F3] text-xs font-semibold transition-all cursor-pointer shadow-2xs"
                       >
-                        <span>{item.icon}</span>
+                        <span className="text-sm">{item.icon}</span>
                         <span>{item.label}</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
-                {/* Chat Stream / Q&A Dialogue */}
-                <div className="space-y-4 pt-2">
-                  {chatHistory.length === 0 ? (
-                    <div className="p-8 text-center text-slate-400 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                      <MessageSquare className="w-8 h-8 mx-auto mb-2 text-slate-300" />
-                      <p className="text-sm font-medium">No questions asked yet.</p>
-                      <p className="text-xs">Click one of the prompt chips above or type a question below.</p>
+                {/* Question Input Box (Placed prominently near top) */}
+                <div className="pt-1">
+                  <div className="relative flex items-center">
+                    <input
+                      type="text"
+                      placeholder="Ask any question about this website (e.g. Who is the founder? What is their pricing? Where are they located?)"
+                      value={questionInput}
+                      onChange={(e) => setQuestionInput(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault()
+                          handleAskQuestion()
+                        }
+                      }}
+                      disabled={isAnswering}
+                      className="w-full pl-5 pr-14 py-3.5 bg-slate-50 border border-slate-300 rounded-2xl text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 focus:border-[#0C81F3] transition-all"
+                    />
+                    <button
+                      onClick={() => handleAskQuestion()}
+                      disabled={!questionInput.trim() || isAnswering}
+                      className="absolute right-2.5 p-2.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:opacity-95 text-white rounded-xl disabled:opacity-40 transition-all cursor-pointer shadow-sm"
+                    >
+                      <Send className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Chat Stream / Q&A Dialogue (Reverse order: Newest Q&A on top) */}
+                <div className="space-y-4 pt-4 border-t border-slate-100">
+                  {/* Active Question Loader at the Top */}
+                  {isAnswering && (
+                    <div className="space-y-3 animate-pulse">
+                      {currentAskingQuestion && (
+                        <div className="flex items-start gap-3">
+                          <div className="w-7 h-7 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                            Q
+                          </div>
+                          <div className="p-3.5 bg-slate-100 rounded-2xl text-slate-900 text-sm font-bold max-w-2xl shadow-2xs">
+                            {currentAskingQuestion}
+                          </div>
+                        </div>
+                      )}
+                      <div className="flex items-start gap-3">
+                        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#0C81F3] to-[#EB8988] text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                          AI
+                        </div>
+                        <div className="flex-1 flex items-center gap-3 p-5 bg-slate-50 border border-slate-200 rounded-2xl shadow-2xs">
+                          <RefreshCw className="w-4 h-4 animate-spin text-[#0C81F3]" />
+                          <span className="text-sm font-semibold text-slate-700">
+                            Analyzing extracted website text and verifying evidence...
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {chatHistory.length === 0 && !isAnswering ? (
+                    <div className="p-10 text-center text-slate-400 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                      <MessageSquare className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+                      <p className="text-sm font-bold text-slate-700">No questions asked yet.</p>
+                      <p className="text-xs text-slate-500 mt-1">Click one of the instant questions above or type your own question.</p>
                     </div>
                   ) : (
                     chatHistory.map((item, idx) => (
-                      <div key={idx} className="space-y-2">
+                      <div key={idx} className="space-y-3">
                         {/* Question Bubble */}
                         {item.question && (
-                          <div className="flex items-start gap-2.5">
-                            <div className="w-6 h-6 rounded-full bg-slate-800 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-1">
+                          <div className="flex items-start gap-3">
+                            <div className="w-7 h-7 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
                               Q
                             </div>
-                            <div className="p-3 bg-slate-100 rounded-xl text-slate-900 text-sm font-semibold max-w-2xl">
+                            <div className="p-3.5 bg-slate-100 rounded-2xl text-slate-900 text-sm font-bold max-w-2xl shadow-2xs">
                               {item.question}
                             </div>
                           </div>
                         )}
 
                         {/* Answer Card */}
-                        <div className="flex items-start gap-2.5">
-                          <div className="w-6 h-6 rounded-full bg-blue-600 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-1">
+                        <div className="flex items-start gap-3">
+                          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[#0C81F3] to-[#EB8988] text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
                             AI
                           </div>
-                          <div className="flex-1 bg-slate-50 border border-slate-200 rounded-xl p-4 sm:p-5 space-y-3">
-                            <div className="flex items-center justify-between gap-2 border-b border-slate-200/60 pb-2.5">
+                          <div className="flex-1 bg-slate-50/80 border border-slate-200 rounded-2xl p-5 sm:p-6 space-y-4 shadow-2xs">
+                            <div className="flex items-center justify-between gap-2 border-b border-slate-200/60 pb-3">
                               <div className="flex items-center gap-2">
                                 <span
-                                  className={`text-[11px] font-bold px-2 py-0.5 rounded-full ${
+                                  className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full ${
                                     item.confidence === 'High'
                                       ? 'bg-emerald-100 text-emerald-800'
                                       : item.confidence === 'Medium'
@@ -632,13 +702,13 @@ export default function WebsiteContentExtractorPage() {
                                 </span>
                                 {item.sourceSection && (
                                   <span className="text-xs text-slate-500 font-medium">
-                                    Source: {item.sourceSection}
+                                    Section: {item.sourceSection}
                                   </span>
                                 )}
                               </div>
                               <button
                                 onClick={() => handleCopy(item.answer, `ans-${idx}`)}
-                                className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-800 font-medium"
+                                className="inline-flex items-center gap-1.5 text-xs text-slate-500 hover:text-slate-900 font-semibold cursor-pointer"
                               >
                                 {copiedKey === `ans-${idx}` ? (
                                   <>
@@ -655,21 +725,21 @@ export default function WebsiteContentExtractorPage() {
                             </div>
 
                             {/* Markdown Rendered Content */}
-                            <div className="prose prose-sm max-w-none text-slate-800 leading-relaxed whitespace-pre-line">
+                            <div className="prose prose-sm max-w-none text-slate-800 leading-relaxed whitespace-pre-line text-sm">
                               {item.answer}
                             </div>
 
                             {/* Evidence Quotes */}
                             {item.evidenceQuotes && item.evidenceQuotes.length > 0 && (
-                              <div className="mt-3 p-3 bg-white rounded-lg border border-slate-200/80 space-y-1.5">
-                                <div className="flex items-center gap-1.5 text-xs font-semibold text-slate-700">
-                                  <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+                              <div className="mt-3 p-3.5 bg-white rounded-xl border border-slate-200/80 space-y-2">
+                                <div className="flex items-center gap-1.5 text-xs font-bold text-slate-800">
+                                  <ShieldCheck className="w-4 h-4 text-[#0C81F3]" />
                                   Evidence Quoted from Website:
                                 </div>
                                 {item.evidenceQuotes.map((q, qIdx) => (
                                   <blockquote
                                     key={qIdx}
-                                    className="text-xs text-slate-600 italic border-l-2 border-blue-500 pl-2.5 my-1"
+                                    className="text-xs text-slate-600 italic border-l-2 border-[#0C81F3] pl-3 my-1 leading-relaxed"
                                   >
                                     "{q}"
                                   </blockquote>
@@ -680,12 +750,12 @@ export default function WebsiteContentExtractorPage() {
                             {/* Follow-up Suggestions */}
                             {item.followUpQuestions && item.followUpQuestions.length > 0 && (
                               <div className="pt-2 flex flex-wrap items-center gap-2">
-                                <span className="text-[11px] text-slate-400 font-medium">Related:</span>
+                                <span className="text-[11px] text-slate-400 font-semibold">Suggested follow-ups:</span>
                                 {item.followUpQuestions.map((fq, fIdx) => (
                                   <button
                                     key={fIdx}
                                     onClick={() => handleAskQuestion(fq)}
-                                    className="text-xs px-2.5 py-1 rounded-md bg-white hover:bg-blue-50 border border-slate-200 text-slate-700 hover:text-blue-700 transition-colors"
+                                    className="text-xs px-3 py-1.5 rounded-lg bg-white hover:bg-blue-50 border border-slate-200 text-slate-700 hover:text-[#0C81F3] transition-colors cursor-pointer shadow-2xs"
                                   >
                                     {fq}
                                   </button>
@@ -697,42 +767,6 @@ export default function WebsiteContentExtractorPage() {
                       </div>
                     ))
                   )}
-
-                  {isAnswering && (
-                    <div className="flex items-center gap-3 p-4 bg-slate-50 border border-slate-200 rounded-xl">
-                      <RefreshCw className="w-4 h-4 animate-spin text-blue-600" />
-                      <span className="text-sm font-medium text-slate-700">
-                        Analyzing extracted website text and verifying evidence...
-                      </span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Question Input Box */}
-                <div className="pt-4 border-t border-slate-200">
-                  <div className="relative flex items-center">
-                    <input
-                      type="text"
-                      placeholder="Ask any question about this website (e.g. Who is the founder? What is their refund policy? Where are they based?)"
-                      value={questionInput}
-                      onChange={(e) => setQuestionInput(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter') {
-                          e.preventDefault()
-                          handleAskQuestion()
-                        }
-                      }}
-                      disabled={isAnswering}
-                      className="w-full pl-4 pr-12 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                    />
-                    <button
-                      onClick={() => handleAskQuestion()}
-                      disabled={!questionInput.trim() || isAnswering}
-                      className="absolute right-2 p-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg disabled:opacity-40 transition-colors"
-                    >
-                      <Send className="w-4 h-4" />
-                    </button>
-                  </div>
                 </div>
               </div>
             )}
@@ -742,9 +776,9 @@ export default function WebsiteContentExtractorPage() {
               <div className="space-y-6">
                 {/* Metric Summary Cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
-                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Word Count</div>
-                    <div className="text-2xl font-black text-slate-900 mt-1">
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Word Count</div>
+                    <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
                       {extractedData.content?.wordCount?.toLocaleString() || 0}
                     </div>
                     <div className="text-xs text-slate-500 mt-1">
@@ -752,17 +786,17 @@ export default function WebsiteContentExtractorPage() {
                     </div>
                   </div>
 
-                  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
-                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Reading Time</div>
-                    <div className="text-2xl font-black text-slate-900 mt-1">
-                      {extractedData.content?.readingTimeMinutes || 1} min
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Reading Time</div>
+                    <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
+                      ~{extractedData.content?.readingTimeMinutes || 1} min
                     </div>
                     <div className="text-xs text-slate-500 mt-1">based on 200 WPM</div>
                   </div>
 
-                  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
-                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Headings</div>
-                    <div className="text-2xl font-black text-slate-900 mt-1">
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Headings</div>
+                    <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
                       {extractedData.content?.headingsCount?.total || 0}
                     </div>
                     <div className="text-xs text-slate-500 mt-1">
@@ -772,9 +806,9 @@ export default function WebsiteContentExtractorPage() {
                     </div>
                   </div>
 
-                  <div className="bg-white p-5 rounded-xl border border-slate-200 shadow-xs">
-                    <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider">Links Found</div>
-                    <div className="text-2xl font-black text-slate-900 mt-1">
+                  <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Links Found</div>
+                    <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
                       {extractedData.content?.links?.total || 0}
                     </div>
                     <div className="text-xs text-slate-500 mt-1">
@@ -785,28 +819,33 @@ export default function WebsiteContentExtractorPage() {
                 </div>
 
                 {/* Detected Ownership & Entity Spotlight */}
-                <div className="bg-gradient-to-br from-slate-900 to-indigo-950 text-white rounded-2xl p-6 sm:p-8 shadow-md relative overflow-hidden">
+                <div
+                  className="rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden"
+                  style={{ background: 'linear-gradient(135deg, #102A43 0%, #1a1a2e 100%)' }}
+                >
+                  <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-[#0C81F3]/20 to-[#EB8988]/20 rounded-full blur-3xl pointer-events-none" />
+
                   <div className="relative z-10 space-y-4">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs font-semibold border border-blue-400/30">
+                      <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold shadow-xs">
                         <ShieldCheck className="w-3.5 h-3.5" />
                         Detected Website Owner & Entity
                       </div>
                       {extractedData.aiOverview?.detectedOwner?.confidence && (
-                        <span className="text-xs px-2.5 py-1 rounded-md bg-white/10 text-slate-300">
+                        <span className="text-xs px-3 py-1 rounded-full bg-white/10 text-slate-200 font-semibold border border-white/15">
                           {extractedData.aiOverview.detectedOwner.confidence} Confidence Detection
                         </span>
                       )}
                     </div>
 
                     <div className="space-y-1">
-                      <h3 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                      <h3 className="text-2xl sm:text-3xl font-black text-white tracking-tight">
                         {extractedData.aiOverview?.detectedOwner?.name ||
                           extractedData.jsonLd?.detectedOrganization?.name ||
                           extractedData.metadata?.og?.siteName ||
                           'Entity Name Unspecified on Page'}
                       </h3>
-                      <p className="text-sm text-indigo-200">
+                      <p className="text-sm text-indigo-200 font-medium">
                         Type: {extractedData.aiOverview?.detectedOwner?.entityType || 'Web Organization'} • Business Model:{' '}
                         {extractedData.aiOverview?.businessModel || 'Digital Service'}
                       </p>
@@ -814,15 +853,15 @@ export default function WebsiteContentExtractorPage() {
 
                     {/* Evidence Quote */}
                     {extractedData.aiOverview?.detectedOwner?.evidence && (
-                      <div className="p-3.5 rounded-xl bg-white/10 border border-white/15 text-xs text-slate-200 space-y-1">
-                        <span className="font-semibold text-blue-300">Detection Evidence:</span>
+                      <div className="p-4 rounded-2xl bg-white/10 border border-white/15 text-xs text-slate-200 space-y-1.5 leading-relaxed">
+                        <span className="font-bold text-[#A7D2FF]">Detection Evidence:</span>
                         <p className="italic">"{extractedData.aiOverview.detectedOwner.evidence}"</p>
                       </div>
                     )}
 
                     {/* Copyright statement */}
                     {extractedData.contacts?.copyright && (
-                      <div className="text-xs text-slate-400 font-mono">
+                      <div className="text-xs text-slate-400 font-mono pt-1">
                         Copyright Notice: {extractedData.contacts.copyright}
                       </div>
                     )}
@@ -832,30 +871,30 @@ export default function WebsiteContentExtractorPage() {
                 {/* Contact & Social Footprint */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Emails & Phones */}
-                  <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
+                  <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-sm space-y-4">
                     <h4 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-blue-600" />
+                      <Mail className="w-4 h-4 text-[#0C81F3]" />
                       Contact Emails & Phones Found
                     </h4>
 
-                    <div className="space-y-3">
+                    <div className="space-y-3.5">
                       <div>
-                        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                        <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
                           Email Addresses ({extractedData.contacts?.emails?.length || 0})
                         </div>
                         {extractedData.contacts?.emails?.length > 0 ? (
-                          <div className="space-y-1.5">
+                          <div className="space-y-2">
                             {extractedData.contacts.emails.map((email, idx) => (
                               <div
                                 key={idx}
-                                className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 text-xs font-mono"
+                                className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono"
                               >
-                                <a href={`mailto:${email}`} className="text-blue-600 hover:underline">
+                                <a href={`mailto:${email}`} className="text-[#0C81F3] font-semibold hover:underline">
                                   {email}
                                 </a>
                                 <button
                                   onClick={() => handleCopy(email, `email-${idx}`)}
-                                  className="text-slate-400 hover:text-slate-700"
+                                  className="text-slate-400 hover:text-slate-700 cursor-pointer"
                                 >
                                   {copiedKey === `email-${idx}` ? (
                                     <Check className="w-3.5 h-3.5 text-emerald-600" />
@@ -872,22 +911,22 @@ export default function WebsiteContentExtractorPage() {
                       </div>
 
                       <div>
-                        <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">
+                        <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">
                           Phone Numbers ({extractedData.contacts?.phones?.length || 0})
                         </div>
                         {extractedData.contacts?.phones?.length > 0 ? (
-                          <div className="space-y-1.5">
+                          <div className="space-y-2">
                             {extractedData.contacts.phones.map((phone, idx) => (
                               <div
                                 key={idx}
-                                className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 text-xs font-mono"
+                                className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono"
                               >
-                                <a href={`tel:${phone}`} className="text-slate-800 hover:underline">
+                                <a href={`tel:${phone}`} className="text-slate-800 font-semibold hover:underline">
                                   {phone}
                                 </a>
                                 <button
                                   onClick={() => handleCopy(phone, `phone-${idx}`)}
-                                  className="text-slate-400 hover:text-slate-700"
+                                  className="text-slate-400 hover:text-slate-700 cursor-pointer"
                                 >
                                   {copiedKey === `phone-${idx}` ? (
                                     <Check className="w-3.5 h-3.5 text-emerald-600" />
@@ -906,9 +945,9 @@ export default function WebsiteContentExtractorPage() {
                   </div>
 
                   {/* Social Profiles */}
-                  <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-xs space-y-4">
+                  <div className="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200 shadow-sm space-y-4">
                     <h4 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                      <Share2 className="w-4 h-4 text-blue-600" />
+                      <Share2 className="w-4 h-4 text-[#0C81F3]" />
                       Official Social Media Footprint
                     </h4>
 
@@ -916,19 +955,19 @@ export default function WebsiteContentExtractorPage() {
                       {Object.entries(extractedData.contacts?.socialLinks || {}).map(([network, link]) => (
                         <div
                           key={network}
-                          className={`p-3 rounded-xl border flex items-center justify-between text-xs capitalize ${
+                          className={`p-3 rounded-2xl border flex items-center justify-between text-xs capitalize ${
                             link
-                              ? 'bg-blue-50/50 border-blue-200 text-slate-900'
-                              : 'bg-slate-50 border-slate-200 text-slate-400 opacity-60'
+                              ? 'bg-blue-50/50 border-blue-200 text-slate-900 font-bold'
+                              : 'bg-slate-50 border-slate-200 text-slate-400 opacity-60 font-medium'
                           }`}
                         >
-                          <span className="font-semibold">{network}</span>
+                          <span>{network}</span>
                           {link ? (
                             <a
                               href={link}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-blue-600 hover:text-blue-800"
+                              className="text-[#0C81F3] hover:text-blue-800"
                             >
                               <ExternalLink className="w-3.5 h-3.5" />
                             </a>
@@ -941,13 +980,13 @@ export default function WebsiteContentExtractorPage() {
 
                     {/* Trust Signals */}
                     {extractedData.aiOverview?.trustSignals?.length > 0 && (
-                      <div className="pt-2 border-t border-slate-100 space-y-1.5">
-                        <div className="text-xs font-semibold text-slate-700">Verified Trust Signals:</div>
-                        <ul className="space-y-1">
+                      <div className="pt-2 border-t border-slate-100 space-y-2">
+                        <div className="text-xs font-bold text-slate-800">Verified Trust Signals:</div>
+                        <ul className="space-y-1.5">
                           {extractedData.aiOverview.trustSignals.map((signal, idx) => (
                             <li key={idx} className="flex items-center gap-2 text-xs text-slate-600">
-                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                              {signal}
+                              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                              <span>{signal}</span>
                             </li>
                           ))}
                         </ul>
@@ -958,29 +997,29 @@ export default function WebsiteContentExtractorPage() {
 
                 {/* AI Executive Summary & Core Offerings */}
                 {extractedData.aiOverview && (
-                  <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-6">
+                  <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
                     <div className="space-y-2">
                       <h4 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                        <BookOpen className="w-4 h-4 text-blue-600" />
+                        <BookOpen className="w-4 h-4 text-[#0C81F3]" />
                         Executive Summary
                       </h4>
-                      <p className="text-sm text-slate-700 leading-relaxed">
+                      <p className="text-sm text-slate-700 leading-relaxed font-medium">
                         {extractedData.aiOverview.executiveSummary}
                       </p>
                     </div>
 
                     {extractedData.aiOverview.keyOfferings?.length > 0 && (
-                      <div className="space-y-3">
-                        <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                      <div className="space-y-3 pt-2">
+                        <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                           Key Offerings & Focus Topics
                         </h4>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                           {extractedData.aiOverview.keyOfferings.map((offering, idx) => (
                             <div
                               key={idx}
-                              className="flex items-start gap-2.5 p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800"
+                              className="flex items-start gap-2.5 p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs font-medium text-slate-800 shadow-2xs"
                             >
-                              <Tag className="w-3.5 h-3.5 text-blue-600 mt-0.5 shrink-0" />
+                              <Tag className="w-4 h-4 text-[#0C81F3] mt-0.5 shrink-0" />
                               <span>{offering}</span>
                             </div>
                           ))}
@@ -994,12 +1033,12 @@ export default function WebsiteContentExtractorPage() {
 
             {/* TAB 3: EXTRACTED CLEAN CONTENT & STRUCTURE */}
             {activeTab === 'content' && (
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-xs">
+              <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-sm">
                 {/* Content Toolbar */}
                 <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-200">
                   <div>
                     <h3 className="text-base font-bold text-slate-900">Clean Extracted Page Content</h3>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-500 mt-0.5">
                       Noise stripped (scripts, styles, navigations, ads removed). Ready to copy or download.
                     </p>
                   </div>
@@ -1007,21 +1046,21 @@ export default function WebsiteContentExtractorPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <button
                       onClick={() => handleCopy(extractedData.content?.markdown, 'copy-md')}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
                     >
                       {copiedKey === 'copy-md' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                       Copy Markdown
                     </button>
                     <button
                       onClick={() => handleCopy(extractedData.content?.plainText, 'copy-txt')}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium transition-colors"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
                     >
                       {copiedKey === 'copy-txt' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                       Copy Plain Text
                     </button>
                     <button
                       onClick={() => handleDownload('markdown')}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200 hover:bg-blue-100 text-blue-700 text-xs font-medium transition-colors"
+                      className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
                     >
                       <Download className="w-3.5 h-3.5" />
                       Download .MD
@@ -1032,10 +1071,10 @@ export default function WebsiteContentExtractorPage() {
                 {/* Headings Hierarchy Tree */}
                 {extractedData.content?.headings?.length > 0 && (
                   <div className="space-y-3">
-                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                    <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
                       Headings Outline ({extractedData.content.headings.length})
                     </h4>
-                    <div className="max-h-60 overflow-y-auto p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
+                    <div className="max-h-64 overflow-y-auto p-4 bg-slate-50 rounded-2xl border border-slate-200 space-y-2">
                       {extractedData.content.headings.map((h, idx) => (
                         <div
                           key={idx}
@@ -1044,10 +1083,10 @@ export default function WebsiteContentExtractorPage() {
                             paddingLeft: h.level === 'h1' ? '0' : h.level === 'h2' ? '1rem' : h.level === 'h3' ? '2rem' : '3rem',
                           }}
                         >
-                          <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-200 text-slate-700 uppercase">
+                          <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 uppercase">
                             {h.level}
                           </span>
-                          <span className="truncate">{h.text}</span>
+                          <span className="truncate font-medium">{h.text}</span>
                         </div>
                       ))}
                     </div>
@@ -1056,11 +1095,11 @@ export default function WebsiteContentExtractorPage() {
 
                 {/* Content Viewer */}
                 <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-wider">
                     <span>Formatted Content Preview</span>
                     <span>{extractedData.content?.plainText?.length || 0} characters</span>
                   </div>
-                  <div className="max-h-[600px] overflow-y-auto p-6 bg-slate-50 rounded-xl border border-slate-200 font-mono text-xs leading-relaxed text-slate-800 whitespace-pre-wrap">
+                  <div className="max-h-[600px] overflow-y-auto p-6 bg-slate-50 rounded-2xl border border-slate-200 font-mono text-xs leading-relaxed text-slate-800 whitespace-pre-wrap">
                     {extractedData.content?.markdown || extractedData.content?.plainText || 'No content found.'}
                   </div>
                 </div>
@@ -1071,46 +1110,46 @@ export default function WebsiteContentExtractorPage() {
             {activeTab === 'metadata' && (
               <div className="space-y-6">
                 {/* Meta Tags Table */}
-                <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-4">
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
                   <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <Globe className="w-4 h-4 text-blue-600" />
+                    <Globe className="w-4 h-4 text-[#0C81F3]" />
                     Essential Meta Tags
                   </h3>
 
                   <div className="overflow-x-auto">
                     <table className="w-full text-xs text-left">
-                      <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200">
+                      <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
                         <tr>
-                          <th className="px-4 py-3 font-semibold">Element</th>
-                          <th className="px-4 py-3 font-semibold">Content</th>
-                          <th className="px-4 py-3 font-semibold">Characters</th>
+                          <th className="px-4 py-3.5">Element</th>
+                          <th className="px-4 py-3.5">Content</th>
+                          <th className="px-4 py-3.5">Characters</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-slate-100 font-mono">
                         <tr>
-                          <td className="px-4 py-3 font-bold text-slate-700">Page Title</td>
-                          <td className="px-4 py-3 text-slate-900 break-words">{extractedData.metadata?.title || 'Not specified'}</td>
-                          <td className="px-4 py-3 text-slate-500">{extractedData.metadata?.title?.length || 0} chars</td>
+                          <td className="px-4 py-3.5 font-bold text-slate-800">Page Title</td>
+                          <td className="px-4 py-3.5 text-slate-900 break-words">{extractedData.metadata?.title || 'Not specified'}</td>
+                          <td className="px-4 py-3.5 text-slate-500">{extractedData.metadata?.title?.length || 0} chars</td>
                         </tr>
                         <tr>
-                          <td className="px-4 py-3 font-bold text-slate-700">Meta Description</td>
-                          <td className="px-4 py-3 text-slate-900 break-words">{extractedData.metadata?.description || 'Not specified'}</td>
-                          <td className="px-4 py-3 text-slate-500">{extractedData.metadata?.description?.length || 0} chars</td>
+                          <td className="px-4 py-3.5 font-bold text-slate-800">Meta Description</td>
+                          <td className="px-4 py-3.5 text-slate-900 break-words">{extractedData.metadata?.description || 'Not specified'}</td>
+                          <td className="px-4 py-3.5 text-slate-500">{extractedData.metadata?.description?.length || 0} chars</td>
                         </tr>
                         <tr>
-                          <td className="px-4 py-3 font-bold text-slate-700">Canonical URL</td>
-                          <td className="px-4 py-3 text-slate-900 break-all">{extractedData.metadata?.canonical || 'None'}</td>
-                          <td className="px-4 py-3 text-slate-500">-</td>
+                          <td className="px-4 py-3.5 font-bold text-slate-800">Canonical URL</td>
+                          <td className="px-4 py-3.5 text-slate-900 break-all">{extractedData.metadata?.canonical || 'None'}</td>
+                          <td className="px-4 py-3.5 text-slate-500">-</td>
                         </tr>
                         <tr>
-                          <td className="px-4 py-3 font-bold text-slate-700">Robots Directive</td>
-                          <td className="px-4 py-3 text-slate-900">{extractedData.metadata?.robots || 'index, follow'}</td>
-                          <td className="px-4 py-3 text-slate-500">-</td>
+                          <td className="px-4 py-3.5 font-bold text-slate-800">Robots Directive</td>
+                          <td className="px-4 py-3.5 text-slate-900">{extractedData.metadata?.robots || 'index, follow'}</td>
+                          <td className="px-4 py-3.5 text-slate-500">-</td>
                         </tr>
                         <tr>
-                          <td className="px-4 py-3 font-bold text-slate-700">HTML Language</td>
-                          <td className="px-4 py-3 text-slate-900">{extractedData.metadata?.language || 'en'}</td>
-                          <td className="px-4 py-3 text-slate-500">-</td>
+                          <td className="px-4 py-3.5 font-bold text-slate-800">HTML Language</td>
+                          <td className="px-4 py-3.5 text-slate-900">{extractedData.metadata?.language || 'en'}</td>
+                          <td className="px-4 py-3.5 text-slate-500">-</td>
                         </tr>
                       </tbody>
                     </table>
@@ -1118,13 +1157,13 @@ export default function WebsiteContentExtractorPage() {
                 </div>
 
                 {/* Social Card Preview (Open Graph) */}
-                <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-4">
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
                   <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <Eye className="w-4 h-4 text-blue-600" />
+                    <Eye className="w-4 h-4 text-[#0C81F3]" />
                     Open Graph Social Share Card Preview
                   </h3>
 
-                  <div className="max-w-md mx-auto rounded-xl border border-slate-200 overflow-hidden shadow-xs bg-white">
+                  <div className="max-w-md mx-auto rounded-2xl border border-slate-200 overflow-hidden shadow-xs bg-white">
                     {extractedData.metadata?.og?.image ? (
                       <img
                         src={extractedData.metadata.og.image}
@@ -1135,12 +1174,12 @@ export default function WebsiteContentExtractorPage() {
                         }}
                       />
                     ) : (
-                      <div className="w-full h-32 bg-slate-100 flex items-center justify-center text-slate-400 text-xs font-mono">
+                      <div className="w-full h-36 bg-slate-100 flex items-center justify-center text-slate-400 text-xs font-mono">
                         No OG image found
                       </div>
                     )}
                     <div className="p-4 space-y-1">
-                      <div className="text-[11px] text-slate-400 font-mono uppercase">{extractedData.hostname}</div>
+                      <div className="text-[11px] text-slate-400 font-mono uppercase font-bold">{extractedData.hostname}</div>
                       <h5 className="font-bold text-sm text-slate-900 line-clamp-2">
                         {extractedData.metadata?.og?.title || extractedData.metadata?.title}
                       </h5>
@@ -1152,15 +1191,15 @@ export default function WebsiteContentExtractorPage() {
                 </div>
 
                 {/* JSON-LD Schemas */}
-                <div className="bg-white rounded-2xl p-6 sm:p-8 border border-slate-200 shadow-xs space-y-4">
+                <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
                   <div className="flex items-center justify-between">
                     <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                      <Code className="w-4 h-4 text-blue-600" />
+                      <Code className="w-4 h-4 text-[#0C81F3]" />
                       Structured Data (JSON-LD Schemas) ({extractedData.jsonLd?.rawCount || 0})
                     </h3>
                     <button
                       onClick={() => handleCopy(JSON.stringify(extractedData.jsonLd?.schemas, null, 2), 'schema-json')}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-medium"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold cursor-pointer"
                     >
                       {copiedKey === 'schema-json' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
                       Copy Schemas
@@ -1168,7 +1207,7 @@ export default function WebsiteContentExtractorPage() {
                   </div>
 
                   {extractedData.jsonLd?.schemas?.length > 0 ? (
-                    <div className="max-h-72 overflow-y-auto p-4 bg-slate-900 text-slate-200 rounded-xl font-mono text-xs">
+                    <div className="max-h-72 overflow-y-auto p-5 bg-slate-900 text-slate-200 rounded-2xl font-mono text-xs shadow-inner">
                       <pre>{JSON.stringify(extractedData.jsonLd.schemas, null, 2)}</pre>
                     </div>
                   ) : (
@@ -1181,24 +1220,24 @@ export default function WebsiteContentExtractorPage() {
         )}
 
         {/* FAQ Accordion Section */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-xs">
+        <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 space-y-6 shadow-sm mt-12">
           <div className="text-center space-y-2">
-            <h3 className="text-2xl font-bold text-slate-900">Frequently Asked Questions</h3>
+            <h3 className="text-2xl sm:text-3xl font-bold text-slate-900">Frequently Asked Questions</h3>
             <p className="text-sm text-slate-600">
-              Everything you need to know about website extraction and grounded AI Q&A
+              Everything you need to know about website content extraction and grounded AI Q&A
             </p>
           </div>
 
-          <div className="space-y-3 max-w-3xl mx-auto pt-4">
+          <div className="space-y-3.5 max-w-3xl mx-auto pt-4">
             {FAQ_ITEMS.map((item, idx) => (
               <div
                 key={idx}
-                className="border border-slate-200 rounded-xl overflow-hidden transition-colors hover:border-slate-300"
+                className="border border-slate-200 rounded-2xl overflow-hidden transition-colors hover:border-slate-300 shadow-2xs"
               >
                 <button
                   type="button"
                   onClick={() => setExpandedFaq(expandedFaq === idx ? null : idx)}
-                  className="w-full flex items-center justify-between p-4 text-left font-semibold text-sm text-slate-900 bg-white hover:bg-slate-50"
+                  className="w-full flex items-center justify-between p-4 sm:p-5 text-left font-bold text-sm text-slate-900 bg-white hover:bg-slate-50 transition-colors cursor-pointer"
                 >
                   <span>{item.q}</span>
                   {expandedFaq === idx ? (
@@ -1208,7 +1247,7 @@ export default function WebsiteContentExtractorPage() {
                   )}
                 </button>
                 {expandedFaq === idx && (
-                  <div className="p-4 pt-0 text-sm text-slate-600 bg-white border-t border-slate-100">
+                  <div className="p-5 pt-0 text-sm text-slate-600 bg-white border-t border-slate-100 leading-relaxed">
                     {item.a}
                   </div>
                 )}
