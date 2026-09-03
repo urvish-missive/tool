@@ -198,15 +198,6 @@ export const apiSlice = createApi({
       }),
     }),
 
-    // POST /api/social-planner/generate
-    generateSocialPlan: builder.mutation({
-      query: (payload) => ({
-        url: '/social-planner/generate',
-        method: 'POST',
-        body: payload,
-      }),
-    }),
-
     // GET /api/health
     healthCheck: builder.query({
       query: () => '/health',
@@ -306,7 +297,6 @@ export const {
   useAskWebsiteQuestionMutation,
   useExtractWebsiteImagesMutation,
   useInspectWebsiteTechMutation,
-  useGenerateSocialPlanMutation,
   useHealthCheckQuery,
   useGetPublicToolsQuery,
   useAdminLoginMutation,

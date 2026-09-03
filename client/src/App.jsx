@@ -17,7 +17,6 @@ import GoogleRankCheckerPage from './tools/google-rank-checker/GoogleRankChecker
 import WebsiteContentExtractorPage from './tools/website-content-extractor/WebsiteContentExtractorPage'
 import WebsiteImageExtractorPage from './tools/website-image-extractor/WebsiteImageExtractorPage'
 import WebsiteTechInspectorPage from './tools/website-tech-inspector/WebsiteTechInspectorPage'
-import SocialPlannerPage from './tools/social-media-planner/SocialPlannerPage'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -156,14 +155,6 @@ export default function App() {
                     element={
                       <ToolGuard toolPath="/website-tech-inspector">
                         <WebsiteTechInspectorPage />
-                      </ToolGuard>
-                    }
-                  />
-                  <Route
-                    path="/social-media-planner"
-                    element={
-                      <ToolGuard toolPath="/social-media-planner">
-                        <SocialPlannerPage />
                       </ToolGuard>
                     }
                   />

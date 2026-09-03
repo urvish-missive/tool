@@ -79,9 +79,6 @@ const TOOL_FIELDS = {
   'website-tech-inspector': [
     { key: 'url', label: 'Website URL', icon: '🌐' },
   ],
-  'social-media-planner': [
-    { key: 'topic', label: 'Topic or Concept', icon: '📱' },
-  ],
 }
 
 export default function AdminTools() {

@@ -16,7 +16,6 @@ const TOOL_SLUG_MAP = {
   '/website-content-extractor': 'website-content-extractor',
   '/website-image-extractor': 'website-image-extractor',
   '/website-tech-inspector': 'website-tech-inspector',
-  '/social-media-planner': 'social-media-planner',
 }
 
 export default function ToolGuard({ toolPath, children }) {

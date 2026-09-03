@@ -18,7 +18,6 @@ import rankRoutes from './routes/rankRoutes.js'
 import extractorRoutes from './routes/extractorRoutes.js'
 import imageExtractorRoutes from './routes/imageExtractorRoutes.js'
 import techInspectorRoutes from './routes/techInspectorRoutes.js'
-import socialPlannerRoutes from './routes/socialPlannerRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 import { toolAccess } from './middleware/toolAccess.js'
 import prisma from './utils/prisma.js'
@@ -70,7 +69,6 @@ app.use('/api/rank', toolAccess('google-rank-checker'), rankRoutes)
 app.use('/api/extractor', toolAccess('website-content-extractor'), extractorRoutes)
 app.use('/api/image-extractor', toolAccess('website-image-extractor'), imageExtractorRoutes)
 app.use('/api/tech-inspector', toolAccess('website-tech-inspector'), techInspectorRoutes)
-app.use('/api/social-planner', toolAccess('social-media-planner'), socialPlannerRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -211,9 +209,6 @@ async function seedDefaults() {
       { slug: 'website-tech-inspector', name: 'Website Tech & Theme Inspector', description: 'Extract website theme colors, technology stack, Google font families, and design specs', dailyLimit: 60, hourlyLimit: 15, formFields: JSON.stringify({
         url: { enabled: true, label: 'Website URL', required: true },
       })},
-      { slug: 'social-media-planner', name: 'Social Media Post & Content Planner', description: 'Plan, generate, and schedule viral social media posts across LinkedIn, Twitter/X, and Instagram', dailyLimit: 60, hourlyLimit: 15, formFields: JSON.stringify({
-        topic: { enabled: true, label: 'Topic or Concept', required: true },
-      })},
     ]
     await prisma.toolConfig.createMany({ data: tools })
     console.log('✓ Default tool configs created')
@@ -324,26 +319,6 @@ async function seedDefaults() {
           },
         })
         console.log('✓ Website Tech & Theme Inspector tool config seeded')
-      }
-    } catch {}
-
-    // Ensure social-media-planner exists if database was already initialized
-    try {
-      const socialTool = await prisma.toolConfig.findUnique({ where: { slug: 'social-media-planner' } })
-      if (!socialTool) {
-        await prisma.toolConfig.create({
-          data: {
-            slug: 'social-media-planner',
-            name: 'Social Media Post & Content Planner',
-            description: 'Plan, generate, and schedule viral social media posts across LinkedIn, Twitter/X, and Instagram',
-            dailyLimit: 60,
-            hourlyLimit: 15,
-            formFields: JSON.stringify({
-              topic: { enabled: true, label: 'Topic or Concept', required: true },
-            }),
-          },
-        })
-        console.log('✓ Social Media Post & Content Planner tool config seeded')
       }
     } catch {}
   }

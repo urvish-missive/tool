@@ -17,7 +17,6 @@ const TOOL_SLUG_MAP = {
   website_content_extractor: 'website-content-extractor',
   website_image_extractor: 'website-image-extractor',
   website_tech_inspector: 'website-tech-inspector',
-  social_media_planner: 'social-media-planner',
 }
 
 const TOOLS = [
@@ -159,16 +158,6 @@ const TOOLS = [
     icon: '⚡',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/website-tech-inspector',
-    badge: 'New Tool',
-  },
-  {
-    id: 'social_media_planner',
-    title: 'Social Media Post & Content Planner',
-    description:
-      'Plan, generate, and schedule viral social media posts across LinkedIn, Twitter/X, and Instagram with 5 hook variants and calendar schedules.',
-    icon: '📱',
-    color: 'from-[#0C81F3] to-[#EB8988]',
-    path: '/social-media-planner',
     badge: 'New Tool',
   },
 ]

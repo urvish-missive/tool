@@ -92,10 +92,39 @@ export async function proxyImageDownloadHandler(req, res) {
       return res.status(response.status).send('Failed to fetch image from source server.')
     }
 
-    const contentType = response.headers.get('content-type') || 'application/octet-stream'
-    const cleanFilename = (filename || 'downloaded-image').replace(/[^a-zA-Z0-9._-]/g, '_')
+    const rawContentType = response.headers.get('content-type') || ''
+    const contentType = rawContentType.split(';')[0].trim().toLowerCase() || 'application/octet-stream'
 
-    res.setHeader('Content-Type', contentType)
+    // If source returned HTML (bot challenge, 403 page, error page), do not serve as image
+    if (contentType.includes('text/html') || contentType.includes('application/xhtml+xml')) {
+      return res.status(422).send('The target server returned an HTML webpage instead of an image.')
+    }
+
+    const mimeToExt = {
+      'image/svg+xml': '.svg',
+      'image/png': '.png',
+      'image/jpeg': '.jpg',
+      'image/jpg': '.jpg',
+      'image/webp': '.webp',
+      'image/gif': '.gif',
+      'image/avif': '.avif',
+      'image/x-icon': '.ico',
+      'image/vnd.microsoft.icon': '.ico',
+    }
+
+    let cleanFilename = (filename || 'image').replace(/[^a-zA-Z0-9._-]/g, '_')
+    const expectedExt = mimeToExt[contentType]
+
+    // Ensure filename ends with appropriate extension
+    if (expectedExt) {
+      if (!cleanFilename.toLowerCase().endsWith(expectedExt)) {
+        cleanFilename = cleanFilename.replace(/\.[a-zA-Z0-9]+$/, '') + expectedExt
+      }
+    } else if (!cleanFilename.includes('.')) {
+      cleanFilename += '.png'
+    }
+
+    res.setHeader('Content-Type', contentType || 'application/octet-stream')
     res.setHeader('Content-Disposition', `attachment; filename="${cleanFilename}"`)
 
     const arrayBuffer = await response.arrayBuffer()

@@ -143,7 +143,6 @@ export async function getStats(req, res) {
       ...((await prisma.extractedWebsite?.findMany?.({ orderBy: { createdAt: 'desc' }, take: 10, select: { id: true, websiteUrl: true, title: true, wordCount: true, createdAt: true } }).catch(() => [])) || []).map(e => ({ tool: 'Website Extractor', detail: e.websiteUrl, score: null, subdetail: `${e.wordCount || 0} words extracted`, createdAt: e.createdAt, id: e.id })),
       ...((await prisma.extractedImageProject?.findMany?.({ orderBy: { createdAt: 'desc' }, take: 10, select: { id: true, websiteUrl: true, totalImages: true, createdAt: true } }).catch(() => [])) || []).map(img => ({ tool: 'Image Extractor', detail: img.websiteUrl, score: null, subdetail: `${img.totalImages || 0} images discovered`, createdAt: img.createdAt, id: img.id })),
       ...((await prisma.extractedTechProject?.findMany?.({ orderBy: { createdAt: 'desc' }, take: 10, select: { id: true, websiteUrl: true, hostname: true, createdAt: true } }).catch(() => [])) || []).map(t => ({ tool: 'Tech & Theme Inspector', detail: t.websiteUrl, score: null, subdetail: t.hostname || 'Inspected', createdAt: t.createdAt, id: t.id })),
-      ...((await prisma.socialPlannerProject?.findMany?.({ orderBy: { createdAt: 'desc' }, take: 10, select: { id: true, topic: true, planType: true, createdAt: true } }).catch(() => [])) || []).map(s => ({ tool: 'Social Media Planner', detail: s.topic, score: null, subdetail: s.planType || 'Multi-platform', createdAt: s.createdAt, id: s.id })),
     ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt)).slice(0, 15)
 
     res.json({
@@ -357,10 +356,6 @@ export async function getActivity(req, res) {
         orderBy: { createdAt: 'desc' }, skip, take,
         select: { id: true, websiteUrl: true, hostname: true, createdAt: true },
       }),
-      'social-media-planner': () => prisma.socialPlannerProject.findMany({
-        orderBy: { createdAt: 'desc' }, skip, take,
-        select: { id: true, topic: true, planType: true, createdAt: true },
-      }),
     }
 
     let activity = []
@@ -434,7 +429,6 @@ async function getToolCount(tool) {
     'website-content-extractor': () => prisma.extractedWebsite?.count?.().catch(() => 0) || 0,
     'website-image-extractor': () => prisma.extractedImageProject?.count?.().catch(() => 0) || 0,
     'website-tech-inspector': () => prisma.extractedTechProject?.count?.().catch(() => 0) || 0,
-    'social-media-planner': () => prisma.socialPlannerProject?.count?.().catch(() => 0) || 0,
   }
   return counts[tool] ? counts[tool]() : 0
 }
@@ -453,7 +447,6 @@ function formatActivity(tool, record) {
     'website-content-extractor': 'Website Content Extractor',
     'website-image-extractor': 'Website Image Extractor',
     'website-tech-inspector': 'Tech & Theme Inspector',
-    'social-media-planner': 'Social Media Planner',
   }
   const base = { id: record.id, tool, toolName: toolNames[tool] || tool, createdAt: record.createdAt }
 
@@ -482,8 +475,6 @@ function formatActivity(tool, record) {
       return { ...base, detail: record.websiteUrl, score: null, subdetail: `${record.totalImages || 0} images discovered` }
     case 'website-tech-inspector':
       return { ...base, detail: record.websiteUrl, score: null, subdetail: record.hostname || 'Tech & Theme Inspected' }
-    case 'social-media-planner':
-      return { ...base, detail: record.topic, score: null, subdetail: record.planType || 'Content Planned' }
     default:
       return base
   }

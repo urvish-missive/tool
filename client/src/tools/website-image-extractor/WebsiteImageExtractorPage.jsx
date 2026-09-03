@@ -1,3 +1,4 @@
+
 import { useState, useMemo } from 'react'
 import { useExtractWebsiteImagesMutation } from '../../services/apiSlice'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
@@ -27,7 +28,11 @@ import {
   CheckCircle2,
   FileSpreadsheet,
   Layers,
+  CheckSquare,
+  Square,
+  Loader2,
 } from 'lucide-react'
+import { getApiUrl } from '../../utils/apiUrl'
 
 const LOADING_STEPS = [
   'Connecting to website & resolving DNS securely',
@@ -69,6 +74,11 @@ export default function WebsiteImageExtractorPage() {
   const [copiedKey, setCopiedKey] = useState(null)
   const [expandedFaq, setExpandedFaq] = useState(null)
   const [error, setError] = useState('')
+
+  // Multi-select & Batch Download state
+  const [selectedUrls, setSelectedUrls] = useState(new Set())
+  const [downloadingUrl, setDownloadingUrl] = useState(null)
+  const [batchProgress, setBatchProgress] = useState(null) // { current: 1, total: 5 }
 
   // Mutation
   const [extractImages, { isLoading }] = useExtractWebsiteImagesMutation()
@@ -116,6 +126,8 @@ export default function WebsiteImageExtractorPage() {
       setResults(data)
       setActiveCategory('all')
       setSearchQuery('')
+      setSelectedUrls(new Set())
+      setBatchProgress(null)
 
       setTimeout(() => {
         document.getElementById('image-extractor-results')?.scrollIntoView({ behavior: 'smooth' })
@@ -137,6 +149,8 @@ export default function WebsiteImageExtractorPage() {
     setResults(null)
     setError('')
     setPreviewImage(null)
+    setSelectedUrls(new Set())
+    setBatchProgress(null)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -167,10 +181,117 @@ export default function WebsiteImageExtractorPage() {
     return list
   }, [results, activeCategory, searchQuery])
 
-  // Download individual image via backend proxy
-  const getDownloadUrl = (img) => {
-    const filename = img.filename || `image.${img.format || 'jpg'}`
-    return `/api/image-extractor/download?url=${encodeURIComponent(img.url)}&filename=${encodeURIComponent(filename)}`
+  // Helper: Derive safe filename with proper extension (.svg, .png, .jpg, .webp)
+  const getSafeFilename = (img) => {
+    const extMap = {
+      svg: '.svg',
+      png: '.png',
+      jpg: '.jpg',
+      jpeg: '.jpg',
+      webp: '.webp',
+      gif: '.gif',
+      avif: '.avif',
+      ico: '.ico',
+    }
+    const fmt = (img.format || '').toLowerCase()
+    const expectedExt = extMap[fmt] || (img.url?.toLowerCase().includes('.svg') ? '.svg' : '.png')
+    let base = (img.filename || 'image')
+      .replace(/\.[a-zA-Z0-9]+$/, '')
+      .replace(/[^a-zA-Z0-9._-]/g, '_')
+    if (!base || base === '_') base = 'image'
+    return `${base}${expectedExt}`
+  }
+
+  // Reliable Image Download (Blob-based to prevent saving as .html)
+  const downloadSingleImage = async (img) => {
+    const safeFilename = getSafeFilename(img)
+    setDownloadingUrl(img.url)
+
+    try {
+      if (img.url.startsWith('data:')) {
+        const a = document.createElement('a')
+        a.href = img.url
+        a.download = safeFilename
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        return
+      }
+
+      const downloadEndpoint = getApiUrl(
+        `/image-extractor/download?url=${encodeURIComponent(img.url)}&filename=${encodeURIComponent(safeFilename)}`
+      )
+      const resp = await fetch(downloadEndpoint)
+      if (!resp.ok) {
+        throw new Error(`Server returned HTTP ${resp.status}`)
+      }
+      const blob = await resp.blob()
+      if (blob.type && blob.type.includes('text/html')) {
+        throw new Error('Received an HTML page instead of an image')
+      }
+
+      const objUrl = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = objUrl
+      a.download = safeFilename
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      setTimeout(() => URL.revokeObjectURL(objUrl), 1000)
+    } catch (err) {
+      console.warn('Proxy download error, opening directly in new tab:', err.message)
+      window.open(img.url, '_blank')
+    } finally {
+      setDownloadingUrl(null)
+    }
+  }
+
+  // Toggle selection for a single image
+  const toggleSelect = (imgUrl) => {
+    setSelectedUrls((prev) => {
+      const next = new Set(prev)
+      if (next.has(imgUrl)) next.delete(imgUrl)
+      else next.add(imgUrl)
+      return next
+    })
+  }
+
+  // Check if all currently filtered images are selected
+  const isAllSelected =
+    filteredImages.length > 0 && filteredImages.every((img) => selectedUrls.has(img.url))
+
+  // Select / Unselect all filtered images
+  const toggleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedUrls((prev) => {
+        const next = new Set(prev)
+        filteredImages.forEach((img) => next.delete(img.url))
+        return next
+      })
+    } else {
+      setSelectedUrls((prev) => {
+        const next = new Set(prev)
+        filteredImages.forEach((img) => next.add(img.url))
+        return next
+      })
+    }
+  }
+
+  // Batch Download all selected images with spacing
+  const downloadSelectedImages = async () => {
+    const toDownload = filteredImages.filter((img) => selectedUrls.has(img.url))
+    if (toDownload.length === 0) return
+
+    setBatchProgress({ current: 0, total: toDownload.length })
+
+    for (let i = 0; i < toDownload.length; i++) {
+      setBatchProgress({ current: i + 1, total: toDownload.length })
+      await downloadSingleImage(toDownload[i])
+      // 350ms delay between files so browser does not block multiple triggers
+      await new Promise((resolve) => setTimeout(resolve, 350))
+    }
+
+    setBatchProgress(null)
   }
 
   // Copy all URLs
@@ -545,6 +666,55 @@ export default function WebsiteImageExtractorPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Selection & Batch Action Toolbar */}
+              {filteredImages.length > 0 && (
+                <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-slate-50 border border-slate-200 rounded-2xl">
+                  <div className="flex items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={toggleSelectAll}
+                      className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white border border-slate-200 hover:bg-slate-100 text-xs font-bold text-slate-700 shadow-2xs transition-colors cursor-pointer"
+                    >
+                      {isAllSelected ? (
+                        <>
+                          <CheckSquare className="w-4 h-4 text-[#0C81F3]" />
+                          <span>Unselect All</span>
+                        </>
+                      ) : (
+                        <>
+                          <Square className="w-4 h-4 text-slate-400" />
+                          <span>Select All ({filteredImages.length})</span>
+                        </>
+                      )}
+                    </button>
+                    <span className="text-xs text-slate-600 font-medium">
+                      Selected: <strong className="text-slate-900">{selectedUrls.size}</strong> of {filteredImages.length}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={downloadSelectedImages}
+                      disabled={selectedUrls.size === 0 || Boolean(batchProgress)}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold shadow-md hover:opacity-95 disabled:opacity-40 transition-all cursor-pointer"
+                    >
+                      {batchProgress ? (
+                        <>
+                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          <span>Downloading {batchProgress.current} / {batchProgress.total}...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Download Selected ({selectedUrls.size})</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Images Display */}
@@ -557,113 +727,142 @@ export default function WebsiteImageExtractorPage() {
             ) : viewMode === 'grid' ? (
               /* GRID VIEW */
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-                {filteredImages.map((img, idx) => (
-                  <div
-                    key={idx}
-                    className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm hover:shadow-md transition-all flex flex-col group"
-                  >
-                    {/* Thumbnail Frame */}
-                    <div className="relative aspect-video bg-slate-100 flex items-center justify-center overflow-hidden border-b border-slate-100">
-                      <img
-                        src={img.url}
-                        alt={img.alt || img.filename}
-                        loading="lazy"
-                        className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300"
-                        onError={(e) => {
-                          e.target.style.display = 'none'
-                          e.target.parentElement.classList.add('bg-slate-50')
-                        }}
-                      />
+                {filteredImages.map((img, idx) => {
+                  const isSelected = selectedUrls.has(img.url)
+                  const isDownloading = downloadingUrl === img.url
 
-                      {/* Format Badge */}
-                      <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-mono font-bold uppercase tracking-wider">
-                        {img.format || 'img'}
-                      </span>
-
-                      {/* Category Badge */}
-                      {img.category === 'social' && (
-                        <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md bg-blue-600 text-white text-[10px] font-bold">
-                          OG Banner
-                        </span>
-                      )}
-                      {img.category === 'vector' && (
-                        <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md bg-indigo-600 text-white text-[10px] font-bold">
-                          SVG / Vector
-                        </span>
-                      )}
-
-                      {/* Zoom Trigger Button */}
+                  return (
+                    <div
+                      key={idx}
+                      className={`bg-white rounded-2xl border overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col group relative ${
+                        isSelected ? 'border-[#0C81F3] ring-2 ring-[#0C81F3]/40 bg-blue-50/15' : 'border-slate-200'
+                      }`}
+                    >
+                      {/* Checkbox Overlay (Top Right) */}
                       <button
-                        onClick={() => setPreviewImage(img)}
-                        className="absolute inset-0 bg-slate-900/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white cursor-pointer"
-                        title="Preview Full Size"
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          toggleSelect(img.url)
+                        }}
+                        className="absolute top-2.5 right-2.5 z-10 p-1.5 rounded-lg bg-white/95 backdrop-blur-xs text-slate-700 hover:text-[#0C81F3] shadow-md transition-all cursor-pointer"
+                        title={isSelected ? 'Unselect Image' : 'Select Image'}
                       >
-                        <div className="p-2 rounded-full bg-white/90 text-slate-900 shadow-md">
-                          <Maximize2 className="w-4 h-4" />
-                        </div>
-                      </button>
-                    </div>
-
-                    {/* Metadata Section */}
-                    <div className="p-4 space-y-2 flex-1 flex flex-col justify-between">
-                      <div className="space-y-1.5">
-                        <div className="text-xs font-bold text-slate-900 truncate" title={img.filename}>
-                          {img.filename}
-                        </div>
-
-                        {/* Alt Text Display */}
-                        {img.hasAlt ? (
-                          <p className="text-[11px] text-slate-600 line-clamp-2 italic" title={img.alt}>
-                            "{img.alt}"
-                          </p>
+                        {isSelected ? (
+                          <CheckSquare className="w-4 h-4 text-[#0C81F3]" />
                         ) : (
-                          <div className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md">
-                            <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0" />
-                            <span>Missing Alt Text</span>
-                          </div>
+                          <Square className="w-4 h-4 text-slate-400" />
                         )}
+                      </button>
+
+                      {/* Thumbnail Frame */}
+                      <div className="relative aspect-video bg-slate-100 flex items-center justify-center overflow-hidden border-b border-slate-100">
+                        <img
+                          src={img.url}
+                          alt={img.alt || img.filename}
+                          loading="lazy"
+                          className="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300"
+                          onError={(e) => {
+                            e.target.style.display = 'none'
+                            e.target.parentElement.classList.add('bg-slate-50')
+                          }}
+                        />
+
+                        {/* Format Badge */}
+                        <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-slate-900/80 backdrop-blur-xs text-white text-[10px] font-mono font-bold uppercase tracking-wider">
+                          {img.format || 'img'}
+                        </span>
+
+                        {/* Category Badge */}
+                        {img.category === 'social' && (
+                          <span className="absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-md bg-blue-600 text-white text-[10px] font-bold">
+                            OG Banner
+                          </span>
+                        )}
+                        {img.category === 'vector' && (
+                          <span className="absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-md bg-indigo-600 text-white text-[10px] font-bold">
+                            SVG / Vector
+                          </span>
+                        )}
+
+                        {/* Zoom Trigger Button */}
+                        <button
+                          onClick={() => setPreviewImage(img)}
+                          className="absolute inset-0 bg-slate-900/20 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white cursor-pointer"
+                          title="Preview Full Size"
+                        >
+                          <div className="p-2 rounded-full bg-white/90 text-slate-900 shadow-md">
+                            <Maximize2 className="w-4 h-4" />
+                          </div>
+                        </button>
                       </div>
 
-                      {/* Actions Row */}
-                      <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-                        <button
-                          onClick={() => handleCopy(img.url, `card-url-${idx}`)}
-                          className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-900 font-semibold cursor-pointer"
-                          title="Copy Image URL"
-                        >
-                          {copiedKey === `card-url-${idx}` ? (
-                            <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      {/* Metadata Section */}
+                      <div className="p-4 space-y-2 flex-1 flex flex-col justify-between">
+                        <div className="space-y-1.5">
+                          <div className="text-xs font-bold text-slate-900 truncate" title={img.filename}>
+                            {img.filename}
+                          </div>
+
+                          {/* Alt Text Display */}
+                          {img.hasAlt ? (
+                            <p className="text-[11px] text-slate-600 line-clamp-2 italic" title={img.alt}>
+                              "{img.alt}"
+                            </p>
                           ) : (
-                            <Copy className="w-3.5 h-3.5" />
+                            <div className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-md">
+                              <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0" />
+                              <span>Missing Alt Text</span>
+                            </div>
                           )}
-                          <span>Copy URL</span>
-                        </button>
+                        </div>
 
-                        <div className="flex items-center gap-1.5">
-                          <a
-                            href={img.url}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="p-1.5 text-slate-400 hover:text-[#0C81F3] rounded-lg hover:bg-slate-50 transition-colors"
-                            title="Open in new tab"
+                        {/* Actions Row */}
+                        <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+                          <button
+                            onClick={() => handleCopy(img.url, `card-url-${idx}`)}
+                            className="inline-flex items-center gap-1 text-xs text-slate-500 hover:text-slate-900 font-semibold cursor-pointer"
+                            title="Copy Image URL"
                           >
-                            <ExternalLink className="w-3.5 h-3.5" />
-                          </a>
+                            {copiedKey === `card-url-${idx}` ? (
+                              <Check className="w-3.5 h-3.5 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-3.5 h-3.5" />
+                            )}
+                            <span>Copy URL</span>
+                          </button>
 
-                          <a
-                            href={getDownloadUrl(img)}
-                            download={img.filename}
-                            className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-gradient-to-r hover:from-[#0C81F3] hover:to-[#EB8988] text-slate-700 hover:text-white text-xs font-bold transition-all shadow-2xs"
-                            title="Direct Download"
-                          >
-                            <Download className="w-3 h-3" />
-                            <span>Save</span>
-                          </a>
+                          <div className="flex items-center gap-1.5">
+                            <a
+                              href={img.url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="p-1.5 text-slate-400 hover:text-[#0C81F3] rounded-lg hover:bg-slate-50 transition-colors"
+                              title="Open in new tab"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                            </a>
+
+                            <button
+                              type="button"
+                              onClick={() => downloadSingleImage(img)}
+                              disabled={isDownloading}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-gradient-to-r hover:from-[#0C81F3] hover:to-[#EB8988] text-slate-700 hover:text-white text-xs font-bold transition-all shadow-2xs cursor-pointer disabled:opacity-50"
+                              title="Direct Download"
+                            >
+                              {isDownloading ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Download className="w-3 h-3" />
+                              )}
+                              <span>{isDownloading ? 'Saving...' : 'Save'}</span>
+                            </button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  )
+                })}
               </div>
             ) : (
               /* LIST VIEW */
@@ -672,6 +871,20 @@ export default function WebsiteImageExtractorPage() {
                   <table className="w-full text-xs text-left">
                     <thead className="bg-slate-50 text-slate-600 uppercase border-b border-slate-200 font-bold">
                       <tr>
+                        <th className="px-4 py-3.5 w-10">
+                          <button
+                            type="button"
+                            onClick={toggleSelectAll}
+                            className="cursor-pointer"
+                            title={isAllSelected ? 'Unselect All' : 'Select All'}
+                          >
+                            {isAllSelected ? (
+                              <CheckSquare className="w-4 h-4 text-[#0C81F3]" />
+                            ) : (
+                              <Square className="w-4 h-4 text-slate-400" />
+                            )}
+                          </button>
+                        </th>
                         <th className="px-4 py-3.5">Preview</th>
                         <th className="px-4 py-3.5">Filename</th>
                         <th className="px-4 py-3.5">Format</th>
@@ -680,66 +893,96 @@ export default function WebsiteImageExtractorPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {filteredImages.map((img, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50/80 transition-colors">
-                          <td className="px-4 py-3 w-16">
-                            <div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 p-1 flex items-center justify-center overflow-hidden">
-                              <img
-                                src={img.url}
-                                alt="thumbnail"
-                                className="w-full h-full object-contain"
-                                onError={(e) => {
-                                  e.target.style.display = 'none'
-                                }}
-                              />
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 font-bold text-slate-900 max-w-xs truncate" title={img.filename}>
-                            {img.filename}
-                          </td>
-                          <td className="px-4 py-3 font-mono uppercase font-bold text-slate-600">
-                            {img.format || 'img'}
-                          </td>
-                          <td className="px-4 py-3 max-w-sm">
-                            {img.hasAlt ? (
-                              <span className="text-slate-700 italic line-clamp-1">{img.alt}</span>
-                            ) : (
-                              <span className="text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded">Missing Alt</span>
-                            )}
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <div className="inline-flex items-center gap-2">
+                      {filteredImages.map((img, idx) => {
+                        const isSelected = selectedUrls.has(img.url)
+                        const isDownloading = downloadingUrl === img.url
+
+                        return (
+                          <tr
+                            key={idx}
+                            className={`hover:bg-slate-50/80 transition-colors ${
+                              isSelected ? 'bg-blue-50/30' : ''
+                            }`}
+                          >
+                            <td className="px-4 py-3 w-10">
                               <button
-                                onClick={() => handleCopy(img.url, `list-url-${idx}`)}
-                                className="p-1.5 text-slate-500 hover:text-slate-900 rounded-md hover:bg-slate-100"
-                                title="Copy URL"
+                                type="button"
+                                onClick={() => toggleSelect(img.url)}
+                                className="cursor-pointer"
+                                title={isSelected ? 'Unselect' : 'Select'}
                               >
-                                {copiedKey === `list-url-${idx}` ? (
-                                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                {isSelected ? (
+                                  <CheckSquare className="w-4 h-4 text-[#0C81F3]" />
                                 ) : (
-                                  <Copy className="w-3.5 h-3.5" />
+                                  <Square className="w-4 h-4 text-slate-400" />
                                 )}
                               </button>
-                              <a
-                                href={img.url}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="p-1.5 text-slate-500 hover:text-[#0C81F3] rounded-md hover:bg-slate-100"
-                                title="Open URL"
-                              >
-                                <ExternalLink className="w-3.5 h-3.5" />
-                              </a>
-                              <a
-                                href={getDownloadUrl(img)}
-                                download={img.filename}
-                                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-900 hover:text-white rounded-lg font-bold text-[11px] transition-colors"
-                              >
-                                Download
-                              </a>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
+                            </td>
+                            <td className="px-4 py-3 w-16">
+                              <div className="w-12 h-12 rounded-lg bg-slate-100 border border-slate-200 p-1 flex items-center justify-center overflow-hidden">
+                                <img
+                                  src={img.url}
+                                  alt="thumbnail"
+                                  className="w-full h-full object-contain"
+                                  onError={(e) => {
+                                    e.target.style.display = 'none'
+                                  }}
+                                />
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 font-bold text-slate-900 max-w-xs truncate" title={img.filename}>
+                              {img.filename}
+                            </td>
+                            <td className="px-4 py-3 font-mono uppercase font-bold text-slate-600">
+                              {img.format || 'img'}
+                            </td>
+                            <td className="px-4 py-3 max-w-sm">
+                              {img.hasAlt ? (
+                                <span className="text-slate-700 italic line-clamp-1">{img.alt}</span>
+                              ) : (
+                                <span className="text-amber-600 font-bold bg-amber-50 px-2 py-0.5 rounded">Missing Alt</span>
+                              )}
+                            </td>
+                            <td className="px-4 py-3 text-right">
+                              <div className="inline-flex items-center gap-2">
+                                <button
+                                  onClick={() => handleCopy(img.url, `list-url-${idx}`)}
+                                  className="p-1.5 text-slate-500 hover:text-slate-900 rounded-md hover:bg-slate-100 cursor-pointer"
+                                  title="Copy URL"
+                                >
+                                  {copiedKey === `list-url-${idx}` ? (
+                                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                                  ) : (
+                                    <Copy className="w-3.5 h-3.5" />
+                                  )}
+                                </button>
+                                <a
+                                  href={img.url}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  className="p-1.5 text-slate-500 hover:text-[#0C81F3] rounded-md hover:bg-slate-100"
+                                  title="Open URL"
+                                >
+                                  <ExternalLink className="w-3.5 h-3.5" />
+                                </a>
+                                <button
+                                  type="button"
+                                  onClick={() => downloadSingleImage(img)}
+                                  disabled={isDownloading}
+                                  className="px-2.5 py-1 bg-slate-100 hover:bg-slate-900 hover:text-white rounded-lg font-bold text-[11px] transition-colors cursor-pointer disabled:opacity-50 inline-flex items-center gap-1"
+                                >
+                                  {isDownloading ? (
+                                    <Loader2 className="w-3 h-3 animate-spin" />
+                                  ) : (
+                                    <Download className="w-3 h-3" />
+                                  )}
+                                  <span>{isDownloading ? 'Saving...' : 'Download'}</span>
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -799,13 +1042,24 @@ export default function WebsiteImageExtractorPage() {
                   >
                     {copiedKey === 'modal-url' ? 'Copied' : 'Copy URL'}
                   </button>
-                  <a
-                    href={getDownloadUrl(previewImage)}
-                    download={previewImage.filename}
-                    className="px-5 py-2 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white font-bold text-xs transition-all shadow-sm"
+                  <button
+                    type="button"
+                    onClick={() => downloadSingleImage(previewImage)}
+                    disabled={downloadingUrl === previewImage.url}
+                    className="px-5 py-2 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white font-bold text-xs transition-all shadow-sm cursor-pointer inline-flex items-center gap-1.5 disabled:opacity-50"
                   >
-                    Download Image
-                  </a>
+                    {downloadingUrl === previewImage.url ? (
+                      <>
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                        <span>Downloading...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Download className="w-3.5 h-3.5" />
+                        <span>Download Image</span>
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
             </div>
