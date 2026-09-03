@@ -73,6 +73,8 @@ export async function generateTopicsHandler(req, res) {
     res.json({
       success: true,
       topicsId: savedId,
+      pillarTopic: result.pillarTopic,
+      clusters: result.clusters,
       topics: result.topics,
       strategy: result.strategy,
       generatedAt: result.generatedAt,
