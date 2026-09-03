@@ -26,6 +26,9 @@ import {
   Image as ImageIcon,
   ListOrdered,
   Sliders,
+  FileText,
+  Compass,
+  CheckCircle,
 } from 'lucide-react'
 
 const LOADING_STEPS = [
