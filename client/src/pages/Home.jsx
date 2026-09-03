@@ -140,15 +140,15 @@ export default function Home() {
           <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
           <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
-            <span className="inline-block px-5 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-6 tracking-wider uppercase shadow-lg shadow-[#0C81F3]/25">
-              Free SEO Tools
+            <span className="inline-flex items-center gap-2 px-5 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-6 tracking-wider uppercase shadow-lg shadow-[#0C81F3]/25">
+              <span>✨ Curated by Himani Kankaria • Missive Digital</span>
             </span>
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
-              <span className="text-gray-900">Professional </span>
+              <span className="text-gray-900">Himani's </span>
               <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">SEO Tools</span>
             </h1>
             <p className="mt-6 text-base sm:text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed px-2">
-              Free, AI-powered SEO tools built by an agency for real-world use. No credit card required.
+              Bespoke, AI-powered SEO & content intelligence tools crafted by <strong>Himani Kankaria</strong> and the <strong>Missive Digital</strong> team. The exact battle-tested frameworks we use to rank clients on Google.
             </p>
           </div>
         </section>
@@ -181,6 +181,59 @@ export default function Home() {
                   </div>
                 </Link>
               ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Himani & Missive Digital Spotlight */}
+        <section className="py-16 bg-gradient-to-b from-white to-slate-50 border-t border-slate-200">
+          <div className="max-w-5xl mx-auto px-4 sm:px-6">
+            <div className="relative bg-gradient-to-br from-slate-900 via-[#101b33] to-[#1a1429] text-white rounded-3xl p-8 sm:p-12 shadow-2xl border border-slate-800 overflow-hidden">
+              <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-[#0C81F3]/25 via-[#EB8988]/20 to-transparent rounded-full blur-3xl pointer-events-none" />
+
+              <div className="relative flex flex-col md:flex-row items-center gap-8">
+                <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-gradient-to-tr from-[#0C81F3] to-[#EB8988] p-1 shrink-0 shadow-xl">
+                  <div className="w-full h-full rounded-[22px] bg-slate-950 flex flex-col items-center justify-center text-center p-2">
+                    <span className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-[#67A7FF] to-[#F7B7B3]">
+                      HK
+                    </span>
+                    <span className="text-[9px] uppercase tracking-wider text-slate-400 font-bold mt-1">
+                      Missive
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-3 text-center md:text-left flex-1">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs text-blue-300 font-semibold">
+                    <span>💡 Agency-Grade SEO Architecture</span>
+                  </div>
+
+                  <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+                    Why We Created <span className="bg-gradient-to-r from-[#67A7FF] to-[#F7B7B3] bg-clip-text text-transparent">Himani's SEO Tools</span>
+                  </h3>
+
+                  <p className="text-sm sm:text-base text-slate-300 leading-relaxed italic">
+                    "Search algorithms evolve every month, but Google always rewards depth, relevance, and human intent. We built these AI tools at Missive Digital to give growth leaders and creators the exact frameworks we use for our high-growth clients."
+                  </p>
+
+                  <div className="pt-2 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-white/10 text-xs text-slate-400">
+                    <div>
+                      <strong className="text-white text-sm block">Himani Kankaria</strong>
+                      <span>Founder & CEO, Missive Digital • International SEO & Content Strategist</span>
+                    </div>
+
+                    <a
+                      href="https://missivedigital.com/"
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white font-bold hover:opacity-95 transition-all shadow-md shrink-0"
+                    >
+                      <span>Explore Missive Digital</span>
+                      <span>↗</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </section>

@@ -16,9 +16,9 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Free SEO Tools */}
+          {/* Himani's SEO Tools */}
           <div>
-            <h3 className="text-white font-semibold text-base mb-5">Free SEO Tools</h3>
+            <h3 className="text-white font-semibold text-base mb-5">Himani's SEO Tools</h3>
             <ul className="space-y-3 text-sm">
               <li><a href="/content-analyzer" className="hover:text-white transition-colors">Content Analyzer</a></li>
               <li><a href="/seo-audit" className="hover:text-white transition-colors">SEO Website Audit</a></li>
@@ -69,7 +69,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 pt-8 border-t border-gray-800 text-center text-sm text-gray-500">
-          © {new Date().getFullYear()} Missivedigital.
+          © {new Date().getFullYear()} Missive Digital. Curated & Founded by Himani Kankaria. All rights reserved.
         </div>
       </div>
     </footer>

@@ -281,11 +281,11 @@ export default function XmlSitemapGeneratorPage() {
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase shadow-sm">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Sitemaps.org 0.9 & Google Compliant</span>
+            <span>Himani's SEO Tools • Missive Digital</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight mb-4">
-            <span className="text-gray-900">Free XML </span>
+            <span className="text-gray-900">XML </span>
             <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
               Sitemap Generator
             </span>

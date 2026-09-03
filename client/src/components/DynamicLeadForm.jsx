@@ -51,7 +51,7 @@ export default function DynamicLeadForm({ toolSlug, relatedIdField, relatedIdVal
           <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
         <h3 className="text-lg font-semibold text-green-800">Thank you!</h3>
-        <p className="text-green-700 mt-1">We'll be in touch within 24 hours with your free SEO strategy.</p>
+        <p className="text-green-700 mt-1">We'll be in touch within 24 hours. Himani and the Missive Digital SEO team will review your strategy.</p>
       </div>
     )
   }
@@ -91,7 +91,7 @@ export default function DynamicLeadForm({ toolSlug, relatedIdField, relatedIdVal
         {error && <p className="text-sm text-red-600">{error}</p>}
         <button type="submit" disabled={isLoading}
           className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-8 py-3.5 text-sm font-semibold text-white hover:from-[#0D73D1] hover:to-[#E77771] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#0C81F3]/25 hover:shadow-[#0C81F3]/40">
-          {isLoading ? 'Submitting...' : 'Get My SEO Strategy'}
+          {isLoading ? 'Submitting...' : 'Get Strategy from Missive Digital'}
         </button>
       </form>
     </div>

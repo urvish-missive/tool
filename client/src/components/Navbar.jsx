@@ -97,7 +97,7 @@ const NAV_ITEMS = [
     },
   },
   {
-    label: 'Free SEO Tools',
+    label: "Himani's SEO Tools",
     dropdown: {
       columns: [
         {
@@ -180,8 +180,11 @@ export default function Navbar() {
       <nav className="max-w-6xl mx-auto bg-white/90 backdrop-blur-xl rounded-2xl shadow-[0_2px_20px_rgba(0,0,0,0.08)] border border-white/60 px-4 sm:px-6" role="navigation" aria-label="Main navigation">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 shrink-0">
+          <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
             <img src="/logo.png" alt="Missive Digital" className="h-8 w-auto" />
+            <span className="hidden sm:inline-flex items-center px-2 py-0.5 rounded-full bg-gradient-to-r from-[#0C81F3]/10 to-[#EB8988]/15 border border-[#0C81F3]/20 text-[10px] font-bold text-slate-700 tracking-tight">
+              by Himani Kankaria
+            </span>
           </Link>
 
           {/* Desktop nav */}
