@@ -28,6 +28,7 @@ export function toolAccess(toolSlug) {
           'website-content-extractor': { name: 'Website Content Extractor & AI Q&A', description: 'Extract clean website content, metadata, schema, and answer questions with AI' },
           'website-image-extractor': { name: 'Website Image Extractor & Downloader', description: 'Extract all images, logos, SVGs, and social banners from any URL with 1-click downloads' },
           'website-tech-inspector': { name: 'Website Tech & Theme Inspector', description: 'Extract website theme colors, technology stack, Google font families, and design specs' },
+          'social-media-planner': { name: 'Social Media Post & Content Planner', description: 'Plan, generate, and schedule viral social media posts across LinkedIn, Twitter/X, and Instagram' },
         }
         const info = defaults[toolSlug] || { name: toolSlug, description: '' }
         await prisma.toolConfig.create({

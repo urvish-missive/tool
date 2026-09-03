@@ -179,6 +179,8 @@ model Lead {
   extractedImages     ExtractedImageProject? @relation(fields: [extractedImagesId], references: [id])
   extractedTechId     String?           @db.ObjectId
   extractedTech       ExtractedTechProject? @relation(fields: [extractedTechId], references: [id])
+  socialPlannerId     String?           @db.ObjectId
+  socialPlanner       SocialPlannerProject? @relation(fields: [socialPlannerId], references: [id])
   createdAt          DateTime          @default(now())
 
   @@index([email])
@@ -348,6 +350,23 @@ model ExtractedTechProject {
 
   @@index([createdAt])
   @@index([websiteUrl])
+}
+
+model SocialPlannerProject {
+  id                 String   @id @default(auto()) @map("_id") @db.ObjectId
+  topic              String
+  planType           String   // 'single' | 'sprint_7d' | 'calendar_30d'
+  platformsJson      String   // JSON array of selected platforms
+  tone               String?
+  audience           String?
+  postsJson          String   // JSON array of generated posts with hooks & hashtags
+  calendarJson       String?  // JSON structured calendar schedule if sprint/calendar
+  strategySummary    String?  // Strategic recommendation & pillars breakdown
+  createdAt          DateTime @default(now())
+  leads              Lead[]
+
+  @@index([createdAt])
+  @@index([topic])
 }
 
 // ─── Admin & Tool Management ────────────────────────────
