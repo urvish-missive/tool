@@ -285,9 +285,7 @@ export default function Navbar() {
                 {/* Desktop dropdown */}
                 {item.dropdown && activeDropdown === idx && (
                   <div
-                    className={`absolute top-full mt-3 rounded-2xl overflow-hidden shadow-2xl border border-white/40 z-50 ${
-                      idx >= 3 ? 'right-0' : 'left-1/2 -translate-x-1/2'
-                    } w-max max-w-[calc(100vw-2rem)]`}
+                    className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-max max-w-[calc(100vw-2rem)] rounded-2xl overflow-hidden shadow-2xl border border-white/40 z-50"
                     onMouseEnter={() => handleMouseEnter(idx)}
                     onMouseLeave={handleMouseLeave}
                   >
@@ -296,7 +294,7 @@ export default function Navbar() {
                       style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)' }}
                     >
                       <div
-                        className={`grid gap-5 sm:gap-6 ${
+                        className={`grid gap-4 sm:gap-5 ${
                           item.dropdown.columns.length === 1
                             ? 'grid-cols-1'
                             : item.dropdown.columns.length === 2
@@ -305,7 +303,7 @@ export default function Navbar() {
                         }`}
                       >
                         {item.dropdown.columns.map((col, ci) => (
-                          <div key={ci} className="space-y-1 min-w-[205px]">
+                          <div key={ci} className="space-y-1 min-w-[195px]">
                             {col.title && (
                               <div className="px-3 pb-2 text-[10px] font-extrabold uppercase tracking-widest text-white/75 border-b border-white/15 mb-1.5 flex items-center justify-between">
                                 <span>{col.title}</span>

@@ -462,10 +462,10 @@ export default function WebsiteContentExtractorPage() {
 
         {/* Extracted Results Dashboard */}
         {extractedData && !isExtracting && (
-          <div id="extractor-results" className="space-y-6 pt-2">
+          <div id="extractor-results" className="space-y-4 pt-2">
             {/* Top Quick Summary Bar */}
-            <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-              <div className="flex items-center gap-3.5">
+            <div className="bg-white rounded-3xl px-5 py-4 sm:px-6 sm:py-4 border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
                 {extractedData.metadata?.favicon ? (
                   <img
                     src={extractedData.metadata.favicon}
@@ -481,8 +481,8 @@ export default function WebsiteContentExtractorPage() {
                   </div>
                 )}
                 <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-lg sm:text-xl font-bold text-slate-900 truncate max-w-md">
+                  <div className="flex items-center gap-1.5">
+                    <h2 className="text-base sm:text-lg font-bold text-slate-900 truncate max-w-md">
                       {extractedData.metadata?.title || extractedData.hostname}
                     </h2>
                     <a
@@ -500,17 +500,17 @@ export default function WebsiteContentExtractorPage() {
               </div>
 
               {/* Action Badges & Buttons */}
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-bold">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold">
                   <FileText className="w-3.5 h-3.5 text-slate-500" />
                   {extractedData.content?.wordCount?.toLocaleString() || 0} words
                 </span>
-                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-100 text-slate-700 text-xs font-bold">
+                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold">
                   <Clock className="w-3.5 h-3.5 text-slate-500" />
                   ~{extractedData.content?.readingTimeMinutes || 1} min read
                 </span>
                 {extractedData.aiOverview?.detectedOwner?.name && (
-                  <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-blue-50 border border-blue-200 text-[#0C81F3] text-xs font-bold">
+                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#0C81F3] text-xs font-bold">
                     <Building className="w-3.5 h-3.5" />
                     {extractedData.aiOverview.detectedOwner.name}
                   </span>
@@ -518,78 +518,75 @@ export default function WebsiteContentExtractorPage() {
 
                 <button
                   onClick={() => handleDownload('json')}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
                 >
                   <Download className="w-3.5 h-3.5" />
                   Export JSON
                 </button>
               </div>
-            </div>
-
-            {/* Navigation Tabs */}
-            <div className="flex border-b border-slate-200 bg-white rounded-t-3xl px-6 pt-3 gap-3 overflow-x-auto shadow-2xs">
+            </div>            {/* Navigation Tabs */}
+            <div className="flex border-b border-slate-200 bg-white rounded-t-3xl sm:px-6 px-3 pt-1 gap-1 sm:gap-3 overflow-x-auto shadow-2xs">
               <button
                 onClick={() => setActiveTab('qa')}
-                className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                   activeTab === 'qa'
                     ? 'border-[#0C81F3] text-[#0C81F3]'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
-              >
+                }`}>
                 <MessageSquare className="w-4 h-4" />
                 AI Q&A Assistant
-                <span className="px-2 py-0.5 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[10px] font-bold">
+                <span className="hidden sm:inline-block px-2 py-0.5 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[10px] font-bold">
                   Ground Truth
                 </span>
               </button>
 
               <button
                 onClick={() => setActiveTab('overview')}
-                className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                   activeTab === 'overview'
                     ? 'border-[#0C81F3] text-[#0C81F3]'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
-              >
+                }`}>
                 <Building className="w-4 h-4" />
-                Entity & Ownership Clues
+                <span className="hidden sm:inline">Entity & Ownership Clues</span>
+                <span className="sm:hidden">Entity</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('content')}
-                className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                   activeTab === 'content'
                     ? 'border-[#0C81F3] text-[#0C81F3]'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
-              >
+                }`}>
                 <FileText className="w-4 h-4" />
-                Extracted Clean Content
+                <span className="hidden sm:inline">Extracted Clean Content</span>
+                <span className="sm:hidden">Content</span>
               </button>
 
               <button
                 onClick={() => setActiveTab('metadata')}
-                className={`flex items-center gap-2 px-5 py-3 text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2.5 sm:py-3 text-xs sm:text-sm font-bold border-b-2 transition-all whitespace-nowrap cursor-pointer ${
                   activeTab === 'metadata'
                     ? 'border-[#0C81F3] text-[#0C81F3]'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}
-              >
+                }`}>
                 <Layers className="w-4 h-4" />
-                SEO & Schema Markup
+                <span className="hidden sm:inline">SEO & Schema Markup</span>
+                <span className="sm:hidden">Schema</span>
               </button>
             </div>
 
             {/* TAB 1: AI Q&A ASSISTANT */}
             {activeTab === 'qa' && (
-              <div className="bg-white rounded-b-3xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-sm">
+              <div className="bg-white rounded-b-3xl border border-slate-200 p-4 sm:p-6 space-y-5 shadow-sm">
                 {/* Preset Chips */}
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <div className="flex items-center gap-2 text-xs font-bold text-slate-800 uppercase tracking-wider">
                     <Sparkles className="w-4 h-4 text-[#0C81F3]" />
                     Instant Questions Grounded in this Website
                   </div>
-                  <div className="flex flex-wrap gap-2.5">
+                  <div className="flex flex-wrap gap-2">
                     {PRESET_QUESTIONS.map((item, idx) => (
                       <button
                         key={idx}
@@ -604,8 +601,8 @@ export default function WebsiteContentExtractorPage() {
                   </div>
                 </div>
 
-                {/* Question Input Box (Placed prominently near top) */}
-                <div className="pt-1">
+                {/* Question Input Box */}
+                <div className="">
                   <div className="relative flex items-center">
                     <input
                       type="text"
@@ -631,8 +628,8 @@ export default function WebsiteContentExtractorPage() {
                   </div>
                 </div>
 
-                {/* Chat Stream / Q&A Dialogue (Reverse order: Newest Q&A on top) */}
-                <div className="space-y-4 pt-4 border-t border-slate-100">
+                {/* Chat Stream / Q&A Dialogue */}
+                <div className="space-y-4 pt-3 border-t border-slate-100">
                   {/* Active Question Loader at the Top */}
                   {isAnswering && (
                     <div className="space-y-3 animate-pulse">
