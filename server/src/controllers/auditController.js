@@ -11,7 +11,7 @@ import prisma from '../utils/prisma.js'
 
 export async function createAudit(req, res) {
   try {
-    const { websiteUrl, targetKeyword, country, preferredProvider } = req.body
+    const { websiteUrl, preferredProvider } = req.body
 
     if (!websiteUrl)
       return res.status(400).json({ success: false, error: 'Website URL is required.' })
@@ -66,7 +66,7 @@ export async function createAudit(req, res) {
 
     // 2. Perform modular diagnostics
     const technicalResult = analyzeTechnical(crawlData)
-    const onpageResult = analyzeOnPage(crawlData.pages, targetKeyword)
+    const onpageResult = analyzeOnPage(crawlData.pages)
     const linkResult = analyzeLinks(crawlData)
     const schemaResult = analyzeSchema(crawlData.pages)
     const scores = calculateScores(

@@ -1,6 +1,6 @@
 import { createIssue, findDuplicates, keywordFrequency } from '../../utils/helpers.js'
 
-export function analyzeOnPage(pages, targetKeyword) {
+export function analyzeOnPage(pages) {
   const issues = []
   const summary = {
     totalPages: pages.length,
