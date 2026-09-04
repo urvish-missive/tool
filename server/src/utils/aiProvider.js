@@ -28,7 +28,7 @@ const PROVIDERS = {
   },
   groq: {
     url: 'https://api.groq.com/openai/v1/chat/completions',
-    model: process.env.GROQ_MODEL || 'openai/gpt-oss-20b',
+    model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
     key: process.env.GROQ_API_KEY,
     headerName: 'Authorization',
     headerPrefix: 'Bearer ',
@@ -53,12 +53,12 @@ async function callProvider(providerName, messages, options = {}) {
   const { temperature = 0.4, maxTokens = 4000, timeout = AI_TIMEOUT, jsonMode = false } = options
 
   const body = {
-      model: provider.model,
-      messages,
-      temperature,
-      max_tokens: maxTokens,
-    }
-    if (jsonMode) body.response_format = { type: 'json_object' }
+    model: provider.model,
+    messages,
+    temperature,
+    max_tokens: maxTokens,
+  }
+  if (jsonMode && providerName !== 'groq') body.response_format = { type: 'json_object' }
 
     const response = await fetchWithTimeout(provider.url, {
       method: 'POST',

@@ -149,14 +149,58 @@ export function calculateCategoryScore(checks, issueCount, severityCounts) {
 // ─── JSON Repair ──────────────────────────────────────────────
 
 export function extractAndCleanJSON(raw) {
-  let cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
+  if (!raw || typeof raw !== 'string') return '{}'
+
+  // 1. Remove markdown fences anywhere in text
+  let cleaned = raw.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim()
+
+  // 2. Locate outermost JSON object {...} or array [...]
   const firstBrace = cleaned.indexOf('{')
-  const lastBrace = cleaned.lastIndexOf('}')
-  if (firstBrace !== -1 && lastBrace > firstBrace) {
-    cleaned = cleaned.substring(firstBrace, lastBrace + 1)
+  const firstBracket = cleaned.indexOf('[')
+
+  if (firstBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
+    const lastBrace = cleaned.lastIndexOf('}')
+    if (lastBrace > firstBrace) {
+      cleaned = cleaned.substring(firstBrace, lastBrace + 1)
+    }
+  } else if (firstBracket !== -1) {
+    const lastBracket = cleaned.lastIndexOf(']')
+    if (lastBracket > firstBracket) {
+      cleaned = cleaned.substring(firstBracket, lastBracket + 1)
+    }
   }
+
+  // 3. Fix trailing commas before } or ]
   cleaned = cleaned.replace(/,\s*([}\]])/g, '$1')
-  try { JSON.parse(cleaned); return cleaned } catch { return cleaned }
+
+  // 4. Remove invalid control characters
+  cleaned = cleaned.replace(/[\x00-\x1F\x7F-\x9F]/g, (c) => {
+    if (c === '\n' || c === '\r' || c === '\t') return c
+    return ''
+  })
+
+  // 5. Try parsing; if truncated, attempt auto-closing
+  try {
+    JSON.parse(cleaned)
+    return cleaned
+  } catch {
+    let repaired = cleaned.replace(/,\s*$/, '')
+    const quotes = (repaired.match(/"/g) || []).length
+    if (quotes % 2 !== 0) repaired += '"'
+
+    const openBraces = (repaired.match(/\{/g) || []).length - (repaired.match(/\}/g) || []).length
+    const openBrackets = (repaired.match(/\[/g) || []).length - (repaired.match(/\]/g) || []).length
+
+    for (let i = 0; i < Math.max(0, openBrackets); i++) repaired += ']'
+    for (let i = 0; i < Math.max(0, openBraces); i++) repaired += '}'
+
+    try {
+      JSON.parse(repaired)
+      return repaired
+    } catch {
+      return cleaned
+    }
+  }
 }
 
 // ─── Retry Wrapper ────────────────────────────────────────────

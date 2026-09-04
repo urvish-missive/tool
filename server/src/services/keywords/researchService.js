@@ -7,13 +7,13 @@ const CRAWL_TIMEOUT = parseInt(process.env.CRAWL_TIMEOUT || '10000', 10)
 
 /* ── Language & Region Auto-Detection ────────────────────────────── */
 
-export function detectLanguageAndRegion(text = '', websiteUrl = '', htmlLang = '') {
+export async function detectLanguageAndRegion(text = '', websiteUrl = '', htmlLang = '', preferredProvider = null) {
   let lang = 'English'
   let langCode = 'en'
   let country = 'Global'
   let countryCode = 'us'
 
-  // 1. Check HTML lang attribute if provided
+  // 1. Check HTML lang attribute if provided from crawled website
   if (htmlLang) {
     const cleanLang = htmlLang.toLowerCase().split(/[-_]/)[0].trim()
     const langMap = {
@@ -28,7 +28,7 @@ export function detectLanguageAndRegion(text = '', websiteUrl = '', htmlLang = '
     }
   }
 
-  // 2. Check website domain TLD
+  // 2. Check website domain TLD if provided
   if (websiteUrl) {
     try {
       const hostname = new URL(websiteUrl.startsWith('http') ? websiteUrl : `https://${websiteUrl}`).hostname.toLowerCase()
@@ -67,44 +67,53 @@ export function detectLanguageAndRegion(text = '', websiteUrl = '', htmlLang = '
     } catch {}
   }
 
-  // 3. Detect character script & vocabulary from Seed Keyword / Text
+  // 3. Instant Non-Latin Script Character Range Detection (Zero hardcoded words)
   if (text) {
-    const lower = text.toLowerCase()
-    const words = lower.split(/[^a-zA-Z\u00C0-\u024F\u0900-\u097F]+/).filter(w => w.length >= 2)
-
     if (/[\u0900-\u097F]/.test(text)) {
-      lang = 'Hindi'; langCode = 'hi'; country = 'India'; countryCode = 'in'
+      return { detectedLanguage: 'Hindi', languageCode: 'hi', detectedRegion: 'India', countryCode: 'in' }
     } else if (/[\u0600-\u06FF]/.test(text)) {
-      lang = 'Arabic'; langCode = 'ar'; country = 'Middle East'; countryCode = 'ae'
+      return { detectedLanguage: 'Arabic', languageCode: 'ar', detectedRegion: 'Middle East', countryCode: 'ae' }
     } else if (/[\u0400-\u04FF]/.test(text)) {
-      lang = 'Russian'; langCode = 'ru'; country = 'Global'; countryCode = 'ru'
+      return { detectedLanguage: 'Russian', languageCode: 'ru', detectedRegion: 'Global', countryCode: 'ru' }
     } else if (/[\u3040-\u30FF\u31F0-\u31FF\u4E00-\u9FAF]/.test(text)) {
-      lang = 'Japanese'; langCode = 'ja'; country = 'Japan'; countryCode = 'jp'
+      return { detectedLanguage: 'Japanese', languageCode: 'ja', detectedRegion: 'Japan', countryCode: 'jp' }
     } else if (/[\uAC00-\uD7AF]/.test(text)) {
-      lang = 'Korean'; langCode = 'ko'; country = 'South Korea'; countryCode = 'kr'
+      return { detectedLanguage: 'Korean', languageCode: 'ko', detectedRegion: 'South Korea', countryCode: 'kr' }
     } else if (/[\u4E00-\u9FFF]/.test(text)) {
-      lang = 'Chinese'; langCode = 'zh'; country = 'Global'; countryCode = 'cn'
-    } else {
-      const SPANISH_WORDS = new Set(['llamadas', 'centro', 'para', 'como', 'gratis', 'mejores', 'precio', 'servicios', 'los', 'las', 'del', 'el', 'la', 'con', 'por'])
-      const FRENCH_WORDS = new Set(['appels', 'logiciel', 'centre', 'gratuit', 'meilleur', 'prix', 'services', 'les', 'des', 'pour', 'avec', 'dans', 'du', 'le'])
-      const GERMAN_WORDS = new Set(['fuer', 'mit', 'kauf', 'kostenlos', 'beste', 'preis', 'der', 'die', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'und'])
-      const ITALIAN_WORDS = new Set(['chiamate', 'migliori', 'prezzo', 'servizi', 'il', 'le', 'gli', 'uno', 'per'])
-      const PORTUGUESE_WORDS = new Set(['chamadas', 'melhores', 'preco', 'servicos', 'para', 'com', 'dos', 'das', 'uma'])
+      return { detectedLanguage: 'Chinese', languageCode: 'zh', detectedRegion: 'Global', countryCode: 'cn' }
+    }
+  }
 
-      let esScore = (text.match(/[áéíóúüñ¿¡]/gi) || []).length * 3 + words.filter(w => SPANISH_WORDS.has(w)).length
-      let frScore = (text.match(/[éèêëàâäôöûüçîï]/gi) || []).length * 3 + words.filter(w => FRENCH_WORDS.has(w)).length
-      let deScore = (text.match(/[äöüß]/gi) || []).length * 3 + words.filter(w => GERMAN_WORDS.has(w)).length
-      let itScore = words.filter(w => ITALIAN_WORDS.has(w)).length
-      let ptScore = (text.match(/[ãõçáéíóú]/gi) || []).length * 2 + words.filter(w => PORTUGUESE_WORDS.has(w)).length
+  // 4. Dynamic AI Linguistic & Market Identification (Zero hardcoded words)
+  if (text && text.trim().length >= 2) {
+    try {
+      const prompt = `You are a multilingual SEO expert. Identify the natural language and primary country/market for this search term or website:
+Query: "${text.trim()}"
+Website URL: "${websiteUrl || ''}"
+HTML Lang: "${htmlLang || ''}"
 
-      const maxScore = Math.max(esScore, frScore, deScore, itScore, ptScore)
-      if (maxScore > 0) {
-        if (maxScore === esScore) { lang = 'Spanish'; langCode = 'es'; country = 'Global'; countryCode = 'es' }
-        else if (maxScore === frScore) { lang = 'French'; langCode = 'fr'; country = 'France'; countryCode = 'fr' }
-        else if (maxScore === deScore) { lang = 'German'; langCode = 'de'; country = 'Germany'; countryCode = 'de' }
-        else if (maxScore === itScore) { lang = 'Italian'; langCode = 'it'; country = 'Italy'; countryCode = 'it' }
-        else if (maxScore === ptScore) { lang = 'Portuguese'; langCode = 'pt'; country = 'Brazil'; countryCode = 'br' }
+Return JSON strictly without any markdown or conversational text:
+{
+  "detectedLanguage": "Full English name of language e.g. Italian, Spanish, French, German, Hindi, English, Swedish, Dutch, Portuguese, etc.",
+  "languageCode": "2-letter ISO 639-1 code e.g. it, es, fr, de, hi, en, sv, nl, pt, etc.",
+  "detectedRegion": "Country name or Global e.g. Italy, Spain, France, Germany, India, Sweden, Netherlands, Brazil, Global, etc.",
+  "countryCode": "2-letter ISO 3166-1 alpha-2 country code e.g. it, es, fr, de, in, se, nl, br, us, etc."
+}`
+
+      const aiRes = await callAIAndParseJSON([
+        { role: 'user', content: prompt }
+      ], { temperature: 0.1, maxTokens: 150, jsonMode: true, preferredProvider })
+
+      if (aiRes && aiRes.detectedLanguage) {
+        return {
+          detectedLanguage: aiRes.detectedLanguage.trim(),
+          languageCode: (aiRes.languageCode || 'en').toLowerCase().trim().slice(0, 2),
+          detectedRegion: aiRes.detectedRegion ? aiRes.detectedRegion.trim() : country,
+          countryCode: (aiRes.countryCode || 'us').toLowerCase().trim().slice(0, 2),
+        }
       }
+    } catch (err) {
+      console.log('Dynamic AI language detection error:', err.message)
     }
   }
 
@@ -383,7 +392,7 @@ function extractStringsFromBundle(code) {
   return [...new Set(strings)].slice(0, 200)
 }
 
-async function crawlWebsite(url) {
+export async function crawlWebsite(url) {
   if (!url) return null
   try {
     const parsed = validateURL(url)
@@ -443,9 +452,9 @@ async function crawlWebsite(url) {
     const allBody = pages.map(p => p.bodyText).join(' ').substring(0, 5000)
     const allJsonLd = pages.flatMap(p => p.jsonLd || [])
 
-    const combinedText = [allBody, bundleText, allDescs.join(' '), allH1.join(' '), allH2.join(' '), sitemapText].join(' ').substring(0, 8000)
-    const productTerms = combinedText.match(/\b(buy|shop|order|price|cost|product|service|plan|subscription|feature|review|best|top|compare|vs|alternative|discount|offer|deal|free|trial|demo|claim|renewal|coordinator|assistance|hospital|cashless|claim|policy|coverage|premium|insur)\w*\b/gi) || []
-    const uniqueTerms = [...new Set(productTerms.map(t => t.toLowerCase()))]
+    const sectionHeadings = [...new Set([...allH1, ...allH2, ...allH3])]
+      .map(h => h.trim())
+      .filter(h => h.length > 3 && h.length < 80 && !/^(home|about|contact|login|sign up|privacy|terms|menu|navigation)$/i.test(h))
 
     return {
       htmlLang: data.htmlLang || data.ogLocale,
@@ -458,7 +467,7 @@ async function crawlWebsite(url) {
       bundleText: bundleText.substring(0, 4000),
       sitemapUrls: (sitemapText.match(/<loc>([^<]+)<\/loc>/g) || []).slice(0, 10).map(m => m.replace(/<\/?loc>/g, '')),
       jsonLd: allJsonLd,
-      productTerms: uniqueTerms.slice(0, 30),
+      productTerms: sectionHeadings.slice(0, 25),
     }
   } catch (err) {
     console.log('Website crawl failed:', err.message)
@@ -704,6 +713,99 @@ function generateFallbackReport(input, crawlData, searchEngineKeywords = [], com
   }
 }
 
+/* ── Semantic Website Core Topic Extraction ─────────────────────── */
+
+export async function extractWebsiteCoreTopic(crawlData, websiteUrl, preferredProvider = null) {
+  if (!crawlData) return { primarySeedKeyword: 'business', businessType: 'General', offerings: [] }
+
+  try {
+    const prompt = `You are an expert SEO analyst. Analyze this crawled website and extract the primary core industry/product SEO topic and business details.
+
+Website URL: ${websiteUrl}
+Page Titles: ${crawlData.titles.slice(0, 3).join(' | ')}
+Meta Descriptions: ${crawlData.descriptions.slice(0, 2).join(' | ')}
+H1 Headings: ${crawlData.headings.h1.slice(0, 3).join(' | ')}
+H2 Headings: ${crawlData.headings.h2.slice(0, 10).join(' | ')}
+Body Excerpt: ${crawlData.bodyExcerpt.substring(0, 1200)}
+
+Rules:
+1. "primarySeedKeyword" MUST be the most accurate 2-4 word core product or industry search topic that real customers search for (e.g. 'call center software', 'cloud pbx', 'white label softphone', 'shoes online', 'digital marketing agency', etc.).
+2. DO NOT include company/brand names (e.g. avoid 'HoduSoft', 'Tragofone', 'Apple', 'Nike') or generic slogans (e.g. avoid 'Home', 'AI powered platform that powers', 'welcome to').
+3. Detect the website's primary language and country market.
+
+Return JSON strictly without markdown or comments:
+{
+  "primarySeedKeyword": "2-4 word primary industry or product search query",
+  "businessType": "SaaS | E-commerce | B2B | B2C | Agency | Local Business | Publisher",
+  "topOfferings": ["3 to 5 core services or products offered"],
+  "detectedLanguage": "Full English name of language e.g. English, Italian, Spanish, French, German, etc.",
+  "languageCode": "2-letter ISO 639-1 code e.g. en, it, es, fr, de, etc.",
+  "detectedRegion": "Country or Global e.g. Global, Italy, United States, France, etc.",
+  "countryCode": "2-letter ISO 3166-1 alpha-2 code e.g. us, it, fr, de, in, etc."
+}`
+
+    const result = await callAIAndParseJSON([
+      { role: 'user', content: prompt }
+    ], { temperature: 0.1, maxTokens: 250, jsonMode: true, preferredProvider })
+
+    if (result && result.primarySeedKeyword) {
+      return result
+    }
+  } catch (err) {
+    console.log('Website core topic extraction AI fallback:', err.message)
+  }
+
+  // Intelligent heuristic fallback without hardcoded words
+  let bestCandidate = ''
+  const title = crawlData.titles?.[0] || ''
+  let brandName = ''
+  try {
+    const hostname = new URL(websiteUrl.startsWith('http') ? websiteUrl : `https://${websiteUrl}`).hostname.replace(/^www\./, '')
+    brandName = hostname.split('.')[0].toLowerCase()
+  } catch {}
+
+  // 1. Analyze Title: Split by common title delimiters (- | – — : •)
+  const titleParts = title.split(/\s*[-|–—:•]\s*/).map(p => p.trim()).filter(Boolean)
+  for (const part of titleParts) {
+    const partLower = part.toLowerCase()
+    if (brandName && partLower.includes(brandName) && titleParts.length > 1) continue
+    if (/^(home|welcome|official|homepage)\b/i.test(partLower) || partLower.length < 4) continue
+
+    const cleaned = part
+      .replace(/\b(innovative|leading|powerful|official|custom|best|top|the|welcome to|all in one|smart)\b/gi, '')
+      .replace(/\b(with|for)\s+.*$/i, '')
+      .replace(/[^a-zA-Z0-9\s&]/g, ' ')
+      .trim()
+      .replace(/\s+/g, ' ')
+
+    const words = cleaned.split(/\s+/).filter(w => w.length > 1)
+    if (words.length >= 2 && words.length <= 5) {
+      bestCandidate = cleaned
+      break
+    }
+  }
+
+  // 2. Fallback to clean H1 or H2 headings
+  if (!bestCandidate) {
+    const allHeadings = [...(crawlData.headings?.h1 || []), ...(crawlData.headings?.h2 || [])]
+    for (const h of allHeadings) {
+      const cleanH = h
+        .replace(/\b(innovative|leading|powerful|official|custom|best|top|welcome to|our products|features)\b/gi, '')
+        .replace(/[^a-zA-Z0-9\s&]/g, ' ')
+        .trim()
+        .replace(/\s+/g, ' ')
+      const words = cleanH.split(/\s+/).filter(w => w.length > 2)
+      if (words.length >= 2 && words.length <= 4 && (!brandName || !cleanH.toLowerCase().includes(brandName))) {
+        bestCandidate = cleanH
+        break
+      }
+    }
+  }
+
+  const candidate = bestCandidate || titleParts[1] || titleParts[0] || 'business'
+  return { primarySeedKeyword: candidate, businessType: 'General', topOfferings: [] }
+}
+
 /* ── Main Research Function ─────────────────────────────────────── */
 
 export async function researchKeywords(input) {
@@ -713,26 +815,30 @@ export async function researchKeywords(input) {
     console.log(`Crawling website for keyword context: ${input.websiteUrl}`)
     crawlData = await crawlWebsite(input.websiteUrl)
     if (crawlData) {
-      console.log(`✓ Crawled ${crawlData.pagesCrawled} pages — found ${crawlData.productTerms.length} product terms, ${crawlData.headings.h2.length} H2 headings`)
+      console.log(`✓ Crawled ${crawlData.pagesCrawled} pages — found ${crawlData.productTerms.length} section headings, ${crawlData.headings.h2.length} H2 headings`)
     }
   }
 
-  // If no seed keyword provided, extract from website
+  // If no seed keyword provided, extract semantic core topic dynamically from website
   if (!input.seedKeyword && crawlData) {
-    const title = crawlData.titles.find(t => t && t.length > 3) || ''
-    const metaDesc = crawlData.descriptions.find(d => d && d.length > 3) || ''
-    const h1 = crawlData.headings.h1.find(h => h && h.length > 3) || ''
-    const source = h1 || title || metaDesc || crawlData.productTerms[0] || ''
-    const words = source.replace(/[^a-zA-Z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 2).slice(0, 4)
-    input.seedKeyword = words.join(' ') || 'business'
-    console.log(`No seed keyword provided — extracted from website: "${input.seedKeyword}"`)
+    const siteDetails = await extractWebsiteCoreTopic(crawlData, input.websiteUrl, input.preferredProvider)
+    input.seedKeyword = siteDetails.primarySeedKeyword || 'business'
+    if (!input.businessType && siteDetails.businessType) {
+      input.businessType = siteDetails.businessType
+    }
+    if (siteDetails.detectedLanguage) {
+      input.detectedLanguage = siteDetails.detectedLanguage
+      input.detectedRegion = siteDetails.detectedRegion
+    }
+    console.log(`✓ Dynamically extracted primary SEO keyword from website: "${input.seedKeyword}" (${input.businessType || 'General'})`)
   }
 
-  // Step 2: Auto-detect language & region
-  const { detectedLanguage, languageCode, detectedRegion, countryCode } = detectLanguageAndRegion(
+  // Step 2: Auto-detect language & region dynamically (zero hardcoded words)
+  const { detectedLanguage, languageCode, detectedRegion, countryCode } = await detectLanguageAndRegion(
     input.seedKeyword,
     input.websiteUrl,
-    crawlData?.htmlLang || ''
+    crawlData?.htmlLang || '',
+    input.preferredProvider
   )
   input.detectedLanguage = detectedLanguage
   input.detectedRegion = detectedRegion
