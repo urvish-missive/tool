@@ -42,6 +42,7 @@ import {
   ClipboardCheck,
   AlertCircle,
   Wand2,
+  X,
 } from 'lucide-react'
 
 const LOADING_STEPS = [
@@ -312,6 +313,194 @@ function GroupedIssueCard({ issue }) {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+/**
+ * Score Calculation & Deductions Breakdown Modal
+ */
+function ScoreFormulaModal({ isOpen, onClose, report, scoreBreakdown, onDownloadPdf }) {
+  useEffect(() => {
+    if (!isOpen) return
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    document.body.style.overflow = 'hidden'
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = 'unset'
+    }
+  }, [isOpen, onClose])
+
+  if (!isOpen || !report) return null
+
+  return (
+    <div
+      className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fade-in"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-4xl bg-white rounded-3xl border border-gray-100 shadow-2xl overflow-hidden my-auto max-h-[90vh] flex flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Gradient Accent Bar */}
+        <div className="h-1.5 w-full bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988]" />
+
+        {/* Header */}
+        <div className="p-5 sm:p-6 border-b border-gray-100 flex items-start justify-between gap-4 bg-slate-50/50">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-blue-50 text-[#0C81F3] border border-blue-200">
+                <SlidersHorizontal className="w-3.5 h-3.5" />
+                Score Breakdown
+              </span>
+              <span className="text-xs font-bold text-gray-500">
+                8 Audit Pillars & Itemized Deductions
+              </span>
+            </div>
+            <h3 className="text-lg sm:text-xl font-extrabold text-gray-900">
+              Why This Score? Deductions Breakdown
+            </h3>
+            <p className="text-xs text-gray-500">
+              Audited Domain: <span className="font-semibold text-gray-700">{report.targetUrl}</span>
+            </p>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:flex flex-col items-end">
+              <span className="text-[10px] uppercase font-bold text-gray-400">Site Health</span>
+              <span className={`text-base font-extrabold px-2.5 py-0.5 rounded-full border ${getScoreBg(report.overallScore)}`}>
+                {report.overallScore}/100
+              </span>
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 text-gray-400 hover:text-gray-700 rounded-xl hover:bg-gray-100 transition-colors cursor-pointer"
+              aria-label="Close modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Scrollable Content Body */}
+        <div className="p-5 sm:p-6 overflow-y-auto space-y-5 flex-1 text-xs">
+          {/* 8 Categories Grid with Passed Criteria and Applied Deductions */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h4 className="font-bold text-gray-900 text-sm uppercase tracking-wider">
+                Itemized Pillar Breakdowns (8 Categories)
+              </h4>
+              <span className="text-gray-500 font-medium text-[11px]">
+                Transparent inspection of penalties & verified checks
+              </span>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              {CATEGORY_META.map((cat) => {
+                const detail = scoreBreakdown[cat.id] || {}
+                const scoreVal = report[`${cat.id}Score`] || 80
+                const positives = detail.positiveFactors || []
+                const deductions = detail.deductions || []
+
+                return (
+                  <div
+                    key={cat.id}
+                    className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200 space-y-3"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-lg bg-white border border-gray-200 flex items-center justify-center shrink-0">
+                          {cat.icon}
+                        </div>
+                        <div>
+                          <span className="font-bold text-gray-900 block text-xs">{cat.label}</span>
+                          <span className="text-[10px] text-gray-500 font-medium">
+                            Weight: {detail.weightPercent || (cat.id === 'technical' || cat.id === 'onPage' ? 20 : cat.id === 'performance' || cat.id === 'content' ? 15 : cat.id === 'mobile' ? 10 : cat.id === 'structuredData' ? 8 : cat.id === 'links' ? 7 : 5)}%
+                          </span>
+                        </div>
+                      </div>
+                      <span
+                        className={`px-2.5 py-0.5 rounded-full font-extrabold text-xs border ${getScoreBg(scoreVal)}`}
+                      >
+                        {scoreVal}/100
+                      </span>
+                    </div>
+
+                    {/* Passed Criteria */}
+                    {positives.length > 0 && (
+                      <div className="space-y-1 bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-100">
+                        <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
+                          ✓ Passed Checks ({positives.length}):
+                        </span>
+                        {positives.map((pos, pIdx) => (
+                          <div key={pIdx} className="text-[11px] text-emerald-900 flex items-start gap-1.5">
+                            <span className="text-emerald-600 font-bold shrink-0">✓</span>
+                            <span className="leading-tight">{pos}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {/* Deductions Applied */}
+                    {deductions.length > 0 ? (
+                      <div className="space-y-1 bg-rose-50/50 p-2.5 rounded-xl border border-rose-100">
+                        <span className="text-[10px] font-bold text-rose-800 uppercase tracking-wider block">
+                          ✗ Deductions Applied ({deductions.length}):
+                        </span>
+                        {deductions.map((ded, dIdx) => (
+                          <div key={dIdx} className="text-[11px] text-rose-900 flex items-start gap-1.5">
+                            <span className="text-rose-600 font-bold shrink-0">✗</span>
+                            <span className="leading-tight">{ded}</span>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-[11px] text-emerald-700 bg-emerald-50/50 p-2 rounded-xl border border-emerald-100 italic flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                        <span>0 deductions applied. 100% full compliance on all checks.</span>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* Modal Footer */}
+        <div className="p-4 sm:p-5 border-t border-gray-100 bg-slate-50/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-gray-500 font-medium">Composite Overall Score:</span>
+            <span className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full border ${getScoreBg(report.overallScore)}`}>
+              {report.overallScore}/100
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {onDownloadPdf && (
+              <button
+                onClick={() => {
+                  onClose()
+                  onDownloadPdf()
+                }}
+                className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold hover:shadow-md transition-all flex items-center gap-1.5 cursor-pointer shadow-sm"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Export PDF Report</span>
+              </button>
+            )}
+            <button
+              onClick={onClose}
+              className="px-4 py-2 rounded-xl bg-gray-200 hover:bg-gray-300 text-gray-800 text-xs font-bold transition-colors cursor-pointer"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
@@ -621,19 +810,11 @@ export default function SeoAuditPage() {
                     {issues.length} action items detected across {report.totalPages} page(s)
                   </p>
                   <button
-                    onClick={() => {
-                      setShowScoreInspector(!showScoreInspector)
-                      if (!showScoreInspector) {
-                        setTimeout(() => {
-                          document.getElementById('score-inspector-section')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-                        }, 50)
-                      }
-                    }}
+                    onClick={() => setShowScoreInspector(true)}
                     className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-bold text-[#0C81F3] hover:text-[#0a6ecf] hover:underline cursor-pointer bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-200 transition-colors shadow-xs"
                   >
                     <Info className="w-3.5 h-3.5" />
-                    <span>{showScoreInspector ? 'Hide Score Calculation' : '💡 Why this score? (View Deductions)'}</span>
-                    {showScoreInspector ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                    <span>💡 Why this score? (View Deductions)</span>
                   </button>
                 </div>
 
@@ -789,12 +970,11 @@ export default function SeoAuditPage() {
                 </div>
 
                 <button
-                  onClick={() => setShowScoreInspector(!showScoreInspector)}
-                  className="self-start sm:self-auto px-3 py-1.5 rounded-xl text-xs font-bold bg-blue-50 hover:bg-blue-100 text-[#0C81F3] border border-blue-200 transition-colors flex items-center gap-1.5 cursor-pointer"
+                  onClick={() => setShowScoreInspector(true)}
+                  className="self-start sm:self-auto px-3.5 py-1.5 rounded-xl text-xs font-bold bg-blue-50 hover:bg-blue-100 text-[#0C81F3] border border-blue-200 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
                 >
                   <Info className="w-3.5 h-3.5" />
-                  <span>{showScoreInspector ? 'Hide Score Calculation' : '💡 Why this score? (View Deductions)'}</span>
-                  {showScoreInspector ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                  <span>💡 Why this score? (View Deductions)</span>
                 </button>
               </div>
 
@@ -847,90 +1027,6 @@ export default function SeoAuditPage() {
                   )
                 })}
               </div>
-
-              {/* ── EXPANDABLE SCORE CALCULATION & DEDUCTIONS INSPECTOR ── */}
-              {showScoreInspector && (
-                <div id="score-inspector-section" className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-7 shadow-sm space-y-5 animate-fade-in scroll-mt-24">
-                  <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-                    <div>
-                      <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                        <SlidersHorizontal className="w-4 h-4 text-[#0C81F3]" />
-                        <span>Exact Scoring Formula & Deductions Breakdown</span>
-                      </h4>
-                      <p className="text-xs text-gray-500 mt-0.5">
-                        Each category begins at 100/100 points. Points are deducted for detected defects and weighted into your overall health score.
-                      </p>
-                    </div>
-                    <span className="text-xs font-extrabold px-3 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200">
-                      Overall: {report.overallScore}/100
-                    </span>
-                  </div>
-
-                  <div className="grid md:grid-cols-2 gap-4">
-                    {CATEGORY_META.map((cat) => {
-                      const detail = scoreBreakdown[cat.id] || {}
-                      const scoreVal = report[`${cat.id}Score`] || 80
-                      const positives = detail.positiveFactors || []
-                      const deductions = detail.deductions || []
-
-                      return (
-                        <div
-                          key={cat.id}
-                          className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200 space-y-2.5 text-xs"
-                        >
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-2">
-                              <span className="font-bold text-gray-900">{cat.label}</span>
-                              <span className="text-[10px] text-gray-500">
-                                ({detail.weightPercent || 15}% weight)
-                              </span>
-                            </div>
-                            <span
-                              className={`px-2 py-0.5 rounded-full font-extrabold text-xs border ${getScoreBg(scoreVal)}`}
-                            >
-                              {scoreVal}/100
-                            </span>
-                          </div>
-
-                          {/* Positives */}
-                          {positives.length > 0 && (
-                            <div className="space-y-1">
-                              <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">
-                                Passed Criteria:
-                              </span>
-                              {positives.map((pos, pIdx) => (
-                                <div key={pIdx} className="text-[11px] text-emerald-800 flex items-start gap-1">
-                                  <span className="text-emerald-600 font-bold">✓</span>
-                                  <span>{pos}</span>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-
-                          {/* Deductions */}
-                          {deductions.length > 0 ? (
-                            <div className="space-y-1 pt-1 border-t border-gray-200/60">
-                              <span className="text-[10px] font-bold text-rose-700 uppercase tracking-wider block">
-                                Deductions Applied:
-                              </span>
-                              {deductions.map((ded, dIdx) => (
-                                <div key={dIdx} className="text-[11px] text-rose-800 flex items-start gap-1">
-                                  <span className="text-rose-600 font-bold">✗</span>
-                                  <span>{ded}</span>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="text-[11px] text-emerald-700 italic pt-1">
-                              ✓ 0 deductions. Full compliance across all checks.
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                </div>
-              )}
             </div>
 
             {/* ── MULTI-VIEW UNDERLINE TAB NAVIGATION (Clean & Compact) ─ */}
@@ -2103,6 +2199,15 @@ export default function SeoAuditPage() {
           toolName="SEO Site Audit"
         />
       )}
+
+      {/* Exact Scoring Formula & Deductions Breakdown Modal */}
+      <ScoreFormulaModal
+        isOpen={showScoreInspector}
+        onClose={() => setShowScoreInspector(false)}
+        report={report}
+        scoreBreakdown={scoreBreakdown}
+        onDownloadPdf={handleDownloadPdfClick}
+      />
     </div>
   )
 }
