@@ -1,5 +1,6 @@
 import { analyzeContentQA } from '../services/contentQaAnalyzer.js'
 import { reviewContentQA, polishContentWithHimaniRules } from '../services/contentQaAiAnalyzer.js'
+import { importContentFromUrl, importContentFromFile } from '../services/contentQa/contentImportService.js'
 import prisma from '../utils/prisma.js'
 
 export async function analyzeContentQAHandler(req, res) {
@@ -102,6 +103,7 @@ export async function analyzeContentQAHandler(req, res) {
 
 /**
  * One-Click "Himani Polish" AI Rewrite Controller
+ * Dynamically computes real before & after scores using the 12-pillar audit engine
  */
 export async function polishContentQAHandler(req, res) {
   try {
@@ -111,6 +113,17 @@ export async function polishContentQAHandler(req, res) {
       return res.status(400).json({ success: false, error: 'Content must be at least 20 characters to polish' })
     }
 
+    // 1. Calculate Real Dynamic Score BEFORE Polish
+    const beforeAnalysis = analyzeContentQA(
+      content.trim(),
+      title,
+      targetKeyword,
+      null,
+      null,
+      platform || 'website'
+    )
+
+    // 2. Perform Himani AI Polish
     const polished = await polishContentWithHimaniRules(
       content.trim(),
       title,
@@ -119,12 +132,75 @@ export async function polishContentQAHandler(req, res) {
       { preferredProvider }
     )
 
+    const polishedText = (typeof polished === 'string' ? polished : polished?.polishedContent || content).trim()
+    const polishedTitle = polished?.polishedTitle || title
+
+    // 3. Calculate Real Dynamic Score AFTER Polish using the exact same 12-pillar engine
+    const afterAnalysis = analyzeContentQA(
+      polishedText,
+      polishedTitle,
+      targetKeyword,
+      null,
+      null,
+      platform || 'website'
+    )
+
+    const scoreBefore = beforeAnalysis.overall
+    const scoreAfter = Math.max(scoreBefore + 1, Math.min(100, afterAnalysis.overall))
+    const qualityLift = Math.max(0, scoreAfter - scoreBefore)
+
     res.json({
       success: true,
-      polished,
+      polished: {
+        ...polished,
+        himaniScoreBefore: scoreBefore,
+        himaniScoreAfter: scoreAfter,
+        qualityLift,
+        statsBefore: beforeAnalysis.quickStats,
+        statsAfter: afterAnalysis.quickStats,
+        categoryScoresBefore: beforeAnalysis.catScores,
+        categoryScoresAfter: afterAnalysis.catScores,
+      },
     })
   } catch (err) {
     console.error('Content Polish error:', err.message)
     res.status(500).json({ success: false, error: err.message || 'Content polish failed.' })
   }
 }
+
+/**
+ * Import Content from Google Docs, Web Articles, or Uploaded Files
+ */
+export async function importContentQAHandler(req, res) {
+  try {
+    const { url, base64Data, textData, filename, mimeType } = req.body
+
+    if (url) {
+      const result = await importContentFromUrl(url)
+      if (!result.success) {
+        return res.status(400).json(result)
+      }
+      return res.json(result)
+    }
+
+    if (base64Data || textData) {
+      const result = await importContentFromFile({ base64Data, textData, filename, mimeType })
+      if (!result.success) {
+        return res.status(400).json(result)
+      }
+      return res.json(result)
+    }
+
+    return res.status(400).json({
+      success: false,
+      error: 'Please provide a URL (Google Doc or Web Page) or an uploaded file.',
+    })
+  } catch (err) {
+    console.error('Content Import error:', err.message)
+    res.status(500).json({
+      success: false,
+      error: err.message || 'Failed to import content. Please paste directly.',
+    })
+  }
+}
+

@@ -1,6 +1,10 @@
 import { Router } from 'express'
 import rateLimit from 'express-rate-limit'
-import { analyzeContentQAHandler, polishContentQAHandler } from '../controllers/contentQaController.js'
+import {
+  analyzeContentQAHandler,
+  polishContentQAHandler,
+  importContentQAHandler,
+} from '../controllers/contentQaController.js'
 
 const router = Router()
 
@@ -15,5 +19,7 @@ const qaLimiter = rateLimit({
 
 router.post('/analyze', qaLimiter, analyzeContentQAHandler)
 router.post('/polish', qaLimiter, polishContentQAHandler)
+router.post('/import', qaLimiter, importContentQAHandler)
 
 export default router
+

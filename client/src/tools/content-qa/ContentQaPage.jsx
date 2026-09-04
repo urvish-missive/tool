@@ -47,6 +47,11 @@ import {
   Layout,
   Ban,
   Monitor,
+  UploadCloud,
+  Globe,
+  Link2,
+  FileUp,
+  FileCheck2,
 } from 'lucide-react'
 import ModelSelector from '../shared/ModelSelector'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
@@ -54,9 +59,18 @@ import LeadCaptureModal from '../../components/LeadCaptureModal'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import useToolFields from '../../hooks/useToolFields'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
-import { useAnalyzeContentQaMutation, usePolishContentQaMutation } from '../../services/apiSlice'
+import {
+  useAnalyzeContentQaMutation,
+  usePolishContentQaMutation,
+  useImportContentQaMutation,
+} from '../../services/apiSlice'
 import { contentQaSchema, parseContentQaForm } from '../../schemas/contentQa.schema'
 import { getScoreColor, getScoreBg } from '../../utils/scoreHelpers'
+import {
+  computeWordDiff,
+  computeParagraphDiff,
+  computePolishMetrics,
+} from '../../utils/textDiff'
 
 // ── 12 PILLARS DEFINITION (Matching Himani Kankaria's Checklist) ────
 const HIMANI_CATEGORIES_DEF = [
@@ -312,19 +326,377 @@ export default function ContentQaPage() {
   const [filterMode, setFilterMode] = useState('all')
   const [copiedAction, setCopiedAction] = useState(false)
 
-  // One-Click Polish State
+  // One-Click Polish State & Views
   const [polishedResult, setPolishedResult] = useState(null)
   const [polishError, setPolishError] = useState(null)
   const [copiedPolish, setCopiedPolish] = useState(false)
   const [copiedTitle, setCopiedTitle] = useState(false)
+  const [polishViewMode, setPolishViewMode] = useState('diff') // 'diff' | 'clean' | 'split'
+  const [showDocsModal, setShowDocsModal] = useState(false)
+  const [copiedDocs, setCopiedDocs] = useState(false)
+
+  // Multi-Format Content Input State
+  const [inputSourceMode, setInputSourceMode] = useState('text') // 'text' | 'gdoc' | 'web' | 'file'
+  const [gdocUrl, setGdocUrl] = useState('')
+  const [webUrl, setWebUrl] = useState('')
+  const [importError, setImportError] = useState(null)
+  const [importSuccessMsg, setImportSuccessMsg] = useState(null)
+  const [uploadedFileName, setUploadedFileName] = useState('')
+  const fileInputRef = useRef(null)
+
+  // Memoized Word Diff & Metrics
+  const polishDiff = useMemo(() => {
+    if (!polishedResult) return []
+    const oldText = (content || '').trim()
+    const newText = (typeof polishedResult === 'string' ? polishedResult : polishedResult.polishedContent || '').trim()
+    return computeWordDiff(oldText, newText)
+  }, [content, polishedResult])
+
+  const polishParagraphDiff = useMemo(() => {
+    if (!polishedResult) return []
+    const oldText = (content || '').trim()
+    const newText = (typeof polishedResult === 'string' ? polishedResult : polishedResult.polishedContent || '').trim()
+    return computeParagraphDiff(oldText, newText)
+  }, [content, polishedResult])
+
+  const polishMetrics = useMemo(() => {
+    if (!polishedResult) return null
+    const oldText = (content || '').trim()
+    const newText = (typeof polishedResult === 'string' ? polishedResult : polishedResult.polishedContent || '').trim()
+    return computePolishMetrics(oldText, newText)
+  }, [content, polishedResult])
 
   // Speech Synthesizer State
   const [isPlayingAudio, setIsPlayingAudio] = useState(false)
   const [speechRate, setSpeechRate] = useState(1.0)
 
+  // Live Inspector Grouping & Filter State
+  const [inspectorFilter, setInspectorFilter] = useState('all')
+  const [expandedHighlights, setExpandedHighlights] = useState({})
+
+  const toggleHighlightExpand = (id) => {
+    setExpandedHighlights((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }))
+  }
+
+  // Highlighted snippet renderer
+  const renderHighlightedSnippet = (context, matchText) => {
+    if (!context) return null
+    if (!matchText) return <span>{context}</span>
+    try {
+      const escaped = matchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+      const regex = new RegExp(`(${escaped})`, 'gi')
+      const parts = context.split(regex)
+      return (
+        <span>
+          {parts.map((part, idx) =>
+            part.toLowerCase() === matchText.toLowerCase() ? (
+              <mark
+                key={idx}
+                className="bg-rose-200/90 text-rose-950 font-bold px-1.5 py-0.5 rounded border border-rose-300 mx-0.5 inline-block font-mono text-xs shadow-2xs"
+              >
+                {part}
+              </mark>
+            ) : (
+              <span key={idx}>{part}</span>
+            )
+          )}
+        </span>
+      )
+    } catch {
+      return <span>{context}</span>
+    }
+  }
+
+  // Group highlights by type + match text so multiple occurrences (e.g. 11 em dashes) collapse into 1 card with occurrences
+  const groupedHighlights = useMemo(() => {
+    if (!report?.highlights || !Array.isArray(report.highlights) || report.highlights.length === 0) {
+      return []
+    }
+
+    const groupsMap = new Map()
+
+    for (const h of report.highlights) {
+      const type = h.type || 'flag'
+      const normText = (h.text || '').trim()
+      const groupKey = `${type}::${normText.toLowerCase()}`
+
+      if (!groupsMap.has(groupKey)) {
+        const isError =
+          h.severity === 'error' ||
+          type === 'em-dash' ||
+          type === 'milestone' ||
+          type === 'compliance'
+
+        const label =
+          h.label ||
+          (type === 'em-dash'
+            ? 'Em Dash Detected'
+            : type === 'ai-cliche'
+              ? 'Robotic AI Cliché'
+              : type === 'filler'
+                ? 'Filler / Fluff Transition'
+                : type === 'superlative'
+                  ? 'Exaggerated Superlative'
+                  : type === 'milestone'
+                    ? 'Milestone / Tenure Boasting'
+                    : type === 'compliance'
+                      ? 'Compliance Risk'
+                      : 'Editorial Flag')
+
+        const reason =
+          h.reason ||
+          h.message ||
+          "Needs editorial refinement according to Himani's Content QA checklist."
+
+        const suggestion =
+          h.suggestion ||
+          (type === 'em-dash'
+            ? 'Use a comma, parentheses, or split into two short sentences.'
+            : 'Remove or replace with conversational human phrasing.')
+
+        groupsMap.set(groupKey, {
+          id: groupKey,
+          type,
+          label,
+          text: h.text,
+          severity: h.severity || (isError ? 'error' : 'warning'),
+          isError,
+          reason,
+          suggestion,
+          occurrences: [],
+        })
+      }
+
+      const group = groupsMap.get(groupKey)
+      group.occurrences.push({
+        index: h.index,
+        length: h.length,
+        context: h.context,
+        message: h.message,
+      })
+    }
+
+    return Array.from(groupsMap.values())
+  }, [report?.highlights])
+
+  const filteredGroupedHighlights = useMemo(() => {
+    if (inspectorFilter === 'all') return groupedHighlights
+    return groupedHighlights.filter((g) => g.type === inspectorFilter)
+  }, [groupedHighlights, inspectorFilter])
+
+  const highlightCategoryCounts = useMemo(() => {
+    const counts = { all: report?.highlights?.length || 0 }
+    if (!report?.highlights) return counts
+    for (const h of report.highlights) {
+      const t = h.type || 'other'
+      counts[t] = (counts[t] || 0) + 1
+    }
+    return counts
+  }, [report?.highlights])
+
   const [analyzeContentQa, { isLoading: isAnalyzing, reset: resetMutation }] =
     useAnalyzeContentQaMutation()
   const [polishContentQa, { isLoading: isPolishing }] = usePolishContentQaMutation()
+  const [importContentQa, { isLoading: isImporting }] = useImportContentQaMutation()
+
+  // Google Docs URL Import Handler
+  const handleImportGdoc = async () => {
+    if (!gdocUrl.trim()) {
+      setImportError('Please enter a Google Doc link.')
+      return
+    }
+    setImportError(null)
+    setImportSuccessMsg(null)
+    try {
+      const res = await importContentQa({ url: gdocUrl.trim() }).unwrap()
+      if (res.content) {
+        setValue('content', res.content, { shouldValidate: true })
+        if (res.title && !title) setValue('title', res.title)
+        setImportSuccessMsg(`✓ Successfully imported ${res.wordCount || 0} words from Google Doc!`)
+        setInputSourceMode('text')
+      }
+    } catch (err) {
+      setImportError(
+        err?.data?.error ||
+          err.message ||
+          'Failed to import Google Doc. Make sure "Anyone with the link can view" is enabled in Google Docs.'
+      )
+    }
+  }
+
+  // Web Article URL Import Handler
+  const handleImportWebUrl = async () => {
+    if (!webUrl.trim()) {
+      setImportError('Please enter a valid website or article URL.')
+      return
+    }
+    setImportError(null)
+    setImportSuccessMsg(null)
+    try {
+      const res = await importContentQa({ url: webUrl.trim() }).unwrap()
+      if (res.content) {
+        setValue('content', res.content, { shouldValidate: true })
+        if (res.title && !title) setValue('title', res.title)
+        setImportSuccessMsg(`✓ Successfully imported ${res.wordCount || 0} words from article!`)
+        setInputSourceMode('text')
+      }
+    } catch (err) {
+      setImportError(
+        err?.data?.error || err.message || 'Failed to extract content from this URL.'
+      )
+    }
+  }
+
+  // Document File Upload Handler (.docx, .doc, .txt, .md, .html)
+  const handleFileUpload = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setImportError(null)
+    setImportSuccessMsg(null)
+    setUploadedFileName(file.name)
+
+    const ext = file.name.split('.').pop().toLowerCase()
+
+    if (['txt', 'md', 'html', 'htm'].includes(ext)) {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        let text = event.target?.result || ''
+        if (ext === 'html' || ext === 'htm') {
+          const parser = new DOMParser()
+          const doc = parser.parseFromString(text, 'text/html')
+          const pageTitle = doc.querySelector('title')?.innerText || ''
+          if (pageTitle && !title) setValue('title', pageTitle)
+          text = doc.body?.innerText || text
+        }
+        setValue('content', text.trim(), { shouldValidate: true })
+        const words = text.trim().split(/\s+/).filter(Boolean).length
+        setImportSuccessMsg(`✓ Successfully loaded "${file.name}" (${words} words)!`)
+        setInputSourceMode('text')
+      }
+      reader.readAsText(file)
+    } else if (ext === 'docx') {
+      const reader = new FileReader()
+      reader.onload = async (event) => {
+        try {
+          const rawBase64 = (event.target?.result || '').split(',')[1]
+          const res = await importContentQa({
+            base64Data: rawBase64,
+            filename: file.name,
+            mimeType: file.type,
+          }).unwrap()
+          if (res.content) {
+            setValue('content', res.content, { shouldValidate: true })
+            if (res.title && !title) setValue('title', res.title)
+            setImportSuccessMsg(
+              `✓ Successfully extracted ${res.wordCount || 0} words from Word document!`
+            )
+            setInputSourceMode('text')
+          }
+        } catch (err) {
+          setImportError(
+            err?.data?.error ||
+              err.message ||
+              'Could not extract text from .docx file. You can also paste text directly.'
+          )
+        }
+      }
+      reader.readAsDataURL(file)
+    } else {
+      setImportError('Supported formats: .docx, .txt, .md, .html')
+    }
+  }
+
+  // Google Docs Export Handler
+  const handleExportToGoogleDocs = async () => {
+    const rawContent = typeof polishedResult === 'string' ? polishedResult : polishedResult.polishedContent || ''
+    const polishedHeadline = polishedResult?.polishedTitle || title || 'Polished Content'
+
+    // Format rich HTML for clipboard so it pastes into Google Docs with headings and styling
+    const htmlBody = rawContent
+      .split('\n\n')
+      .map((para) => {
+        const trimmed = para.trim()
+        if (trimmed.startsWith('### ')) return `<h3 style="font-size: 14pt; color: #1E293B; margin-top: 10pt; margin-bottom: 3pt;">${trimmed.substring(4)}</h3>`
+        if (trimmed.startsWith('## ')) return `<h2 style="font-size: 16pt; color: #0C81F3; margin-top: 14pt; margin-bottom: 4pt;">${trimmed.substring(3)}</h2>`
+        if (trimmed.startsWith('# ')) return `<h1 style="font-size: 20pt; color: #0C81F3; margin-top: 16pt; margin-bottom: 6pt;">${trimmed.substring(2)}</h1>`
+        if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
+          const items = trimmed
+            .split('\n')
+            .map((li) => `<li style="margin-bottom: 3pt;">${li.replace(/^[-*]\s+/, '')}</li>`)
+            .join('')
+          return `<ul style="margin-bottom: 8pt; padding-left: 20pt;">${items}</ul>`
+        }
+        return `<p style="margin-bottom: 8pt; font-size: 11pt; line-height: 1.6;">${trimmed.replace(/\n/g, '<br/>')}</p>`
+      })
+      .join('')
+
+    const fullHtml = `
+      <div style="font-family: Calibri, Arial, sans-serif; line-height: 1.6; color: #111827; max-width: 800px;">
+        <h1 style="color: #0C81F3; font-size: 22pt; margin-bottom: 4pt;">${polishedHeadline}</h1>
+        <p style="font-size: 10pt; color: #64748B; margin-bottom: 16pt; border-bottom: 1pt solid #E2E8F0; padding-bottom: 6pt;">
+          <em>Himani Kankaria 12-Pillar Editorial Polish • Missive Digital (missivedigital.com)</em>
+        </p>
+        ${htmlBody}
+      </div>
+    `
+
+    try {
+      if (navigator.clipboard && window.ClipboardItem) {
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'text/html': new Blob([fullHtml], { type: 'text/html' }),
+            'text/plain': new Blob([`${polishedHeadline}\n\n${rawContent}`], { type: 'text/plain' }),
+          }),
+        ])
+      } else {
+        await navigator.clipboard.writeText(`${polishedHeadline}\n\n${rawContent}`)
+      }
+    } catch {
+      await navigator.clipboard.writeText(`${polishedHeadline}\n\n${rawContent}`)
+    }
+
+    // Open Docs blank creation
+    window.open('https://docs.new', '_blank')
+    setShowDocsModal(true)
+  }
+
+  // Download .doc file (Microsoft Word & Google Docs compatible)
+  const handleDownloadDocx = () => {
+    const rawContent = typeof polishedResult === 'string' ? polishedResult : polishedResult.polishedContent || ''
+    const polishedHeadline = polishedResult?.polishedTitle || title || 'Polished Content'
+    const htmlDoc = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+      <head><meta charset='utf-8'><title>${polishedHeadline}</title>
+      <style>
+        body { font-family: Calibri, Arial, sans-serif; font-size: 11pt; line-height: 1.5; color: #111827; margin: 20pt; }
+        h1 { color: #0C81F3; font-size: 18pt; margin-bottom: 6pt; font-weight: bold; }
+        h2 { color: #1E293B; font-size: 14pt; margin-top: 12pt; margin-bottom: 4pt; font-weight: bold; }
+        h3 { color: #334155; font-size: 12pt; margin-top: 10pt; margin-bottom: 3pt; font-weight: bold; }
+        p { margin-bottom: 8pt; }
+        ul, ol { margin-bottom: 8pt; }
+        .meta { color: #64748B; font-size: 9.5pt; border-bottom: 1pt solid #E2E8F0; padding-bottom: 6pt; margin-bottom: 14pt; }
+        .footer { font-size: 9pt; color: #64748B; border-top: 1pt solid #E2E8F0; padding-top: 6pt; margin-top: 20pt; }
+      </style>
+      </head>
+      <body>
+        <h1>${polishedHeadline}</h1>
+        <div class="meta">Himani Kankaria 12-Pillar Editorial Polish • Missive Digital (missivedigital.com)</div>
+        ${rawContent.split('\n\n').map(p => `<p>${p.replace(/\n/g, '<br/>')}</p>`).join('')}
+        <div class="footer">Exported from Missive Digital Content QA Checklist (missivedigital.com)</div>
+      </body>
+      </html>
+    `
+    const blob = new Blob(['\ufeff' + htmlDoc], { type: 'application/msword' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `himani-polished-${(title || 'content').toLowerCase().replace(/[^a-z0-9]/g, '-')}.doc`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
 
   const {
     popupEnabled,
@@ -696,31 +1068,299 @@ Audited with Missive Digital Content QA Tool.`
               onSubmit={handleSubmit(onFormValid)}
               className="bg-white rounded-3xl border border-gray-200 shadow-xl shadow-gray-200/50 p-6 sm:p-9 space-y-6"
             >
-              {/* Content Textarea */}
+              {/* Content Input Mode Selector Tabs */}
               {isFieldEnabled('content') && (
-                <div>
-                  <div className="flex items-center justify-between mb-2">
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-1 border-b border-gray-100">
                     <label className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
                       Content to Audit <span className="text-[#0C81F3]">*</span>
                     </label>
-                    <span className="text-xs font-medium text-gray-500">
-                      {wordCount} words • {charCount} characters
-                    </span>
+
+                    {/* Mode Switcher Tabs */}
+                    <div className="inline-flex p-1 bg-gray-100/90 rounded-2xl border border-gray-200/80 gap-1 text-xs font-semibold text-gray-600">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setInputSourceMode('text')
+                          setImportError(null)
+                        }}
+                        className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+                          inputSourceMode === 'text'
+                            ? 'bg-white text-[#0C81F3] shadow-sm font-bold'
+                            : 'hover:text-gray-900'
+                        }`}
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                        <span>Paste / Write</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setInputSourceMode('gdoc')
+                          setImportError(null)
+                        }}
+                        className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+                          inputSourceMode === 'gdoc'
+                            ? 'bg-white text-[#0C81F3] shadow-sm font-bold'
+                            : 'hover:text-gray-900'
+                        }`}
+                      >
+                        <FileText className="w-3.5 h-3.5 text-blue-600" />
+                        <span>Google Doc</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setInputSourceMode('web')
+                          setImportError(null)
+                        }}
+                        className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+                          inputSourceMode === 'web'
+                            ? 'bg-white text-[#0C81F3] shadow-sm font-bold'
+                            : 'hover:text-gray-900'
+                        }`}
+                      >
+                        <Globe className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>Web URL</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setInputSourceMode('file')
+                          setImportError(null)
+                        }}
+                        className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+                          inputSourceMode === 'file'
+                            ? 'bg-white text-[#0C81F3] shadow-sm font-bold'
+                            : 'hover:text-gray-900'
+                        }`}
+                      >
+                        <UploadCloud className="w-3.5 h-3.5 text-purple-600" />
+                        <span>Upload File</span>
+                      </button>
+                    </div>
                   </div>
-                  <textarea
-                    {...register('content')}
-                    rows={12}
-                    placeholder="Paste your blog post, article, LinkedIn draft, or newsletter content here..."
-                    className={`w-full rounded-2xl border px-4 py-3.5 text-sm leading-relaxed text-gray-800 focus:ring-2 focus:ring-[#0C81F3] focus:border-[#0C81F3] outline-none transition-all resize-y min-h-[220px] ${errors.content ? 'border-red-400 ring-1 ring-red-200' : 'border-gray-300'}`}
-                  />
-                  {errors.content && (
-                    <p className="mt-1 text-xs text-red-600">{errors.content.message}</p>
+
+                  {/* ── GOOGLE DOCS IMPORT CARD ── */}
+                  {inputSourceMode === 'gdoc' && (
+                    <div className="p-4 sm:p-5 rounded-2xl bg-blue-50/70 border border-blue-200/80 space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <h4 className="text-xs font-bold text-blue-900 uppercase tracking-wider flex items-center gap-1.5">
+                            <FileText className="w-4 h-4 text-[#0C81F3]" />
+                            Import Content Directly from Google Docs
+                          </h4>
+                          <p className="text-xs text-blue-800/80 mt-1">
+                            Paste your Google Doc share link. Make sure General Access is set to{' '}
+                            <strong>"Anyone with the link (Viewer)"</strong> in Google Docs.
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <div className="relative flex-1">
+                          <Link2 className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
+                          <input
+                            type="url"
+                            value={gdocUrl}
+                            onChange={(e) => setGdocUrl(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault()
+                                handleImportGdoc()
+                              }
+                            }}
+                            placeholder="https://docs.google.com/document/d/.../edit"
+                            className="w-full rounded-xl border border-blue-200 bg-white pl-9 pr-3.5 py-2.5 text-xs sm:text-sm text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-[#0C81F3] focus:border-[#0C81F3] outline-none"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleImportGdoc}
+                          disabled={isImporting || !gdocUrl.trim()}
+                          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold hover:opacity-90 disabled:opacity-50 transition-all flex items-center justify-center gap-1.5 shadow-sm shrink-0 cursor-pointer"
+                        >
+                          {isImporting ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              <span>Fetching Doc...</span>
+                            </>
+                          ) : (
+                            <>
+                              <FileCheck2 className="w-3.5 h-3.5" />
+                              <span>Import Content</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
                   )}
-                  <div className="flex justify-between mt-1.5 text-xs text-gray-500">
-                    <span>Himani's Rule: Every line must earn its place.</span>
-                    {wordCount > 0 && wordCount < 20 && (
-                      <span className="text-red-500 font-semibold">Minimum 20 words required</span>
+
+                  {/* ── WEB URL / ARTICLE IMPORT CARD ── */}
+                  {inputSourceMode === 'web' && (
+                    <div className="p-4 sm:p-5 rounded-2xl bg-emerald-50/70 border border-emerald-200/80 space-y-3">
+                      <div>
+                        <h4 className="text-xs font-bold text-emerald-900 uppercase tracking-wider flex items-center gap-1.5">
+                          <Globe className="w-4 h-4 text-emerald-600" />
+                          Import from Live Blog or Web Page URL
+                        </h4>
+                        <p className="text-xs text-emerald-800/80 mt-1">
+                          Paste any published article or blog link to automatically extract the
+                          headline and main article body.
+                        </p>
+                      </div>
+
+                      <div className="flex flex-col sm:flex-row gap-2">
+                        <div className="relative flex-1">
+                          <Globe className="w-4 h-4 text-gray-400 absolute left-3.5 top-3" />
+                          <input
+                            type="url"
+                            value={webUrl}
+                            onChange={(e) => setWebUrl(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault()
+                                handleImportWebUrl()
+                              }
+                            }}
+                            placeholder="https://example.com/blog/my-awesome-post"
+                            className="w-full rounded-xl border border-emerald-200 bg-white pl-9 pr-3.5 py-2.5 text-xs sm:text-sm text-gray-800 placeholder-gray-400 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleImportWebUrl}
+                          disabled={isImporting || !webUrl.trim()}
+                          className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold disabled:opacity-50 transition-all flex items-center justify-center gap-1.5 shadow-sm shrink-0 cursor-pointer"
+                        >
+                          {isImporting ? (
+                            <>
+                              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                              <span>Scraping URL...</span>
+                            </>
+                          ) : (
+                            <>
+                              <FileCheck2 className="w-3.5 h-3.5" />
+                              <span>Fetch Article</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* ── FILE UPLOAD DROPZONE CARD ── */}
+                  {inputSourceMode === 'file' && (
+                    <div className="p-5 rounded-2xl bg-purple-50/70 border border-purple-200/80 space-y-3">
+                      <div>
+                        <h4 className="text-xs font-bold text-purple-900 uppercase tracking-wider flex items-center gap-1.5">
+                          <UploadCloud className="w-4 h-4 text-purple-600" />
+                          Upload Document File
+                        </h4>
+                        <p className="text-xs text-purple-800/80 mt-1">
+                          Supports <strong>Microsoft Word (.docx)</strong>, <strong>Plain Text (.txt)</strong>, <strong>Markdown (.md)</strong>, or <strong>HTML (.html)</strong>.
+                        </p>
+                      </div>
+
+                      <div
+                        onClick={() => fileInputRef.current?.click()}
+                        className="border-2 border-dashed border-purple-300 hover:border-purple-500 rounded-2xl p-6 bg-white/80 text-center cursor-pointer transition-all hover:bg-white flex flex-col items-center justify-center gap-2 group"
+                      >
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept=".docx,.txt,.md,.html,.htm"
+                          onChange={handleFileUpload}
+                          className="hidden"
+                        />
+                        <div className="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform">
+                          <FileUp className="w-5 h-5" />
+                        </div>
+                        <div>
+                          <p className="text-xs sm:text-sm font-bold text-purple-900">
+                            Click to browse or drop your document here
+                          </p>
+                          <p className="text-[11px] text-gray-500 mt-0.5">
+                            .docx, .txt, .md, .html (Up to 10MB)
+                          </p>
+                        </div>
+                        {uploadedFileName && (
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-semibold">
+                            ✓ {uploadedFileName}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Import Success Notification */}
+                  {importSuccessMsg && (
+                    <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                        <span>{importSuccessMsg}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setImportSuccessMsg(null)}
+                        className="text-emerald-700 hover:text-emerald-900 text-xs cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Import Error Notification */}
+                  {importError && (
+                    <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-start gap-2">
+                      <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+                      <div className="flex-1">
+                        <span>{importError}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setImportError(null)}
+                        className="text-rose-700 hover:text-rose-900 text-xs cursor-pointer"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+
+                  {/* Textarea Editor */}
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <span className="text-xs font-semibold text-gray-500">
+                        {wordCount} words • {charCount} characters
+                      </span>
+                      {content && (
+                        <button
+                          type="button"
+                          onClick={() => setValue('content', '')}
+                          className="text-xs text-gray-400 hover:text-rose-600 transition-colors cursor-pointer"
+                        >
+                          Clear Text
+                        </button>
+                      )}
+                    </div>
+                    <textarea
+                      {...register('content')}
+                      rows={12}
+                      placeholder="Paste or edit your blog post, article, LinkedIn draft, or newsletter content here..."
+                      className={`w-full rounded-2xl border px-4 py-3.5 text-sm leading-relaxed text-gray-800 focus:ring-2 focus:ring-[#0C81F3] focus:border-[#0C81F3] outline-none transition-all resize-y min-h-[220px] ${errors.content ? 'border-red-400 ring-1 ring-red-200' : 'border-gray-300'}`}
+                    />
+                    {errors.content && (
+                      <p className="mt-1 text-xs text-red-600">{errors.content.message}</p>
                     )}
+                    <div className="flex justify-between mt-1.5 text-xs text-gray-500">
+                      <span>Himani's Rule: Every line must earn its place.</span>
+                      {wordCount > 0 && wordCount < 20 && (
+                        <span className="text-red-500 font-semibold">Minimum 20 words required</span>
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
@@ -1278,21 +1918,311 @@ Audited with Missive Digital Content QA Tool.`
               {/* TAB 2: LIVE CONTENT INSPECTOR                       */}
               {/* ═════════════════════════════════════════════════════ */}
               {activeTab === 'inspector' && (
-                <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
-                  <h3 className="text-sm font-bold text-gray-900 mb-4">Live Content Inspector</h3>
-                  {report.highlights?.length > 0 ? (
-                    <div className="space-y-3">
-                      {report.highlights.map((h, i) => (
-                        <div
-                          key={i}
-                          className={`p-3 rounded-xl border text-sm ${h.severity === 'error' ? 'bg-red-50 border-red-200 text-red-800' : h.severity === 'warning' ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-blue-50 border-blue-200 text-blue-800'}`}
+                <div className="bg-white rounded-3xl border border-gray-200 shadow-sm p-6 sm:p-8 space-y-6">
+                  {/* Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-100">
+                    <div>
+                      <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                        <span>🔍 Live Content Inspector</span>
+                        <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-blue-100 text-[#0C81F3]">
+                          {report.highlights?.length || 0} Total Flag(s)
+                        </span>
+                        {groupedHighlights.length > 0 && (
+                          <span className="text-xs px-2.5 py-0.5 rounded-full font-medium bg-gray-100 text-gray-700">
+                            {groupedHighlights.length} Unique Issue Type(s)
+                          </span>
+                        )}
+                      </h3>
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Deep scan of every sentence for em dashes, robotic AI clichés, filler phrasing, and compliance triggers. Issues are grouped by rule to prevent repetitive clutter.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Filter Pills */}
+                  {report.highlights?.length > 0 && (
+                    <div className="flex flex-wrap items-center gap-2 pb-2">
+                      <button
+                        type="button"
+                        onClick={() => setInspectorFilter('all')}
+                        className={`text-xs px-3 py-1.5 rounded-full font-semibold transition-all ${
+                          inspectorFilter === 'all'
+                            ? 'bg-gray-900 text-white shadow-xs'
+                            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        }`}
+                      >
+                        All Issues ({report.highlights?.length || 0})
+                      </button>
+
+                      {highlightCategoryCounts['em-dash'] > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setInspectorFilter('em-dash')}
+                          className={`text-xs px-3 py-1.5 rounded-full font-semibold transition-all flex items-center gap-1.5 ${
+                            inspectorFilter === 'em-dash'
+                              ? 'bg-rose-600 text-white shadow-xs'
+                              : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
+                          }`}
                         >
-                          <span className="font-bold">{h.label || 'Flag'}:</span> {h.message}
-                        </div>
-                      ))}
+                          <span>🚫 Em Dashes</span>
+                          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/20 font-bold">
+                            {highlightCategoryCounts['em-dash']}
+                          </span>
+                        </button>
+                      )}
+
+                      {highlightCategoryCounts['ai-cliche'] > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setInspectorFilter('ai-cliche')}
+                          className={`text-xs px-3 py-1.5 rounded-full font-semibold transition-all flex items-center gap-1.5 ${
+                            inspectorFilter === 'ai-cliche'
+                              ? 'bg-amber-600 text-white shadow-xs'
+                              : 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100'
+                          }`}
+                        >
+                          <span>🤖 AI Clichés</span>
+                          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/20 font-bold">
+                            {highlightCategoryCounts['ai-cliche']}
+                          </span>
+                        </button>
+                      )}
+
+                      {highlightCategoryCounts['filler'] > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setInspectorFilter('filler')}
+                          className={`text-xs px-3 py-1.5 rounded-full font-semibold transition-all flex items-center gap-1.5 ${
+                            inspectorFilter === 'filler'
+                              ? 'bg-indigo-600 text-white shadow-xs'
+                              : 'bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100'
+                          }`}
+                        >
+                          <span>✂️ Fluff & Fillers</span>
+                          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/20 font-bold">
+                            {highlightCategoryCounts['filler']}
+                          </span>
+                        </button>
+                      )}
+
+                      {highlightCategoryCounts['superlative'] > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setInspectorFilter('superlative')}
+                          className={`text-xs px-3 py-1.5 rounded-full font-semibold transition-all flex items-center gap-1.5 ${
+                            inspectorFilter === 'superlative'
+                              ? 'bg-purple-600 text-white shadow-xs'
+                              : 'bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100'
+                          }`}
+                        >
+                          <span>⚡ Superlatives</span>
+                          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/20 font-bold">
+                            {highlightCategoryCounts['superlative']}
+                          </span>
+                        </button>
+                      )}
+
+                      {highlightCategoryCounts['milestone'] > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setInspectorFilter('milestone')}
+                          className={`text-xs px-3 py-1.5 rounded-full font-semibold transition-all flex items-center gap-1.5 ${
+                            inspectorFilter === 'milestone'
+                              ? 'bg-blue-600 text-white shadow-xs'
+                              : 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100'
+                          }`}
+                        >
+                          <span>🏆 Milestones</span>
+                          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/20 font-bold">
+                            {highlightCategoryCounts['milestone']}
+                          </span>
+                        </button>
+                      )}
+
+                      {highlightCategoryCounts['compliance'] > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setInspectorFilter('compliance')}
+                          className={`text-xs px-3 py-1.5 rounded-full font-semibold transition-all flex items-center gap-1.5 ${
+                            inspectorFilter === 'compliance'
+                              ? 'bg-red-700 text-white shadow-xs'
+                              : 'bg-red-50 text-red-800 border border-red-200 hover:bg-red-100'
+                          }`}
+                        >
+                          <span>⚖️ Compliance</span>
+                          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/20 font-bold">
+                            {highlightCategoryCounts['compliance']}
+                          </span>
+                        </button>
+                      )}
+                    </div>
+                  )}
+
+                  {filteredGroupedHighlights.length > 0 ? (
+                    <div className="space-y-4">
+                      {/* Interactive Grouped Highlight Cards List */}
+                      <div className="grid gap-4">
+                        {filteredGroupedHighlights.map((group) => {
+                          const occCount = group.occurrences?.length || 1
+                          const isExpanded = expandedHighlights[group.id] || occCount <= 2
+
+                          return (
+                            <div
+                              key={group.id}
+                              className={`p-5 rounded-2xl border transition-all shadow-xs ${
+                                group.isError
+                                  ? 'bg-red-50/60 border-red-200 text-red-950'
+                                  : 'bg-amber-50/60 border-amber-200 text-amber-950'
+                              }`}
+                            >
+                              {/* Card Header */}
+                              <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <span className="text-base">
+                                    {group.type === 'em-dash'
+                                      ? '🚫'
+                                      : group.type === 'ai-cliche'
+                                        ? '🤖'
+                                        : group.type === 'filler'
+                                          ? '✂️'
+                                          : group.type === 'milestone'
+                                            ? '🏆'
+                                            : group.type === 'superlative'
+                                              ? '⚡'
+                                              : '⚠️'}
+                                  </span>
+                                  <span className="text-sm font-bold tracking-tight text-gray-900">
+                                    {group.label}
+                                  </span>
+                                  {group.text && (
+                                    <code className="text-xs px-2.5 py-0.5 rounded-md bg-white border border-gray-300 font-mono font-bold text-gray-900 shadow-2xs">
+                                      "{group.text}"
+                                    </code>
+                                  )}
+
+                                  {/* Occurrence Pill Badge */}
+                                  <span
+                                    className={`text-[11px] font-bold px-2.5 py-0.5 rounded-full flex items-center gap-1 ${
+                                      occCount > 1
+                                        ? 'bg-rose-100 text-rose-800 border border-rose-300'
+                                        : 'bg-gray-100 text-gray-700 border border-gray-200'
+                                    }`}
+                                  >
+                                    <span>⚡</span>
+                                    <span>
+                                      {occCount > 1
+                                        ? `Found ${occCount} times in content`
+                                        : '1 occurrence'}
+                                    </span>
+                                  </span>
+                                </div>
+
+                                <span
+                                  className={`text-[10px] uppercase tracking-wider font-extrabold px-3 py-1 rounded-full ${
+                                    group.isError
+                                      ? 'bg-red-100 text-red-800 border border-red-200'
+                                      : 'bg-amber-100 text-amber-800 border border-amber-200'
+                                  }`}
+                                >
+                                  {group.isError ? 'Action Required' : 'Warning'}
+                                </span>
+                              </div>
+
+                              {/* Reason & Suggestion */}
+                              <div className="space-y-2 text-xs text-gray-700 bg-white/80 p-3.5 rounded-xl border border-gray-200/80 mb-3">
+                                <p className="leading-relaxed">
+                                  <strong className="text-gray-900">Reason:</strong> {group.reason}
+                                </p>
+                                {group.suggestion && (
+                                  <p className="text-emerald-900 font-medium flex items-start gap-1.5 pt-1 border-t border-gray-100">
+                                    <span className="text-emerald-700 font-bold shrink-0">💡 Himani's Fix:</span>{' '}
+                                    <span>{group.suggestion}</span>
+                                  </p>
+                                )}
+                              </div>
+
+                              {/* Occurrence Context Snippets */}
+                              {group.occurrences?.length > 0 && (
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between">
+                                    <span className="text-[11px] font-bold text-gray-600 uppercase tracking-wider">
+                                      Context Snippets ({occCount})
+                                    </span>
+                                    {occCount > 2 && (
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleHighlightExpand(group.id)}
+                                        className="text-xs font-semibold text-[#0C81F3] hover:underline flex items-center gap-1"
+                                      >
+                                        <span>
+                                          {expandedHighlights[group.id]
+                                            ? 'Collapse snippets'
+                                            : `View all ${occCount} occurrences`}
+                                        </span>
+                                        {expandedHighlights[group.id] ? (
+                                          <ChevronUp className="w-3.5 h-3.5" />
+                                        ) : (
+                                          <ChevronDown className="w-3.5 h-3.5" />
+                                        )}
+                                      </button>
+                                    )}
+                                  </div>
+
+                                  <div className="space-y-1.5">
+                                    {(isExpanded
+                                      ? group.occurrences
+                                      : group.occurrences.slice(0, 2)
+                                    ).map((occ, occIdx) => (
+                                      <div
+                                        key={occIdx}
+                                        className="text-xs p-2.5 rounded-lg bg-white/95 border border-gray-200 font-sans text-gray-800 leading-relaxed shadow-2xs flex items-start gap-2.5"
+                                      >
+                                        <span className="shrink-0 text-[10px] font-bold px-1.5 py-0.5 rounded bg-gray-100 text-gray-600 border border-gray-200 font-mono mt-0.5">
+                                          #{occIdx + 1}
+                                        </span>
+                                        <div className="flex-1">
+                                          {occ.context ? (
+                                            renderHighlightedSnippet(occ.context, group.text)
+                                          ) : (
+                                            <span className="italic text-gray-500">
+                                              {occ.message || `Match found at character position ${occ.index || 0}`}
+                                            </span>
+                                          )}
+                                        </div>
+                                      </div>
+                                    ))}
+
+                                    {!isExpanded && occCount > 2 && (
+                                      <button
+                                        type="button"
+                                        onClick={() => toggleHighlightExpand(group.id)}
+                                        className="w-full py-1.5 text-center text-xs font-semibold text-gray-600 bg-white/60 hover:bg-white rounded-lg border border-dashed border-gray-300 transition-colors"
+                                      >
+                                        + {occCount - 2} more occurrence(s)... Click to expand all
+                                      </button>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-500">No content flags detected.</p>
+                    <div className="text-center py-10 bg-emerald-50/50 rounded-2xl border border-emerald-200">
+                      <CheckCircle2 className="w-10 h-10 text-emerald-500 mx-auto mb-2" />
+                      <h4 className="text-sm font-bold text-emerald-900">
+                        {inspectorFilter === 'all'
+                          ? 'Zero Editorial Flags Detected!'
+                          : `Zero ${inspectorFilter} flags detected!`}
+                      </h4>
+                      <p className="text-xs text-emerald-700 mt-1">
+                        {inspectorFilter === 'all'
+                          ? 'Your content passes all em-dash, AI buzzword, and fluff filters.'
+                          : `Your content is free of ${inspectorFilter} issues.`}
+                      </p>
+                    </div>
                   )}
                 </div>
               )}
@@ -1369,42 +2299,83 @@ Audited with Missive Digital Content QA Tool.`
                     </div>
 
                     {/* Score Lift if polished */}
-                    {polishedResult && (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-6 pt-6 border-t border-white/10">
-                        <div className="bg-white/10 rounded-2xl p-3.5 text-center">
-                          <span className="text-[11px] font-semibold text-slate-300 uppercase">
-                            Original Score
-                          </span>
-                          <p className="text-xl sm:text-2xl font-black text-rose-300 mt-0.5">
-                            {polishedResult.himaniScoreBefore || 65}{' '}
-                            <span className="text-xs text-slate-400">/ 100</span>
-                          </p>
+                    {polishedResult && (() => {
+                      const origScore =
+                        polishedResult.himaniScoreBefore ??
+                        (scores.overall > 0 ? scores.overall : 60)
+                      const newScore = polishedResult.himaniScoreAfter ?? 98
+                      const lift =
+                        polishedResult.qualityLift ?? Math.max(0, newScore - origScore)
+                      const beforeEmDashes =
+                        polishedResult.statsBefore?.emDashesCount ??
+                        report?.quickStats?.emDashesCount ??
+                        0
+                      const afterEmDashes = polishedResult.statsAfter?.emDashesCount ?? 0
+                      const beforeCliches =
+                        polishedResult.statsBefore?.aiPhrasesCount ??
+                        report?.quickStats?.aiPhrasesCount ??
+                        0
+                      const afterCliches = polishedResult.statsAfter?.aiPhrasesCount ?? 0
+
+                      return (
+                        <div className="space-y-4 mt-6 pt-6 border-t border-white/10">
+                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div className="bg-white/10 rounded-2xl p-3.5 text-center">
+                              <span className="text-[11px] font-semibold text-slate-300 uppercase">
+                                Original Score
+                              </span>
+                              <p className="text-xl sm:text-2xl font-black text-rose-300 mt-0.5">
+                                {origScore}{' '}
+                                <span className="text-xs text-slate-400">/ 100</span>
+                              </p>
+                            </div>
+                            <div className="bg-white/10 rounded-2xl p-3.5 text-center">
+                              <span className="text-[11px] font-semibold text-slate-300 uppercase">
+                                Polished Score
+                              </span>
+                              <p className="text-xl sm:text-2xl font-black text-emerald-300 mt-0.5">
+                                {newScore}{' '}
+                                <span className="text-xs text-slate-400">/ 100</span>
+                              </p>
+                            </div>
+                            <div className="col-span-2 sm:col-span-1 bg-emerald-500/20 border border-emerald-400/30 rounded-2xl p-3.5 text-center flex flex-col justify-center">
+                              <span className="text-[11px] font-semibold text-emerald-200 uppercase">
+                                Total Quality Lift
+                              </span>
+                              <p className="text-xl sm:text-2xl font-black text-emerald-400 mt-0.5">
+                                +{lift} pts
+                              </p>
+                            </div>
+                          </div>
+
+                          {/* Dynamic Metric Comparison Chips */}
+                          <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-[11px] text-slate-300">
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10">
+                              🚫 Em Dashes: <strong className="text-rose-300">{beforeEmDashes}</strong> →{' '}
+                              <strong className="text-emerald-300">{afterEmDashes}</strong>
+                            </span>
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10">
+                              🤖 AI Clichés: <strong className="text-amber-300">{beforeCliches}</strong> →{' '}
+                              <strong className="text-emerald-300">{afterCliches}</strong>
+                            </span>
+                            {polishedResult.statsAfter?.fleschScore && (
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10">
+                                📖 Flesch Ease:{' '}
+                                <strong className="text-purple-300">
+                                  {polishedResult.statsBefore?.fleschScore ??
+                                    report?.quickStats?.fleschScore ??
+                                    55}
+                                </strong>{' '}
+                                →{' '}
+                                <strong className="text-emerald-300">
+                                  {polishedResult.statsAfter.fleschScore}
+                                </strong>
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <div className="bg-white/10 rounded-2xl p-3.5 text-center">
-                          <span className="text-[11px] font-semibold text-slate-300 uppercase">
-                            Polished Score
-                          </span>
-                          <p className="text-xl sm:text-2xl font-black text-emerald-300 mt-0.5">
-                            {polishedResult.himaniScoreAfter || 98}{' '}
-                            <span className="text-xs text-slate-400">/ 100</span>
-                          </p>
-                        </div>
-                        <div className="col-span-2 sm:col-span-1 bg-emerald-500/20 border border-emerald-400/30 rounded-2xl p-3.5 text-center flex flex-col justify-center">
-                          <span className="text-[11px] font-semibold text-emerald-200 uppercase">
-                            Total Quality Lift
-                          </span>
-                          <p className="text-xl sm:text-2xl font-black text-emerald-400 mt-0.5">
-                            +
-                            {Math.max(
-                              1,
-                              (polishedResult.himaniScoreAfter || 98) -
-                                (polishedResult.himaniScoreBefore || 65)
-                            )}{' '}
-                            pts
-                          </p>
-                        </div>
-                      </div>
-                    )}
+                      )
+                    })()}
                   </div>
 
                   {/* Loading State */}
@@ -1464,14 +2435,34 @@ Audited with Missive Digital Content QA Tool.`
                   {/* Polished Results Display */}
                   {polishedResult && !isPolishing && (
                     <div className="space-y-6">
-                      {/* Improvements Made Callout */}
-                      {Array.isArray(polishedResult.improvementsMade) &&
-                        polishedResult.improvementsMade.length > 0 && (
-                          <div className="bg-emerald-50/70 border border-emerald-200 rounded-3xl p-6 space-y-3">
-                            <div className="flex items-center gap-2 text-emerald-900 font-bold text-sm">
-                              <CheckCheck className="w-4 h-4 text-emerald-600" />
-                              <span>Editorial Refinements Applied:</span>
+                      {/* Editorial Refinements & Key Metrics Strip */}
+                      <div className="bg-emerald-50/80 border border-emerald-200 rounded-3xl p-6 space-y-4">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-emerald-200/60">
+                          <div className="flex items-center gap-2 text-emerald-900 font-bold text-sm">
+                            <CheckCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+                            <span>Editorial Quality Refinements Applied</span>
+                          </div>
+
+                          {/* Metric Badges */}
+                          {polishMetrics && (
+                            <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold">
+                              <span className="px-2.5 py-1 rounded-full bg-emerald-200/70 text-emerald-900 border border-emerald-300">
+                                ✓ {polishMetrics.emDashesRemoved} Em-Dashes Eliminated
+                              </span>
+                              {polishMetrics.clichesRemoved > 0 && (
+                                <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-900 border border-blue-200">
+                                  ✓ {polishMetrics.clichesRemoved} AI Clichés Removed
+                                </span>
+                              )}
+                              <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200">
+                                {polishMetrics.wordCountBefore} → {polishMetrics.wordCountAfter} Words
+                              </span>
                             </div>
+                          )}
+                        </div>
+
+                        {Array.isArray(polishedResult.improvementsMade) &&
+                          polishedResult.improvementsMade.length > 0 && (
                             <ul className="grid sm:grid-cols-2 gap-2 text-xs text-emerald-950">
                               {polishedResult.improvementsMade.map((imp, idx) => (
                                 <li key={idx} className="flex items-start gap-2">
@@ -1480,50 +2471,247 @@ Audited with Missive Digital Content QA Tool.`
                                 </li>
                               ))}
                             </ul>
-                          </div>
-                        )}
+                          )}
+                      </div>
 
-                      {/* Content Card */}
-                      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-4">
-                        {/* Title Header */}
-                        {polishedResult.polishedTitle && (
-                          <div className="pb-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                            <div>
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                                Polished Headline (Hook-First)
-                              </span>
-                              <h4 className="text-lg sm:text-xl font-black text-slate-900 mt-0.5">
-                                {polishedResult.polishedTitle}
-                              </h4>
-                            </div>
+                      {/* Content Card with Interactive View Mode Switcher */}
+                      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-5">
+                        {/* Title Header & View Switcher Bar */}
+                        <div className="pb-4 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                          <div>
+                            <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                              Polished Headline (Hook-First)
+                            </span>
+                            <h4 className="text-lg sm:text-xl font-black text-slate-900 mt-0.5">
+                              {polishedResult.polishedTitle || 'Polished Content Blueprint'}
+                            </h4>
+                          </div>
+
+                          {/* View Mode Toggle */}
+                          <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl border border-slate-200 shrink-0 self-start lg:self-auto">
                             <button
-                              onClick={() => {
-                                navigator.clipboard.writeText(polishedResult.polishedTitle)
-                                setCopiedTitle(true)
-                                setTimeout(() => setCopiedTitle(false), 2000)
-                              }}
-                              className="px-3 py-1.5 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shrink-0 cursor-pointer"
+                              onClick={() => setPolishViewMode('diff')}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                                polishViewMode === 'diff'
+                                  ? 'bg-white text-[#0C81F3] shadow-xs'
+                                  : 'text-slate-600 hover:text-slate-900'
+                              }`}
                             >
-                              {copiedTitle ? (
-                                <Check className="w-3.5 h-3.5 text-emerald-600" />
-                              ) : (
-                                <Copy className="w-3.5 h-3.5" />
-                              )}
-                              <span>{copiedTitle ? 'Copied Title' : 'Copy Title'}</span>
+                              <Sparkles className="w-3.5 h-3.5 text-[#EB8988]" />
+                              <span>Highlighted Changes</span>
+                            </button>
+                            <button
+                              onClick={() => setPolishViewMode('clean')}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                                polishViewMode === 'clean'
+                                  ? 'bg-white text-[#0C81F3] shadow-xs'
+                                  : 'text-slate-600 hover:text-slate-900'
+                              }`}
+                            >
+                              <FileText className="w-3.5 h-3.5" />
+                              <span>Clean Text</span>
+                            </button>
+                            <button
+                              onClick={() => setPolishViewMode('split')}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                                polishViewMode === 'split'
+                                  ? 'bg-white text-[#0C81F3] shadow-xs'
+                                  : 'text-slate-600 hover:text-slate-900'
+                              }`}
+                            >
+                              <Layers className="w-3.5 h-3.5" />
+                              <span>Side-by-Side</span>
                             </button>
                           </div>
-                        )}
-
-                        {/* Rewritten Body */}
-                        <div className="bg-slate-50 rounded-2xl p-5 sm:p-6 text-sm text-slate-800 leading-relaxed whitespace-pre-wrap font-sans border border-slate-200/80 max-h-[500px] overflow-y-auto">
-                          {typeof polishedResult === 'string'
-                            ? polishedResult
-                            : polishedResult.polishedContent || ''}
                         </div>
 
-                        {/* Action Bar */}
-                        <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t border-slate-100">
-                          <div className="flex items-center gap-2">
+                        {/* VIEW 1: HIGHLIGHTED CHANGES (DIFF) */}
+                        {polishViewMode === 'diff' && (
+                          <div className="space-y-4">
+                            {/* Legend Bar & Change Counters */}
+                            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600">
+                              <span className="font-bold text-slate-800 flex items-center gap-1.5">
+                                <span>🎨 Visual Editorial Diffs:</span>
+                              </span>
+                              <div className="flex flex-wrap items-center gap-3">
+                                <span className="inline-flex items-center gap-1.5">
+                                  <del className="bg-rose-100 text-rose-800 line-through rounded px-1.5 py-0.5 font-bold decoration-rose-600 decoration-2">
+                                    red strikethrough
+                                  </del>
+                                  <span className="text-[11px] text-gray-500">= removed fluff / em-dashes</span>
+                                </span>
+                                <span className="inline-flex items-center gap-1.5">
+                                  <ins className="bg-emerald-100 text-emerald-950 font-bold no-underline rounded px-1.5 py-0.5 border border-emerald-400/80 shadow-xs">
+                                    green highlight
+                                  </ins>
+                                  <span className="text-[11px] text-gray-500">= polished phrasing & hooks</span>
+                                </span>
+                              </div>
+                            </div>
+
+                            {/* Diff Body Container: Paragraph Cards with Section Status Indicators */}
+                            <div className="space-y-3 max-h-[560px] overflow-y-auto pr-1">
+                              {polishParagraphDiff.map((block) => {
+                                const isModified = block.status === 'modified'
+                                const isAdded = block.status === 'added'
+                                const isRemoved = block.status === 'removed'
+
+                                return (
+                                  <div
+                                    key={block.id}
+                                    className={`p-4 rounded-2xl border transition-all ${
+                                      isAdded
+                                        ? 'bg-emerald-50/50 border-emerald-200 border-l-4 border-l-emerald-500'
+                                        : isRemoved
+                                          ? 'bg-rose-50/50 border-rose-200 border-l-4 border-l-rose-500'
+                                          : isModified
+                                            ? 'bg-white border-blue-200/80 border-l-4 border-l-[#0C81F3] shadow-xs'
+                                            : 'bg-slate-50/70 border-slate-200/80 border-l-4 border-l-slate-300'
+                                    }`}
+                                  >
+                                    {/* Paragraph Header Badge */}
+                                    <div className="flex items-center justify-between mb-2 text-[11px] font-bold">
+                                      <span
+                                        className={`${
+                                          isAdded
+                                            ? 'text-emerald-700'
+                                            : isRemoved
+                                              ? 'text-rose-700'
+                                              : isModified
+                                                ? 'text-[#0C81F3]'
+                                                : 'text-slate-500'
+                                        }`}
+                                      >
+                                        {isAdded
+                                          ? '✨ New Insight / Section Added'
+                                          : isRemoved
+                                            ? '🚫 Fluff / Redundant Section Removed'
+                                            : isModified
+                                              ? '⚡ Polished & Streamlined Line'
+                                              : '✓ Unchanged Paragraph'}
+                                      </span>
+                                    </div>
+
+                                    {/* Text Content with Word-Level Diffs */}
+                                    <div className="text-xs sm:text-sm text-slate-800 leading-relaxed font-sans whitespace-pre-wrap">
+                                      {block.words.map((chunk, idx) => {
+                                        if (chunk.type === 'removed') {
+                                          return (
+                                            <del
+                                              key={idx}
+                                              className="bg-rose-100 text-rose-900 line-through rounded px-1.5 py-0.5 mx-0.5 font-medium inline decoration-rose-600 decoration-2"
+                                              title="Removed during polish"
+                                            >
+                                              {chunk.value}
+                                            </del>
+                                          )
+                                        }
+                                        if (chunk.type === 'added') {
+                                          return (
+                                            <ins
+                                              key={idx}
+                                              className="bg-emerald-100 text-emerald-950 font-bold no-underline rounded px-1.5 py-0.5 mx-0.5 inline border border-emerald-300 shadow-xs"
+                                              title="Added / refined during polish"
+                                            >
+                                              {chunk.value}
+                                            </ins>
+                                          )
+                                        }
+                                        return <span key={idx}>{chunk.value}</span>
+                                      })}
+                                    </div>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* VIEW 2: CLEAN POLISHED PROSE */}
+                        {polishViewMode === 'clean' && (
+                          <div className="bg-slate-50 rounded-2xl p-5 sm:p-6 text-sm text-slate-800 leading-relaxed whitespace-pre-wrap font-sans border border-slate-200/80 max-h-[520px] overflow-y-auto">
+                            {typeof polishedResult === 'string'
+                              ? polishedResult
+                              : polishedResult.polishedContent || ''}
+                          </div>
+                        )}
+
+                        {/* VIEW 3: SIDE-BY-SIDE SPLIT WITH HIGHLIGHTS */}
+                        {polishViewMode === 'split' && (
+                          <div className="grid md:grid-cols-2 gap-4">
+                            {/* Original with Removed Highlights */}
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-xs font-bold text-slate-600 uppercase px-1">
+                                <span>Original Draft</span>
+                                <span className="text-slate-400 font-normal">{content.length} chars</span>
+                              </div>
+                              <div className="bg-rose-50/20 rounded-2xl p-4 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-wrap font-sans border border-rose-200/60 max-h-[500px] overflow-y-auto">
+                                {polishDiff.map((chunk, idx) => {
+                                  if (chunk.type === 'removed') {
+                                    return (
+                                      <del
+                                        key={idx}
+                                        className="bg-rose-100 text-rose-900 line-through rounded px-1 py-0.5 mx-0.5 font-medium inline decoration-rose-600 decoration-2"
+                                      >
+                                        {chunk.value}
+                                      </del>
+                                    )
+                                  }
+                                  if (chunk.type === 'unchanged') {
+                                    return <span key={idx}>{chunk.value}</span>
+                                  }
+                                  return null
+                                })}
+                              </div>
+                            </div>
+
+                            {/* Polished with Added Highlights */}
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between text-xs font-bold text-emerald-800 uppercase px-1">
+                                <span>Polished 100% QA Rewrite</span>
+                                <span className="text-emerald-600 font-normal">
+                                  {typeof polishedResult === 'string'
+                                    ? polishedResult.length
+                                    : (polishedResult.polishedContent || '').length}{' '}
+                                  chars
+                                </span>
+                              </div>
+                              <div className="bg-emerald-50/30 rounded-2xl p-4 text-xs sm:text-sm text-slate-900 leading-relaxed whitespace-pre-wrap font-sans border border-emerald-200 max-h-[500px] overflow-y-auto">
+                                {polishDiff.map((chunk, idx) => {
+                                  if (chunk.type === 'added') {
+                                    return (
+                                      <ins
+                                        key={idx}
+                                        className="bg-emerald-100 text-emerald-950 font-bold no-underline rounded px-1.5 py-0.5 mx-0.5 inline border border-emerald-300"
+                                      >
+                                        {chunk.value}
+                                      </ins>
+                                    )
+                                  }
+                                  if (chunk.type === 'unchanged') {
+                                    return <span key={idx}>{chunk.value}</span>
+                                  }
+                                  return null
+                                })}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Action Bar with Google Docs Export & Downloads */}
+                        <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-100">
+                          <div className="flex flex-wrap items-center gap-2">
+                            {/* Export to Google Docs */}
+                            <button
+                              onClick={handleExportToGoogleDocs}
+                              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#0A6ECF] hover:opacity-95 text-white text-xs font-bold shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                              title="Opens docs.new in Google Docs and copies formatted text to clipboard"
+                            >
+                              <ExternalLink className="w-3.5 h-3.5" />
+                              <span>Export to Google Docs</span>
+                            </button>
+
+                            {/* Copy Polished Content */}
                             <button
                               onClick={() => {
                                 const text =
@@ -1546,6 +2734,7 @@ Audited with Missive Digital Content QA Tool.`
                               </span>
                             </button>
 
+                            {/* Apply to Content Editor */}
                             <button
                               onClick={() => {
                                 const text =
@@ -1557,31 +2746,83 @@ Audited with Missive Digital Content QA Tool.`
                                   setValue('title', polishedResult.polishedTitle)
                                 setActiveTab('grid')
                               }}
-                              className="px-4 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0C81F3] border border-blue-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                              className="px-3.5 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0C81F3] border border-blue-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
-                              <span>Apply to Content Editor</span>
+                              <span>Apply to Editor</span>
                             </button>
                           </div>
 
+                          {/* Download Buttons */}
+                          <div className="flex items-center gap-2">
+                            {/* Download .doc (Word / Google Docs compatible) */}
+                            <button
+                              onClick={handleDownloadDocx}
+                              className="px-3.5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                              title="Download Microsoft Word / Google Docs compatible .doc file"
+                            >
+                              <Download className="w-3.5 h-3.5 text-blue-600" />
+                              <span>Download .doc</span>
+                            </button>
+
+                            {/* Download Markdown */}
+                            <button
+                              onClick={() => {
+                                const text =
+                                  typeof polishedResult === 'string'
+                                    ? polishedResult
+                                    : polishedResult.polishedContent || ''
+                                const blob = new Blob([text], { type: 'text/markdown' })
+                                const url = URL.createObjectURL(blob)
+                                const a = document.createElement('a')
+                                a.href = url
+                                a.download = `himani-polished-${(title || 'content').toLowerCase().replace(/\s+/g, '-')}.md`
+                                a.click()
+                                URL.revokeObjectURL(url)
+                              }}
+                              className="px-3.5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                            >
+                              <Download className="w-3.5 h-3.5" />
+                              <span>Download .md</span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Google Docs Export Notification Modal */}
+                  {showDocsModal && (
+                    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+                      <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-md w-full shadow-2xl border border-slate-100 text-center space-y-4 animate-in fade-in zoom-in-95">
+                        <div className="w-14 h-14 rounded-2xl bg-blue-50 text-[#0C81F3] flex items-center justify-center mx-auto shadow-sm">
+                          <ExternalLink className="w-7 h-7" />
+                        </div>
+                        <div className="space-y-1.5">
+                          <h4 className="text-lg font-black text-slate-900">
+                            New Google Doc Opened!
+                          </h4>
+                          <p className="text-xs text-slate-600 leading-relaxed">
+                            Your polished content with headings, bullet points, and editorial formatting has been copied to your clipboard.
+                          </p>
+                        </div>
+                        <div className="p-4 rounded-2xl bg-blue-50/80 border border-blue-100 text-xs text-blue-950 text-left space-y-2">
+                          <p className="font-bold flex items-center gap-1.5">
+                            <Sparkles className="w-3.5 h-3.5 text-[#0C81F3]" />
+                            <span>Quick Paste Instructions:</span>
+                          </p>
+                          <ol className="list-decimal list-inside space-y-1 text-slate-700">
+                            <li>Switch to the newly opened Google Docs tab.</li>
+                            <li>Press <kbd className="px-1.5 py-0.5 bg-white rounded border border-slate-200 font-mono text-[11px] font-bold">Ctrl + V</kbd> (or <kbd className="px-1.5 py-0.5 bg-white rounded border border-slate-200 font-mono text-[11px] font-bold">Cmd + V</kbd> on Mac).</li>
+                            <li>Your content will paste with full formatting intact.</li>
+                          </ol>
+                        </div>
+                        <div className="flex items-center justify-center gap-2 pt-2">
                           <button
-                            onClick={() => {
-                              const text =
-                                typeof polishedResult === 'string'
-                                  ? polishedResult
-                                  : polishedResult.polishedContent || ''
-                              const blob = new Blob([text], { type: 'text/markdown' })
-                              const url = URL.createObjectURL(blob)
-                              const a = document.createElement('a')
-                              a.href = url
-                              a.download = `himani-polished-${(title || 'content').toLowerCase().replace(/\s+/g, '-')}.md`
-                              a.click()
-                              URL.revokeObjectURL(url)
-                            }}
-                            className="px-3.5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                            onClick={() => setShowDocsModal(false)}
+                            className="px-6 py-2.5 rounded-full bg-[#0C81F3] hover:bg-[#0A6ECF] text-white text-xs font-bold shadow-md cursor-pointer transition-all"
                           >
-                            <Download className="w-3.5 h-3.5" />
-                            <span>Download Markdown</span>
+                            Got It, Thanks!
                           </button>
                         </div>
                       </div>

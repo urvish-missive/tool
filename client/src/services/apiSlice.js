@@ -135,6 +135,15 @@ export const apiSlice = createApi({
       }),
     }),
 
+    // POST /api/content-qa/import
+    importContentQa: builder.mutation({
+      query: (payload) => ({
+        url: '/content-qa/import',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
     // POST /api/sitemap/generate
     generateSitemap: builder.mutation({
       query: (payload) => ({
@@ -289,6 +298,7 @@ export const {
   useAnalyzeCompetitorMutation,
   useAnalyzeContentQaMutation,
   usePolishContentQaMutation,
+  useImportContentQaMutation,
   useGenerateLogoVariationsMutation,
   useGenerateSitemapMutation,
   useValidateSitemapMutation,

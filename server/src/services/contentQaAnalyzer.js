@@ -246,7 +246,15 @@ export function analyzeContentQA(content, title = '', targetKeyword = '', metaDe
   const statuses = {}
   const evidence = {}
   const suggestions = {}
-  const highlights = [] // Array of { type, text, index, length, suggestion, reason }
+  const highlights = [] // Array of { type, label, severity, text, index, length, suggestion, reason, context }
+
+  const extractContext = (idx, len) => {
+    const start = Math.max(0, idx - 30)
+    const end = Math.min(safeContent.length, idx + len + 30)
+    const prefix = start > 0 ? '...' : ''
+    const suffix = end < safeContent.length ? '...' : ''
+    return prefix + safeContent.substring(start, end).replace(/\s+/g, ' ') + suffix
+  }
 
   // ─────────────────────────────────────────────────────────────
   // 1. TONE, STYLE, AND AI CHECK
@@ -263,11 +271,15 @@ export function analyzeContentQA(content, title = '', targetKeyword = '', metaDe
     emDashPositions.push(emDashMatch.index)
     highlights.push({
       type: 'em-dash',
+      label: 'Em Dash Detected',
+      severity: 'error',
       text: emDashMatch[0],
       index: emDashMatch.index,
       length: emDashMatch[0].length,
       suggestion: 'Use a comma, parentheses, or split into two short sentences.',
       reason: "Himani's Content QA rule strictly forbids em dashes for crisp human readability.",
+      message: `Found em dash "${emDashMatch[0]}" at position ${emDashMatch.index}. Replace with a comma or sentence break.`,
+      context: extractContext(emDashMatch.index, emDashMatch[0].length),
     })
   }
 
@@ -289,11 +301,14 @@ export function analyzeContentQA(content, title = '', targetKeyword = '', metaDe
       foundAiPhrases.push({ phrase: match[0], suggestion: item.suggestion, index: match.index })
       highlights.push({
         type: 'ai-cliche',
+        label: 'Robotic AI Cliché',
+        severity: 'error',
         text: match[0],
         index: match.index,
         length: match[0].length,
-        suggestion: item.suggestion,
+        suggestion: item.suggestion || 'Use direct, natural human phrasing.',
         reason: `Robotic / AI cliché detected ("${match[0]}"). Replace with natural phrasing.`,
+        message: `Replace AI buzzword "${match[0]}" with "${item.suggestion || 'natural phrasing'}".`,
       })
     }
   }
@@ -456,11 +471,15 @@ export function analyzeContentQA(content, title = '', targetKeyword = '', metaDe
       foundFillerPhrases.push({ phrase: match[0], index: match.index })
       highlights.push({
         type: 'filler',
+        label: 'Filler / Fluff Transition',
+        severity: 'warning',
         text: match[0],
         index: match.index,
         length: match[0].length,
-        suggestion: 'Delete this filler phrase to make the sentence crisp.',
+        suggestion: 'Delete this filler phrase to make the sentence crisp and direct.',
         reason: `Fluff / filler phrase ("${match[0]}") weakens the punchiness of your sentence.`,
+        message: `Remove throat-clearing fluff "${match[0]}" to improve crispness.`,
+        context: extractContext(match.index, match[0].length),
       })
     }
   }
@@ -549,11 +568,15 @@ export function analyzeContentQA(content, title = '', targetKeyword = '', metaDe
       superlativeFound = true
       highlights.push({
         type: 'superlative',
+        label: 'Exaggerated Superlative',
+        severity: 'warning',
         text: match[0],
         index: match.index,
         length: match[0].length,
         suggestion: 'Tone down extreme superlative claim with factual authority.',
         reason: `Exaggerated marketing claim ("${match[0]}"). Himani rule: Crisp storytelling over hyperbole.`,
+        message: `Tone down hyperbole "${match[0]}" with grounded practitioner facts.`,
+        context: extractContext(match.index, match[0].length),
       })
     }
   }
@@ -574,11 +597,15 @@ export function analyzeContentQA(content, title = '', targetKeyword = '', metaDe
       milestoneFound = true
       highlights.push({
         type: 'milestone',
+        label: 'Milestone / Tenure Boasting',
+        severity: 'error',
         text: match[0],
         index: match.index,
         length: match[0].length,
         suggestion: 'Demonstrate expertise through insights rather than quoting years of experience.',
         reason: 'Himani rule: Avoid relying on milestone bragging (e.g., "10+ years of experience"). Show, don\'t boast.',
+        message: `Remove tenure boast "${match[0]}". Establish authority through deep insight instead.`,
+        context: extractContext(match.index, match[0].length),
       })
     }
   }
@@ -600,11 +627,14 @@ export function analyzeContentQA(content, title = '', targetKeyword = '', metaDe
     medicalRisk = true
     highlights.push({
       type: 'compliance',
+      label: 'Medical / Health Claim',
+      severity: 'error',
       text: matchMed[0],
       index: matchMed.index,
       length: matchMed[0].length,
       suggestion: 'Remove medical guarantee or add legally approved disclaimer.',
       reason: `Medical/Pharma compliance trigger ("${matchMed[0]}").`,
+      message: `Unverified medical claim "${matchMed[0]}" must be qualified or removed.`,
     })
   }
 
@@ -613,11 +643,14 @@ export function analyzeContentQA(content, title = '', targetKeyword = '', metaDe
     financialRisk = true
     highlights.push({
       type: 'compliance',
+      label: 'Financial Return Guarantee',
+      severity: 'error',
       text: matchFin[0],
       index: matchFin.index,
       length: matchFin[0].length,
       suggestion: 'Neutralize financial guarantee to comply with regulatory standards.',
       reason: `Financial compliance trigger ("${matchFin[0]}").`,
+      message: `Guaranteed financial claim "${matchFin[0]}" creates regulatory risk.`,
     })
   }
 
