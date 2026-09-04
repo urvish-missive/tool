@@ -66,11 +66,7 @@ import {
 } from '../../services/apiSlice'
 import { contentQaSchema, parseContentQaForm } from '../../schemas/contentQa.schema'
 import { getScoreColor, getScoreBg } from '../../utils/scoreHelpers'
-import {
-  computeWordDiff,
-  computeParagraphDiff,
-  computePolishMetrics,
-} from '../../utils/textDiff'
+import { computeWordDiff, computeParagraphDiff, computePolishMetrics } from '../../utils/textDiff'
 
 // ── 12 PILLARS DEFINITION (Matching Himani Kankaria's Checklist) ────
 const HIMANI_CATEGORIES_DEF = [
@@ -314,7 +310,6 @@ export default function ContentQaPage() {
   const title = watch('title')
   const targetKeyword = watch('targetKeyword')
   const platform = watch('platform')
-  const targetAudience = watch('targetAudience')
   const aiModel = watch('preferredProvider')
 
   const [report, setReport] = useState(null)
@@ -330,14 +325,11 @@ export default function ContentQaPage() {
   const [polishedResult, setPolishedResult] = useState(null)
   const [polishError, setPolishError] = useState(null)
   const [copiedPolish, setCopiedPolish] = useState(false)
-  const [copiedTitle, setCopiedTitle] = useState(false)
-  const [polishViewMode, setPolishViewMode] = useState('diff') // 'diff' | 'clean' | 'split'
+  const [polishViewMode, setPolishViewMode] = useState('split') // 'split' | 'diff' | 'clean'
   const [showDocsModal, setShowDocsModal] = useState(false)
-  const [copiedDocs, setCopiedDocs] = useState(false)
 
   // Multi-Format Content Input State
   const [inputSourceMode, setInputSourceMode] = useState('text') // 'text' | 'gdoc' | 'web' | 'file'
-  const [gdocUrl, setGdocUrl] = useState('')
   const [webUrl, setWebUrl] = useState('')
   const [importError, setImportError] = useState(null)
   const [importSuccessMsg, setImportSuccessMsg] = useState(null)
@@ -348,21 +340,27 @@ export default function ContentQaPage() {
   const polishDiff = useMemo(() => {
     if (!polishedResult) return []
     const oldText = (content || '').trim()
-    const newText = (typeof polishedResult === 'string' ? polishedResult : polishedResult.polishedContent || '').trim()
+    const newText = (
+      typeof polishedResult === 'string' ? polishedResult : polishedResult.polishedContent || ''
+    ).trim()
     return computeWordDiff(oldText, newText)
   }, [content, polishedResult])
 
   const polishParagraphDiff = useMemo(() => {
     if (!polishedResult) return []
     const oldText = (content || '').trim()
-    const newText = (typeof polishedResult === 'string' ? polishedResult : polishedResult.polishedContent || '').trim()
+    const newText = (
+      typeof polishedResult === 'string' ? polishedResult : polishedResult.polishedContent || ''
+    ).trim()
     return computeParagraphDiff(oldText, newText)
   }, [content, polishedResult])
 
   const polishMetrics = useMemo(() => {
     if (!polishedResult) return null
     const oldText = (content || '').trim()
-    const newText = (typeof polishedResult === 'string' ? polishedResult : polishedResult.polishedContent || '').trim()
+    const newText = (
+      typeof polishedResult === 'string' ? polishedResult : polishedResult.polishedContent || ''
+    ).trim()
     return computePolishMetrics(oldText, newText)
   }, [content, polishedResult])
 
@@ -412,7 +410,11 @@ export default function ContentQaPage() {
 
   // Group highlights by type + match text so multiple occurrences (e.g. 11 em dashes) collapse into 1 card with occurrences
   const groupedHighlights = useMemo(() => {
-    if (!report?.highlights || !Array.isArray(report.highlights) || report.highlights.length === 0) {
+    if (
+      !report?.highlights ||
+      !Array.isArray(report.highlights) ||
+      report.highlights.length === 0
+    ) {
       return []
     }
 
@@ -544,9 +546,7 @@ export default function ContentQaPage() {
         setInputSourceMode('text')
       }
     } catch (err) {
-      setImportError(
-        err?.data?.error || err.message || 'Failed to extract content from this URL.'
-      )
+      setImportError(err?.data?.error || err.message || 'Failed to extract content from this URL.')
     }
   }
 
@@ -611,7 +611,8 @@ export default function ContentQaPage() {
 
   // Google Docs Export Handler
   const handleExportToGoogleDocs = async () => {
-    const rawContent = typeof polishedResult === 'string' ? polishedResult : polishedResult.polishedContent || ''
+    const rawContent =
+      typeof polishedResult === 'string' ? polishedResult : polishedResult.polishedContent || ''
     const polishedHeadline = polishedResult?.polishedTitle || title || 'Polished Content'
 
     // Format rich HTML for clipboard so it pastes into Google Docs with headings and styling
@@ -619,9 +620,12 @@ export default function ContentQaPage() {
       .split('\n\n')
       .map((para) => {
         const trimmed = para.trim()
-        if (trimmed.startsWith('### ')) return `<h3 style="font-size: 14pt; color: #1E293B; margin-top: 10pt; margin-bottom: 3pt;">${trimmed.substring(4)}</h3>`
-        if (trimmed.startsWith('## ')) return `<h2 style="font-size: 16pt; color: #0C81F3; margin-top: 14pt; margin-bottom: 4pt;">${trimmed.substring(3)}</h2>`
-        if (trimmed.startsWith('# ')) return `<h1 style="font-size: 20pt; color: #0C81F3; margin-top: 16pt; margin-bottom: 6pt;">${trimmed.substring(2)}</h1>`
+        if (trimmed.startsWith('### '))
+          return `<h3 style="font-size: 14pt; color: #1E293B; margin-top: 10pt; margin-bottom: 3pt;">${trimmed.substring(4)}</h3>`
+        if (trimmed.startsWith('## '))
+          return `<h2 style="font-size: 16pt; color: #0C81F3; margin-top: 14pt; margin-bottom: 4pt;">${trimmed.substring(3)}</h2>`
+        if (trimmed.startsWith('# '))
+          return `<h1 style="font-size: 20pt; color: #0C81F3; margin-top: 16pt; margin-bottom: 6pt;">${trimmed.substring(2)}</h1>`
         if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
           const items = trimmed
             .split('\n')
@@ -648,7 +652,9 @@ export default function ContentQaPage() {
         await navigator.clipboard.write([
           new ClipboardItem({
             'text/html': new Blob([fullHtml], { type: 'text/html' }),
-            'text/plain': new Blob([`${polishedHeadline}\n\n${rawContent}`], { type: 'text/plain' }),
+            'text/plain': new Blob([`${polishedHeadline}\n\n${rawContent}`], {
+              type: 'text/plain',
+            }),
           }),
         ])
       } else {
@@ -665,7 +671,8 @@ export default function ContentQaPage() {
 
   // Download .doc file (Microsoft Word & Google Docs compatible)
   const handleDownloadDocx = () => {
-    const rawContent = typeof polishedResult === 'string' ? polishedResult : polishedResult.polishedContent || ''
+    const rawContent =
+      typeof polishedResult === 'string' ? polishedResult : polishedResult.polishedContent || ''
     const polishedHeadline = polishedResult?.polishedTitle || title || 'Polished Content'
     const htmlDoc = `
       <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
@@ -684,7 +691,10 @@ export default function ContentQaPage() {
       <body>
         <h1>${polishedHeadline}</h1>
         <div class="meta">Himani Kankaria 12-Pillar Editorial Polish • Missive Digital (missivedigital.com)</div>
-        ${rawContent.split('\n\n').map(p => `<p>${p.replace(/\n/g, '<br/>')}</p>`).join('')}
+        ${rawContent
+          .split('\n\n')
+          .map((p) => `<p>${p.replace(/\n/g, '<br/>')}</p>`)
+          .join('')}
         <div class="footer">Exported from Missive Digital Content QA Checklist (missivedigital.com)</div>
       </body>
       </html>
@@ -1261,7 +1271,9 @@ Audited with Missive Digital Content QA Tool.`
                           Upload Document File
                         </h4>
                         <p className="text-xs text-purple-800/80 mt-1">
-                          Supports <strong>Microsoft Word (.docx)</strong>, <strong>Plain Text (.txt)</strong>, <strong>Markdown (.md)</strong>, or <strong>HTML (.html)</strong>.
+                          Supports <strong>Microsoft Word (.docx)</strong>,{' '}
+                          <strong>Plain Text (.txt)</strong>, <strong>Markdown (.md)</strong>, or{' '}
+                          <strong>HTML (.html)</strong>.
                         </p>
                       </div>
 
@@ -1358,7 +1370,9 @@ Audited with Missive Digital Content QA Tool.`
                     <div className="flex justify-between mt-1.5 text-xs text-gray-500">
                       <span>Himani's Rule: Every line must earn its place.</span>
                       {wordCount > 0 && wordCount < 20 && (
-                        <span className="text-red-500 font-semibold">Minimum 20 words required</span>
+                        <span className="text-red-500 font-semibold">
+                          Minimum 20 words required
+                        </span>
                       )}
                     </div>
                   </div>
@@ -1934,7 +1948,9 @@ Audited with Missive Digital Content QA Tool.`
                         )}
                       </h3>
                       <p className="text-xs text-gray-500 mt-0.5">
-                        Deep scan of every sentence for em dashes, robotic AI clichés, filler phrasing, and compliance triggers. Issues are grouped by rule to prevent repetitive clutter.
+                        Deep scan of every sentence for em dashes, robotic AI clichés, filler
+                        phrasing, and compliance triggers. Issues are grouped by rule to prevent
+                        repetitive clutter.
                       </p>
                     </div>
                   </div>
@@ -2135,7 +2151,9 @@ Audited with Missive Digital Content QA Tool.`
                                 </p>
                                 {group.suggestion && (
                                   <p className="text-emerald-900 font-medium flex items-start gap-1.5 pt-1 border-t border-gray-100">
-                                    <span className="text-emerald-700 font-bold shrink-0">💡 Himani's Fix:</span>{' '}
+                                    <span className="text-emerald-700 font-bold shrink-0">
+                                      💡 Himani's Fix:
+                                    </span>{' '}
                                     <span>{group.suggestion}</span>
                                   </p>
                                 )}
@@ -2185,7 +2203,8 @@ Audited with Missive Digital Content QA Tool.`
                                             renderHighlightedSnippet(occ.context, group.text)
                                           ) : (
                                             <span className="italic text-gray-500">
-                                              {occ.message || `Match found at character position ${occ.index || 0}`}
+                                              {occ.message ||
+                                                `Match found at character position ${occ.index || 0}`}
                                             </span>
                                           )}
                                         </div>
@@ -2299,83 +2318,83 @@ Audited with Missive Digital Content QA Tool.`
                     </div>
 
                     {/* Score Lift if polished */}
-                    {polishedResult && (() => {
-                      const origScore =
-                        polishedResult.himaniScoreBefore ??
-                        (scores.overall > 0 ? scores.overall : 60)
-                      const newScore = polishedResult.himaniScoreAfter ?? 98
-                      const lift =
-                        polishedResult.qualityLift ?? Math.max(0, newScore - origScore)
-                      const beforeEmDashes =
-                        polishedResult.statsBefore?.emDashesCount ??
-                        report?.quickStats?.emDashesCount ??
-                        0
-                      const afterEmDashes = polishedResult.statsAfter?.emDashesCount ?? 0
-                      const beforeCliches =
-                        polishedResult.statsBefore?.aiPhrasesCount ??
-                        report?.quickStats?.aiPhrasesCount ??
-                        0
-                      const afterCliches = polishedResult.statsAfter?.aiPhrasesCount ?? 0
+                    {polishedResult &&
+                      (() => {
+                        const origScore =
+                          polishedResult.himaniScoreBefore ??
+                          (scores.overall > 0 ? scores.overall : 60)
+                        const newScore = polishedResult.himaniScoreAfter ?? 98
+                        const lift = polishedResult.qualityLift ?? Math.max(0, newScore - origScore)
+                        const beforeEmDashes =
+                          polishedResult.statsBefore?.emDashesCount ??
+                          report?.quickStats?.emDashesCount ??
+                          0
+                        const afterEmDashes = polishedResult.statsAfter?.emDashesCount ?? 0
+                        const beforeCliches =
+                          polishedResult.statsBefore?.aiPhrasesCount ??
+                          report?.quickStats?.aiPhrasesCount ??
+                          0
+                        const afterCliches = polishedResult.statsAfter?.aiPhrasesCount ?? 0
 
-                      return (
-                        <div className="space-y-4 mt-6 pt-6 border-t border-white/10">
-                          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
-                            <div className="bg-white/10 rounded-2xl p-3.5 text-center">
-                              <span className="text-[11px] font-semibold text-slate-300 uppercase">
-                                Original Score
-                              </span>
-                              <p className="text-xl sm:text-2xl font-black text-rose-300 mt-0.5">
-                                {origScore}{' '}
-                                <span className="text-xs text-slate-400">/ 100</span>
-                              </p>
+                        return (
+                          <div className="space-y-4 mt-6 pt-6 border-t border-white/10">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                              <div className="bg-white/10 rounded-2xl p-3.5 text-center">
+                                <span className="text-[11px] font-semibold text-slate-300 uppercase">
+                                  Original Score
+                                </span>
+                                <p className="text-xl sm:text-2xl font-black text-rose-300 mt-0.5">
+                                  {origScore} <span className="text-xs text-slate-400">/ 100</span>
+                                </p>
+                              </div>
+                              <div className="bg-white/10 rounded-2xl p-3.5 text-center">
+                                <span className="text-[11px] font-semibold text-slate-300 uppercase">
+                                  Polished Score
+                                </span>
+                                <p className="text-xl sm:text-2xl font-black text-emerald-300 mt-0.5">
+                                  {newScore} <span className="text-xs text-slate-400">/ 100</span>
+                                </p>
+                              </div>
+                              <div className="col-span-2 sm:col-span-1 bg-emerald-500/20 border border-emerald-400/30 rounded-2xl p-3.5 text-center flex flex-col justify-center">
+                                <span className="text-[11px] font-semibold text-emerald-200 uppercase">
+                                  Total Quality Lift
+                                </span>
+                                <p className="text-xl sm:text-2xl font-black text-emerald-400 mt-0.5">
+                                  +{lift} pts
+                                </p>
+                              </div>
                             </div>
-                            <div className="bg-white/10 rounded-2xl p-3.5 text-center">
-                              <span className="text-[11px] font-semibold text-slate-300 uppercase">
-                                Polished Score
-                              </span>
-                              <p className="text-xl sm:text-2xl font-black text-emerald-300 mt-0.5">
-                                {newScore}{' '}
-                                <span className="text-xs text-slate-400">/ 100</span>
-                              </p>
-                            </div>
-                            <div className="col-span-2 sm:col-span-1 bg-emerald-500/20 border border-emerald-400/30 rounded-2xl p-3.5 text-center flex flex-col justify-center">
-                              <span className="text-[11px] font-semibold text-emerald-200 uppercase">
-                                Total Quality Lift
-                              </span>
-                              <p className="text-xl sm:text-2xl font-black text-emerald-400 mt-0.5">
-                                +{lift} pts
-                              </p>
-                            </div>
-                          </div>
 
-                          {/* Dynamic Metric Comparison Chips */}
-                          <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-[11px] text-slate-300">
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10">
-                              🚫 Em Dashes: <strong className="text-rose-300">{beforeEmDashes}</strong> →{' '}
-                              <strong className="text-emerald-300">{afterEmDashes}</strong>
-                            </span>
-                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10">
-                              🤖 AI Clichés: <strong className="text-amber-300">{beforeCliches}</strong> →{' '}
-                              <strong className="text-emerald-300">{afterCliches}</strong>
-                            </span>
-                            {polishedResult.statsAfter?.fleschScore && (
+                            {/* Dynamic Metric Comparison Chips */}
+                            <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-[11px] text-slate-300">
                               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10">
-                                📖 Flesch Ease:{' '}
-                                <strong className="text-purple-300">
-                                  {polishedResult.statsBefore?.fleschScore ??
-                                    report?.quickStats?.fleschScore ??
-                                    55}
-                                </strong>{' '}
-                                →{' '}
-                                <strong className="text-emerald-300">
-                                  {polishedResult.statsAfter.fleschScore}
-                                </strong>
+                                🚫 Em Dashes:{' '}
+                                <strong className="text-rose-300">{beforeEmDashes}</strong> →{' '}
+                                <strong className="text-emerald-300">{afterEmDashes}</strong>
                               </span>
-                            )}
+                              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10">
+                                🤖 AI Clichés:{' '}
+                                <strong className="text-amber-300">{beforeCliches}</strong> →{' '}
+                                <strong className="text-emerald-300">{afterCliches}</strong>
+                              </span>
+                              {polishedResult.statsAfter?.fleschScore && (
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10">
+                                  📖 Flesch Ease:{' '}
+                                  <strong className="text-purple-300">
+                                    {polishedResult.statsBefore?.fleschScore ??
+                                      report?.quickStats?.fleschScore ??
+                                      55}
+                                  </strong>{' '}
+                                  →{' '}
+                                  <strong className="text-emerald-300">
+                                    {polishedResult.statsAfter.fleschScore}
+                                  </strong>
+                                </span>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      )
-                    })()}
+                        )
+                      })()}
                   </div>
 
                   {/* Loading State */}
@@ -2455,7 +2474,8 @@ Audited with Missive Digital Content QA Tool.`
                                 </span>
                               )}
                               <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200">
-                                {polishMetrics.wordCountBefore} → {polishMetrics.wordCountAfter} Words
+                                {polishMetrics.wordCountBefore} → {polishMetrics.wordCountAfter}{' '}
+                                Words
                               </span>
                             </div>
                           )}
@@ -2477,6 +2497,7 @@ Audited with Missive Digital Content QA Tool.`
                       {/* Content Card with Interactive View Mode Switcher */}
                       <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-5">
                         {/* Title Header & View Switcher Bar */}
+                        {/* Title Header & View Switcher Bar */}
                         <div className="pb-4 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                           <div>
                             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
@@ -2489,6 +2510,17 @@ Audited with Missive Digital Content QA Tool.`
 
                           {/* View Mode Toggle */}
                           <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl border border-slate-200 shrink-0 self-start lg:self-auto">
+                            <button
+                              onClick={() => setPolishViewMode('split')}
+                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                                polishViewMode === 'split'
+                                  ? 'bg-white text-[#0C81F3] shadow-xs'
+                                  : 'text-slate-600 hover:text-slate-900'
+                              }`}
+                            >
+                              <Layers className="w-3.5 h-3.5" />
+                              <span>Side-by-Side</span>
+                            </button>
                             <button
                               onClick={() => setPolishViewMode('diff')}
                               className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
@@ -2511,147 +2543,50 @@ Audited with Missive Digital Content QA Tool.`
                               <FileText className="w-3.5 h-3.5" />
                               <span>Clean Text</span>
                             </button>
-                            <button
-                              onClick={() => setPolishViewMode('split')}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                                polishViewMode === 'split'
-                                  ? 'bg-white text-[#0C81F3] shadow-xs'
-                                  : 'text-slate-600 hover:text-slate-900'
-                              }`}
-                            >
-                              <Layers className="w-3.5 h-3.5" />
-                              <span>Side-by-Side</span>
-                            </button>
                           </div>
                         </div>
 
-                        {/* VIEW 1: HIGHLIGHTED CHANGES (DIFF) */}
-                        {polishViewMode === 'diff' && (
-                          <div className="space-y-4">
-                            {/* Legend Bar & Change Counters */}
-                            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-200/80 text-xs text-slate-600">
-                              <span className="font-bold text-slate-800 flex items-center gap-1.5">
-                                <span>🎨 Visual Editorial Diffs:</span>
-                              </span>
-                              <div className="flex flex-wrap items-center gap-3">
-                                <span className="inline-flex items-center gap-1.5">
-                                  <del className="bg-rose-100 text-rose-800 line-through rounded px-1.5 py-0.5 font-bold decoration-rose-600 decoration-2">
-                                    red strikethrough
-                                  </del>
-                                  <span className="text-[11px] text-gray-500">= removed fluff / em-dashes</span>
-                                </span>
-                                <span className="inline-flex items-center gap-1.5">
-                                  <ins className="bg-emerald-100 text-emerald-950 font-bold no-underline rounded px-1.5 py-0.5 border border-emerald-400/80 shadow-xs">
-                                    green highlight
-                                  </ins>
-                                  <span className="text-[11px] text-gray-500">= polished phrasing & hooks</span>
-                                </span>
-                              </div>
-                            </div>
-
-                            {/* Diff Body Container: Paragraph Cards with Section Status Indicators */}
-                            <div className="space-y-3 max-h-[560px] overflow-y-auto pr-1">
-                              {polishParagraphDiff.map((block) => {
-                                const isModified = block.status === 'modified'
-                                const isAdded = block.status === 'added'
-                                const isRemoved = block.status === 'removed'
-
-                                return (
-                                  <div
-                                    key={block.id}
-                                    className={`p-4 rounded-2xl border transition-all ${
-                                      isAdded
-                                        ? 'bg-emerald-50/50 border-emerald-200 border-l-4 border-l-emerald-500'
-                                        : isRemoved
-                                          ? 'bg-rose-50/50 border-rose-200 border-l-4 border-l-rose-500'
-                                          : isModified
-                                            ? 'bg-white border-blue-200/80 border-l-4 border-l-[#0C81F3] shadow-xs'
-                                            : 'bg-slate-50/70 border-slate-200/80 border-l-4 border-l-slate-300'
-                                    }`}
-                                  >
-                                    {/* Paragraph Header Badge */}
-                                    <div className="flex items-center justify-between mb-2 text-[11px] font-bold">
-                                      <span
-                                        className={`${
-                                          isAdded
-                                            ? 'text-emerald-700'
-                                            : isRemoved
-                                              ? 'text-rose-700'
-                                              : isModified
-                                                ? 'text-[#0C81F3]'
-                                                : 'text-slate-500'
-                                        }`}
-                                      >
-                                        {isAdded
-                                          ? '✨ New Insight / Section Added'
-                                          : isRemoved
-                                            ? '🚫 Fluff / Redundant Section Removed'
-                                            : isModified
-                                              ? '⚡ Polished & Streamlined Line'
-                                              : '✓ Unchanged Paragraph'}
-                                      </span>
-                                    </div>
-
-                                    {/* Text Content with Word-Level Diffs */}
-                                    <div className="text-xs sm:text-sm text-slate-800 leading-relaxed font-sans whitespace-pre-wrap">
-                                      {block.words.map((chunk, idx) => {
-                                        if (chunk.type === 'removed') {
-                                          return (
-                                            <del
-                                              key={idx}
-                                              className="bg-rose-100 text-rose-900 line-through rounded px-1.5 py-0.5 mx-0.5 font-medium inline decoration-rose-600 decoration-2"
-                                              title="Removed during polish"
-                                            >
-                                              {chunk.value}
-                                            </del>
-                                          )
-                                        }
-                                        if (chunk.type === 'added') {
-                                          return (
-                                            <ins
-                                              key={idx}
-                                              className="bg-emerald-100 text-emerald-950 font-bold no-underline rounded px-1.5 py-0.5 mx-0.5 inline border border-emerald-300 shadow-xs"
-                                              title="Added / refined during polish"
-                                            >
-                                              {chunk.value}
-                                            </ins>
-                                          )
-                                        }
-                                        return <span key={idx}>{chunk.value}</span>
-                                      })}
-                                    </div>
-                                  </div>
-                                )
-                              })}
-                            </div>
+                        {/* Visual Editorial Diffs Legend Bar (Always Side-by-Side) */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 text-xs">
+                          <div className="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-rose-200/70 shadow-2xs">
+                            <del className="bg-rose-100 text-rose-900 line-through rounded px-2 py-0.5 font-bold decoration-rose-600 decoration-2 shrink-0">
+                              red strikethrough
+                            </del>
+                            <span className="text-xs text-gray-700 font-medium">
+                              = removed fluff / em-dashes
+                            </span>
                           </div>
-                        )}
-
-                        {/* VIEW 2: CLEAN POLISHED PROSE */}
-                        {polishViewMode === 'clean' && (
-                          <div className="bg-slate-50 rounded-2xl p-5 sm:p-6 text-sm text-slate-800 leading-relaxed whitespace-pre-wrap font-sans border border-slate-200/80 max-h-[520px] overflow-y-auto">
-                            {typeof polishedResult === 'string'
-                              ? polishedResult
-                              : polishedResult.polishedContent || ''}
+                          <div className="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-emerald-200/70 shadow-2xs">
+                            <ins className="bg-emerald-100 text-emerald-950 font-bold no-underline rounded px-2 py-0.5 border border-emerald-300 shadow-2xs shrink-0">
+                              green highlight
+                            </ins>
+                            <span className="text-xs text-gray-700 font-medium">
+                              = polished phrasing & hooks
+                            </span>
                           </div>
-                        )}
+                        </div>
 
-                        {/* VIEW 3: SIDE-BY-SIDE SPLIT WITH HIGHLIGHTS */}
+                        {/* VIEW 1: SIDE-BY-SIDE SPLIT WITH HIGHLIGHTS (DEFAULT) */}
                         {polishViewMode === 'split' && (
-                          <div className="grid md:grid-cols-2 gap-4">
-                            {/* Original with Removed Highlights */}
+                          <div className="grid md:grid-cols-2 gap-5">
+                            {/* Original Draft Column (Left) */}
                             <div className="space-y-2">
-                              <div className="flex items-center justify-between text-xs font-bold text-slate-600 uppercase px-1">
-                                <span>Original Draft</span>
-                                <span className="text-slate-400 font-normal">{content.length} chars</span>
+                              <div className="flex items-center justify-between p-2.5 bg-rose-50/70 rounded-xl border border-rose-200/80 text-xs font-bold text-rose-950">
+                                <span className="flex items-center gap-1.5">
+                                  <span>📄 Original Draft (Before)</span>
+                                </span>
+                                <span className="text-[11px] text-rose-800 font-semibold">
+                                  {content.length} chars
+                                </span>
                               </div>
-                              <div className="bg-rose-50/20 rounded-2xl p-4 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-wrap font-sans border border-rose-200/60 max-h-[500px] overflow-y-auto">
+                              <div className="bg-white rounded-2xl p-5 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-wrap font-sans border border-rose-200 shadow-2xs min-h-[380px] max-h-[540px] overflow-y-auto">
                                 {polishDiff.map((chunk, idx) => {
                                   if (chunk.type === 'removed') {
                                     return (
                                       <del
                                         key={idx}
-                                        className="bg-rose-100 text-rose-900 line-through rounded px-1 py-0.5 mx-0.5 font-medium inline decoration-rose-600 decoration-2"
+                                        className="bg-rose-100 text-rose-900 line-through rounded px-1.5 py-0.5 mx-0.5 font-semibold inline decoration-rose-600 decoration-2"
+                                        title="Removed during polish"
                                       >
                                         {chunk.value}
                                       </del>
@@ -2665,24 +2600,27 @@ Audited with Missive Digital Content QA Tool.`
                               </div>
                             </div>
 
-                            {/* Polished with Added Highlights */}
+                            {/* Polished Rewrite Column (Right) */}
                             <div className="space-y-2">
-                              <div className="flex items-center justify-between text-xs font-bold text-emerald-800 uppercase px-1">
-                                <span>Polished 100% QA Rewrite</span>
-                                <span className="text-emerald-600 font-normal">
+                              <div className="flex items-center justify-between p-2.5 bg-emerald-50/70 rounded-xl border border-emerald-200/80 text-xs font-bold text-emerald-950">
+                                <span className="flex items-center gap-1.5">
+                                  <span>✨ Polished 100% QA Rewrite (After)</span>
+                                </span>
+                                <span className="text-[11px] text-emerald-800 font-semibold">
                                   {typeof polishedResult === 'string'
                                     ? polishedResult.length
                                     : (polishedResult.polishedContent || '').length}{' '}
                                   chars
                                 </span>
                               </div>
-                              <div className="bg-emerald-50/30 rounded-2xl p-4 text-xs sm:text-sm text-slate-900 leading-relaxed whitespace-pre-wrap font-sans border border-emerald-200 max-h-[500px] overflow-y-auto">
+                              <div className="bg-white rounded-2xl p-5 text-xs sm:text-sm text-slate-900 leading-relaxed whitespace-pre-wrap font-sans border border-emerald-300 shadow-2xs min-h-[380px] max-h-[540px] overflow-y-auto">
                                 {polishDiff.map((chunk, idx) => {
                                   if (chunk.type === 'added') {
                                     return (
                                       <ins
                                         key={idx}
-                                        className="bg-emerald-100 text-emerald-950 font-bold no-underline rounded px-1.5 py-0.5 mx-0.5 inline border border-emerald-300"
+                                        className="bg-emerald-100 text-emerald-950 font-bold no-underline rounded px-1.5 py-0.5 mx-0.5 inline border border-emerald-300 shadow-2xs"
+                                        title="Added & polished"
                                       >
                                         {chunk.value}
                                       </ins>
@@ -2695,6 +2633,93 @@ Audited with Missive Digital Content QA Tool.`
                                 })}
                               </div>
                             </div>
+                          </div>
+                        )}
+
+                        {/* VIEW 2: HIGHLIGHTED CHANGES (INLINE DIFF) */}
+                        {polishViewMode === 'diff' && (
+                          <div className="space-y-3 max-h-[560px] overflow-y-auto pr-1">
+                            {polishParagraphDiff.map((block) => {
+                              const isModified = block.status === 'modified'
+                              const isAdded = block.status === 'added'
+                              const isRemoved = block.status === 'removed'
+
+                              return (
+                                <div
+                                  key={block.id}
+                                  className={`p-4 rounded-2xl border transition-all ${
+                                    isAdded
+                                      ? 'bg-emerald-50/50 border-emerald-200 border-l-4 border-l-emerald-500'
+                                      : isRemoved
+                                        ? 'bg-rose-50/50 border-rose-200 border-l-4 border-l-rose-500'
+                                        : isModified
+                                          ? 'bg-white border-blue-200/80 border-l-4 border-l-[#0C81F3] shadow-xs'
+                                          : 'bg-slate-50/70 border-slate-200/80 border-l-4 border-l-slate-300'
+                                  }`}
+                                >
+                                  {/* Paragraph Header Badge */}
+                                  <div className="flex items-center justify-between mb-2 text-[11px] font-bold">
+                                    <span
+                                      className={`${
+                                        isAdded
+                                          ? 'text-emerald-700'
+                                          : isRemoved
+                                            ? 'text-rose-700'
+                                            : isModified
+                                              ? 'text-[#0C81F3]'
+                                              : 'text-slate-500'
+                                      }`}
+                                    >
+                                      {isAdded
+                                        ? '✨ New Insight / Section Added'
+                                        : isRemoved
+                                          ? '🚫 Fluff / Redundant Section Removed'
+                                          : isModified
+                                            ? '⚡ Polished & Streamlined Line'
+                                            : '✓ Unchanged Paragraph'}
+                                    </span>
+                                  </div>
+
+                                  {/* Text Content with Word-Level Diffs */}
+                                  <div className="text-xs sm:text-sm text-slate-800 leading-relaxed font-sans whitespace-pre-wrap">
+                                    {block.words.map((chunk, idx) => {
+                                      if (chunk.type === 'removed') {
+                                        return (
+                                          <del
+                                            key={idx}
+                                            className="bg-rose-100 text-rose-900 line-through rounded px-1.5 py-0.5 mx-0.5 font-medium inline decoration-rose-600 decoration-2"
+                                            title="Removed during polish"
+                                          >
+                                            {chunk.value}
+                                          </del>
+                                        )
+                                      }
+                                      if (chunk.type === 'added') {
+                                        return (
+                                          <ins
+                                            key={idx}
+                                            className="bg-emerald-100 text-emerald-950 font-bold no-underline rounded px-1.5 py-0.5 mx-0.5 inline border border-emerald-300 shadow-xs"
+                                            title="Added / refined during polish"
+                                          >
+                                            {chunk.value}
+                                          </ins>
+                                        )
+                                      }
+                                      return <span key={idx}>{chunk.value}</span>
+                                    })}
+                                  </div>
+                                </div>
+                              )
+                            })}
+                          </div>
+                        )}
+
+                        {/* VIEW 3: CLEAN POLISHED PROSE */}
+                        {polishViewMode === 'clean' && (
+                          <div className="bg-slate-50 rounded-2xl p-5 sm:p-6 text-sm text-slate-800 leading-relaxed whitespace-pre-wrap font-sans border border-slate-200/80 max-h-[520px] overflow-y-auto">
+                            {typeof polishedResult === 'string'
+                              ? polishedResult
+                              : polishedResult.polishedContent || ''}
                           </div>
                         )}
 
@@ -2803,7 +2828,8 @@ Audited with Missive Digital Content QA Tool.`
                             New Google Doc Opened!
                           </h4>
                           <p className="text-xs text-slate-600 leading-relaxed">
-                            Your polished content with headings, bullet points, and editorial formatting has been copied to your clipboard.
+                            Your polished content with headings, bullet points, and editorial
+                            formatting has been copied to your clipboard.
                           </p>
                         </div>
                         <div className="p-4 rounded-2xl bg-blue-50/80 border border-blue-100 text-xs text-blue-950 text-left space-y-2">
@@ -2813,7 +2839,17 @@ Audited with Missive Digital Content QA Tool.`
                           </p>
                           <ol className="list-decimal list-inside space-y-1 text-slate-700">
                             <li>Switch to the newly opened Google Docs tab.</li>
-                            <li>Press <kbd className="px-1.5 py-0.5 bg-white rounded border border-slate-200 font-mono text-[11px] font-bold">Ctrl + V</kbd> (or <kbd className="px-1.5 py-0.5 bg-white rounded border border-slate-200 font-mono text-[11px] font-bold">Cmd + V</kbd> on Mac).</li>
+                            <li>
+                              Press{' '}
+                              <kbd className="px-1.5 py-0.5 bg-white rounded border border-slate-200 font-mono text-[11px] font-bold">
+                                Ctrl + V
+                              </kbd>{' '}
+                              (or{' '}
+                              <kbd className="px-1.5 py-0.5 bg-white rounded border border-slate-200 font-mono text-[11px] font-bold">
+                                Cmd + V
+                              </kbd>{' '}
+                              on Mac).
+                            </li>
                             <li>Your content will paste with full formatting intact.</li>
                           </ol>
                         </div>

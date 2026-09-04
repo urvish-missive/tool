@@ -266,42 +266,174 @@ export async function reviewContentQA(content, title, targetKeyword, metaDescrip
  */
 function generateAlgorithmicHimaniPolish(content, title, _targetKeyword) {
   let polished = content
-    // 1. Remove all em dashes and double hyphens
-    .replace(/[—–]/g, ', ')
-    .replace(/--/g, ', ')
-    // 2. Remove AI filler and robotic clichés
-    .replace(/in today's (fast-paced )?digital world,?/gi, 'Today,')
-    .replace(/it is a game-changer/gi, 'it delivers measurable impact')
-    .replace(/game-changer/gi, 'catalyst')
-    .replace(/delve deep(ly)? into/gi, 'examine')
-    .replace(/delve into/gi, 'explore')
-    .replace(/a testament to/gi, 'proof of')
-    .replace(/tapestry of/gi, 'network of')
-    .replace(/needless to say,?/gi, '')
-    .replace(/revolutionary/gi, 'effective')
-    .replace(/supercharge/gi, 'strengthen')
-    // 3. Remove direct tenure bragging
-    .replace(/with over \d+\+? years of experience/gi, 'with proven domain execution')
-    // 4. Clean double commas/spaces
-    .replace(/,\s*,/g, ',')
-    .replace(/\s{2,}/g, ' ')
-    .trim()
+  const dynamicChanges = []
 
-  const improvements = [
-    'Removed robotic buzzwords ("game-changer", "delve into", "testament to") and replaced with clear, direct phrasing',
-    'Eliminated all em dashes ("—") in favor of clean commas and strong sentence stops',
-    'Streamlined throat-clearing filler ("in today\'s digital world", "needless to say")',
-    'Replaced tenure boasting with credible, insight-first positioning',
-    'Optimized readability and rhythm for smooth read-aloud cadence',
-  ]
+  // Check em dashes
+  const emMatches = content.match(/[—–]|--|&mdash;|&#8212;/g) || []
+  if (emMatches.length > 0) {
+    polished = polished.replace(/[—–]/g, ', ').replace(/--/g, ', ')
+    dynamicChanges.push(`Eliminated ${emMatches.length} em dash(es) in favor of crisp commas and sentence stops.`)
+  }
+
+  // Check AI cliches & robotic phrasing
+  const foundAi = []
+  if (/in today's (fast-paced )?digital world,?/i.test(polished)) {
+    polished = polished.replace(/in today's (fast-paced )?digital world,?/gi, 'Today,')
+    foundAi.push('"in today\'s digital world"')
+  }
+  if (/game-changer/i.test(polished)) {
+    polished = polished.replace(/it is a game-changer/gi, 'it delivers measurable impact').replace(/game-changer/gi, 'catalyst')
+    foundAi.push('"game-changer"')
+  }
+  if (/delve (deep(ly)? )?into/i.test(polished)) {
+    polished = polished.replace(/delve deep(ly)? into/gi, 'examine').replace(/delve into/gi, 'explore')
+    foundAi.push('"delve into"')
+  }
+  if (/a testament to/i.test(polished)) {
+    polished = polished.replace(/a testament to/gi, 'proof of')
+    foundAi.push('"a testament to"')
+  }
+  if (/tapestry of/i.test(polished)) {
+    polished = polished.replace(/tapestry of/gi, 'network of')
+    foundAi.push('"tapestry of"')
+  }
+  if (/needless to say,?/i.test(polished)) {
+    polished = polished.replace(/needless to say,?/gi, '')
+    foundAi.push('"needless to say"')
+  }
+  if (/revolutionary/i.test(polished)) {
+    polished = polished.replace(/revolutionary/gi, 'effective')
+    foundAi.push('"revolutionary"')
+  }
+  if (/supercharge/i.test(polished)) {
+    polished = polished.replace(/supercharge/gi, 'strengthen')
+    foundAi.push('"supercharge"')
+  }
+
+  if (foundAi.length > 0) {
+    dynamicChanges.push(`Removed robotic cliché(s) (${foundAi.slice(0, 3).join(', ')}) and replaced with direct conversational prose.`)
+  }
+
+  // Check tenure boasting
+  if (/with over \d+\+? years of experience/i.test(polished)) {
+    polished = polished.replace(/with over \d+\+? years of experience/gi, 'with proven domain execution')
+    dynamicChanges.push('Replaced direct tenure boasting with credible execution proof.')
+  }
+
+  // Clean double commas/spaces
+  polished = polished.replace(/,\s*,/g, ',').replace(/\s{2,}/g, ' ').trim()
+
+  if (dynamicChanges.length === 0) {
+    dynamicChanges.push('Applied Himani Kankaria conversational cadence and editorial polish.')
+  }
 
   return {
     polishedTitle: title ? `How to Master ${title}: A Direct Practitioner Blueprint` : 'The Practitioner Content Blueprint',
     polishedContent: polished,
-    improvementsMade: improvements,
-    himaniScoreBefore: 62,
-    himaniScoreAfter: 96,
+    improvementsMade: dynamicChanges,
   }
+}
+
+/**
+ * Dynamically computes editorial improvements based on actual differences and issues detected
+ */
+export function generateDynamicImprovements(beforeAnalysis, afterAnalysis, aiImprovements = [], originalText = '', polishedText = '') {
+  const dynamicList = []
+
+  const statsBefore = beforeAnalysis?.quickStats || {}
+  const statsAfter = afterAnalysis?.quickStats || {}
+
+  // 1. Em Dashes
+  const emBefore = statsBefore.emDashesCount ?? (originalText.match(/[—–]|--|&mdash;|&#8212;/g) || []).length
+  const emAfter = statsAfter.emDashesCount ?? (polishedText.match(/[—–]|--|&mdash;|&#8212;/g) || []).length
+  if (emBefore > 0) {
+    const eliminated = Math.max(1, emBefore - emAfter)
+    dynamicList.push(`Eliminated ${eliminated} em dash(es) ("—") in favor of clean commas and strong sentence stops.`)
+  }
+
+  // 2. Robotic AI Clichés
+  const aiBefore = statsBefore.aiPhrasesCount || 0
+  const foundAiWords = (beforeAnalysis?.highlights || [])
+    .filter(h => h.type === 'ai-cliche')
+    .map(h => `"${h.text}"`)
+  const uniqueAiWords = Array.from(new Set(foundAiWords))
+
+  if (aiBefore > 0 || uniqueAiWords.length > 0) {
+    const count = aiBefore || uniqueAiWords.length
+    const sampleWords = uniqueAiWords.slice(0, 3).join(', ')
+    dynamicList.push(`Removed ${count} robotic AI cliché(s)${sampleWords ? ` (${sampleWords})` : ''} and replaced with direct conversational phrasing.`)
+  }
+
+  // 3. Filler & Throat-clearing Fluff
+  const fillerHighlights = (beforeAnalysis?.highlights || [])
+    .filter(h => h.type === 'filler')
+    .map(h => `"${h.text}"`)
+  const uniqueFillers = Array.from(new Set(fillerHighlights))
+  if (uniqueFillers.length > 0) {
+    dynamicList.push(`Cut ${uniqueFillers.length} throat-clearing filler phrase(s) (${uniqueFillers.slice(0, 3).join(', ')}) to lead directly with value.`)
+  }
+
+  // 4. Word Count & Tightness
+  const wordsBefore = statsBefore.wordsCount || originalText.split(/\s+/).filter(Boolean).length
+  const wordsAfter = statsAfter.wordsCount || polishedText.split(/\s+/).filter(Boolean).length
+  if (wordsBefore > wordsAfter + 5) {
+    const trimmed = wordsBefore - wordsAfter
+    dynamicList.push(`Trimmed ${trimmed} words of redundant padding (streamlined from ${wordsBefore} to ${wordsAfter} words).`)
+  } else if (wordsAfter > wordsBefore + 10) {
+    dynamicList.push(`Enriched practitioner depth and real-world clarity (+${wordsAfter - wordsBefore} words).`)
+  }
+
+  // 5. Cadence & Sentence Length
+  const sentLenBefore = statsBefore.avgWordsPerSentence || 0
+  const sentLenAfter = statsAfter.avgWordsPerSentence || 0
+  if (sentLenBefore > 22 && sentLenAfter <= 20) {
+    dynamicList.push(`Shortened runaway sentences (avg sentence length improved from ${sentLenBefore.toFixed(1)} to ${sentLenAfter.toFixed(1)} words) for effortless read-aloud flow.`)
+  }
+
+  // 6. Readability Lift
+  const fleschBefore = statsBefore.fleschScore || 0
+  const fleschAfter = statsAfter.fleschScore || 0
+  if (fleschAfter > fleschBefore + 4 && fleschBefore > 0) {
+    dynamicList.push(`Elevated readability ease (Flesch score increased from ${fleschBefore} to ${fleschAfter}).`)
+  }
+
+  // 7. Check specific pillar fixes
+  if (beforeAnalysis?.statuses && afterAnalysis?.statuses) {
+    if (beforeAnalysis.statuses['sp-1'] === 'fail' && afterAnalysis.statuses['sp-1'] === 'pass') {
+      dynamicList.push('Replaced direct tenure boasting with credible practitioner proof and insight.')
+    }
+    if (beforeAnalysis.statuses['ts-5'] === 'fail' && afterAnalysis.statuses['ts-5'] === 'pass') {
+      dynamicList.push('Removed ungrounded superlatives and exaggerated marketing claims.')
+    }
+    if (beforeAnalysis.statuses['is-1'] === 'fail' && afterAnalysis.statuses['is-1'] === 'pass') {
+      dynamicList.push('Crafted an insight-first opening hook that cuts straight to the core takeaway.')
+    }
+    if (beforeAnalysis.statuses['sc-1'] === 'fail' && afterAnalysis.statuses['sc-1'] === 'pass') {
+      dynamicList.push('Optimized visual scannability with punchy paragraphs and structured formatting.')
+    }
+  }
+
+  // 8. Integrate genuine AI-generated improvement summaries if specific and not generic
+  if (Array.isArray(aiImprovements) && aiImprovements.length > 0) {
+    for (const imp of aiImprovements) {
+      if (typeof imp === 'string' && imp.trim().length > 10) {
+        const isGeneric = /Summary of improvement|Converted robotic cliches to conversational prose/i.test(imp)
+        if (!isGeneric && !dynamicList.some(d => d.toLowerCase().slice(0, 25) === imp.toLowerCase().trim().slice(0, 25))) {
+          dynamicList.push(imp.trim())
+        }
+      }
+    }
+  }
+
+  // Default fallback if content had no detectable flaws
+  if (dynamicList.length === 0) {
+    dynamicList.push(
+      'Enforced Himani 12-pillar editorial guidelines for crisp human voice',
+      'Refined sentence rhythm for smooth conversational cadence'
+    )
+  }
+
+  return dynamicList.slice(0, 6)
 }
 
 /**
@@ -336,13 +468,10 @@ Return a JSON object:
   "polishedTitle": "Punchy, USP-driven title",
   "polishedContent": "The complete rewritten content in markdown",
   "improvementsMade": [
-    "Summary of improvement 1 (e.g. Removed 4 em dashes and converted to crisp sentence breaks)",
-    "Summary of improvement 2 (e.g. Cut 65 words of throat-clearing intro and led with the contrarian hook)",
-    "Summary of improvement 3 (e.g. Replaced robotic buzzwords with conversational phrasing)",
-    "Summary of improvement 4 (e.g. Structured into high-impact scannable bullet points)"
-  ],
-  "himaniScoreBefore": 65,
-  "himaniScoreAfter": 98
+    "Specific improvement 1 made to THIS specific content (e.g. Cut 40 words of fluff from intro)",
+    "Specific improvement 2 made to THIS specific content (e.g. Replaced buzzwords with direct phrasing)",
+    "Specific improvement 3 made to THIS specific content (e.g. Removed em dashes and shortened sentences)"
+  ]
 }`
 
   try {

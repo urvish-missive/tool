@@ -1,5 +1,5 @@
 import { analyzeContentQA } from '../services/contentQaAnalyzer.js'
-import { reviewContentQA, polishContentWithHimaniRules } from '../services/contentQaAiAnalyzer.js'
+import { reviewContentQA, polishContentWithHimaniRules, generateDynamicImprovements } from '../services/contentQaAiAnalyzer.js'
 import { importContentFromUrl, importContentFromFile } from '../services/contentQa/contentImportService.js'
 import prisma from '../utils/prisma.js'
 
@@ -149,10 +149,20 @@ export async function polishContentQAHandler(req, res) {
     const scoreAfter = Math.max(scoreBefore + 1, Math.min(100, afterAnalysis.overall))
     const qualityLift = Math.max(0, scoreAfter - scoreBefore)
 
+    // 4. Dynamically compute genuine editorial improvements based on real before vs after delta
+    const dynamicImprovements = generateDynamicImprovements(
+      beforeAnalysis,
+      afterAnalysis,
+      polished?.improvementsMade,
+      content.trim(),
+      polishedText
+    )
+
     res.json({
       success: true,
       polished: {
         ...polished,
+        improvementsMade: dynamicImprovements,
         himaniScoreBefore: scoreBefore,
         himaniScoreAfter: scoreAfter,
         qualityLift,
