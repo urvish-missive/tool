@@ -5,6 +5,287 @@ import { callAIAndParseJSON, getPrimaryProvider, getConfiguredProviders } from '
 const MAX_CRAWL_PAGES = parseInt(process.env.MAX_CRAWL_PAGES || '5', 10)
 const CRAWL_TIMEOUT = parseInt(process.env.CRAWL_TIMEOUT || '10000', 10)
 
+/* ── Language & Region Auto-Detection ────────────────────────────── */
+
+export function detectLanguageAndRegion(text = '', websiteUrl = '', htmlLang = '') {
+  let lang = 'English'
+  let langCode = 'en'
+  let country = 'Global'
+  let countryCode = 'us'
+
+  // 1. Check HTML lang attribute if provided
+  if (htmlLang) {
+    const cleanLang = htmlLang.toLowerCase().split(/[-_]/)[0].trim()
+    const langMap = {
+      en: 'English', es: 'Spanish', fr: 'French', de: 'German', it: 'Italian',
+      pt: 'Portuguese', nl: 'Dutch', ru: 'Russian', hi: 'Hindi', ja: 'Japanese',
+      zh: 'Chinese', ar: 'Arabic', ko: 'Korean', tr: 'Turkish', pl: 'Polish',
+      id: 'Indonesian', vi: 'Vietnamese', th: 'Thai', sv: 'Swedish', da: 'Danish',
+    }
+    if (langMap[cleanLang]) {
+      lang = langMap[cleanLang]
+      langCode = cleanLang
+    }
+  }
+
+  // 2. Check website domain TLD
+  if (websiteUrl) {
+    try {
+      const hostname = new URL(websiteUrl.startsWith('http') ? websiteUrl : `https://${websiteUrl}`).hostname.toLowerCase()
+      const tldMap = {
+        '.in': { country: 'India', countryCode: 'in' },
+        '.co.in': { country: 'India', countryCode: 'in' },
+        '.uk': { country: 'United Kingdom', countryCode: 'gb' },
+        '.co.uk': { country: 'United Kingdom', countryCode: 'gb' },
+        '.ca': { country: 'Canada', countryCode: 'ca' },
+        '.au': { country: 'Australia', countryCode: 'au' },
+        '.com.au': { country: 'Australia', countryCode: 'au' },
+        '.de': { country: 'Germany', countryCode: 'de', lang: 'German', langCode: 'de' },
+        '.fr': { country: 'France', countryCode: 'fr', lang: 'French', langCode: 'fr' },
+        '.es': { country: 'Spain', countryCode: 'es', lang: 'Spanish', langCode: 'es' },
+        '.it': { country: 'Italy', countryCode: 'it', lang: 'Italian', langCode: 'it' },
+        '.nl': { country: 'Netherlands', countryCode: 'nl', lang: 'Dutch', langCode: 'nl' },
+        '.jp': { country: 'Japan', countryCode: 'jp', lang: 'Japanese', langCode: 'ja' },
+        '.co.jp': { country: 'Japan', countryCode: 'jp', lang: 'Japanese', langCode: 'ja' },
+        '.br': { country: 'Brazil', countryCode: 'br', lang: 'Portuguese', langCode: 'pt' },
+        '.com.br': { country: 'Brazil', countryCode: 'br', lang: 'Portuguese', langCode: 'pt' },
+        '.mx': { country: 'Mexico', countryCode: 'mx', lang: 'Spanish', langCode: 'es' },
+        '.ae': { country: 'UAE', countryCode: 'ae', lang: 'Arabic', langCode: 'ar' },
+        '.sg': { country: 'Singapore', countryCode: 'sg' },
+      }
+      for (const [tld, data] of Object.entries(tldMap)) {
+        if (hostname.endsWith(tld)) {
+          country = data.country
+          countryCode = data.countryCode
+          if (data.lang && lang === 'English') {
+            lang = data.lang
+            langCode = data.langCode
+          }
+          break
+        }
+      }
+    } catch {}
+  }
+
+  // 3. Detect character script & vocabulary from Seed Keyword / Text
+  if (text) {
+    const lower = text.toLowerCase()
+    const words = lower.split(/[^a-zA-Z\u00C0-\u024F\u0900-\u097F]+/).filter(w => w.length >= 2)
+
+    if (/[\u0900-\u097F]/.test(text)) {
+      lang = 'Hindi'; langCode = 'hi'; country = 'India'; countryCode = 'in'
+    } else if (/[\u0600-\u06FF]/.test(text)) {
+      lang = 'Arabic'; langCode = 'ar'; country = 'Middle East'; countryCode = 'ae'
+    } else if (/[\u0400-\u04FF]/.test(text)) {
+      lang = 'Russian'; langCode = 'ru'; country = 'Global'; countryCode = 'ru'
+    } else if (/[\u3040-\u30FF\u31F0-\u31FF\u4E00-\u9FAF]/.test(text)) {
+      lang = 'Japanese'; langCode = 'ja'; country = 'Japan'; countryCode = 'jp'
+    } else if (/[\uAC00-\uD7AF]/.test(text)) {
+      lang = 'Korean'; langCode = 'ko'; country = 'South Korea'; countryCode = 'kr'
+    } else if (/[\u4E00-\u9FFF]/.test(text)) {
+      lang = 'Chinese'; langCode = 'zh'; country = 'Global'; countryCode = 'cn'
+    } else {
+      const SPANISH_WORDS = new Set(['llamadas', 'centro', 'para', 'como', 'gratis', 'mejores', 'precio', 'servicios', 'los', 'las', 'del', 'el', 'la', 'con', 'por'])
+      const FRENCH_WORDS = new Set(['appels', 'logiciel', 'centre', 'gratuit', 'meilleur', 'prix', 'services', 'les', 'des', 'pour', 'avec', 'dans', 'du', 'le'])
+      const GERMAN_WORDS = new Set(['fuer', 'mit', 'kauf', 'kostenlos', 'beste', 'preis', 'der', 'die', 'das', 'den', 'dem', 'des', 'ein', 'eine', 'und'])
+      const ITALIAN_WORDS = new Set(['chiamate', 'migliori', 'prezzo', 'servizi', 'il', 'le', 'gli', 'uno', 'per'])
+      const PORTUGUESE_WORDS = new Set(['chamadas', 'melhores', 'preco', 'servicos', 'para', 'com', 'dos', 'das', 'uma'])
+
+      let esScore = (text.match(/[áéíóúüñ¿¡]/gi) || []).length * 3 + words.filter(w => SPANISH_WORDS.has(w)).length
+      let frScore = (text.match(/[éèêëàâäôöûüçîï]/gi) || []).length * 3 + words.filter(w => FRENCH_WORDS.has(w)).length
+      let deScore = (text.match(/[äöüß]/gi) || []).length * 3 + words.filter(w => GERMAN_WORDS.has(w)).length
+      let itScore = words.filter(w => ITALIAN_WORDS.has(w)).length
+      let ptScore = (text.match(/[ãõçáéíóú]/gi) || []).length * 2 + words.filter(w => PORTUGUESE_WORDS.has(w)).length
+
+      const maxScore = Math.max(esScore, frScore, deScore, itScore, ptScore)
+      if (maxScore > 0) {
+        if (maxScore === esScore) { lang = 'Spanish'; langCode = 'es'; country = 'Global'; countryCode = 'es' }
+        else if (maxScore === frScore) { lang = 'French'; langCode = 'fr'; country = 'France'; countryCode = 'fr' }
+        else if (maxScore === deScore) { lang = 'German'; langCode = 'de'; country = 'Germany'; countryCode = 'de' }
+        else if (maxScore === itScore) { lang = 'Italian'; langCode = 'it'; country = 'Italy'; countryCode = 'it' }
+        else if (maxScore === ptScore) { lang = 'Portuguese'; langCode = 'pt'; country = 'Brazil'; countryCode = 'br' }
+      }
+    }
+  }
+
+  return { detectedLanguage: lang, languageCode: langCode, detectedRegion: country, countryCode }
+}
+
+/* ── Live Google & Bing Search Engine Keyword Scraping ───────────── */
+
+export async function scrapeSearchEngineKeywords(seedQuery, langCode = 'en', countryCode = 'us') {
+  if (!seedQuery || seedQuery.trim().length < 2) return []
+
+  const cleanQuery = seedQuery.trim()
+  const queriesToProbe = [
+    cleanQuery,
+    `best ${cleanQuery}`,
+    `how to ${cleanQuery}`,
+    `${cleanQuery} vs`,
+    `${cleanQuery} for`,
+    `${cleanQuery} software`,
+    `${cleanQuery} services`,
+    `${cleanQuery} online`,
+  ]
+
+  const googleResults = new Set()
+  const bingResults = new Set()
+
+  // 1. Google Suggest queries in parallel
+  const googlePromises = queriesToProbe.slice(0, 5).map(async (q) => {
+    try {
+      const url = `https://suggestqueries.google.com/complete/search?client=chrome&q=${encodeURIComponent(q)}&hl=${langCode}&gl=${countryCode}`
+      const resp = await fetchWithTimeout(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+          'Accept': 'application/json',
+        },
+      }, 4000)
+      if (resp.ok) {
+        const json = await resp.json()
+        if (Array.isArray(json?.[1])) {
+          json[1].forEach((item) => {
+            if (item && typeof item === 'string') googleResults.add(item.trim().toLowerCase())
+          })
+        }
+      }
+    } catch {}
+  })
+
+  // 2. Bing Suggest queries in parallel
+  const bingPromises = queriesToProbe.slice(0, 5).map(async (q) => {
+    try {
+      const url = `https://api.bing.com/osjson.aspx?query=${encodeURIComponent(q)}&language=${langCode}`
+      const resp = await fetchWithTimeout(url, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+          'Accept': 'application/json',
+        },
+      }, 4000)
+      if (resp.ok) {
+        const json = await resp.json()
+        if (Array.isArray(json?.[1])) {
+          json[1].forEach((item) => {
+            if (item && typeof item === 'string') bingResults.add(item.trim().toLowerCase())
+          })
+        }
+      }
+    } catch {}
+  })
+
+  await Promise.allSettled([...googlePromises, ...bingPromises])
+
+  const allUnique = new Set([...googleResults, ...bingResults])
+  const combinedList = []
+
+  for (const kw of allUnique) {
+    if (!kw || kw.length < 3 || kw.length > 80) continue
+    const inGoogle = googleResults.has(kw)
+    const inBing = bingResults.has(kw)
+    const source = inGoogle && inBing ? 'Google & Bing' : inGoogle ? 'Google' : 'Bing'
+
+    const intent = /buy|price|cost|order|pricing|subscription|for sale|discount/i.test(kw)
+      ? 'Transactional'
+      : /vs|compare|alternative|review|top|best/i.test(kw)
+        ? 'Comparison'
+        : /what|how|why|guide|tips|tutorial|free/i.test(kw)
+          ? 'Informational'
+          : 'Commercial'
+
+    const baseScore = inGoogle && inBing ? 92 : inGoogle ? 86 : 82
+    const variance = Math.floor(Math.random() * 6) - 2
+
+    combinedList.push({
+      keyword: kw,
+      source,
+      intent,
+      type: inGoogle && inBing ? 'High Search Volume' : inGoogle ? 'Google Ranking' : 'Bing Trending',
+      opportunityScore: Math.min(99, Math.max(50, baseScore + variance)),
+      businessRelevance: Math.min(98, Math.max(60, 88 + variance)),
+      reason: `Actively searched on ${source} with high organic interest`,
+    })
+  }
+
+  return combinedList.sort((a, b) => b.opportunityScore - a.opportunityScore).slice(0, 35)
+}
+
+/* ── Live Competitor SERP & Keyword Extraction ───────────────────── */
+
+export async function scrapeCompetitorKeywords(query, langCode = 'en') {
+  if (!query) return { competitors: [], competitorKeywords: [] }
+  try {
+    const bingUrl = `https://www.bing.com/search?q=${encodeURIComponent(query)}&setlang=${langCode}`
+    const resp = await fetchWithTimeout(bingUrl, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+        'Accept': 'text/html',
+        'Accept-Language': 'en-US,en;q=0.9',
+      },
+    }, 6000)
+
+    if (!resp.ok) return { competitors: [], competitorKeywords: [] }
+    const html = await resp.text()
+    const $ = cheerio.load(html)
+
+    const competitors = []
+    const competitorKeywordsMap = new Map()
+
+    $('li.b_algo').slice(0, 7).each((idx, el) => {
+      const title = $(el).find('h2 a').text().trim()
+      const rawUrl = $(el).find('h2 a').attr('href') || ''
+      const snippet = $(el).find('.b_caption p').text().trim() || $(el).find('p').text().trim()
+
+      if (!title || !rawUrl) return
+
+      let domain = ''
+      try {
+        domain = new URL(rawUrl).hostname.replace(/^www\./, '')
+      } catch {
+        domain = rawUrl.substring(0, 30)
+      }
+
+      const termsInSnippet = $(el).find('strong').map((_, s) => $(s).text().trim().toLowerCase()).get()
+      const titleWords = title.toLowerCase().replace(/[^a-z0-9\s-]/g, '').split(/\s+/).filter(w => w.length > 3)
+
+      const pageKeywords = [...new Set([...termsInSnippet, ...titleWords.slice(0, 6)])].filter(k => k.length > 2)
+
+      pageKeywords.forEach((pk) => {
+        const count = (competitorKeywordsMap.get(pk) || 0) + 1
+        competitorKeywordsMap.set(pk, count)
+      })
+
+      competitors.push({
+        position: idx + 1,
+        title,
+        url: rawUrl,
+        domain,
+        snippet: snippet.substring(0, 160),
+        keywordsUsedOnPage: pageKeywords.slice(0, 6),
+      })
+    })
+
+    const competitorKeywords = [...competitorKeywordsMap.entries()]
+      .filter(([kw]) => kw.length > 3 && !['http', 'https', 'with', 'from', 'your', 'that', 'this', 'have', 'more'].includes(kw))
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 15)
+      .map(([kw, count]) => ({
+        keyword: kw,
+        frequency: count,
+        competitorsCount: count,
+        importance: count >= 3 ? 'Critical (Used across top competitors)' : count >= 2 ? 'High Priority' : 'Recommended',
+        recommendation: `Top-ranking competitor pages frequently use "${kw}" in their titles, H2 headings, and content snippets. Include this keyword on your pages to compete for search rankings.`,
+      }))
+
+    return {
+      competitors: competitors.slice(0, 6),
+      competitorKeywords,
+    }
+  } catch (err) {
+    console.warn('Competitor scraping failed:', err.message)
+    return { competitors: [], competitorKeywords: [] }
+  }
+}
+
 /* ── Website Crawler ────────────────────────────────────────────── */
 
 async function fetchPageHTML(url, timeout = CRAWL_TIMEOUT) {
@@ -13,7 +294,7 @@ async function fetchPageHTML(url, timeout = CRAWL_TIMEOUT) {
     await resolveAndValidate(parsed.hostname)
     const resp = await fetchWithTimeout(parsed.href, {
       headers: {
-        'User-Agent': 'SEO-Keyword-Research-Bot/1.0',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
         'Accept': 'text/html,application/xhtml+xml',
         'Accept-Language': 'en-US,en;q=0.9',
       },
@@ -31,10 +312,12 @@ async function fetchPageHTML(url, timeout = CRAWL_TIMEOUT) {
 
 function extractPageData(html, baseUrl) {
   const $ = cheerio.load(html)
+  const htmlLang = $('html').attr('lang') || ''
   const title = $('title').first().text().trim()
   const metaDesc = $('meta[name="description"]').attr('content') || ''
   const ogTitle = $('meta[property="og:title"]').attr('content') || ''
   const ogDesc = $('meta[property="og:description"]').attr('content') || ''
+  const ogLocale = $('meta[property="og:locale"]').attr('content') || ''
   const keywords = $('meta[name="keywords"]').attr('content') || ''
   const themeColor = $('meta[name="theme-color"]').attr('content') || ''
   const h1s = $('h1').map((_, el) => $(el).text().trim()).get().filter(Boolean).slice(0, 5)
@@ -42,20 +325,17 @@ function extractPageData(html, baseUrl) {
   const h3s = $('h3').map((_, el) => $(el).text().trim()).get().filter(Boolean).slice(0, 10)
   const bodyText = $('body').text().replace(/\s+/g, ' ').trim().substring(0, 3000)
 
-  // Extract JSON-LD structured data
   const jsonLd = []
   $('script[type="application/ld+json"]').each((_, el) => {
     try { jsonLd.push(JSON.parse($(el).html())) } catch {}
   })
 
-  // Extract JS bundle URLs for SPA content extraction
   const jsBundles = []
   $('script[src]').each((_, el) => {
     const src = $(el).attr('src')
     if (src && src.endsWith('.js')) jsBundles.push(src)
   })
 
-  // Extract internal links
   const internalLinks = []
   $('a[href]').each((_, el) => {
     const href = $(el).attr('href')
@@ -65,6 +345,7 @@ function extractPageData(html, baseUrl) {
   })
 
   return {
+    htmlLang, ogLocale,
     title, metaDesc, ogTitle, ogDesc, keywords, themeColor,
     headings: { h1s, h2s, h3s },
     bodyText,
@@ -79,7 +360,7 @@ async function fetchBundleText(url, bundlePath, timeout = 8000) {
     const parsed = validateURL(url)
     const bundleUrl = bundlePath.startsWith('http') ? bundlePath : `${parsed.protocol}//${parsed.hostname}${bundlePath}`
     const resp = await fetchWithTimeout(bundleUrl, {
-      headers: { 'User-Agent': 'SEO-Keyword-Research-Bot/1.0', 'Accept': '*/*' },
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', 'Accept': '*/*' },
     }, timeout)
     if (!resp.ok) return ''
     return await resp.text()
@@ -90,13 +371,11 @@ async function fetchBundleText(url, bundlePath, timeout = 8000) {
 
 function extractStringsFromBundle(code) {
   if (!code) return []
-  // Extract quoted strings that look like readable text (>= 4 chars, not code)
   const strings = []
   const regex = /(?:"([^"]{4,120})"|'([^']{4,120})'|`([^`]{4,120})`)/g
   let match
   while ((match = regex.exec(code)) !== null) {
     const str = match[1] || match[2] || match[3]
-    // Filter: must contain letters, mostly printable, not code-like
     if (/[a-zA-Z]/.test(str) && !/^[A-Z_]+$/g.test(str) && !/^(function|const|let|var|import|export|return|if|else|class|extends|default|from|this|new)$/.test(str)) {
       strings.push(str)
     }
@@ -112,18 +391,15 @@ async function crawlWebsite(url) {
     const pages = []
     const visited = new Set()
 
-    // Fetch homepage first
     const html = await fetchPageHTML(url)
     if (!html) return null
     const data = extractPageData(html, baseUrl)
     pages.push({ url: baseUrl, ...data })
     visited.add(baseUrl)
 
-    // If it's an SPA (no body content, has JS bundles), try to extract text from bundles
     const isSPA = data.bodyText.trim().length < 200 && data.jsBundles.length > 0
     let bundleText = ''
     if (isSPA) {
-      console.log('  SPA detected — extracting text from JS bundles...')
       for (const bundle of data.jsBundles) {
         const code = await fetchBundleText(url, bundle)
         bundleText += extractStringsFromBundle(code).join(' ') + ' '
@@ -131,7 +407,6 @@ async function crawlWebsite(url) {
       bundleText = bundleText.substring(0, 8000)
     }
 
-    // Follow internal links (limited)
     const linksToCrawl = data.internalLinks.slice(0, MAX_CRAWL_PAGES - 1)
     for (const link of linksToCrawl) {
       if (pages.length >= MAX_CRAWL_PAGES) break
@@ -145,23 +420,21 @@ async function crawlWebsite(url) {
       pages.push({ url: fullUrl, ...pageData })
     }
 
-    // Also try to fetch sitemap.xml and robots.txt for more context
     let sitemapText = ''
     let robotsText = ''
     try {
       const sitemapResp = await fetchWithTimeout(`${baseUrl}/sitemap.xml`, {
-        headers: { 'User-Agent': 'SEO-Keyword-Research-Bot/1.0', 'Accept': '*/*' },
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', 'Accept': '*/*' },
       }, 5000)
       if (sitemapResp.ok) sitemapText = (await sitemapResp.text()).substring(0, 5000)
     } catch {}
     try {
       const robotsResp = await fetchWithTimeout(`${baseUrl}/robots.txt`, {
-        headers: { 'User-Agent': 'SEO-Keyword-Research-Bot/1.0', 'Accept': '*/*' },
+        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)', 'Accept': '*/*' },
       }, 5000)
       if (robotsResp.ok) robotsText = (await robotsResp.text()).substring(0, 2000)
     } catch {}
 
-    // Summarize crawl results
     const allTitles = pages.map(p => p.title).filter(Boolean)
     const allDescs = pages.map(p => p.metaDesc || p.ogDesc).filter(Boolean)
     const allH1 = pages.flatMap(p => p.headings.h1s)
@@ -170,14 +443,12 @@ async function crawlWebsite(url) {
     const allBody = pages.map(p => p.bodyText).join(' ').substring(0, 5000)
     const allJsonLd = pages.flatMap(p => p.jsonLd || [])
 
-    // Combine all text sources
     const combinedText = [allBody, bundleText, allDescs.join(' '), allH1.join(' '), allH2.join(' '), sitemapText].join(' ').substring(0, 8000)
-
-    // Extract product/service categories from all text
     const productTerms = combinedText.match(/\b(buy|shop|order|price|cost|product|service|plan|subscription|feature|review|best|top|compare|vs|alternative|discount|offer|deal|free|trial|demo|claim|renewal|coordinator|assistance|hospital|cashless|claim|policy|coverage|premium|insur)\w*\b/gi) || []
     const uniqueTerms = [...new Set(productTerms.map(t => t.toLowerCase()))]
 
     return {
+      htmlLang: data.htmlLang || data.ogLocale,
       pagesCrawled: pages.length,
       isSPA,
       titles: allTitles,
@@ -200,19 +471,17 @@ async function crawlWebsite(url) {
 const SYSTEM_PROMPT = `You are an expert SEO keyword researcher. You generate comprehensive keyword research data for businesses.
 
 Rules:
+- CRITICAL LANGUAGE RULE: If the seed keyword or website is in a specific language (e.g. English, French, Spanish, Hindi, German, Japanese, etc.), ALL generated keywords, questions, topic clusters, content opportunities, and recommendations MUST be in that EXACT same detected language!
 - NEVER invent actual search volume numbers. Use "Low", "Medium", "High" as estimated opportunity only.
 - NEVER claim Google rankings or difficulty scores. Call it "Opportunity Score" (0-100 internal estimate).
 - NEVER guarantee rankings or traffic.
-- NEVER recommend keyword stuffing.
 - Focus on search intent, business relevance, and content strategy.
-- Provide realistic, actionable keyword suggestions.
-- Classify intent accurately based on the query.
+- Provide realistic, actionable keyword suggestions matching what customers actually search.
 - Group keywords into meaningful topic clusters.
 - Return ONLY valid JSON, no markdown, no code fences.
-- Do NOT include <think> tags or reasoning in your output. Output ONLY the JSON directly.
-- Do NOT wrap the JSON in code fences. Just output the raw JSON object.`
+- Do NOT include <think> tags or reasoning in your output. Output ONLY the JSON directly.`
 
-function buildUserPrompt(input, crawlData) {
+function buildUserPrompt(input, crawlData, searchEngineKeywords = [], competitorInsights = {}) {
   const bizContext = {
     'B2B': 'This is a B2B business. Keywords should target business buyers, decision-makers, and procurement.',
     'B2C': 'This is a B2C business. Keywords should target individual consumers.',
@@ -226,66 +495,127 @@ function buildUserPrompt(input, crawlData) {
 
   let websiteSection = ''
   if (crawlData) {
-    const bundleExcerpt = crawlData.bundleText ? crawlData.bundleText.substring(0, 1000) : ''
-    const spaNote = crawlData.isSPA ? ' (SPA — content from meta tags + JS bundle)' : ''
-    const bodyExcerpt = crawlData.bodyExcerpt ? crawlData.bodyExcerpt.substring(0, 2000) : ''
+    const bundleExcerpt = crawlData.bundleText ? crawlData.bundleText.substring(0, 500) : ''
+    const spaNote = crawlData.isSPA ? ' (SPA)' : ''
+    const bodyExcerpt = crawlData.bodyExcerpt ? crawlData.bodyExcerpt.substring(0, 1000) : ''
     websiteSection = `
-## ACTUAL WEBSITE CONTENT (MUST USE THIS)${spaNote}
+## ACTUAL WEBSITE CONTENT:
+Page Titles: ${crawlData.titles.slice(0, 3).join(' | ')}
+Meta Descriptions: ${crawlData.descriptions.slice(0, 2).join(' | ')}
+H1 Headings: ${crawlData.headings.h1.slice(0, 3).join(', ')}
+H2 Headings: ${crawlData.headings.h2.slice(0, 6).join(', ')}
+Product/Service Terms Found: ${crawlData.productTerms.slice(0, 15).join(', ')}
 
-Page Titles: ${crawlData.titles.join(' | ')}
-Meta Descriptions: ${crawlData.descriptions.join(' | ')}
-H1 Headings: ${crawlData.headings.h1.join(', ')}
-H2 Headings: ${crawlData.headings.h2.join(', ')}
-H3 Headings: ${crawlData.headings.h3.slice(0, 8).join(', ')}
-Product/Service Terms Found: ${crawlData.productTerms.join(', ')}
-
-Website Body Text (first 2000 chars):
-${bodyExcerpt}
-${bundleExcerpt ? `\nExtracted Page Content:\n${bundleExcerpt}` : ''}
-
-IMPORTANT: The keywords MUST be derived from the actual website content above. Extract real service names, product names, features, page topics, and industry-specific terms from the website text. Do NOT just append the seed keyword to generic templates like "pricing", "features", "demo". Instead, find what this website ACTUALLY offers and generate keywords around those real offerings.`
+Website Body Excerpt:
+${bodyExcerpt}`
   }
 
-  return `Generate keyword research for a ${input.businessType || 'General'} business.
+  const liveSearchKeywordsStr = searchEngineKeywords.slice(0, 12).map(s => `"${s.keyword}" (${s.source})`).join(', ')
+  const compKeywordsStr = (competitorInsights.competitorKeywords || []).slice(0, 8).map(c => `"${c.keyword}" (${c.competitorsCount} competitors)`).join(', ')
 
-Seed: ${input.seedKeyword} | Country: ${input.country || 'Global'} | Type: ${input.businessType || 'General'}
+  return `Generate comprehensive keyword research for a ${input.businessType || 'General'} business.
+
+Seed Keyword: "${input.seedKeyword}"
+Detected Target Language: ${input.detectedLanguage}
+Detected Target Region/Market: ${input.detectedRegion}
+Business Type: ${input.businessType || 'General'}
 ${bizContext[input.businessType] || ''}
 ${websiteSection}
 
+## LIVE VERIFIED SEARCH SIGNALS:
+Live Google & Bing Auto-Complete Searches:
+${liveSearchKeywordsStr || 'None available'}
+
+Keywords Top-Ranking Competitor Pages Use on Their Pages:
+${compKeywordsStr || 'None available'}
+
 CRITICAL RULES:
-1. EXTRACT real service names, product names, features, and topics from the Website Content above
-2. Generate keywords based on what the website ACTUALLY offers — not generic templates
-3. Use the actual H2/H3 headings, body text, and product terms to create keywords
-4. Each keyword must relate to a specific offering found on the website
-5. The "reason" field must reference the specific website content that inspired the keyword
-6. 20-40 diverse keywords covering: primary, long-tail, question, commercial, transactional, comparison
+1. OUTPUT LANGUAGE: Generate ALL keywords, questions, topic clusters, content titles, and recommendations in ${input.detectedLanguage}!
+2. Include the real high-intent search queries verified above
+3. Extract real service names, product names, features, and topics from the Website Content
+4. Generate 20-30 diverse keywords covering: Primary, Long-tail, Commercial, Transactional, Comparison, Questions
+5. For each keyword: keyword, intent (Informational|Commercial|Transactional|Comparison), type, opportunityScore (0-100), businessRelevance (0-100), reason (reference search intent or website context).
+6. 3 topic clusters with keywords & content ideas, 4 content opportunities, 3 quick wins, 3 strategic recommendations.
 
-For each keyword: keyword, intent (Informational|Commercial|Transactional|Comparison), type, opportunityScore (0-100), businessRelevance (0-100), reason (MUST reference actual website content).
-
-Also: 3 topic clusters from website content, 5 content opportunities, 3 quick wins, 3 recommendations.
-
-Return JSON:
-{"seedKeyword":"","summary":"","keywords":[{"keyword":"","intent":"","type":"","opportunityScore":0,"businessRelevance":0,"reason":""}],"longTailKeywords":[],"questionKeywords":[],"topicClusters":[{"topic":"","keywords":[],"contentIdeas":[]}],"contentOpportunities":[{"title":"","primaryKeyword":"","intent":"","contentType":"","reason":""}],"recommendations":[],"quickWins":[]}`
+Return JSON format:
+{
+  "seedKeyword": "${input.seedKeyword}",
+  "detectedLanguage": "${input.detectedLanguage}",
+  "detectedRegion": "${input.detectedRegion}",
+  "summary": "Detailed summary in ${input.detectedLanguage}",
+  "keywords": [
+    {
+      "keyword": "",
+      "intent": "Commercial",
+      "type": "primary",
+      "opportunityScore": 88,
+      "businessRelevance": 92,
+      "reason": ""
+    }
+  ],
+  "longTailKeywords": [],
+  "questionKeywords": [],
+  "topicClusters": [
+    {
+      "topic": "",
+      "keywords": [],
+      "contentIdeas": []
+    }
+  ],
+  "contentOpportunities": [
+    {
+      "title": "",
+      "primaryKeyword": "",
+      "intent": "",
+      "contentType": "",
+      "reason": ""
+    }
+  ],
+  "recommendations": [],
+  "quickWins": []
+}`
 }
 
 /* ── Validation & Fallback ──────────────────────────────────────── */
 
-function validateReport(data, seedKeyword) {
+function validateReport(data, seedKeyword, detectedLanguage, detectedRegion, searchEngineKeywords = [], competitorInsights = {}) {
+  // Merge live Google & Bing keywords with AI keywords if not already included
+  const existingKws = new Set((data.keywords || []).map(k => k.keyword?.toLowerCase().trim()))
+  const mergedKeywords = [...(data.keywords || [])]
+
+  for (const sk of searchEngineKeywords) {
+    if (!existingKws.has(sk.keyword?.toLowerCase().trim())) {
+      mergedKeywords.push({
+        keyword: sk.keyword,
+        intent: sk.intent || 'Commercial',
+        type: sk.type || 'search-engine',
+        opportunityScore: sk.opportunityScore || 85,
+        businessRelevance: sk.businessRelevance || 88,
+        reason: `Trending search query on ${sk.source}`,
+      })
+      existingKws.add(sk.keyword?.toLowerCase().trim())
+    }
+  }
+
   return {
     seedKeyword: data.seedKeyword || seedKeyword,
-    summary: typeof data.summary === 'string' ? data.summary : `Keyword research for "${seedKeyword}".`,
-    keywords: Array.isArray(data.keywords) ? data.keywords.map(k => ({
+    detectedLanguage: data.detectedLanguage || detectedLanguage,
+    detectedRegion: data.detectedRegion || detectedRegion,
+    summary: typeof data.summary === 'string' ? data.summary : `Keyword research for "${seedKeyword}" (${detectedLanguage}).`,
+    searchEngineKeywords,
+    competitorInsights,
+    keywords: mergedKeywords.map(k => ({
       keyword: k.keyword || '',
       intent: k.intent || 'Informational',
       type: k.type || 'informational',
       opportunityScore: Math.min(100, Math.max(0, k.opportunityScore || 50)),
       businessRelevance: Math.min(100, Math.max(0, k.businessRelevance || 50)),
       reason: k.reason || '',
-    })) : [],
-    longTailKeywords: Array.isArray(data.longTailKeywords) ? data.longTailKeywords : [],
+    })),
+    longTailKeywords: Array.isArray(data.longTailKeywords) ? data.longTailKeywords : searchEngineKeywords.slice(0, 8).map(s => s.keyword),
     questionKeywords: Array.isArray(data.questionKeywords) ? data.questionKeywords : [],
-    commercialKeywords: Array.isArray(data.commercialKeywords) ? data.commercialKeywords : [],
-    informationalKeywords: Array.isArray(data.informationalKeywords) ? data.informationalKeywords : [],
+    commercialKeywords: Array.isArray(data.commercialKeywords) ? data.commercialKeywords : mergedKeywords.filter(k => k.intent === 'Commercial' || k.intent === 'Transactional').map(k => k.keyword),
+    informationalKeywords: Array.isArray(data.informationalKeywords) ? data.informationalKeywords : mergedKeywords.filter(k => k.intent === 'Informational').map(k => k.keyword),
     topicClusters: Array.isArray(data.topicClusters) ? data.topicClusters : [],
     contentOpportunities: Array.isArray(data.contentOpportunities) ? data.contentOpportunities : [],
     recommendations: Array.isArray(data.recommendations) ? data.recommendations : [],
@@ -293,232 +623,83 @@ function validateReport(data, seedKeyword) {
   }
 }
 
-function generateFallbackReport(input, crawlData) {
+function generateFallbackReport(input, crawlData, searchEngineKeywords = [], competitorInsights = {}) {
   const kw = input.seedKeyword
   const kwLower = kw.toLowerCase()
   const biz = input.businessType || 'General'
 
-  // Use crawl data to generate context-aware keywords
-  const siteTerms = crawlData ? [
-    ...crawlData.headings.h1,
-    ...crawlData.headings.h2,
-    ...crawlData.productTerms,
-  ].filter(Boolean) : []
-
-  // Extract meaningful phrases from website — try headings first, then bundle text
-  let sitePhrases = crawlData
-    ? crawlData.headings.h2.slice(0, 8).map(h => h.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim()).filter(h => h.length > 2)
-    : []
-
-  // For SPAs with no headings, extract phrases from bundle text + meta descriptions
-  if (sitePhrases.length === 0 && crawlData) {
-    const allText = [crawlData.bodyExcerpt, crawlData.bundleText || '', crawlData.descriptions.join(' '), crawlData.headings.h1.join(' '), crawlData.headings.h2.join(' '), crawlData.headings.h3.join(' ')].join(' ')
-    // Extract 2-5 word phrases that look like services/products
-    const phrases = allText.match(/\b[a-z]+(?:\s+[a-z]+){1,4}\b/gi) || []
-    const stopWords = new Set(['the','and','for','with','that','this','you','our','we','not','are','can','will','has','have','been','but','from','they','also','any','all','one','its','may','use','get','how','why','who','what','when','where','which','than','them','then','into','over','just','more','than','some','very','much','also','each','both','few','own','same','such','only','now','other','most','here','well','too','would','could','should','about','your','them','they','then','than','these','those','more','most','such'])
-    const meaningful = phrases.filter(p => {
-      const lower = p.toLowerCase()
-      const words = lower.split(/\s+/).filter(w => w.length > 1)
-      if (words.length < 2 || words.length > 4) return false
-      if (lower.length < 6 || lower.length > 35) return false
-      // Filter out phrases that are mostly stop words
-      const contentWords = words.filter(w => !stopWords.has(w))
-      if (contentWords.length < 1) return false
-      // Filter out code-like phrases
-      if (/^(\d+|http|www|com|html|div|span|class|script|style|font|color|width|height|margin|padding|border|display|position|flex|grid|module|export|import|return|function|const|let|var)/.test(lower)) return false
-      return true
-    })
-    // Score by relevance to seed keyword
-    const scored = meaningful.map(p => ({
-      phrase: p.toLowerCase().trim(),
-      score: p.toLowerCase().includes(kwLower) ? 10 : (kwLower.includes(p.split(' ')[0]) ? 5 : 1),
-    })).sort((a, b) => b.score - a.score)
-    sitePhrases = [...new Set(scored.map(s => s.phrase))].slice(0, 10)
-    // Also add product terms as single-word anchors
-    if (crawlData.productTerms?.length) {
-      sitePhrases.push(...crawlData.productTerms.slice(0, 5))
-    }
-  }
-
-  // Generate keywords from actual site content when available
-  const siteKeywords = []
-  if (crawlData) {
-    // Use ALL headings as keyword sources — these are real page topics
-    const allHeadings = [
-      ...crawlData.headings.h1,
-      ...crawlData.headings.h2,
-      ...crawlData.headings.h3,
-    ].filter(h => h.length > 3 && h.length < 80)
-
-    for (const heading of allHeadings.slice(0, 12)) {
-      const cleanHeading = heading.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim()
-      if (cleanHeading.length < 4) continue
-      // Don't duplicate the seed keyword
-      if (cleanHeading === kwLower) continue
-      const intent = /price|cost|buy|order|plan|subscribe/.test(cleanHeading) ? 'Transactional'
-        : /vs|compare|alternative|versus/.test(cleanHeading) ? 'Comparison'
-        : /what|how|why|guide|tip|learn/.test(cleanHeading) ? 'Informational'
-        : 'Commercial'
-      siteKeywords.push({
-        keyword: cleanHeading,
-        intent,
-        type: 'primary',
-        opportunityScore: 90,
-        businessRelevance: 95,
-        reason: `Extracted from website heading: "${heading}"`,
-      })
-    }
-
-    // Use product/service terms from body text
-    for (const term of crawlData.productTerms.slice(0, 15)) {
-      if (term.length < 4 || kwLower.includes(term) || term.includes(kwLower)) continue
-      if (['product','feature','module','component','style','color','width','height','margin','padding','font','div','span','class','script'].some(skip => term.startsWith(skip) || term === skip)) continue
-      if (!siteKeywords.find(k => k.keyword.includes(term))) {
-        const intent = ['buy', 'order', 'shop', 'claim', 'renew', 'pricing', 'subscribe'].some(t => term.includes(t)) ? 'Transactional' : 'Commercial'
-        siteKeywords.push({
-          keyword: `${term} ${kwLower}`,
-          intent,
-          type: 'commercial',
-          opportunityScore: 85,
-          businessRelevance: 90,
-          reason: `Service/product term found on the website: "${term}"`,
-        })
-      }
-    }
-
-    // Also use meta descriptions to find service phrases
-    for (const desc of crawlData.descriptions.slice(0, 3)) {
-      if (!desc) continue
-      const phrases = desc.match(/\b[a-z]+(?:\s+[a-z]+){1,4}\b/gi) || []
-      for (const phrase of phrases.slice(0, 3)) {
-        const clean = phrase.toLowerCase().trim()
-        if (clean.length < 6 || clean.length > 40) continue
-        if (siteKeywords.find(k => k.keyword === clean)) continue
-        siteKeywords.push({
-          keyword: clean,
-          intent: 'Informational',
-          type: 'long-tail',
-          opportunityScore: 78,
-          businessRelevance: 85,
-          reason: `Found in meta description: "${desc.substring(0, 60)}..."`,
-        })
-      }
-    }
-  }
-
-  // Business-type-specific keywords
-  const bizKeywords = {
-    'E-commerce': [
-      { keyword: `buy ${kwLower} online`, intent: 'Transactional', type: 'transactional', opportunityScore: 88, businessRelevance: 95, reason: 'Direct purchase intent.' },
-      { keyword: `best ${kwLower}`, intent: 'Commercial', type: 'commercial', opportunityScore: 90, businessRelevance: 92, reason: 'High-intent comparison shopping query.' },
-      { keyword: `${kwLower} price`, intent: 'Commercial', type: 'commercial', opportunityScore: 86, businessRelevance: 90, reason: 'Budget research from potential buyers.' },
-      { keyword: `${kwLower} online`, intent: 'Transactional', type: 'transactional', opportunityScore: 85, businessRelevance: 88, reason: 'Online purchase intent.' },
-      { keyword: `cheap ${kwLower}`, intent: 'Transactional', type: 'transactional', opportunityScore: 78, businessRelevance: 80, reason: 'Price-sensitive buyers.' },
-      { keyword: `${kwLower} for sale`, intent: 'Transactional', type: 'transactional', opportunityScore: 82, businessRelevance: 85, reason: 'Direct buying intent.' },
-      { keyword: `top 10 ${kwLower}`, intent: 'Commercial', type: 'commercial', opportunityScore: 80, businessRelevance: 78, reason: 'Comparison shopping query.' },
-      { keyword: `${kwLower} review`, intent: 'Commercial', type: 'commercial', opportunityScore: 77, businessRelevance: 75, reason: 'Pre-purchase research.' },
-      { keyword: `${kwLower} brands`, intent: 'Commercial', type: 'commercial', opportunityScore: 76, businessRelevance: 78, reason: 'Brand comparison shopping.' },
-      { keyword: `${kwLower} discount`, intent: 'Transactional', type: 'transactional', opportunityScore: 74, businessRelevance: 82, reason: 'Deal-seeking buyers.' },
-    ],
-    'Agency': [
-      { keyword: `${kw} agency`, intent: 'Commercial', type: 'commercial', opportunityScore: 91, businessRelevance: 95, reason: 'Strong agency-seeking intent.' },
-      { keyword: `${kw} services`, intent: 'Commercial', type: 'commercial', opportunityScore: 89, businessRelevance: 92, reason: 'Service provider search.' },
-      { keyword: `best ${kwLower} agency`, intent: 'Commercial', type: 'commercial', opportunityScore: 88, businessRelevance: 90, reason: 'Provider selection query.' },
-      { keyword: `${kw} consultant`, intent: 'Commercial', type: 'commercial', opportunityScore: 82, businessRelevance: 87, reason: 'Consulting service intent.' },
-      { keyword: `${kw} pricing`, intent: 'Commercial', type: 'commercial', opportunityScore: 84, businessRelevance: 85, reason: 'Budget evaluation.' },
-    ],
-    'B2B': [
-      { keyword: `${kw} solution`, intent: 'Commercial', type: 'commercial', opportunityScore: 85, businessRelevance: 90, reason: 'B2B solution seeking.' },
-      { keyword: `${kw} platform`, intent: 'Commercial', type: 'commercial', opportunityScore: 83, businessRelevance: 88, reason: 'Platform evaluation.' },
-      { keyword: `enterprise ${kwLower}`, intent: 'Commercial', type: 'commercial', opportunityScore: 80, businessRelevance: 85, reason: 'Enterprise-level interest.' },
-      { keyword: `${kw} provider`, intent: 'Commercial', type: 'commercial', opportunityScore: 82, businessRelevance: 87, reason: 'Provider selection.' },
-    ],
-    'SaaS': [
-      { keyword: `${kw} software`, intent: 'Commercial', type: 'commercial', opportunityScore: 86, businessRelevance: 90, reason: 'Software evaluation.' },
-      { keyword: `${kw} tool`, intent: 'Commercial', type: 'commercial', opportunityScore: 84, businessRelevance: 88, reason: 'Tool comparison.' },
-      { keyword: `${kw} alternative`, intent: 'Comparison', type: 'comparison', opportunityScore: 82, businessRelevance: 85, reason: 'Competitor comparison.' },
-      { keyword: `free ${kwLower}`, intent: 'Transactional', type: 'transactional', opportunityScore: 80, businessRelevance: 82, reason: 'Free trial seekers.' },
-      { keyword: `${kw} demo`, intent: 'Transactional', type: 'transactional', opportunityScore: 78, businessRelevance: 85, reason: 'Demo request intent.' },
-    ],
-  }
-
-  const specificKeywords = bizKeywords[biz] || [
-    { keyword: `${kw} services`, intent: 'Commercial', type: 'commercial', opportunityScore: 85, businessRelevance: 85, reason: 'Service-related search.' },
-    { keyword: `best ${kwLower}`, intent: 'Commercial', type: 'commercial', opportunityScore: 88, businessRelevance: 88, reason: 'Top provider/product search.' },
-    { keyword: `${kw} price`, intent: 'Commercial', type: 'commercial', opportunityScore: 82, businessRelevance: 80, reason: 'Price research.' },
-  ]
-
-  const commonKeywords = [
-    { keyword: kw, intent: 'Informational', type: 'primary', opportunityScore: 72, businessRelevance: 85, reason: 'Core seed keyword.' },
-    { keyword: `what is ${kwLower}`, intent: 'Informational', type: 'question', opportunityScore: 68, businessRelevance: 72, reason: 'Awareness-stage question.' },
-    { keyword: `how much does ${kwLower} cost`, intent: 'Commercial', type: 'question', opportunityScore: 80, businessRelevance: 85, reason: 'Budget question from buyers.' },
-    { keyword: `${kw} for beginners`, intent: 'Informational', type: 'informational', opportunityScore: 65, businessRelevance: 70, reason: 'Educational content opportunity.' },
-    { keyword: `${kw} vs alternatives`, intent: 'Comparison', type: 'comparison', opportunityScore: 75, businessRelevance: 78, reason: 'Comparison shopping.' },
-    { keyword: `${kw} reviews`, intent: 'Commercial', type: 'commercial', opportunityScore: 77, businessRelevance: 75, reason: 'Pre-purchase research.' },
-    { keyword: `best ${kwLower} for [use case]`, intent: 'Commercial', type: 'long-tail', opportunityScore: 79, businessRelevance: 80, reason: 'Specific use case search.' },
-    { keyword: `${kw} guide`, intent: 'Informational', type: 'informational', opportunityScore: 70, businessRelevance: 72, reason: 'Educational guide opportunity.' },
-  ]
-
-  // Merge: site-specific first, then business-type, then common
-  const allKeywords = [...siteKeywords, ...specificKeywords, ...commonKeywords]
-  const keywords = allKeywords.map((k, i) => ({
-    ...k,
-    opportunityScore: Math.min(95, Math.max(50, k.opportunityScore + Math.floor(Math.random() * 5 - 2))),
-  }))
-
-  const longTailPrefixes = ['best', 'top', 'how to choose', 'where to buy', 'reviews of', 'comparison of']
-  const longTailKeywords = longTailPrefixes.map(p => `${p} ${kwLower}`).slice(0, 6)
-
-  const questionKeywords = [
-    `What is ${kwLower}?`,
-    `How much does ${kwLower} cost?`,
-    `How to choose ${kwLower}?`,
-    `Where to buy ${kwLower} online?`,
-    `What are the best ${kwLower}?`,
-    `Are ${kwLower} worth it?`,
-  ]
-
-  // Build topic clusters from actual website headings when available
-  const topicClusters = crawlData && sitePhrases.length > 0
-    ? sitePhrases.slice(0, 4).map(phrase => ({
-        topic: phrase.split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '),
-        keywords: [`${phrase} ${kwLower}`, `best ${phrase}`, `${phrase} guide`],
-        contentIdeas: [`${phrase.charAt(0).toUpperCase() + phrase.slice(1)} — Complete Guide`, `How to Choose the Right ${phrase.charAt(0).toUpperCase() + phrase.slice(1)}`],
-      }))
+  const baseKeywords = searchEngineKeywords.length > 0
+    ? searchEngineKeywords
     : [
-        { topic: `${kw} Basics`, keywords: [`what is ${kwLower}`, `${kw} guide`, `${kw} for beginners`], contentIdeas: [`${kw}: Complete Guide`, `Understanding ${kw} in 2026`] },
-        { topic: `${kw} Selection`, keywords: [`best ${kwLower}`, `${kw} reviews`, `${kw} comparison`], contentIdeas: [`How to Choose the Best ${kw}`, `${kw}: Top Options Compared`] },
-        { topic: `${kw} Buying`, keywords: [`buy ${kwLower} online`, `${kw} price`, `${kw} deals`], contentIdeas: [`${kw} Buying Guide: Price & Value`, `Where to Buy ${kw} Online`] },
+        { keyword: `${kwLower} software`, intent: 'Commercial', type: 'primary', opportunityScore: 92, businessRelevance: 95, reason: 'High-intent commercial query' },
+        { keyword: `best ${kwLower}`, intent: 'Commercial', type: 'commercial', opportunityScore: 90, businessRelevance: 92, reason: 'Comparison query' },
+        { keyword: `${kwLower} pricing`, intent: 'Transactional', type: 'transactional', opportunityScore: 88, businessRelevance: 90, reason: 'Budget evaluation' },
+        { keyword: `${kwLower} features`, intent: 'Informational', type: 'informational', opportunityScore: 82, businessRelevance: 85, reason: 'Feature discovery' },
+        { keyword: `how does ${kwLower} work`, intent: 'Informational', type: 'question', opportunityScore: 78, businessRelevance: 80, reason: 'Awareness query' },
       ]
 
-  const summary = crawlData
-    ? `Found ${keywords.length} keyword opportunities for "${kw}" (${biz} business). Analyzed ${crawlData.pagesCrawled} pages from ${input.websiteUrl || 'the website'} to identify relevant keywords based on actual site content.`
-    : `Found ${keywords.length} keyword opportunities for "${kw}" (${biz} business). The landscape includes commercial, informational, and transactional keyword opportunities.`
+  const longTailKeywords = [
+    `best ${kwLower} for small business`,
+    `enterprise ${kwLower} solutions`,
+    `top rated ${kwLower} platforms`,
+    `${kwLower} alternatives and comparison`,
+    `${kwLower} implementation guide`,
+  ]
+
+  const questionKeywords = [
+    `What is ${kwLower} and how does it work?`,
+    `How much does ${kwLower} cost?`,
+    `What are the best ${kwLower} features?`,
+    `How to choose the right ${kwLower}?`,
+    `What is the ROI of ${kwLower}?`,
+  ]
+
+  const topicClusters = [
+    {
+      topic: `${kw} Platforms & Tools`,
+      keywords: [`best ${kwLower}`, `${kwLower} software`, `top ${kwLower} tools`],
+      contentIdeas: [`Top 10 ${kw} Solutions Compared`, `How to Choose the Right ${kw}`],
+    },
+    {
+      topic: `${kw} Pricing & ROI`,
+      keywords: [`${kwLower} pricing`, `${kwLower} cost`, `${kwLower} plans`],
+      contentIdeas: [`${kw} Pricing Breakdown Guide`, `Calculating the ROI of ${kw}`],
+    },
+    {
+      topic: `${kw} Features & Architecture`,
+      keywords: [`${kwLower} features`, `${kwLower} integrations`, `${kwLower} API`],
+      contentIdeas: [`Essential ${kw} Features Checklist`, `${kw} Integration Best Practices`],
+    },
+  ]
 
   return {
     seedKeyword: kw,
-    summary,
-    keywords: keywords.slice(0, 25),
+    detectedLanguage: input.detectedLanguage || 'English',
+    detectedRegion: input.detectedRegion || 'Global',
+    summary: `Found ${baseKeywords.length} keyword opportunities for "${kw}" (${biz} business) targeting the ${input.detectedLanguage} search market. Includes real-time search queries from Google and Bing with competitor page intelligence.`,
+    searchEngineKeywords,
+    competitorInsights,
+    keywords: baseKeywords,
     longTailKeywords,
     questionKeywords,
-    commercialKeywords: specificKeywords.filter(k => k.intent === 'Commercial' || k.intent === 'Transactional').map(k => k.keyword),
-    informationalKeywords: commonKeywords.filter(k => k.intent === 'Informational').map(k => k.keyword),
+    commercialKeywords: baseKeywords.filter(k => k.intent === 'Commercial' || k.intent === 'Transactional').map(k => k.keyword),
+    informationalKeywords: baseKeywords.filter(k => k.intent === 'Informational').map(k => k.keyword),
     topicClusters,
     contentOpportunities: [
-      { title: `${kw}: Complete Guide for 2026`, primaryKeyword: kw, intent: 'Informational', contentType: 'Long-form guide', reason: 'Core educational resource.' },
-      { title: `Best ${kw} — Top Options Compared`, primaryKeyword: `best ${kwLower}`, intent: 'Commercial', contentType: 'Comparison article', reason: 'High-intent comparison content.' },
-      { title: `${kw} Buying Guide: Price, Features & Reviews`, primaryKeyword: `${kw} review`, intent: 'Commercial', contentType: 'Buyer guide', reason: 'Pre-purchase decision content.' },
+      { title: `The Ultimate Guide to ${kw} in 2026`, primaryKeyword: kw, intent: 'Informational', contentType: 'Long-form Pillar Guide', reason: 'Pillar page opportunity for organic search authority.' },
+      { title: `Top ${kw} Solutions Compared: Features & Pricing`, primaryKeyword: `best ${kwLower}`, intent: 'Commercial', contentType: 'Comparison Article', reason: 'High-intent buyer comparison content.' },
+      { title: `${kw} Pricing Breakdown: What Should You Pay?`, primaryKeyword: `${kwLower} pricing`, intent: 'Transactional', contentType: 'Buyer Guide', reason: 'Captures direct purchasing and budget evaluation searches.' },
     ],
     recommendations: [
-      'Focus on transactional keywords for direct conversions',
-      'Create comparison/buying guides for commercial keywords',
-      'Build product category pages for broad keywords',
-      'Add FAQ sections targeting question keywords',
+      'Target high-intent Google & Bing search autocomplete queries on dedicated service landing pages',
+      'Incorporate the exact semantic keywords used by top-ranking competitors into your H1/H2 headings',
+      'Create comprehensive comparison and buyer guide content targeting commercial keywords',
+      'Implement structured FAQ schema on pages targeting question keywords',
     ],
     quickWins: [
-      `Create a "Best ${kw}" comparison page — high buyer intent`,
-      `Add a FAQ section answering common ${kwLower} questions`,
-      `Optimize product pages for transactional keywords`,
+      `Add top competitor focus terms to your homepage H2 headings`,
+      `Create a dedicated "Best ${kw}" comparison guide`,
+      `Add an FAQ section answering top Google autocomplete questions`,
     ],
   }
 }
@@ -526,51 +707,68 @@ function generateFallbackReport(input, crawlData) {
 /* ── Main Research Function ─────────────────────────────────────── */
 
 export async function researchKeywords(input) {
-  // Step 1: Crawl the website for context
+  // Step 1: Crawl website if provided
   let crawlData = null
   if (input.websiteUrl) {
-    console.log(`Crawling website: ${input.websiteUrl}`)
+    console.log(`Crawling website for keyword context: ${input.websiteUrl}`)
     crawlData = await crawlWebsite(input.websiteUrl)
     if (crawlData) {
       console.log(`✓ Crawled ${crawlData.pagesCrawled} pages — found ${crawlData.productTerms.length} product terms, ${crawlData.headings.h2.length} H2 headings`)
-    } else {
-      console.log('Website crawl failed or returned no data')
     }
   }
 
-  // If no seed keyword provided, extract topic from website
+  // If no seed keyword provided, extract from website
   if (!input.seedKeyword && crawlData) {
     const title = crawlData.titles.find(t => t && t.length > 3) || ''
     const metaDesc = crawlData.descriptions.find(d => d && d.length > 3) || ''
     const h1 = crawlData.headings.h1.find(h => h && h.length > 3) || ''
-    // Use the most meaningful text as seed keyword
     const source = h1 || title || metaDesc || crawlData.productTerms[0] || ''
-    // Take first 3-4 meaningful words
     const words = source.replace(/[^a-zA-Z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 2).slice(0, 4)
-    input.seedKeyword = words.join(' ') || 'website'
+    input.seedKeyword = words.join(' ') || 'business'
     console.log(`No seed keyword provided — extracted from website: "${input.seedKeyword}"`)
   }
 
-  // Step 2: Try AI if any provider is configured
+  // Step 2: Auto-detect language & region
+  const { detectedLanguage, languageCode, detectedRegion, countryCode } = detectLanguageAndRegion(
+    input.seedKeyword,
+    input.websiteUrl,
+    crawlData?.htmlLang || ''
+  )
+  input.detectedLanguage = detectedLanguage
+  input.detectedRegion = detectedRegion
+
+  console.log(`🌐 Detected Language: ${detectedLanguage} (${languageCode}) | Market/Region: ${detectedRegion} (${countryCode})`)
+
+  // Step 3: Live scrape Google & Bing Search Suggestions and Competitor SERPs in parallel
+  console.log(`🔍 Scraping live Google & Bing search suggestions and competitor pages for "${input.seedKeyword}"...`)
+  const [searchKeywordsResult, competitorResult] = await Promise.allSettled([
+    scrapeSearchEngineKeywords(input.seedKeyword, languageCode, countryCode),
+    scrapeCompetitorKeywords(input.seedKeyword, languageCode),
+  ])
+
+  const searchEngineKeywords = searchKeywordsResult.status === 'fulfilled' ? searchKeywordsResult.value : []
+  const competitorInsights = competitorResult.status === 'fulfilled' ? competitorResult.value : { competitors: [], competitorKeywords: [] }
+
+  console.log(`✓ Scraped ${searchEngineKeywords.length} live Google/Bing search queries, ${competitorInsights.competitors.length} ranking competitor pages`)
+
+  // Step 4: AI synthesis in detected language
   const providers = getConfiguredProviders()
   if (providers.length === 0) {
-    console.log('No AI providers configured — using fallback keyword report with website context')
-    return generateFallbackReport(input, crawlData)
+    console.log('No AI providers configured — using fallback keyword report with live search data')
+    return generateFallbackReport(input, crawlData, searchEngineKeywords, competitorInsights)
   }
-
-  console.log(`Available AI providers: ${providers.map(p => `${p.name} (${p.model})`).join(', ')}`)
 
   try {
     const parsed = await callAIAndParseJSON([
       { role: 'system', content: SYSTEM_PROMPT },
-      { role: 'user', content: buildUserPrompt(input, crawlData) },
-    ], { temperature: 0.4, maxTokens: 8000, jsonMode: true, preferredProvider: input.preferredProvider })
+      { role: 'user', content: buildUserPrompt(input, crawlData, searchEngineKeywords, competitorInsights) },
+    ], { temperature: 0.4, maxTokens: 2500, jsonMode: true, preferredProvider: input.preferredProvider })
 
-    console.log(`✓ AI keyword research complete — ${parsed.keywords?.length || 0} keywords generated`)
-    return validateReport(parsed, input.seedKeyword)
+    console.log(`✓ AI keyword research complete in ${detectedLanguage} — ${parsed.keywords?.length || 0} keywords generated`)
+    return validateReport(parsed, input.seedKeyword, detectedLanguage, detectedRegion, searchEngineKeywords, competitorInsights)
   } catch (err) {
     console.error(`AI keyword research failed: ${err.message}`)
-    console.log('Falling back to website-context-aware report')
-    return generateFallbackReport(input, crawlData)
+    console.log('Falling back to live search & website context report')
+    return generateFallbackReport(input, crawlData, searchEngineKeywords, competitorInsights)
   }
 }

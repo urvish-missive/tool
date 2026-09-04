@@ -11,7 +11,6 @@ export const keywordResearchSchema = z
       .optional()
       .or(z.literal('')),
     websiteUrl: z.string().trim().optional().or(z.literal('')),
-    country: z.string().optional().or(z.literal('')),
     businessType: z.string().optional().or(z.literal('')),
     preferredProvider: z.enum(['openrouter', 'gemini', 'gemini-3.5-flash', 'gemini-3.7-flash', 'groq']).default('openrouter'),
   })
@@ -41,7 +40,6 @@ export function parseKeywordResearchForm(data) {
       ...d,
       websiteUrl: normalizedUrl || undefined,
       seedKeyword: d.seedKeyword || undefined,
-      country: d.country || undefined,
       businessType: d.businessType || undefined,
     },
   }

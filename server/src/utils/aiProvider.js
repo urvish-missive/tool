@@ -113,13 +113,13 @@ export async function callAI(messages, options = {}) {
   if (targetProvider === 'gemini-3.5' || targetProvider === 'gemini_3_5') targetProvider = 'gemini-3.5-flash'
   if (targetProvider === 'gemini-3.7' || targetProvider === 'gemini_3_7') targetProvider = 'gemini-3.7-flash'
 
-  // Determine provider order
-  // If a specific provider is selected, ONLY use that one (no fallback)
-  const providerOrder = targetProvider
-    ? [targetProvider]
-    : ['gemini-3.7-flash', 'groq', 'openrouter', 'gemini-3.5-flash'].filter(p => PROVIDERS[p]?.key)
+  // Determine provider order (prioritize targetProvider, then fallback to others)
+  const allProviders = ['gemini-3.7-flash', 'groq', 'openrouter', 'gemini-3.5-flash'].filter(p => PROVIDERS[p]?.key)
+  const providerOrder = targetProvider && PROVIDERS[targetProvider]?.key
+    ? [targetProvider, ...allProviders.filter(p => p !== targetProvider)]
+    : allProviders
 
-  console.log(`AI provider: ${providerOrder.join(' → ')}${targetProvider ? ' (strict)' : ' (auto-fallback)'}`)
+  console.log(`AI provider: ${providerOrder.join(' → ')} (preferred: ${targetProvider || 'default'})`)
   const errors = []
 
   for (const providerName of providerOrder) {

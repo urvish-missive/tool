@@ -146,7 +146,6 @@ async function seedDefaults() {
       { slug: 'keyword-research', name: 'Keyword Research', description: 'Generate keyword ideas and opportunities', dailyLimit: 80, hourlyLimit: 15, formFields: JSON.stringify({
         seedKeyword: { enabled: true, label: 'Seed Keyword', required: false },
         websiteUrl: { enabled: true, label: 'Website URL', required: false },
-        country: { enabled: true, label: 'Country', required: false },
         businessType: { enabled: true, label: 'Business Type', required: false },
       })},
       { slug: 'seo-roi', name: 'SEO ROI Calculator', description: 'Estimate SEO ROI and organic traffic', dailyLimit: 200, hourlyLimit: 50, formFields: JSON.stringify({

@@ -41,8 +41,8 @@ export async function createResearch(req, res) {
         data: {
           seedKeyword: cleanKeyword || report.seedKeyword || 'website',
           websiteUrl: websiteUrl || null,
-          country: country || null,
-          language: language || null,
+          country: report.detectedRegion || country || 'Global',
+          language: report.detectedLanguage || language || 'English',
           businessType: businessType || null,
           reportJson: JSON.stringify(report),
         },
