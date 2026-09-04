@@ -17,7 +17,6 @@ const TOOL_HREF_SLUGS = {
   '/website-content-extractor': 'website-content-extractor',
   '/website-image-extractor': 'website-image-extractor',
   '/website-tech-inspector': 'website-tech-inspector',
-  '/geo-analyzer': 'geo-analyzer',
 }
 
 const NAV_ITEMS = [
@@ -29,7 +28,7 @@ const NAV_ITEMS = [
           items: [
             { icon: '🤖', label: 'AI SEO', href: '#' },
             { icon: '📱', label: 'CAF Framework', href: '#' },
-            { icon: '🎯', label: 'GEO Readiness Score', href: '/geo-analyzer' },
+            { icon: '🎯', label: 'GEO Readiness Score', href: '#' },
             {
               icon: '📊',
               label: 'Telecom AI SEO',
@@ -119,12 +118,6 @@ const NAV_ITEMS = [
         {
           title: 'Content & Strategy',
           items: [
-            {
-              icon: '🤖',
-              label: 'AI Search & GEO Analyzer',
-              badgeColor: 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white',
-              href: '/geo-analyzer',
-            },
             { icon: '📝', label: 'AI Content Analyzer', href: '/content-analyzer' },
             { icon: '✅', label: 'Content QA Checklist', href: '/content-qa' },
             { icon: '💡', label: 'Blog Topic Generator', href: '/blog-topic-generator' },

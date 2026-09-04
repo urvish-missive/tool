@@ -17,20 +17,9 @@ const TOOL_SLUG_MAP = {
   website_content_extractor: 'website-content-extractor',
   website_image_extractor: 'website-image-extractor',
   website_tech_inspector: 'website-tech-inspector',
-  geo_analyzer: 'geo-analyzer',
 }
 
 const TOOLS = [
-  {
-    id: 'geo_analyzer',
-    title: 'AI Search & GEO Analyzer',
-    description:
-      'Evaluate your content for citation readiness in Google AI Overviews, Perplexity, and ChatGPT Search with 1-click optimization.',
-    icon: '🤖',
-    color: 'from-[#0C81F3] via-[#7B5CF6] to-[#EB8988]',
-    path: '/geo-analyzer',
-    badge: 'Trending 🔥',
-  },
   {
     id: 'content_analyzer',
     title: 'Content Analyzer',

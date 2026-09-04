@@ -18,7 +18,6 @@ import rankRoutes from './routes/rankRoutes.js'
 import extractorRoutes from './routes/extractorRoutes.js'
 import imageExtractorRoutes from './routes/imageExtractorRoutes.js'
 import techInspectorRoutes from './routes/techInspectorRoutes.js'
-import geoRoutes from './routes/geoRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 import { toolAccess } from './middleware/toolAccess.js'
 import prisma from './utils/prisma.js'
@@ -70,7 +69,6 @@ app.use('/api/rank', toolAccess('google-rank-checker'), rankRoutes)
 app.use('/api/extractor', toolAccess('website-content-extractor'), extractorRoutes)
 app.use('/api/image-extractor', toolAccess('website-image-extractor'), imageExtractorRoutes)
 app.use('/api/tech-inspector', toolAccess('website-tech-inspector'), techInspectorRoutes)
-app.use('/api/geo', toolAccess('geo-analyzer'), geoRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -321,29 +319,6 @@ async function seedDefaults() {
           },
         })
         console.log('✓ Website Tech & Theme Inspector tool config seeded')
-      }
-    } catch {}
-
-    // Ensure geo-analyzer exists if database was already initialized
-    try {
-      const geoTool = await prisma.toolConfig.findUnique({ where: { slug: 'geo-analyzer' } })
-      if (!geoTool) {
-        await prisma.toolConfig.create({
-          data: {
-            slug: 'geo-analyzer',
-            name: 'AI Search & GEO Analyzer',
-            description: 'Evaluate content visibility and citation probability across Google AI Overviews, Perplexity, and ChatGPT Search',
-            dailyLimit: 60,
-            hourlyLimit: 15,
-            formFields: JSON.stringify({
-              url: { enabled: true, label: 'Website URL', required: false },
-              content: { enabled: true, label: 'Content Draft', required: false },
-              targetQuery: { enabled: true, label: 'Target Search Query / Prompt', required: false },
-              targetEngine: { enabled: true, label: 'AI Search Focus', required: false },
-            }),
-          },
-        })
-        console.log('✓ AI Search & GEO Analyzer tool config seeded')
       }
     } catch {}
   }
