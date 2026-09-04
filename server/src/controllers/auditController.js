@@ -125,8 +125,6 @@ export async function createAudit(req, res) {
     // 4. Build comprehensive report
     const report = {
       targetUrl: normalizedUrl,
-      targetKeyword: targetKeyword || null,
-      country: country || null,
       totalPages: crawlData.totalPages,
       overallScore: scores.overallScore,
       technicalScore: scores.technicalScore,
@@ -183,8 +181,6 @@ export async function createAudit(req, res) {
       const audit = await prisma.audit.create({
         data: {
           websiteUrl: normalizedUrl,
-          targetKeyword: targetKeyword || null,
-          country: country || null,
           overallScore: scores.overallScore,
           technicalScore: scores.technicalScore,
           onPageScore: scores.onPageScore,

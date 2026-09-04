@@ -81,6 +81,37 @@ async function fetchPage(targetUrl, redirects = 0) {
   }
 }
 
+function isValidCrawlableUrl(urlObj, baseHostname) {
+  if (!urlObj || !urlObj.hostname) return false
+  const cleanHost = urlObj.hostname.replace(/^www\./, '').toLowerCase()
+  const cleanBase = baseHostname.replace(/^www\./, '').toLowerCase()
+  if (cleanHost !== cleanBase) return false
+
+  const path = urlObj.pathname.toLowerCase()
+  // Ignore Cloudflare email protection, challenge, and CDN scripts
+  if (path.includes('/cdn-cgi/')) return false
+  // Ignore admin and login routes
+  if (
+    path.includes('/wp-admin') ||
+    path.includes('/wp-login') ||
+    path.includes('/xmlrpc.php') ||
+    path.includes('/user/login') ||
+    path.includes('/account') ||
+    path.includes('/cart') ||
+    path.includes('/checkout')
+  )
+    return false
+  // Ignore static assets & binaries
+  if (
+    /\.(pdf|zip|rar|gz|tar|exe|dmg|jpg|jpeg|png|gif|webp|svg|ico|css|js|woff|woff2|ttf|eot|mp4|webm|mp3|wav|avi|mov|doc|docx|xls|xlsx|ppt|pptx)$/i.test(
+      path
+    )
+  )
+    return false
+
+  return true
+}
+
 function extractLinks($, baseUrl) {
   const base = new URL(baseUrl)
   const internal = new Set()
@@ -104,18 +135,33 @@ function extractLinks($, baseUrl) {
 
     try {
       const linkUrl = new URL(href, baseUrl)
-      if (linkUrl.hostname === base.hostname) {
+      const cleanHost = linkUrl.hostname.replace(/^www\./, '').toLowerCase()
+      const baseHost = base.hostname.replace(/^www\./, '').toLowerCase()
+
+      if (cleanHost === baseHost) {
         linkUrl.hash = ''
         const cleanHref = linkUrl.href
-        internal.add(cleanHref)
+        if (isValidCrawlableUrl(linkUrl, base.hostname)) {
+          internal.add(cleanHref)
+        }
         if (detailedLinks.length < 50) {
-          detailedLinks.push({ url: cleanHref, text: anchorText || '[No anchor text]', type: 'internal', isNofollow })
+          detailedLinks.push({
+            url: cleanHref,
+            text: anchorText || '[No anchor text]',
+            type: 'internal',
+            isNofollow,
+          })
         }
       } else {
         const cleanHref = linkUrl.href
         external.add(cleanHref)
         if (detailedLinks.length < 50) {
-          detailedLinks.push({ url: cleanHref, text: anchorText || '[No anchor text]', type: 'external', isNofollow })
+          detailedLinks.push({
+            url: cleanHref,
+            text: anchorText || '[No anchor text]',
+            type: 'external',
+            isNofollow,
+          })
         }
       }
     } catch {}
@@ -276,7 +322,18 @@ function parseHTML(html, pageUrl, responseTimeMs = 0, securityHeaders = {}) {
     hostname: new URL(pageUrl).hostname,
     title: $('title').first().text().replace(/\s+/g, ' ').trim(),
     metaDescription: $('meta[name="description"]').attr('content')?.replace(/\s+/g, ' ').trim() || '',
-    canonical: $('link[rel="canonical"]').attr('href')?.trim() || '',
+    canonical: (() => {
+      const raw =
+        $('link[rel="canonical"]').attr('href')?.trim() ||
+        $('link[rel="CANONICAL"]').attr('href')?.trim() ||
+        ''
+      if (!raw) return ''
+      try {
+        return new URL(raw, pageUrl).href
+      } catch {
+        return raw
+      }
+    })(),
     robotsMeta: $('meta[name="robots"]').attr('content')?.trim() || '',
     h1,
     h2,
