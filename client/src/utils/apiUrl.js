@@ -3,7 +3,9 @@
  * Resolves API base URL from VITE_API_URL or defaults to Render backend / local fallback.
  */
 
-const RAW_API_URL = import.meta.env.VITE_API_URL || 'https://tool-2jmg.onrender.com/api'
+const RAW_API_URL =
+  import.meta.env.VITE_API_URL ||
+  (import.meta.env.DEV ? '/api' : 'https://tool-2jmg.onrender.com/api')
 
 // Ensure no trailing slash and ends with /api
 export const API_BASE_URL = RAW_API_URL.replace(/\/+$/, '')

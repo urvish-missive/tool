@@ -7,8 +7,25 @@ import { URL } from 'url'
 
 // ─── Issue Builder ─────────────────────────────────────────────
 
-export function createIssue(category, severity, title, description, recommendation) {
-  return { category, severity, title, description, recommendation }
+export function createIssue(category, severity, title, description, recommendation, extra = {}) {
+  const affectedPages = extra?.affectedPages || []
+  const affectedItems =
+    extra?.affectedItems ||
+    (affectedPages.length > 0
+      ? affectedPages.map((url) => ({ url, evidence: extra?.evidence || '' }))
+      : [])
+
+  return {
+    category,
+    severity,
+    title,
+    description,
+    recommendation,
+    affectedPages,
+    affectedItems,
+    evidence: extra?.evidence || '',
+    ...(typeof extra === 'object' ? extra : {}),
+  }
 }
 
 // ─── Safe Fetch with Timeout ───────────────────────────────────
