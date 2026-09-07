@@ -244,6 +244,7 @@ export default function SeoRoiPage() {
     reset: resetForm,
   } = useForm({
     resolver: zodResolver(seoRoiSchema),
+    shouldUnregister: false,
     defaultValues: {
       traffic: 15000,
       leads: 120,
@@ -411,7 +412,8 @@ export default function SeoRoiPage() {
       {/* Main Container */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Form Card */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10">
+        {!isLoading && (
+          <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10">
           <form onSubmit={handleSubmit(onFormValid)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Currency */}
@@ -565,6 +567,7 @@ export default function SeoRoiPage() {
             )}
           </form>
         </div>
+        )}
 
         {/* Loading State */}
         {isLoading && (

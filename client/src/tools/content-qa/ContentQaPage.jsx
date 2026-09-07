@@ -52,6 +52,7 @@ import {
   Link2,
   FileUp,
   FileCheck2,
+  RotateCcw,
 } from 'lucide-react'
 import ModelSelector from '../shared/ModelSelector'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
@@ -299,7 +300,7 @@ export default function ContentQaPage() {
       targetKeyword: '',
       platform: 'website',
       targetAudience: '',
-      preferredProvider: 'openrouter',
+      preferredProvider: 'gemini-3.5-flash-lite',
     },
   })
 
@@ -721,13 +722,29 @@ export default function ContentQaPage() {
   const charCount = content.length
 
   const handleReset = () => {
-    resetForm()
+    resetForm({
+      content: '',
+      title: '',
+      targetKeyword: '',
+      platform: 'website',
+      targetAudience: '',
+      preferredProvider: 'gemini-3.5-flash-lite',
+    })
     setReport(null)
     setQaId(null)
     setStatuses({})
     setPolishedResult(null)
     setError(null)
     resetMutation()
+    setGdocUrl('')
+    setWebUrl('')
+    setUploadedFileName('')
+    setImportSuccessMsg(null)
+    setImportError(null)
+    setInputSourceMode('text')
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -765,9 +782,24 @@ export default function ContentQaPage() {
     runAnalysis(formData)
   }
 
+  const onFormInvalid = (formErrors) => {
+    console.warn('QA form validation errors:', formErrors)
+    const firstKey = Object.keys(formErrors)[0]
+    if (firstKey) {
+      const msg = formErrors[firstKey]?.message || `Please check the ${firstKey} field.`
+      setError(msg)
+      const fieldEl = document.querySelector(`[name="${firstKey}"]`)
+      if (fieldEl) fieldEl.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }
+
   const runAnalysis = async (formData) => {
-    const parsed = parseContentQaForm(formData || watch())
-    if (!parsed.success) return
+    const rawData = formData || watch()
+    const parsed = parseContentQaForm(rawData)
+    if (!parsed.success) {
+      setError(parsed.error || 'Please provide at least 20 characters of content.')
+      return
+    }
 
     setError(null)
     setReport(null)
@@ -1062,7 +1094,7 @@ Audited with Missive Digital Content QA Tool.`
           {/* ── INPUT FORM ────────────────────────────────────────── */}
           {!report && !isAnalyzing && (
             <form
-              onSubmit={handleSubmit(onFormValid)}
+              onSubmit={handleSubmit(onFormValid, onFormInvalid)}
               className="bg-white rounded-3xl border border-gray-200 shadow-xl shadow-gray-200/50 p-6 sm:p-9 space-y-6"
             >
               {/* Content Input Mode Selector Tabs */}
@@ -1073,18 +1105,18 @@ Audited with Missive Digital Content QA Tool.`
                       Content to Audit <span className="text-[#0C81F3]">*</span>
                     </label>
 
-                    {/* Mode Switcher Tabs */}
-                    <div className="inline-flex p-1 bg-gray-100/90 rounded-2xl border border-gray-200/80 gap-1 text-xs font-semibold text-gray-600">
+                    {/* Mode Switcher Tabs - Responsive 2x2 Grid on Mobile, Inline on Desktop */}
+                    <div className="w-full sm:w-auto grid grid-cols-2 sm:flex sm:items-center p-1 bg-gray-100/90 rounded-2xl border border-gray-200/80 gap-1 text-xs font-semibold text-gray-600">
                       <button
                         type="button"
                         onClick={() => {
                           setInputSourceMode('text')
                           setImportError(null)
                         }}
-                        className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+                        className={`w-full sm:w-auto px-3 py-2 sm:py-1.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center ${
                           inputSourceMode === 'text'
                             ? 'bg-white text-[#0C81F3] shadow-sm font-bold'
-                            : 'hover:text-gray-900'
+                            : 'hover:text-gray-900 hover:bg-gray-200/60'
                         }`}
                       >
                         <Edit3 className="w-3.5 h-3.5" />
@@ -1097,10 +1129,10 @@ Audited with Missive Digital Content QA Tool.`
                           setInputSourceMode('gdoc')
                           setImportError(null)
                         }}
-                        className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+                        className={`w-full sm:w-auto px-3 py-2 sm:py-1.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center ${
                           inputSourceMode === 'gdoc'
                             ? 'bg-white text-[#0C81F3] shadow-sm font-bold'
-                            : 'hover:text-gray-900'
+                            : 'hover:text-gray-900 hover:bg-gray-200/60'
                         }`}
                       >
                         <FileText className="w-3.5 h-3.5 text-blue-600" />
@@ -1113,10 +1145,10 @@ Audited with Missive Digital Content QA Tool.`
                           setInputSourceMode('web')
                           setImportError(null)
                         }}
-                        className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+                        className={`w-full sm:w-auto px-3 py-2 sm:py-1.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center ${
                           inputSourceMode === 'web'
                             ? 'bg-white text-[#0C81F3] shadow-sm font-bold'
-                            : 'hover:text-gray-900'
+                            : 'hover:text-gray-900 hover:bg-gray-200/60'
                         }`}
                       >
                         <Globe className="w-3.5 h-3.5 text-emerald-600" />
@@ -1129,10 +1161,10 @@ Audited with Missive Digital Content QA Tool.`
                           setInputSourceMode('file')
                           setImportError(null)
                         }}
-                        className={`px-3 py-1.5 rounded-xl transition-all flex items-center gap-1.5 cursor-pointer ${
+                        className={`w-full sm:w-auto px-3 py-2 sm:py-1.5 rounded-xl transition-all flex items-center justify-center gap-1.5 cursor-pointer text-center ${
                           inputSourceMode === 'file'
                             ? 'bg-white text-[#0C81F3] shadow-sm font-bold'
-                            : 'hover:text-gray-900'
+                            : 'hover:text-gray-900 hover:bg-gray-200/60'
                         }`}
                       >
                         <UploadCloud className="w-3.5 h-3.5 text-purple-600" />
@@ -1444,14 +1476,26 @@ Audited with Missive Digital Content QA Tool.`
                 </div>
               )}
 
-              <button
-                type="submit"
-                disabled={isAnalyzing}
-                className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-9 py-4 text-sm font-bold text-white hover:from-[#0D73D1] hover:to-[#E77771] disabled:opacity-50 transition-all shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center gap-2"
-              >
-                <ClipboardCheck className="w-4 h-4" />
-                <span>Run 12-Pillar QA Audit</span>
-              </button>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+                <button
+                  type="submit"
+                  disabled={isAnalyzing}
+                  className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-9 py-4 text-sm font-bold text-white hover:from-[#0D73D1] hover:to-[#E77771] disabled:opacity-50 transition-all shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <ClipboardCheck className="w-4 h-4" />
+                  <span>Run 12-Pillar QA Audit</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  disabled={isAnalyzing}
+                  className="w-full sm:w-auto rounded-full border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 px-7 py-4 text-sm font-semibold transition-all flex items-center justify-center gap-2 shadow-sm hover:border-gray-400 disabled:opacity-50 cursor-pointer"
+                >
+                  <RotateCcw className="w-4 h-4 text-gray-500" />
+                  <span>Reset All Fields</span>
+                </button>
+              </div>
             </form>
           )}
 

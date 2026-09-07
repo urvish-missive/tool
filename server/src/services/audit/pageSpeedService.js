@@ -17,7 +17,7 @@ export async function fetchGooglePageSpeed(targetUrl, strategy = 'mobile') {
       headers: {
         'Accept': 'application/json',
       },
-    }, 12000)
+    }, 4500)
 
     if (!response.ok) {
       throw new Error(`PSI API responded with HTTP ${response.status}`)
@@ -95,7 +95,7 @@ export async function fetchGooglePageSpeed(targetUrl, strategy = 'mobile') {
  * Synthetic fallback lab metrics dynamically computed from live crawl telemetry
  * when Google PSI API is rate-limited (HTTP 429) or unauthenticated.
  */
-function generateDynamicPageSpeed(targetUrl, strategy = 'mobile', crawlData = null) {
+export function generateDynamicPageSpeed(targetUrl, strategy = 'mobile', crawlData = null) {
   const isMobile = strategy === 'mobile'
   const page = crawlData?.pages?.[0] || {}
   const assets = page.assets || {}

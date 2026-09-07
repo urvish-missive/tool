@@ -14,7 +14,7 @@ export default function AuditForm({ onSubmit, isLoading }) {
     resolver: zodResolver(seoAuditSchema),
     defaultValues: {
       websiteUrl: '',
-      preferredProvider: 'openrouter',
+      preferredProvider: 'gemini-3.5-flash',
     },
   })
 

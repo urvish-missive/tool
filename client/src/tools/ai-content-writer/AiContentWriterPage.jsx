@@ -107,6 +107,7 @@ export default function AiContentWriterPage() {
     reset: resetForm,
   } = useForm({
     resolver: zodResolver(aiContentWriterSchema),
+    shouldUnregister: false,
     defaultValues: {
       keyword: '',
       contentType: 'blog-post',
@@ -286,7 +287,8 @@ export default function AiContentWriterPage() {
       {/* Main Container */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Input Form Card */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10 backdrop-blur-sm">
+        {!isLoading && (
+          <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10 backdrop-blur-sm">
           <form onSubmit={handleSubmit(onFormValid)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Topic / Primary Keyword */}
@@ -464,6 +466,7 @@ export default function AiContentWriterPage() {
             )}
           </form>
         </div>
+        )}
 
         {/* Loading State */}
         {isLoading && (

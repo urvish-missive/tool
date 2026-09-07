@@ -456,7 +456,8 @@ export default function WebsiteImageExtractorPage() {
       {/* Main Container */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* URL Input Form Card */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10 transition-all">
+        {!isLoading && (
+          <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10 transition-all">
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
               <label htmlFor="image-extractor-url-input" className="block text-sm font-bold text-slate-800">
@@ -545,6 +546,7 @@ export default function WebsiteImageExtractorPage() {
             </div>
           )}
         </div>
+        )}
 
         {/* Loader Progress */}
         {isLoading && (

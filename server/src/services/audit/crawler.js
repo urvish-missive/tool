@@ -475,17 +475,15 @@ async function probeSitemapVariations(targetUrl, robotsSitemapUrls = []) {
     }
   }
 
-  // If a child sitemap index was found, probe up to 2 child sitemaps to verify
+  // If a child sitemap index was found, probe up to 3 child sitemaps concurrently to verify
   if (childSitemaps.length > 0 && totalDiscoveredUrls <= childSitemaps.length) {
     const childSamples = childSitemaps.slice(0, 3)
-    for (const childUrl of childSamples) {
-      try {
-        const childXml = await fetchRaw(childUrl, 6000)
-        if (childXml) {
-          const locMatches = childXml.match(/<loc>([^<]+)<\/loc>/gi) || []
-          locMatches.forEach(m => discoveredUrls.add(m.replace(/<\/?loc>/gi, '').trim()))
-        }
-      } catch {}
+    const childResults = await Promise.allSettled(childSamples.map(u => fetchRaw(u, 3500)))
+    for (const res of childResults) {
+      if (res.status === 'fulfilled' && res.value) {
+        const locMatches = res.value.match(/<loc>([^<]+)<\/loc>/gi) || []
+        locMatches.forEach(m => discoveredUrls.add(m.replace(/<\/?loc>/gi, '').trim()))
+      }
     }
   }
 

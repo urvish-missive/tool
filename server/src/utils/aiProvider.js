@@ -158,8 +158,8 @@ export async function callAI(messages, options = {}) {
   if (targetProvider === 'gemini-3.7' || targetProvider === 'gemini_3_7') targetProvider = 'gemini-3.7-flash'
   if (targetProvider === 'gemini-lite' || targetProvider === 'gemini-3.5-lite') targetProvider = 'gemini-3.5-flash-lite'
 
-  // Determine provider order (prioritize targetProvider, then fallback to robust free providers)
-  const allProviders = ['groq', 'gemini-3.5-flash-lite', 'openrouter', 'gemini-3.7-flash', 'gemini-3.5-flash'].filter(p => PROVIDERS[p]?.key)
+  // Determine provider order (prioritize fastest providers: gemini-3.5-flash-lite, gemini-3.7-flash, groq)
+  const allProviders = ['gemini-3.5-flash-lite', 'gemini-3.7-flash', 'groq', 'gemini-3.5-flash', 'openrouter'].filter(p => PROVIDERS[p]?.key)
   const providerOrder = targetProvider && PROVIDERS[targetProvider]?.key
     ? [targetProvider, ...allProviders.filter(p => p !== targetProvider)]
     : allProviders

@@ -178,95 +178,97 @@ export default function WebsiteTechInspectorPage() {
       {/* Main Container */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Form Card */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-8 transition-all">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label htmlFor="tech-inspector-url-input" className="block text-sm font-bold text-slate-800">
-                Website URL to Inspect <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative flex items-center">
-                <Globe className="absolute left-4 w-5 h-5 text-slate-400" />
-                <input
-                  id="tech-inspector-url-input"
-                  type="text"
-                  placeholder="https://example.com or any website URL"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  className="w-full pl-12 pr-28 py-3.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 focus:border-[#0C81F3] transition-all text-sm sm:text-base font-medium"
-                />
-                {url && (
-                  <button
-                    type="button"
-                    onClick={() => setUrl('')}
-                    className="absolute right-24 text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
-                  >
-                    Clear
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      const text = await navigator.clipboard.readText()
-                      if (text) setUrl(text.trim())
-                    } catch {}
-                  }}
-                  className="absolute right-3 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition-colors shadow-2xs cursor-pointer"
-                >
-                  Paste
-                </button>
-              </div>
-            </div>
-
-            {/* Action Row */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-4 border-t border-slate-100">
-              <div className="text-xs text-slate-500 flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                <span>Extracts theme colors, CMS, frontend frameworks, Google Fonts & design tokens</span>
-              </div>
-
-              <div className="flex items-center gap-3">
-                {results && (
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="px-5 py-3 rounded-full border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-sm cursor-pointer"
-                  >
-                    Reset
-                  </button>
-                )}
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-7 py-3.5 text-sm sm:text-base font-bold text-white hover:opacity-95 active:scale-[0.98] disabled:opacity-50 transition-all shadow-md hover:shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  {isLoading ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin shrink-0" />
-                      <span>Inspecting Website...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-                      <span>Inspect Website</span>
-                    </>
+        {!isLoading && (
+          <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-8 transition-all">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <label htmlFor="tech-inspector-url-input" className="block text-sm font-bold text-slate-800">
+                  Website URL to Inspect <span className="text-rose-500">*</span>
+                </label>
+                <div className="relative flex items-center">
+                  <Globe className="absolute left-4 w-5 h-5 text-slate-400" />
+                  <input
+                    id="tech-inspector-url-input"
+                    type="text"
+                    placeholder="https://example.com or any website URL"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    className="w-full pl-12 pr-28 py-3.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 focus:border-[#0C81F3] transition-all text-sm sm:text-base font-medium"
+                  />
+                  {url && (
+                    <button
+                      type="button"
+                      onClick={() => setUrl('')}
+                      className="absolute right-24 text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                    >
+                      Clear
+                    </button>
                   )}
-                </button>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      try {
+                        const text = await navigator.clipboard.readText()
+                        if (text) setUrl(text.trim())
+                      } catch {}
+                    }}
+                    className="absolute right-3 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition-colors shadow-2xs cursor-pointer"
+                  >
+                    Paste
+                  </button>
+                </div>
               </div>
-            </div>
-          </form>
 
-          {/* Error display */}
-          {error && (
-            <div className="mt-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm flex items-start gap-3 shadow-xs">
-              <AlertCircle className="w-5 h-5 shrink-0 text-rose-600 mt-0.5" />
-              <div>
-                <p className="font-bold">Inspection Error</p>
-                <p>{error}</p>
+              {/* Action Row */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-4 border-t border-slate-100">
+                <div className="text-xs text-slate-500 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span>Extracts theme colors, CMS, frontend frameworks, Google Fonts & design tokens</span>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {results && (
+                    <button
+                      type="button"
+                      onClick={handleReset}
+                      className="px-5 py-3 rounded-full border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-sm cursor-pointer"
+                    >
+                      Reset
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-7 py-3.5 text-sm sm:text-base font-bold text-white hover:opacity-95 active:scale-[0.98] disabled:opacity-50 transition-all shadow-md hover:shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    {isLoading ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin shrink-0" />
+                        <span>Inspecting Website...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                        <span>Inspect Website</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            </form>
+
+            {/* Error display */}
+            {error && (
+              <div className="mt-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm flex items-start gap-3 shadow-xs">
+                <AlertCircle className="w-5 h-5 shrink-0 text-rose-600 mt-0.5" />
+                <div>
+                  <p className="font-bold">Inspection Error</p>
+                  <p>{error}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Loader Progress */}
         {isLoading && (

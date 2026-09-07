@@ -7,6 +7,12 @@ import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import { generateAuditPdf } from '../../utils/generateAuditPdf'
 import SendPdfModal from '../../components/SendPdfModal'
 import { getScoreColor, getScoreBg } from '../../utils/scoreHelpers'
+import PageSpeedGauge, {
+  PageSpeedLegend,
+  PageSpeedShape,
+  getPageSpeedRating,
+  getCwvMetricRating,
+} from '../../components/PageSpeedGauge'
 import {
   ShieldAlert,
   CheckCircle2,
@@ -866,24 +872,31 @@ export default function SeoAuditPage() {
                     </div>
                     <p className="text-[11px] text-gray-600">
                       {sitemapProbe.found
-                        ? `✓ ${sitemapProbe.totalDiscoveredUrls || 0} URLs indexed across sitemaps and indexes.`
+                        ? `✓ ${sitemapProbe.totalDiscoveredUrls || 0} URLs indexed across sitemaps.`
                         : 'No valid XML sitemap found across standard variations.'}
                     </p>
                   </div>
 
                   {/* Card 3: Google PageSpeed */}
-                  <div className="p-4 rounded-2xl border bg-purple-50/80 border-purple-200">
+                  <div
+                    onClick={() => {
+                      setActiveTab('performance')
+                      const el = document.getElementById('audit-tabs-section')
+                      if (el) el.scrollIntoView({ behavior: 'smooth' })
+                    }}
+                    className="p-4 rounded-2xl border bg-purple-50/80 border-purple-200 cursor-pointer hover:border-purple-400 hover:shadow-xs transition-all group"
+                  >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-bold text-purple-900 flex items-center gap-1.5">
                         ⚡ Google PageSpeed
                       </span>
-                      <span className="text-xs font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
+                      <span className="text-xs font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 group-hover:bg-purple-200">
                         {pageSpeed.mobile?.score || 74}/100 Mobile
                       </span>
                     </div>
                     <p className="text-[11px] text-purple-800/80">
                       Desktop: <strong>{pageSpeed.desktop?.score || 88}/100</strong> • LCP:{' '}
-                      {pageSpeed.mobile?.metrics?.lcp?.value || '2.4s'}.
+                      {pageSpeed.mobile?.metrics?.lcp?.value || '2.4s'}. <span className="underline font-semibold text-purple-700">View CWV tab →</span>
                     </p>
                   </div>
 
@@ -1495,15 +1508,17 @@ export default function SeoAuditPage() {
                 </div>
 
                 {/* Performance & Core Web Vitals (CWV) (BELOW) */}
-                <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-7 shadow-sm space-y-5">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-7 shadow-sm space-y-6">
+                  {/* Top Bar: Strategy Switcher + Direct Google Link */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-gray-100">
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="text-xs font-bold uppercase tracking-wider text-[#0C81F3]">
+                        <span className="text-xs font-bold uppercase tracking-wider text-[#0C81F3] flex items-center gap-1.5">
+                          <Zap className="w-3.5 h-3.5 text-[#0C81F3]" />
                           {currentPsi?.source || 'Google PageSpeed Insights'}
                         </span>
                         <span className="text-[10px] font-bold px-2 py-0.5 bg-blue-50 text-blue-800 rounded-full border border-blue-200">
-                          {psiStrategy === 'mobile' ? 'Mobile 4G Emulation' : 'Desktop Unthrottled'}
+                          {psiStrategy === 'mobile' ? 'Mobile 4G Emulation' : 'Desktop Cable Emulation'}
                         </span>
                       </div>
                       <h3 className="font-bold text-gray-900 text-lg mt-0.5">
@@ -1511,48 +1526,157 @@ export default function SeoAuditPage() {
                       </h3>
                     </div>
 
-                    <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl border border-gray-200">
-                      <button
-                        onClick={() => setPsiStrategy('mobile')}
-                        className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
-                          psiStrategy === 'mobile'
-                            ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-sm'
-                            : 'text-gray-600 hover:text-gray-900'
-                        }`}
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl border border-gray-200">
+                        <button
+                          onClick={() => setPsiStrategy('mobile')}
+                          className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
+                            psiStrategy === 'mobile'
+                              ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-sm'
+                              : 'text-gray-600 hover:text-gray-900'
+                          }`}
+                        >
+                          <Smartphone className="w-3.5 h-3.5" />
+                          <span>Mobile</span>
+                          <span
+                            className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
+                              psiStrategy === 'mobile' ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'
+                            }`}
+                          >
+                            {pageSpeed.mobile?.score || 74}
+                          </span>
+                        </button>
+                        <button
+                          onClick={() => setPsiStrategy('desktop')}
+                          className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
+                            psiStrategy === 'desktop'
+                              ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-sm'
+                              : 'text-gray-600 hover:text-gray-900'
+                          }`}
+                        >
+                          <Monitor className="w-3.5 h-3.5" />
+                          <span>Desktop</span>
+                          <span
+                            className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
+                              psiStrategy === 'desktop' ? 'bg-white/20 text-white' : 'bg-gray-200 text-gray-700'
+                            }`}
+                          >
+                            {pageSpeed.desktop?.score || 88}
+                          </span>
+                        </button>
+                      </div>
+
+                      <a
+                        href={`https://pagespeed.web.dev/analysis?url=${encodeURIComponent(report.url)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-3 py-1.5 rounded-xl text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-200 flex items-center gap-1.5 transition-colors cursor-pointer"
                       >
-                        <Smartphone className="w-3.5 h-3.5" />
-                        <span>Mobile ({pageSpeed.mobile?.score || 74})</span>
-                      </button>
-                      <button
-                        onClick={() => setPsiStrategy('desktop')}
-                        className={`px-3.5 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
-                          psiStrategy === 'desktop'
-                            ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-sm'
-                            : 'text-gray-600 hover:text-gray-900'
-                        }`}
-                      >
-                        <Monitor className="w-3.5 h-3.5" />
-                        <span>Desktop ({pageSpeed.desktop?.score || 88})</span>
-                      </button>
+                        <span>pagespeed.web.dev</span>
+                        <ExternalLink className="w-3 h-3 text-gray-500" />
+                      </a>
                     </div>
                   </div>
 
-                  {/* CWV Metrics Cards */}
+                  {/* Device Hero Card with Large PageSpeed Radial Gauge */}
+                  <div className="bg-gradient-to-r from-gray-50 via-blue-50/20 to-gray-50 rounded-2xl border border-gray-200 p-5 flex flex-col sm:flex-row items-center gap-6">
+                    <PageSpeedGauge
+                      score={currentPsi?.score || (psiStrategy === 'mobile' ? 74 : 88)}
+                      label={psiStrategy === 'mobile' ? 'Mobile Performance' : 'Desktop Performance'}
+                      device={psiStrategy}
+                      size={130}
+                      strokeWidth={10}
+                      showDeviceIcon={false}
+                      className="border-0 shadow-none bg-transparent shrink-0"
+                    />
+
+                    <div className="space-y-2 text-center sm:text-left flex-1">
+                      <div className="flex items-center justify-center sm:justify-start gap-2 flex-wrap">
+                        <span className="text-xs font-extrabold uppercase tracking-wider text-gray-500">
+                          {psiStrategy === 'mobile' ? 'Mobile Environment' : 'Desktop Environment'}
+                        </span>
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                          {psiStrategy === 'mobile' ? 'Moto G Power Emulation (4G)' : 'Desktop 1080p Screen'}
+                        </span>
+                      </div>
+
+                      <p className="text-xs text-gray-600 max-w-xl">
+                        {psiStrategy === 'mobile'
+                          ? 'Simulates a mid-tier mobile device over throttled 4G network (1.6 Mbps download, 150ms RTT, 4x CPU slowdown). Crucial for Google Mobile-First Indexing.'
+                          : 'Simulates high-speed unthrottled desktop browsing (10 Mbps download, 28ms RTT). Tests raw visual and DOM rendering efficiency.'}
+                      </p>
+
+                      <PageSpeedLegend className="pt-1 justify-center sm:justify-start" />
+                    </div>
+                  </div>
+
+                  {/* 6 Core Web Vitals (CWV) Metric Cards Matching PageSpeed Insights */}
                   {currentPsi?.metrics && (
-                    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-                      {Object.entries(currentPsi.metrics).map(([mKey, mVal]) => (
-                        <div
-                          key={mKey}
-                          className="p-3.5 rounded-2xl bg-gray-50 border border-gray-200 text-center space-y-1"
-                        >
-                          <div className="text-lg sm:text-xl font-extrabold text-gray-900">
-                            {mVal.value}
-                          </div>
-                          <div className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                            {mKey.toUpperCase()}
-                          </div>
-                        </div>
-                      ))}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="text-xs font-bold text-gray-800 uppercase tracking-wider">
+                          Core Web Vitals & Diagnostic Metrics
+                        </h4>
+                        <span className="text-[11px] text-gray-500 font-medium">
+                          Evaluated against Google PageSpeed thresholds
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                        {Object.entries(currentPsi.metrics).map(([mKey, mVal]) => {
+                          const rating = getCwvMetricRating(mKey, mVal.value)
+                          const acronym = mKey.toUpperCase()
+                          const titles = {
+                            lcp: 'Largest Contentful Paint',
+                            fcp: 'First Contentful Paint',
+                            cls: 'Cumulative Layout Shift',
+                            tbt: 'Total Blocking Time',
+                            speedindex: 'Speed Index',
+                            ttfb: 'Time to First Byte',
+                          }
+                          const title = titles[mKey.toLowerCase()] || acronym
+
+                          return (
+                            <div
+                              key={mKey}
+                              className="p-3.5 rounded-2xl bg-white border border-gray-200 shadow-2xs flex flex-col justify-between space-y-2 hover:border-[#0C81F3] hover:shadow-xs transition-all"
+                            >
+                              <div className="flex items-center justify-between">
+                                <span className="text-xs font-extrabold text-gray-900">
+                                  {acronym}
+                                </span>
+                                <PageSpeedShape shape={rating.shape} className="w-2.5 h-2.5" />
+                              </div>
+
+                              <div>
+                                <div className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">
+                                  {mVal.value}
+                                </div>
+                                <div className="text-[10px] text-gray-500 font-medium leading-tight truncate mt-0.5" title={title}>
+                                  {title}
+                                </div>
+                              </div>
+
+                              <div className="pt-2 border-t border-gray-100 flex items-center justify-between text-[10px]">
+                                <span
+                                  className={`px-1.5 py-0.5 rounded font-bold ${
+                                    rating.status === 'good'
+                                      ? 'bg-emerald-50 text-emerald-700'
+                                      : rating.status === 'average'
+                                      ? 'bg-amber-50 text-amber-700'
+                                      : 'bg-rose-50 text-rose-700'
+                                  }`}
+                                >
+                                  {rating.label}
+                                </span>
+                                <span className="text-gray-400 font-medium">
+                                  {rating.benchmark}
+                                </span>
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </div>
                     </div>
                   )}
 

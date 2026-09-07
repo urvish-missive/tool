@@ -224,7 +224,8 @@ export default function WebsiteContentExtractorPage() {
       {/* Main Container */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Search & Extraction Form Card */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10 transition-all">
+        {!isExtracting && (
+          <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10 transition-all">
           <form onSubmit={handleExtractSubmit} className="space-y-6">
             <div className="space-y-2">
               <label htmlFor="website-url-input" className="block text-sm font-bold text-slate-800">
@@ -325,6 +326,7 @@ export default function WebsiteContentExtractorPage() {
             </div>
           )}
         </div>
+        )}
 
         {/* Loader Progress State */}
         {isExtracting && (

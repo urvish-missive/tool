@@ -5,7 +5,7 @@ import { analyzeLinks } from '../services/audit/linkAnalyzer.js'
 import { analyzeSchema } from '../services/audit/schemaAnalyzer.js'
 import { calculateScores } from '../services/audit/seoAnalyzer.js'
 import { analyzeAuditWithAI } from '../services/audit/aiAnalyzer.js'
-import { getCompletePageSpeedAudit } from '../services/audit/pageSpeedService.js'
+import { getCompletePageSpeedAudit, generateDynamicPageSpeed } from '../services/audit/pageSpeedService.js'
 import { withTimeout } from '../utils/helpers.js'
 import prisma from '../utils/prisma.js'
 
@@ -48,9 +48,14 @@ export async function createAudit(req, res) {
         throw crawlResult.reason
       }
       crawlData = crawlResult.value
-      pageSpeedData = pageSpeedResult.status === 'fulfilled' ? pageSpeedResult.value : null
-      if (!pageSpeedData || pageSpeedData.mobile?.source?.includes('Live Network')) {
-        pageSpeedData = await getCompletePageSpeedAudit(normalizedUrl, crawlData)
+      const rawPageSpeed = pageSpeedResult.status === 'fulfilled' ? pageSpeedResult.value : null
+      pageSpeedData = {
+        mobile: rawPageSpeed?.mobile?.source === 'Google PageSpeed Insights API'
+          ? rawPageSpeed.mobile
+          : generateDynamicPageSpeed(normalizedUrl, 'mobile', crawlData),
+        desktop: rawPageSpeed?.desktop?.source === 'Google PageSpeed Insights API'
+          ? rawPageSpeed.desktop
+          : generateDynamicPageSpeed(normalizedUrl, 'desktop', crawlData),
       }
     } catch (err) {
       console.error(`Crawl failed for ${normalizedUrl}:`, err)
@@ -99,7 +104,7 @@ export async function createAudit(req, res) {
           schemaSummary: schemaResult.summary,
           preferredProvider,
         }),
-        25000,
+        14000,
         'AI analysis'
       )
     } catch (aiErr) {

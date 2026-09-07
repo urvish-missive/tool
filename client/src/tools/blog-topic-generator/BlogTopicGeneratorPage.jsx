@@ -228,7 +228,8 @@ ${t.outline.map((o) => `  - ${o}`).join('\n')}
       {/* Main Container */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Form Card */}
-        <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10">
+        {!isLoading && (
+          <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10">
           <form onSubmit={handleGenerate} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Niche Input */}
@@ -379,6 +380,7 @@ ${t.outline.map((o) => `  - ${o}`).join('\n')}
             )}
           </form>
         </div>
+        )}
 
         {/* Loading State */}
         {isLoading && (

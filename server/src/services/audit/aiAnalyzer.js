@@ -174,10 +174,11 @@ export async function generateAIReport(auditData, options = {}) {
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: prompt },
     ], {
-      preferredProvider: options.preferredProvider,
-      temperature: 0.3,
-      maxTokens: 5000,
+      preferredProvider: (options.preferredProvider && options.preferredProvider !== 'openrouter') ? options.preferredProvider : 'gemini-3.5-flash-lite',
+      temperature: 0.25,
+      maxTokens: 2500,
       jsonMode: true,
+      timeout: 12000,
     })
 
     return validateAIReport(result, auditData)

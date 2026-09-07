@@ -293,53 +293,54 @@ export default function XmlSitemapGeneratorPage() {
             Generate clean, search-engine ready XML sitemaps with deep crawling, Google image
             extensions, canonical checks, and instant Search Console readiness.
           </p>
-
           {/* Mode Switcher Buttons */}
-          <div className="mt-8 inline-flex p-1.5 bg-white/90 backdrop-blur-md rounded-2xl border border-slate-200 shadow-sm gap-1 sm:gap-2">
-            <button
-              onClick={() => {
-                setMode('crawler')
-                setValidatorUrl('')
-                setValidatorXml('')
-              }}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                mode === 'crawler'
-                  ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <Globe className="w-4 h-4" />
-              <span>Website Crawler</span>
-            </button>
+          {!isLoading && (
+            <div className="mt-8 inline-flex p-1.5 bg-white/90 backdrop-blur-md rounded-2xl border border-slate-200 shadow-sm gap-1 sm:gap-2">
+              <button
+                onClick={() => {
+                  setMode('crawler')
+                  setValidatorUrl('')
+                  setValidatorXml('')
+                }}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                  mode === 'crawler'
+                    ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                <Globe className="w-4 h-4" />
+                <span>Website Crawler</span>
+              </button>
 
-            <button
-              onClick={() => {
-                setMode('manual')
-                setValidatorUrl('')
-                setValidatorXml('')
-              }}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                mode === 'manual'
-                  ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <ListOrdered className="w-4 h-4" />
-              <span>Manual / Bulk URLs</span>
-            </button>
+              <button
+                onClick={() => {
+                  setMode('manual')
+                  setValidatorUrl('')
+                  setValidatorXml('')
+                }}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                  mode === 'manual'
+                    ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                <ListOrdered className="w-4 h-4" />
+                <span>Manual / Bulk URLs</span>
+              </button>
 
-            <button
-              onClick={() => setMode('validator')}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                mode === 'validator'
-                  ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <ShieldCheck className="w-4 h-4" />
-              <span>Sitemap Validator</span>
-            </button>
-          </div>
+              <button
+                onClick={() => setMode('validator')}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                  mode === 'validator'
+                    ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                <ShieldCheck className="w-4 h-4" />
+                <span>Sitemap Validator</span>
+              </button>
+            </div>
+          )}
         </div>
       </section>
 

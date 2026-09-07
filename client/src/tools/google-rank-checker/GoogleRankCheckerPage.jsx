@@ -239,31 +239,33 @@ export default function GoogleRankCheckerPage() {
           </p>
 
           {/* Mode Switcher */}
-          <div className="mt-8 inline-flex p-1.5 bg-white/90 backdrop-blur-md rounded-2xl border border-slate-200 shadow-sm gap-1">
-            <button
-              onClick={() => setInputMode('single')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                inputMode === 'single'
-                  ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <Target className="w-4 h-4" />
-              <span>Single Keyword Check</span>
-            </button>
+          {!isLoading && (
+            <div className="mt-8 inline-flex p-1.5 bg-white/90 backdrop-blur-md rounded-2xl border border-slate-200 shadow-sm gap-1">
+              <button
+                onClick={() => setInputMode('single')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                  inputMode === 'single'
+                    ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                <Target className="w-4 h-4" />
+                <span>Single Keyword Check</span>
+              </button>
 
-            <button
-              onClick={() => setInputMode('batch')}
-              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                inputMode === 'batch'
-                  ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
-                  : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-              }`}
-            >
-              <Layers className="w-4 h-4" />
-              <span>Batch Keywords Check</span>
-            </button>
-          </div>
+              <button
+                onClick={() => setInputMode('batch')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                  inputMode === 'batch'
+                    ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                }`}
+              >
+                <Layers className="w-4 h-4" />
+                <span>Batch Keywords Check</span>
+              </button>
+            </div>
+          )}
         </div>
       </section>
 

@@ -71,9 +71,12 @@ Output Requirements:
 - Be razor-sharp, constructive, and cite exact phrases from the text.`
 
 function buildUserPrompt(content, title, targetKeyword, platform, targetAudience, programmaticData) {
-  const excerpt = content.substring(0, 14000)
+  const excerpt = content.length > 6000
+    ? (content.substring(0, 3500) + '\n\n[...middle content...]\n\n' + content.substring(content.length - 2500))
+    : content
 
   return `Perform a comprehensive 12-Pillar QA Audit based on Himani Kankaria's Content QA Checklist.
+Keep feedback concise, high-impact, and fast: maximum 1 specific quote issue and 1 actionable fix per category (under 25 words each).
 
 ## Content Details
 Title: ${title || 'Not provided'}
@@ -102,8 +105,7 @@ Return a JSON object adhering to this schema:
   "topFixes": [
     "Most urgent fix #1 with specific guidance",
     "Most urgent fix #2 with specific guidance",
-    "Most urgent fix #3 with specific guidance",
-    "Most urgent fix #4 with specific guidance"
+    "Most urgent fix #3 with specific guidance"
   ],
   "categories": {
     "tone_style_ai": {
@@ -243,14 +245,19 @@ export async function reviewContentQA(content, title, targetKeyword, metaDescrip
 
   try {
     console.log(`Starting Himani 12-Pillar AI QA review — providers: ${providers.map(p => p.name).join(', ')}`)
+    const chosenProvider = (options.preferredProvider && options.preferredProvider !== 'openrouter')
+      ? options.preferredProvider
+      : 'gemini-3.5-flash-lite'
+
     const parsed = await callAIAndParseJSON([
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: buildUserPrompt(content, title, targetKeyword, platform, targetAudience, programmaticData) },
     ], {
-      temperature: 0.25,
-      maxTokens: 5500,
+      temperature: 0.2,
+      maxTokens: 2200,
       jsonMode: true,
-      preferredProvider: options.preferredProvider,
+      timeout: 15000,
+      preferredProvider: chosenProvider,
     })
 
     console.log('✓ Himani AI content QA review complete — overall:', parsed?.overallScore)
