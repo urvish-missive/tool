@@ -58,6 +58,16 @@ export const apiSlice = createApi({
       invalidatesTags: ['Lead'],
     }),
 
+    // POST /api/leads/send-pdf — Email PDF report & capture lead
+    sendPdfReport: builder.mutation({
+      query: (payload) => ({
+        url: '/leads/send-pdf',
+        method: 'POST',
+        body: payload,
+      }),
+      invalidatesTags: ['Lead', 'Device'],
+    }),
+
     // POST /api/audit
     runAudit: builder.mutation({
       query: (payload) => ({
@@ -411,6 +421,7 @@ export const apiSlice = createApi({
 export const {
   useAnalyzeContentMutation,
   useSubmitLeadMutation,
+  useSendPdfReportMutation,
   useRunAuditMutation,
   useGetAuditQuery,
   useResearchKeywordsMutation,

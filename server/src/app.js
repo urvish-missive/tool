@@ -41,8 +41,9 @@ app.use(cors({
   credentials: true,
 }))
 
-// Body parsing with size limit
-app.use(express.json({ limit: '1mb' }))
+// Body parsing with size limit (allows up to 25MB for base64 PDF report attachments)
+app.use(express.json({ limit: '25mb' }))
+app.use(express.urlencoded({ extended: true, limit: '25mb' }))
 
 // Global rate limit
 app.use('/api', rateLimit({

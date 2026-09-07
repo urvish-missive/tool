@@ -56,6 +56,7 @@ import {
 import ModelSelector from '../shared/ModelSelector'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
+import SendPdfModal from '../../components/SendPdfModal'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import useToolFields from '../../hooks/useToolFields'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
@@ -281,10 +282,6 @@ Here is how you can supercharge your content strategy:
 - Ensure your paragraphs are bite-sized and engaging.
 - Never settle for generic advice.`
 
-function downloadQaPdf(report, meta) {
-  import('../../utils/generateQaPdf').then((m) => m.downloadQaPdf(report, meta))
-}
-
 export default function ContentQaPage() {
   const {
     register,
@@ -320,6 +317,7 @@ export default function ContentQaPage() {
   const [activeTab, setActiveTab] = useState('grid')
   const [filterMode, setFilterMode] = useState('all')
   const [copiedAction, setCopiedAction] = useState(false)
+  const [showSendPdfModal, setShowSendPdfModal] = useState(false)
 
   // One-Click Polish State & Views
   const [polishedResult, setPolishedResult] = useState(null)
@@ -938,21 +936,9 @@ export default function ContentQaPage() {
     setIsPlayingAudio(false)
   }
 
-  // Export PDF
+  // Export PDF via Email
   const handleExportPdf = () => {
-    downloadQaPdf(report, {
-      title: title || 'Untitled Content',
-      keyword: targetKeyword,
-      wordCount,
-      score: scores.overall,
-      passed: scores.passed,
-      total: scores.total,
-      date: new Date().toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric',
-      }),
-    })
+    setShowSendPdfModal(true)
   }
 
   // Copy Action Plan to Clipboard
@@ -2875,6 +2861,32 @@ Audited with Missive Digital Content QA Tool.`
                 relatedIdValue={qaId}
                 title="Get Your Free Content Strategy"
                 subtitle="Our experts will review your QA report and share a personalized content improvement plan."
+              />
+
+              {/* Send PDF Report via Email Modal */}
+              <SendPdfModal
+                isOpen={showSendPdfModal}
+                onClose={() => setShowSendPdfModal(false)}
+                reportTitle={title ? `Content QA Report for "${title}"` : 'Content QA Checklist Report'}
+                filename={`himani-content-qa-${(title || 'content').toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}.pdf`}
+                getPdfDoc={async () => {
+                  const { generateQaPdf } = await import('../../utils/generateQaPdf')
+                  return generateQaPdf(report, {
+                    title: title || 'Untitled Content',
+                    keyword: targetKeyword,
+                    wordCount,
+                    score: scores.overall,
+                    passed: scores.passed,
+                    total: scores.total,
+                    date: new Date().toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric',
+                      year: 'numeric',
+                    }),
+                  })
+                }}
+                source="content-qa-pdf"
+                contentQaId={qaId || report?.id}
               />
             </div>
           )}

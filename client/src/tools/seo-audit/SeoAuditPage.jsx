@@ -4,7 +4,8 @@ import LeadCaptureModal from '../../components/LeadCaptureModal'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import AuditForm from './AuditForm'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
-import { downloadAuditPdf } from '../../utils/generateAuditPdf'
+import { generateAuditPdf } from '../../utils/generateAuditPdf'
+import SendPdfModal from '../../components/SendPdfModal'
 import { getScoreColor, getScoreBg } from '../../utils/scoreHelpers'
 import {
   ShieldAlert,
@@ -513,7 +514,7 @@ export default function SeoAuditPage() {
   const [submitLead] = useSubmitLeadMutation()
 
   const { popupEnabled, showPopup, setShowPopup } = useLeadPopup('seo-audit')
-  const [pendingDownloadPdf, setPendingDownloadPdf] = useState(false)
+  const [showSendPdfModal, setShowSendPdfModal] = useState(false)
   const [leadCaptured, setLeadCaptured] = useState(false)
 
   const [activeTab, setActiveTab] = useState('issues')
@@ -568,12 +569,7 @@ export default function SeoAuditPage() {
 
   const handleDownloadPdfClick = () => {
     if (!report) return
-    if (!leadCaptured && popupEnabled) {
-      setPendingDownloadPdf(true)
-      setShowPopup(true)
-    } else {
-      downloadAuditPdf(report)
-    }
+    setShowSendPdfModal(true)
   }
 
   const handleLeadSubmit = async (leadData) => {
@@ -583,14 +579,9 @@ export default function SeoAuditPage() {
       await submitLead({
         ...leadData,
         auditId: auditId || undefined,
-        source: 'seo-audit-pdf',
+        source: 'seo-audit',
       })
     } catch {}
-
-    if (pendingDownloadPdf && report) {
-      setPendingDownloadPdf(false)
-      downloadAuditPdf(report)
-    }
   }
 
   const exportAuditMarkdown = () => {
@@ -2187,14 +2178,23 @@ export default function SeoAuditPage() {
         )}
       </div>
 
-      {/* Lead Capture Modal for PDF Download */}
+      {/* Send PDF Report via Email Modal */}
+      <SendPdfModal
+        isOpen={showSendPdfModal}
+        onClose={() => setShowSendPdfModal(false)}
+        reportTitle={report?.targetUrl ? `Technical SEO Audit Report for ${report.targetUrl}` : 'Technical SEO Audit Report'}
+        filename={`missive-seo-audit-${report?.hostname || 'website'}-${Date.now()}.pdf`}
+        getPdfDoc={() => generateAuditPdf(report)}
+        source="seo-audit-pdf"
+        auditId={auditId}
+        website={report?.targetUrl}
+      />
+
+      {/* Lead Capture Modal for tool use */}
       {showPopup && (
         <LeadCaptureModal
           isOpen={showPopup}
-          onClose={() => {
-            setShowPopup(false)
-            setPendingDownloadPdf(false)
-          }}
+          onClose={() => setShowPopup(false)}
           onSubmit={handleLeadSubmit}
           toolName="SEO Site Audit"
         />

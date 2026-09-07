@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useGetAdminLeadsQuery, useDeleteAdminLeadMutation } from '../../services/apiSlice'
+import ConfirmModal from '../../components/ConfirmModal'
+import TablePagination from '../../components/TablePagination'
 
 const SOURCES = [
   '',
@@ -17,16 +19,18 @@ export default function AdminLeads() {
   const [submittedSearch, setSubmittedSearch] = useState('')
   const [source, setSource] = useState('')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(25)
+  const [leadToDelete, setLeadToDelete] = useState(null)
 
   const queryParams = {
     page,
-    limit: 20,
+    limit: pageSize,
     ...(source ? { source } : {}),
     ...(submittedSearch ? { search: submittedSearch } : {}),
   }
 
   const { data, isLoading, refetch } = useGetAdminLeadsQuery(queryParams)
-  const [deleteAdminLead] = useDeleteAdminLeadMutation()
+  const [deleteAdminLead, { isLoading: isDeleting }] = useDeleteAdminLeadMutation()
 
   const leads = data?.leads || []
   const pagination = data?.pagination || { page: 1, pages: 1, total: 0 }
@@ -37,10 +41,11 @@ export default function AdminLeads() {
     setSubmittedSearch(search.trim())
   }
 
-  const handleDelete = async (id) => {
-    if (!confirm('Delete this lead?')) return
+  const confirmDeleteLead = async () => {
+    if (!leadToDelete) return
     try {
-      await deleteAdminLead(id).unwrap()
+      await deleteAdminLead(leadToDelete.id).unwrap()
+      setLeadToDelete(null)
       refetch()
     } catch (err) {
       console.error('Failed to delete lead:', err)
@@ -172,7 +177,7 @@ export default function AdminLeads() {
                     </td>
                     <td className="px-4 py-3 text-right">
                       <button
-                        onClick={() => handleDelete(lead.id)}
+                        onClick={() => setLeadToDelete(lead)}
                         className="text-xs text-gray-400 hover:text-red-500 transition-colors"
                       >
                         Delete
@@ -186,30 +191,42 @@ export default function AdminLeads() {
         )}
 
         {/* Pagination */}
-        {pagination.pages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-            <p className="text-xs text-gray-400">
-              Page {pagination.page} of {pagination.pages}
-            </p>
-            <div className="flex gap-1">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page === 1}
-                className="px-3 py-1.5 text-xs rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
-                disabled={page === pagination.pages}
-                className="px-3 py-1.5 text-xs rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-40"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
+        <TablePagination
+          currentPage={page}
+          totalPages={pagination.pages || 1}
+          totalItems={pagination.total || 0}
+          pageSize={pageSize}
+          pageSizeOptions={[10, 25, 50, 100]}
+          onPageChange={(newPage) => setPage(newPage)}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize)
+            setPage(1)
+          }}
+          itemLabel="leads"
+          isLoading={isLoading}
+        />
       </div>
+
+      {/* Confirm Delete Lead Modal */}
+      <ConfirmModal
+        isOpen={Boolean(leadToDelete)}
+        onClose={() => setLeadToDelete(null)}
+        onConfirm={confirmDeleteLead}
+        isLoading={isDeleting}
+        title="Delete Lead"
+        message={
+          leadToDelete ? (
+            <span>
+              Are you sure you want to delete the lead for{' '}
+              <strong className="text-gray-900">{leadToDelete.name}</strong> ({leadToDelete.email})?
+              This record will be permanently removed.
+            </span>
+          ) : (
+            'Are you sure you want to delete this lead?'
+          )
+        }
+        confirmText="Delete Lead"
+      />
     </div>
   )
 }

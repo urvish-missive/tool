@@ -106,7 +106,7 @@ function drawBrandHeader(doc, W, M) {
     color: C.gray,
     align: 'right',
   })
-  printText(doc, 'Inquiries: contact@missivedigital.com', rightX, 15, {
+  printText(doc, 'Inquiries: hello@missivedigital.com', rightX, 15, {
     size: 6.2,
     color: C.gray,
     align: 'right',
@@ -259,22 +259,30 @@ export function generateAuditPdf(report) {
     style: 'bold',
     color: C.dark,
   })
-  printText(
-    doc,
-    'Each pillar starts at 100 points with itemized deductions.',
-    W - M,
-    y,
-    { size: 6.2, color: C.gray, align: 'right' }
-  )
+  printText(doc, 'Each pillar starts at 100 points with itemized deductions.', W - M, y, {
+    size: 6.2,
+    color: C.gray,
+    align: 'right',
+  })
   y += 4
 
   const categories = [
     { key: 'technical', label: '1. Technical SEO', val: report.technicalScore, weight: '20%' },
     { key: 'onPage', label: '2. On-Page Metadata', val: report.onPageScore, weight: '20%' },
-    { key: 'performance', label: '3. PageSpeed & CWV', val: report.performanceScore, weight: '15%' },
+    {
+      key: 'performance',
+      label: '3. PageSpeed & CWV',
+      val: report.performanceScore,
+      weight: '15%',
+    },
     { key: 'content', label: '4. Content Depth', val: report.contentScore, weight: '15%' },
     { key: 'mobile', label: '5. Mobile Usability', val: report.mobileScore, weight: '10%' },
-    { key: 'structuredData', label: '6. Schema.org Entities', val: report.structuredDataScore, weight: '8%' },
+    {
+      key: 'structuredData',
+      label: '6. Schema.org Entities',
+      val: report.structuredDataScore,
+      weight: '8%',
+    },
     { key: 'links', label: '7. Link Equity & Silos', val: report.linksScore, weight: '7%' },
     { key: 'security', label: '8. HTTPS & SSL Security', val: report.securityScore, weight: '5%' },
   ]
@@ -309,7 +317,9 @@ export function generateAuditPdf(report) {
       })
 
       const rawRationale =
-        detail.whyThisScore || detail.status || `${cat.label} scored ${cat.val}/100 based on standard audits.`
+        detail.whyThisScore ||
+        detail.status ||
+        `${cat.label} scored ${cat.val}/100 based on standard audits.`
       const rationaleLines = getLines(doc, rawRationale, colW - 17, 5.6)
       const displayRationale = rationaleLines.slice(0, 2).join(' ')
 
@@ -366,7 +376,11 @@ export function generateAuditPdf(report) {
     let sy = y + 8.8
     ;(ai.strengths || []).slice(0, 3).forEach((s) => {
       const sLines = getLines(doc, `\u2713 ${s}`, halfW - 8, 5.8)
-      printText(doc, sLines[0] || `\u2713 ${s}`, M + 4, sy, { size: 5.8, color: C.dark, maxW: halfW - 8 })
+      printText(doc, sLines[0] || `\u2713 ${s}`, M + 4, sy, {
+        size: 5.8,
+        color: C.dark,
+        maxW: halfW - 8,
+      })
       sy += 4.2
     })
 
@@ -382,7 +396,11 @@ export function generateAuditPdf(report) {
     let oy = y + 8.8
     ;(ai.strategic_opportunities || []).slice(0, 3).forEach((o) => {
       const oLines = getLines(doc, `\u2192 ${o}`, halfW - 8, 5.8)
-      printText(doc, oLines[0] || `\u2192 ${o}`, ox + 4, oy, { size: 5.8, color: C.dark, maxW: halfW - 8 })
+      printText(doc, oLines[0] || `\u2192 ${o}`, ox + 4, oy, {
+        size: 5.8,
+        color: C.dark,
+        maxW: halfW - 8,
+      })
       oy += 4.2
     })
     y += boxH + 4
@@ -435,7 +453,9 @@ export function generateAuditPdf(report) {
     if (affected.length > 0) {
       affected.slice(0, 2).forEach((item) => {
         const itemUrl = item.url ? item.url.replace(/^https?:\/\/[^/]+/, '') || '/' : ''
-        const itemEvidence = item.evidence ? ` [${item.evidence.replace(/\n/g, ' ').substring(0, 70)}]` : ''
+        const itemEvidence = item.evidence
+          ? ` [${item.evidence.replace(/\n/g, ' ').substring(0, 70)}]`
+          : ''
         const evLines = getLines(doc, `\u2022 ${itemUrl}${itemEvidence}`, CW - 12, 6)
         evidenceItems.push(evLines)
         evidenceH += evLines.length * 3.2 + 0.8
@@ -451,7 +471,8 @@ export function generateAuditPdf(report) {
     }
 
     // Calculate total dynamic card height
-    const cardH = 8 + titleH + subH + descH + evidenceH + (iss.recommendation ? recBoxH + 2.5 : 0) + 3
+    const cardH =
+      8 + titleH + subH + descH + evidenceH + (iss.recommendation ? recBoxH + 2.5 : 0) + 3
 
     // Check if card fits on current page
     if (y + cardH > H - 18) {
@@ -574,12 +595,20 @@ export function generateAuditPdf(report) {
     style: 'bold',
     color: C.dark,
   })
-  printText(doc, smLines.join(' '), M + 4, y + 9.2, { size: 6.8, color: sitemapProbe.found ? C.green : C.red, maxW: CW - 8 })
+  printText(doc, smLines.join(' '), M + 4, y + 9.2, {
+    size: 6.8,
+    color: sitemapProbe.found ? C.green : C.red,
+    maxW: CW - 8,
+  })
 
   const robotsStatus = report.robotsTxt
     ? `\u2713 Robots.txt active with ${report.robotsSitemapUrls?.length || 0} sitemap directive(s).`
     : '✗ Robots.txt file is missing or empty.'
-  printText(doc, robotsStatus, M + 4, y + 9.2 + smLines.length * 3.4, { size: 6.2, color: C.gray, maxW: CW - 8 })
+  printText(doc, robotsStatus, M + 4, y + 9.2 + smLines.length * 3.4, {
+    size: 6.2,
+    color: C.gray,
+    maxW: CW - 8,
+  })
   y += smBoxH + 4
 
   // Google PageSpeed Core Web Vitals Box
@@ -623,22 +652,46 @@ export function generateAuditPdf(report) {
     // Metrics list
     const mMetrics = mob.metrics || {}
     const mx = M + 68
-    printText(doc, `\u2022 LCP (Largest Contentful Paint): ${mMetrics.lcp?.value || '2.4s'}`, mx, y + 11, {
-      size: 6.5,
-      color: C.dark,
-    })
-    printText(doc, `\u2022 FCP (First Contentful Paint): ${mMetrics.fcp?.value || '1.2s'}`, mx, y + 15.5, {
-      size: 6.5,
-      color: C.dark,
-    })
-    printText(doc, `\u2022 CLS (Cumulative Layout Shift): ${mMetrics.cls?.value || '0.04'}`, mx, y + 20, {
-      size: 6.5,
-      color: C.dark,
-    })
-    printText(doc, `\u2022 TTFB (Server Response Time): ${mMetrics.ttfb?.value || '280ms'}`, mx, y + 24.5, {
-      size: 6.5,
-      color: C.dark,
-    })
+    printText(
+      doc,
+      `\u2022 LCP (Largest Contentful Paint): ${mMetrics.lcp?.value || '2.4s'}`,
+      mx,
+      y + 11,
+      {
+        size: 6.5,
+        color: C.dark,
+      }
+    )
+    printText(
+      doc,
+      `\u2022 FCP (First Contentful Paint): ${mMetrics.fcp?.value || '1.2s'}`,
+      mx,
+      y + 15.5,
+      {
+        size: 6.5,
+        color: C.dark,
+      }
+    )
+    printText(
+      doc,
+      `\u2022 CLS (Cumulative Layout Shift): ${mMetrics.cls?.value || '0.04'}`,
+      mx,
+      y + 20,
+      {
+        size: 6.5,
+        color: C.dark,
+      }
+    )
+    printText(
+      doc,
+      `\u2022 TTFB (Server Response Time): ${mMetrics.ttfb?.value || '280ms'}`,
+      mx,
+      y + 24.5,
+      {
+        size: 6.5,
+        color: C.dark,
+      }
+    )
 
     y += 38
   }
@@ -746,7 +799,7 @@ export function generateAuditPdf(report) {
     y + 10,
     { size: 6.5, color: [220, 240, 255], maxW: CW - 10 }
   )
-  printText(doc, 'Contact: contact@missivedigital.com | missivedigital.com', M + 5, y + 14.5, {
+  printText(doc, 'Contact: hello@missivedigital.com | missivedigital.com', M + 5, y + 14.5, {
     size: 6.2,
     style: 'bold',
     color: C.white,

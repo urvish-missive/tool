@@ -23,14 +23,18 @@ import {
   useDeleteDeviceMutation,
   useGetAdminToolsQuery,
 } from '../../services/apiSlice'
+import ConfirmModal from '../../components/ConfirmModal'
+import TablePagination from '../../components/TablePagination'
 
 export default function AdminDevices() {
   const [search, setSearch] = useState('')
   const [selectedTool, setSelectedTool] = useState('all')
   const [selectedStatus, setSelectedStatus] = useState('all')
   const [page, setPage] = useState(1)
+  const [pageSize, setPageSize] = useState(25)
   const [copiedId, setCopiedId] = useState(null)
   const [editingDevice, setEditingDevice] = useState(null)
+  const [deviceToDelete, setDeviceToDelete] = useState(null)
   const [customLimitInput, setCustomLimitInput] = useState('')
   const [toastMessage, setToastMessage] = useState(null)
 
@@ -39,7 +43,7 @@ export default function AdminDevices() {
     tool: selectedTool,
     status: selectedStatus,
     page,
-    limit: 25,
+    limit: pageSize,
   })
 
   const { data: toolsData } = useGetAdminToolsQuery()
@@ -78,11 +82,12 @@ export default function AdminDevices() {
     }
   }
 
-  const handleDelete = async (device) => {
-    if (!window.confirm(`Delete device record for ${device.deviceId.substring(0, 8)}...?`)) return
+  const confirmDeleteDevice = async () => {
+    if (!deviceToDelete) return
     try {
-      await deleteDevice(device.id).unwrap()
+      await deleteDevice(deviceToDelete.id).unwrap()
       showToast('Device record deleted')
+      setDeviceToDelete(null)
     } catch (err) {
       showToast(err?.data?.error || 'Failed to delete device')
     }
@@ -415,7 +420,7 @@ export default function AdminDevices() {
 
                           {/* Delete */}
                           <button
-                            onClick={() => handleDelete(device)}
+                            onClick={() => setDeviceToDelete(device)}
                             disabled={isDeleting}
                             title="Delete record"
                             className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
@@ -433,29 +438,20 @@ export default function AdminDevices() {
         )}
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100 text-xs text-gray-500">
-            <span>
-              Page {page} of {totalPages}
-            </span>
-            <div className="flex gap-1">
-              <button
-                onClick={() => setPage((p) => Math.max(1, p - 1))}
-                disabled={page <= 1}
-                className="px-3 py-1 bg-white border border-gray-200 rounded-lg disabled:opacity-40"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages}
-                className="px-3 py-1 bg-white border border-gray-200 rounded-lg disabled:opacity-40"
-              >
-                Next
-              </button>
-            </div>
-          </div>
-        )}
+        <TablePagination
+          currentPage={page}
+          totalPages={totalPages}
+          totalItems={data?.pagination?.total || 0}
+          pageSize={pageSize}
+          pageSizeOptions={[10, 25, 50, 100]}
+          onPageChange={(newPage) => setPage(newPage)}
+          onPageSizeChange={(newSize) => {
+            setPageSize(newSize)
+            setPage(1)
+          }}
+          itemLabel="devices"
+          isLoading={isLoading || isFetching}
+        />
       </div>
 
       {/* Custom Limit Modal */}
@@ -501,6 +497,29 @@ export default function AdminDevices() {
           </div>
         </div>
       )}
+
+      {/* Confirm Delete Device Modal */}
+      <ConfirmModal
+        isOpen={Boolean(deviceToDelete)}
+        onClose={() => setDeviceToDelete(null)}
+        onConfirm={confirmDeleteDevice}
+        isLoading={isDeleting}
+        title="Delete Device Record"
+        message={
+          deviceToDelete ? (
+            <span>
+              Are you sure you want to delete the record for device{' '}
+              <strong className="font-mono text-gray-900">{deviceToDelete.deviceId.substring(0, 12)}...</strong>
+              {deviceToDelete.email && (
+                <span> ({deviceToDelete.email})</span>
+              )}? This will reset all rate limits and usage counters for this device.
+            </span>
+          ) : (
+            'Are you sure you want to delete this device record?'
+          )
+        }
+        confirmText="Delete Device"
+      />
     </div>
   )
 }
