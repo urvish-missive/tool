@@ -20,6 +20,7 @@ import imageExtractorRoutes from './routes/imageExtractorRoutes.js'
 import techInspectorRoutes from './routes/techInspectorRoutes.js'
 import contentWriterRoutes from './routes/contentWriterRoutes.js'
 import blogIntroRoutes from './routes/blogIntroRoutes.js'
+import eeatRoutes from './routes/eeatRoutes.js'
 import deviceRoutes from './routes/deviceRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 
@@ -76,6 +77,7 @@ app.use('/api/image-extractor', toolAccess('website-image-extractor'), imageExtr
 app.use('/api/tech-inspector', toolAccess('website-tech-inspector'), techInspectorRoutes)
 app.use('/api/content-writer', toolAccess('ai-content-writer'), contentWriterRoutes)
 app.use('/api/blog-intros', toolAccess('blog-intro-generator'), blogIntroRoutes)
+app.use('/api/eeat', toolAccess('eeat-analyzer'), eeatRoutes)
 app.use('/api/devices', deviceRoutes)
 
 // Health check
@@ -393,6 +395,29 @@ async function seedDefaults() {
           },
         })
         console.log('✓ Blog Introduction Generator tool config seeded')
+      }
+    } catch {}
+
+    // Ensure eeat-analyzer exists if database was already initialized
+    try {
+      const eeatTool = await prisma.toolConfig.findUnique({ where: { slug: 'eeat-analyzer' } })
+      if (!eeatTool) {
+        await prisma.toolConfig.create({
+          data: {
+            slug: 'eeat-analyzer',
+            name: 'E-E-A-T & AI Search Authority Analyzer',
+            description: 'Evaluate, score, and improve Google E-E-A-T and AI Overview / Perplexity citation readiness',
+            dailyLimit: 50,
+            hourlyLimit: 10,
+            formFields: JSON.stringify({
+              url: { enabled: true, label: 'Website URL', required: false },
+              content: { enabled: true, label: 'Article / Draft Text', required: false },
+              contentType: { enabled: true, label: 'E-E-A-T Content Type', required: false },
+              targetKeywords: { enabled: true, label: 'Target Keywords', required: false },
+            }),
+          },
+        })
+        console.log('✓ E-E-A-T Analyzer tool config seeded')
       }
     } catch {}
   }

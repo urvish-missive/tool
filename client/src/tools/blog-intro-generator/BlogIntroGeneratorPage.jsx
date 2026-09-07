@@ -17,7 +17,6 @@ import {
   TrendingUp,
   Target,
   ArrowRight,
-  BookOpen,
   Filter,
 } from 'lucide-react'
 import { blogIntroSchema, parseBlogIntroForm } from '../../schemas/blogIntro.schema'
@@ -67,12 +66,6 @@ const TONES = [
   { id: 'data-driven', label: 'Analytical & Data-Driven' },
 ]
 
-const SAMPLE_TOPICS = [
-  'How to Scale Organic Traffic with Programmatic SEO',
-  'B2B SaaS Churn Reduction: Strategies That Actually Work',
-  'The Complete Guide to Technical SEO Audits in 2026',
-  'Why Traditional Content Marketing is Failing (And What Works Now)',
-]
 
 const LOADING_STEPS = [
   'Analyzing blog topic & audience search intent',
@@ -399,22 +392,6 @@ export default function BlogIntroGeneratorPage() {
                   <p className="mt-1 text-xs font-semibold text-rose-600">{errors.topic.message}</p>
                 )}
 
-                {/* Quick Sample Prompts */}
-                <div className="flex flex-wrap items-center gap-1.5 mt-2">
-                  <span className="text-[11px] text-slate-400 mr-1 flex items-center gap-1">
-                    <BookOpen className="w-3 h-3" /> Samples:
-                  </span>
-                  {SAMPLE_TOPICS.map((sample, i) => (
-                    <button
-                      key={i}
-                      type="button"
-                      onClick={() => setValue('topic', sample)}
-                      className="text-[11px] text-[#0C81F3] hover:text-[#0a66c2] hover:bg-blue-50/80 px-1.5 py-0.5 rounded transition-colors cursor-pointer"
-                    >
-                      {sample.length > 34 ? `${sample.slice(0, 34)}...` : sample}
-                    </button>
-                  ))}
-                </div>
               </div>
 
               {/* Funnel Stage Selector */}
@@ -829,13 +806,13 @@ export default function BlogIntroGeneratorPage() {
                       {/* Card Header & Badges */}
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider ${stageStyles.badge}`}>
+                          <span className={`inline-flex items-center whitespace-nowrap shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider ${stageStyles.badge}`}>
                             {intro.funnelLabel}
                           </span>
-                          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                          <span className="inline-flex items-center whitespace-nowrap shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
                             {intro.hookFormula}
                           </span>
-                          <span className="px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-50 text-slate-500 border border-slate-200">
+                          <span className="inline-flex items-center whitespace-nowrap shrink-0 px-2 py-0.5 rounded-md text-[10px] font-medium bg-slate-50 text-slate-500 border border-slate-200">
                             {intro.emotionalTrigger}
                           </span>
                         </div>

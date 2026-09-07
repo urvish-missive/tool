@@ -68,14 +68,14 @@ export default function DeviceLimitModal({ isOpen, onClose, limitData }) {
             {isBlocked ? <ShieldX className="w-8 h-8" /> : <ShieldAlert className="w-7 h-7" />}
           </div>
           <h3 className="text-xl font-bold text-gray-900">
-            {isBlocked ? 'Device Access Blocked' : 'Device Usage Limit Reached'}
+            {isBlocked ? 'Access Restricted' : 'Complimentary Limit Reached'}
           </h3>
           <p className="text-sm text-gray-600 mt-1">
             {isBlocked
-              ? (limitData?.error || 'Your device has been blocked from accessing this tool. Please contact the administrator.')
+              ? (limitData?.error || 'Access to this tool is currently restricted. Please contact support.')
               : (
                 <>
-                  You have used <span className="font-semibold text-gray-900">{toolName}</span> {usageCount} of {limit} allowed times on this device.
+                  You have completed your complimentary audits for <span className="font-semibold text-gray-900">{toolName}</span> ({usageCount} of {limit} free generations used).
                 </>
               )}
           </p>
@@ -90,7 +90,7 @@ export default function DeviceLimitModal({ isOpen, onClose, limitData }) {
               </div>
               <h4 className="text-base font-semibold text-gray-900">Request Received!</h4>
               <p className="text-sm text-gray-600">
-                Your email <span className="font-medium text-gray-800">{email}</span> has been linked to this device. An administrator can now review your request and {isBlocked ? 'unblock your device' : 'reset your limit'}.
+                Your email <span className="font-medium text-gray-800">{email}</span> has been received. Our team will review your request and {isBlocked ? 'restore access' : 'grant extended access'} shortly.
               </p>
               <button
                 onClick={onClose}
@@ -101,11 +101,11 @@ export default function DeviceLimitModal({ isOpen, onClose, limitData }) {
             </div>
           ) : (
             <div className="space-y-4">
-              {/* Device ID info pill */}
+              {/* Reference ID info pill */}
               {deviceId && (
                 <div className="flex items-center justify-between p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs">
                   <div className="truncate mr-2">
-                    <span className="text-gray-400 font-medium">Device ID: </span>
+                    <span className="text-gray-400 font-medium">Reference ID: </span>
                     <span className="font-mono text-gray-700 font-semibold">{deviceId.slice(0, 18)}...</span>
                   </div>
                   <button
@@ -121,8 +121,8 @@ export default function DeviceLimitModal({ isOpen, onClose, limitData }) {
 
               <p className="text-xs text-gray-500 leading-relaxed">
                 {isBlocked
-                  ? 'Submit your email below to send an unblock request directly to the administrator, or share your Device ID with support.'
-                  : 'To prevent automated abuse, free usage is limited per device. Provide your email below so our team can identify your device and reset or extend your limit.'}
+                  ? 'Submit your email below to send an access review request, or share your Reference ID with support.'
+                  : 'To ensure optimal service quality, free access is limited per session. Provide your email below to request extended or unlimited access.'}
               </p>
 
               {errorMsg && (
@@ -165,7 +165,7 @@ export default function DeviceLimitModal({ isOpen, onClose, limitData }) {
                       <span>Submitting...</span>
                     </>
                   ) : (
-                    <span>{isBlocked ? 'Submit Unblock Request' : 'Request Limit Extension'}</span>
+                    <span>{isBlocked ? 'Submit Access Request' : 'Request Extended Access'}</span>
                   )}
                 </button>
               </form>

@@ -19,6 +19,7 @@ const TOOL_HREF_SLUGS = {
   '/website-tech-inspector': 'website-tech-inspector',
   '/ai-content-writer': 'ai-content-writer',
   '/blog-intro-generator': 'blog-intro-generator',
+  '/eeat-analyzer': 'eeat-analyzer',
 }
 
 const NAV_ITEMS = [
@@ -127,6 +128,7 @@ const NAV_ITEMS = [
             { icon: '🎨', label: 'Logo Maker', href: '/logo-maker' },
             { icon: '✍️', label: 'AI Content Writer', href: '/ai-content-writer' },
             { icon: '🚀', label: 'Blog Intro Generator', badge: 'NEW', badgeColor: 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white', href: '/blog-intro-generator' },
+            { icon: '🛡️', label: 'E-E-A-T & AI Authority Analyzer', badge: 'NEW', badgeColor: 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white', href: '/eeat-analyzer' },
           ],
         },
         {

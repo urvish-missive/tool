@@ -30,6 +30,7 @@ export function toolAccess(toolSlug) {
           'website-tech-inspector': { name: 'Website Tech & Theme Inspector', description: 'Extract website theme colors, technology stack, Google font families, and design specs' },
           'ai-content-writer': { name: 'AI Content Writer', description: 'Generate SEO-optimized articles and long-form content' },
           'blog-intro-generator': { name: 'Blog Introduction Generator', description: 'Generate high-converting blog post introductions across TOFU, MOFU, and BOFU funnel stages' },
+          'eeat-analyzer': { name: 'E-E-A-T & AI Search Authority Analyzer', description: 'Evaluate, score, and improve Google E-E-A-T and AI Overview / Perplexity citation readiness' },
         }
         const info = defaults[toolSlug] || { name: toolSlug, description: '' }
         await prisma.toolConfig.create({
@@ -61,7 +62,7 @@ export function toolAccess(toolSlug) {
           if (deviceRecord.isBlocked) {
             return res.status(403).json({
               success: false,
-              error: 'Your device has been blocked from accessing this tool. Please contact the administrator.',
+              error: 'Access to this tool is currently restricted. Please contact support.',
               deviceBlocked: true,
               deviceId,
               toolSlug,
@@ -77,7 +78,7 @@ export function toolAccess(toolSlug) {
           if (effectiveLimit > 0 && deviceRecord.usageCount >= effectiveLimit) {
             return res.status(429).json({
               success: false,
-              error: `Device limit reached. You have used ${config.name} ${deviceRecord.usageCount} of ${effectiveLimit} allowed times on this device.`,
+              error: `Complimentary limit reached for ${config.name} (${deviceRecord.usageCount} of ${effectiveLimit} free generations used). Please enter your email to request extended access.`,
               deviceLimitReached: true,
               limit: effectiveLimit,
               usageCount: deviceRecord.usageCount,

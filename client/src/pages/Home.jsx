@@ -182,6 +182,16 @@ const TOOLS = [
     path: '/blog-intro-generator',
     badge: 'New Tool',
   },
+  {
+    id: 'eeat_analyzer',
+    title: 'E-E-A-T & AI Authority Analyzer',
+    description:
+      'Forensically audit Experience, Expertise, Authoritativeness, and Trustworthiness with 1-click E-E-A-T boosters, JSON-LD schema, and AI Overview citation readiness.',
+    icon: '🛡️',
+    color: 'from-[#0C81F3] to-[#EB8988]',
+    path: '/eeat-analyzer',
+    badge: 'New Tool',
+  },
 ]
 
 export default function Home() {

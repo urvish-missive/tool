@@ -278,6 +278,15 @@ export const apiSlice = createApi({
       }),
     }),
 
+    // POST /api/eeat/analyze
+    analyzeEeat: builder.mutation({
+      query: (payload) => ({
+        url: '/eeat/analyze',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
     // GET /api/health
     healthCheck: builder.query({
       query: () => '/health',
@@ -453,6 +462,7 @@ export const {
   useInspectWebsiteTechMutation,
   useGenerateContentMutation,
   useGenerateBlogIntrosMutation,
+  useAnalyzeEeatMutation,
   useRewriteContentMutation,
   useGenerateMetaTagsMutation,
   useHealthCheckQuery,

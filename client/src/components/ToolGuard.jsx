@@ -18,6 +18,7 @@ const TOOL_SLUG_MAP = {
   '/website-tech-inspector': 'website-tech-inspector',
   '/ai-content-writer': 'ai-content-writer',
   '/blog-intro-generator': 'blog-intro-generator',
+  '/eeat-analyzer': 'eeat-analyzer',
 }
 
 export default function ToolGuard({ toolPath, children }) {

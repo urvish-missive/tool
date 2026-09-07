@@ -19,6 +19,7 @@ import WebsiteImageExtractorPage from './tools/website-image-extractor/WebsiteIm
 import WebsiteTechInspectorPage from './tools/website-tech-inspector/WebsiteTechInspectorPage'
 import AiContentWriterPage from './tools/ai-content-writer/AiContentWriterPage'
 import BlogIntroGeneratorPage from './tools/blog-intro-generator/BlogIntroGeneratorPage'
+import EeatAnalyzerPage from './tools/eeat-analyzer/EeatAnalyzerPage'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -179,6 +180,14 @@ export default function App() {
                     element={
                       <ToolGuard toolPath="/blog-intro-generator">
                         <BlogIntroGeneratorPage />
+                      </ToolGuard>
+                    }
+                  />
+                  <Route
+                    path="/eeat-analyzer"
+                    element={
+                      <ToolGuard toolPath="/eeat-analyzer">
+                        <EeatAnalyzerPage />
                       </ToolGuard>
                     }
                   />
