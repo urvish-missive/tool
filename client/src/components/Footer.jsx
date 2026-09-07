@@ -18,6 +18,7 @@ const FOOTER_TOOLS = [
   { label: 'Website Image Extractor', href: '/website-image-extractor', slug: 'website-image-extractor' },
   { label: 'Tech & Theme Inspector', href: '/website-tech-inspector', slug: 'website-tech-inspector' },
   { label: 'AI Content Writer', href: '/ai-content-writer', slug: 'ai-content-writer' },
+  { label: 'Blog Intro Generator', href: '/blog-intro-generator', slug: 'blog-intro-generator' },
 ]
 
 export default function Footer() {

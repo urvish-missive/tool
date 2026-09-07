@@ -18,6 +18,7 @@ const TOOL_SLUG_MAP = {
   website_image_extractor: 'website-image-extractor',
   website_tech_inspector: 'website-tech-inspector',
   ai_content_writer: 'ai-content-writer',
+  blog_intro_generator: 'blog-intro-generator',
 }
 
 const TOOLS = [
@@ -169,6 +170,16 @@ const TOOLS = [
     icon: '✍️',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/ai-content-writer',
+    badge: 'New Tool',
+  },
+  {
+    id: 'blog_intro_generator',
+    title: 'Multiple Blog Intro Generator',
+    description:
+      'Generate high-converting, scroll-stopping blog post introductions across TOFU, MOFU, and BOFU funnel categories with psychological conversion hooks.',
+    icon: '🚀',
+    color: 'from-[#0C81F3] to-[#EB8988]',
+    path: '/blog-intro-generator',
     badge: 'New Tool',
   },
 ]

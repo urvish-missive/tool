@@ -269,6 +269,15 @@ export const apiSlice = createApi({
       }),
     }),
 
+    // POST /api/blog-intros/generate
+    generateBlogIntros: builder.mutation({
+      query: (payload) => ({
+        url: '/blog-intros/generate',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
     // GET /api/health
     healthCheck: builder.query({
       query: () => '/health',
@@ -443,6 +452,7 @@ export const {
   useExtractWebsiteImagesMutation,
   useInspectWebsiteTechMutation,
   useGenerateContentMutation,
+  useGenerateBlogIntrosMutation,
   useRewriteContentMutation,
   useGenerateMetaTagsMutation,
   useHealthCheckQuery,

@@ -18,6 +18,7 @@ const TOOL_HREF_SLUGS = {
   '/website-image-extractor': 'website-image-extractor',
   '/website-tech-inspector': 'website-tech-inspector',
   '/ai-content-writer': 'ai-content-writer',
+  '/blog-intro-generator': 'blog-intro-generator',
 }
 
 const NAV_ITEMS = [
@@ -124,7 +125,8 @@ const NAV_ITEMS = [
             { icon: '💡', label: 'Blog Topic Generator', href: '/blog-topic-generator' },
             { icon: '❓', label: 'FAQ Generator', href: '/faq-generator' },
             { icon: '🎨', label: 'Logo Maker', href: '/logo-maker' },
-            { icon: '✍️', label: 'AI Content Writer', badge: 'NEW', badgeColor: 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white', href: '/ai-content-writer' },
+            { icon: '✍️', label: 'AI Content Writer', href: '/ai-content-writer' },
+            { icon: '🚀', label: 'Blog Intro Generator', badge: 'NEW', badgeColor: 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white', href: '/blog-intro-generator' },
           ],
         },
         {

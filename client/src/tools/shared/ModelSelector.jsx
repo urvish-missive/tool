@@ -2,6 +2,22 @@ import { useState } from 'react'
 
 const MODELS = [
   {
+    value: 'gemini-3.5-flash-lite',
+    label: 'Gemini 3.5 Flash Lite',
+    description: 'Fastest (~1-2s)',
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        className="w-4 h-4 text-emerald-500"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      >
+        <path d="M13 10V3L4 14h7v7l9-11h-7z" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+  {
     value: 'openrouter',
     label: 'OpenRouter',
     icon: (

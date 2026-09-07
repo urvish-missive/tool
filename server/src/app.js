@@ -19,6 +19,7 @@ import extractorRoutes from './routes/extractorRoutes.js'
 import imageExtractorRoutes from './routes/imageExtractorRoutes.js'
 import techInspectorRoutes from './routes/techInspectorRoutes.js'
 import contentWriterRoutes from './routes/contentWriterRoutes.js'
+import blogIntroRoutes from './routes/blogIntroRoutes.js'
 import deviceRoutes from './routes/deviceRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 
@@ -74,6 +75,7 @@ app.use('/api/extractor', toolAccess('website-content-extractor'), extractorRout
 app.use('/api/image-extractor', toolAccess('website-image-extractor'), imageExtractorRoutes)
 app.use('/api/tech-inspector', toolAccess('website-tech-inspector'), techInspectorRoutes)
 app.use('/api/content-writer', toolAccess('ai-content-writer'), contentWriterRoutes)
+app.use('/api/blog-intros', toolAccess('blog-intro-generator'), blogIntroRoutes)
 app.use('/api/devices', deviceRoutes)
 
 // Health check
@@ -223,6 +225,14 @@ async function seedDefaults() {
         targetAudience: { enabled: true, label: 'Target Audience', required: false },
         secondaryKeywords: { enabled: true, label: 'Secondary Keywords', required: false },
       })},
+      { slug: 'blog-intro-generator', name: 'Blog Introduction Generator', description: 'Generate high-converting blog post introductions across TOFU, MOFU, and BOFU funnel stages', dailyLimit: 50, hourlyLimit: 10, formFields: JSON.stringify({
+        topic: { enabled: true, label: 'Blog Topic / Title', required: true },
+        funnelStage: { enabled: true, label: 'Funnel Stage (TOFU / MOFU / BOFU)', required: false },
+        targetKeywords: { enabled: true, label: 'Target Keywords', required: false },
+        targetAudience: { enabled: true, label: 'Target Audience', required: false },
+        tone: { enabled: true, label: 'Tone of Voice', required: false },
+        count: { enabled: true, label: 'Number of Introductions', required: false },
+      })},
     ]
     await prisma.toolConfig.createMany({ data: tools })
     console.log('✓ Default tool configs created')
@@ -358,6 +368,31 @@ async function seedDefaults() {
           },
         })
         console.log('✓ AI Content Writer tool config seeded')
+      }
+    } catch {}
+
+    // Ensure blog-intro-generator exists if database was already initialized
+    try {
+      const introTool = await prisma.toolConfig.findUnique({ where: { slug: 'blog-intro-generator' } })
+      if (!introTool) {
+        await prisma.toolConfig.create({
+          data: {
+            slug: 'blog-intro-generator',
+            name: 'Blog Introduction Generator',
+            description: 'Generate high-converting blog post introductions across TOFU, MOFU, and BOFU funnel stages',
+            dailyLimit: 50,
+            hourlyLimit: 10,
+            formFields: JSON.stringify({
+              topic: { enabled: true, label: 'Blog Topic / Title', required: true },
+              funnelStage: { enabled: true, label: 'Funnel Stage (TOFU / MOFU / BOFU)', required: false },
+              targetKeywords: { enabled: true, label: 'Target Keywords', required: false },
+              targetAudience: { enabled: true, label: 'Target Audience', required: false },
+              tone: { enabled: true, label: 'Tone of Voice', required: false },
+              count: { enabled: true, label: 'Number of Introductions', required: false },
+            }),
+          },
+        })
+        console.log('✓ Blog Introduction Generator tool config seeded')
       }
     } catch {}
   }

@@ -29,6 +29,7 @@ export function toolAccess(toolSlug) {
           'website-image-extractor': { name: 'Website Image Extractor & Downloader', description: 'Extract all images, logos, SVGs, and social banners from any URL with 1-click downloads' },
           'website-tech-inspector': { name: 'Website Tech & Theme Inspector', description: 'Extract website theme colors, technology stack, Google font families, and design specs' },
           'ai-content-writer': { name: 'AI Content Writer', description: 'Generate SEO-optimized articles and long-form content' },
+          'blog-intro-generator': { name: 'Blog Introduction Generator', description: 'Generate high-converting blog post introductions across TOFU, MOFU, and BOFU funnel stages' },
         }
         const info = defaults[toolSlug] || { name: toolSlug, description: '' }
         await prisma.toolConfig.create({

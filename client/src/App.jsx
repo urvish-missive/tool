@@ -18,6 +18,7 @@ import WebsiteContentExtractorPage from './tools/website-content-extractor/Websi
 import WebsiteImageExtractorPage from './tools/website-image-extractor/WebsiteImageExtractorPage'
 import WebsiteTechInspectorPage from './tools/website-tech-inspector/WebsiteTechInspectorPage'
 import AiContentWriterPage from './tools/ai-content-writer/AiContentWriterPage'
+import BlogIntroGeneratorPage from './tools/blog-intro-generator/BlogIntroGeneratorPage'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -170,6 +171,14 @@ export default function App() {
                     element={
                       <ToolGuard toolPath="/ai-content-writer">
                         <AiContentWriterPage />
+                      </ToolGuard>
+                    }
+                  />
+                  <Route
+                    path="/blog-intro-generator"
+                    element={
+                      <ToolGuard toolPath="/blog-intro-generator">
+                        <BlogIntroGeneratorPage />
                       </ToolGuard>
                     }
                   />

@@ -2,7 +2,7 @@ import { fetchWithTimeout, extractAndCleanJSON } from './helpers.js'
 
 /* ── Configuration ─────────────────────────────────────────────── */
 
-const AI_TIMEOUT = 45000
+const AI_TIMEOUT = 18000
 
 const PROVIDERS = {
   'gemini-3.5-flash-lite': {
@@ -35,7 +35,7 @@ const PROVIDERS = {
   },
   groq: {
     url: 'https://api.groq.com/openai/v1/chat/completions',
-    model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
+    model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
     key: process.env.GROQ_API_KEY,
     headerName: 'Authorization',
     headerPrefix: 'Bearer ',
@@ -188,7 +188,16 @@ export async function callAI(messages, options = {}) {
  * Call AI and parse JSON response with automatic cleanup.
  * Falls back to extracting JSON from markdown code blocks.
  */
-export async function callAIAndParseJSON(messages, options = {}) {
+export async function callAIAndParseJSON(messagesOrSystem, optionsOrUser = {}, possibleOptions = {}) {
+  let messages = messagesOrSystem
+  let options = optionsOrUser
+  if (typeof messagesOrSystem === 'string' && typeof optionsOrUser === 'string') {
+    messages = [
+      { role: 'system', content: messagesOrSystem },
+      { role: 'user', content: optionsOrUser },
+    ]
+    options = possibleOptions
+  }
   const rawText = await callAI(messages, options)
   const cleaned = extractAndCleanJSON(rawText)
   return JSON.parse(cleaned)
