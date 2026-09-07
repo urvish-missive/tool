@@ -1,45 +1,23 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useAnalyzeCompetitorMutation } from '../../services/apiSlice'
 import ModelSelector from '../shared/ModelSelector'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
+import StrategicOverviewCard from './components/StrategicOverviewCard'
+import HeadToHeadBenchmark from './components/HeadToHeadBenchmark'
+import OutrankPlaybookTab from './components/OutrankPlaybookTab'
+import ContentGapsTab from './components/ContentGapsTab'
+import BacklinkAnglesTab from './components/BacklinkAnglesTab'
+import SnippetSnatchTab from './components/SnippetSnatchTab'
 import {
-  Search,
   Globe,
-  Target,
-  TrendingUp,
-  AlertTriangle,
-  CheckCircle2,
-  ExternalLink,
-  ChevronDown,
-  ChevronUp,
+  Shield,
   Zap,
   BarChart3,
-  Link2,
-  FileText,
-  RefreshCw,
-  Shield,
-  Copy,
-  Check,
-  Download,
-  Flame,
-  Swords,
+  Target,
   Crown,
-  Sparkles,
-  ArrowRight,
-  HelpCircle,
+  Link2,
+  RefreshCw,
 } from 'lucide-react'
-
-const PRIORITY_COLORS = {
-  HIGH: 'bg-rose-100 text-rose-800 border-rose-200',
-  MEDIUM: 'bg-amber-100 text-amber-800 border-amber-200',
-  LOW: 'bg-blue-100 text-blue-800 border-blue-200',
-}
-
-const IMPACT_COLORS = {
-  'Very High': 'text-emerald-700 font-bold',
-  High: 'text-blue-700 font-bold',
-  Medium: 'text-slate-600 font-medium',
-}
 
 export default function CompetitorAnalysisPage() {
   const [competitorUrl, setCompetitorUrl] = useState('')
@@ -50,8 +28,7 @@ export default function CompetitorAnalysisPage() {
 
   const [results, setResults] = useState(null)
   const [error, setError] = useState('')
-  const [copiedKey, setCopiedKey] = useState(null)
-  const [activeTab, setActiveTab] = useState('playbook') // 'playbook' | 'gaps' | 'comparison' | 'snippets'
+  const [activeTab, setActiveTab] = useState('playbook') // 'playbook' | 'gaps' | 'comparison' | 'backlinks' | 'snippets'
 
   const handleAnalyze = async (e) => {
     e.preventDefault()
@@ -93,12 +70,6 @@ export default function CompetitorAnalysisPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  const triggerCopy = (text, key) => {
-    navigator.clipboard.writeText(text)
-    setCopiedKey(key)
-    setTimeout(() => setCopiedKey(null), 2000)
-  }
-
   const competitorSeo = results?.competitorSeo || null
   const yourSeo = results?.yourSeo || null
   const outrankPlaybook = results?.outrankPlaybook || []
@@ -106,41 +77,6 @@ export default function CompetitorAnalysisPage() {
   const keywordOpps = results?.keywordOpportunities || []
   const backlinkAngles = results?.backlinkAngles || []
   const snippetSnatch = results?.featuredSnippetSnatch || null
-
-  const exportReportMarkdown = () => {
-    if (!results) return
-    const lines = [
-      `# Competitor Intelligence Report: ${competitorUrl}`,
-      `Generated on: ${new Date().toLocaleDateString()}`,
-      `Target Keywords: ${targetKeywords || 'N/A'}`,
-      '',
-      `## Executive Strategy`,
-      results.executiveSummary || '',
-      '',
-      `## 10x Outrank Playbook`,
-      ...outrankPlaybook.map(
-        (p, i) =>
-          `${i + 1}. [${p.priority}] ${p.action} (Impact: ${p.impact}, Effort: ${p.effort})\n   Why: ${p.why}`
-      ),
-      '',
-      `## Content Gaps & Information Gain Angles`,
-      ...contentGaps.map(
-        (g) =>
-          `- **${g.topic}** (${g.searchIntent})\n  Angle: ${g.suggestedAngle}\n  Why: ${g.whyImportant}`
-      ),
-      '',
-      `## Keyword Opportunities`,
-      ...keywordOpps.map((k) => `- ${k.keyword} (${k.intent}, ${k.difficulty}): ${k.opportunity}`),
-    ]
-
-    const blob = new Blob([lines.join('\n')], { type: 'text/markdown' })
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `competitor-report-${new URL(competitorUrl.startsWith('http') ? competitorUrl : 'https://' + competitorUrl).hostname}.md`
-    a.click()
-    URL.revokeObjectURL(url)
-  }
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20">
@@ -307,452 +243,135 @@ export default function CompetitorAnalysisPage() {
         {results && (
           <div id="competitor-results" className="space-y-6 animate-fade-in">
             {/* Strategic Overview Battle-Card */}
-            <div className="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 text-white rounded-3xl p-6 sm:p-8 shadow-xl">
-              <div className="flex flex-col lg:flex-row items-start justify-between gap-6 pb-6 border-b border-white/10">
-                <div>
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs font-bold uppercase tracking-wider mb-3">
-                    <Crown className="w-3.5 h-3.5" />
-                    Strategic Intelligence Summary
-                  </div>
-                  <h3 className="text-xl sm:text-2xl font-black text-white leading-snug">
-                    Competitor Moat & Vulnerability Assessment
-                  </h3>
-                  <p className="text-slate-300 text-sm sm:text-base mt-2 leading-relaxed max-w-3xl">
-                    {results.executiveSummary}
-                  </p>
-                </div>
-
-                <button
-                  onClick={exportReportMarkdown}
-                  className="shrink-0 inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold transition-colors cursor-pointer"
-                >
-                  <Download className="w-4 h-4" />
-                  <span>Download Intelligence Brief (.md)</span>
-                </button>
-              </div>
-
-              {/* Moat vs Vulnerabilities */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-6">
-                {/* Competitor Moat */}
-                <div className="bg-white/5 rounded-2xl p-5 border border-white/10">
-                  <div className="flex items-center gap-2 mb-3 text-emerald-400 font-bold text-sm">
-                    <Shield className="w-4 h-4" />
-                    <span>Their Current Advantages (Moat)</span>
-                  </div>
-                  <ul className="space-y-2">
-                    {results.competitorMoat?.map((m, i) => (
-                      <li
-                        key={i}
-                        className="text-xs sm:text-sm text-slate-200 flex items-start gap-2"
-                      >
-                        <span className="text-emerald-400 font-bold">•</span>
-                        <span>{m}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {/* Competitor Vulnerabilities */}
-                <div className="bg-rose-950/30 rounded-2xl p-5 border border-rose-500/20">
-                  <div className="flex items-center gap-2 mb-3 text-rose-400 font-bold text-sm">
-                    <Flame className="w-4 h-4" />
-                    <span>Exploitable Vulnerabilities (Where You Win)</span>
-                  </div>
-                  <ul className="space-y-2">
-                    {results.competitorVulnerabilities?.map((v, i) => (
-                      <li
-                        key={i}
-                        className="text-xs sm:text-sm text-slate-200 flex items-start gap-2"
-                      >
-                        <span className="text-rose-400 font-bold">•</span>
-                        <span>{v}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
+            <StrategicOverviewCard
+              results={results}
+              competitorUrl={competitorUrl}
+              yourUrl={yourUrl}
+              targetKeywords={targetKeywords}
+            />
 
             {/* Navigation Tabs */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-1.5 flex flex-wrap gap-1">
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-1.5 flex flex-wrap gap-1.5">
               <button
+                type="button"
                 onClick={() => setActiveTab('playbook')}
-                className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+                className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
                   activeTab === 'playbook'
-                    ? 'bg-blue-600 text-white shadow-sm'
+                    ? 'bg-blue-600 text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
                 <Zap className="w-4 h-4" />
-                <span>10x Outrank Playbook ({outrankPlaybook.length})</span>
+                <span>10x Playbook</span>
+                <span
+                  className={`text-[11px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                    activeTab === 'playbook' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  {outrankPlaybook.length}
+                </span>
               </button>
+
               <button
+                type="button"
                 onClick={() => setActiveTab('gaps')}
-                className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+                className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
                   activeTab === 'gaps'
-                    ? 'bg-blue-600 text-white shadow-sm'
+                    ? 'bg-blue-600 text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
                 <Target className="w-4 h-4" />
-                <span>Content Gaps ({contentGaps.length})</span>
+                <span>Content Gaps & Keywords</span>
+                <span
+                  className={`text-[11px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                    activeTab === 'gaps' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
+                  }`}
+                >
+                  {contentGaps.length + keywordOpps.length}
+                </span>
               </button>
+
               <button
+                type="button"
                 onClick={() => setActiveTab('comparison')}
-                className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+                className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
                   activeTab === 'comparison'
-                    ? 'bg-blue-600 text-white shadow-sm'
+                    ? 'bg-blue-600 text-white shadow-xs'
                     : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                 }`}
               >
                 <BarChart3 className="w-4 h-4" />
                 <span>Technical Benchmarks</span>
               </button>
-              {snippetSnatch && (
+
+              {backlinkAngles.length > 0 && (
                 <button
-                  onClick={() => setActiveTab('snippets')}
-                  className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all ${
-                    activeTab === 'snippets'
-                      ? 'bg-blue-600 text-white shadow-sm'
+                  type="button"
+                  onClick={() => setActiveTab('backlinks')}
+                  className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    activeTab === 'backlinks'
+                      ? 'bg-blue-600 text-white shadow-xs'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                   }`}
                 >
-                  <Crown className="w-4 h-4" />
+                  <Link2 className="w-4 h-4" />
+                  <span>Backlink Angles</span>
+                  <span
+                    className={`text-[11px] px-1.5 py-0.2 rounded-full font-extrabold ${
+                      activeTab === 'backlinks' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
+                    }`}
+                  >
+                    {backlinkAngles.length}
+                  </span>
+                </button>
+              )}
+
+              {snippetSnatch && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('snippets')}
+                  className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+                    activeTab === 'snippets'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  }`}
+                >
+                  <Crown className="w-4 h-4 text-amber-500" />
                   <span>Snippet Snatch</span>
                 </button>
               )}
             </div>
 
             {/* TAB 1: 10X OUTRANK PLAYBOOK */}
-            {activeTab === 'playbook' && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-1 gap-4">
-                  {outrankPlaybook.map((item, idx) => {
-                    const pClass = PRIORITY_COLORS[item.priority] || 'bg-slate-100 text-slate-800'
-                    return (
-                      <div
-                        key={idx}
-                        className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-all flex flex-col md:flex-row items-start md:items-center justify-between gap-5"
-                      >
-                        <div className="flex items-start gap-4 flex-1">
-                          <div className="w-8 h-8 rounded-xl bg-blue-50 text-blue-700 font-extrabold flex items-center justify-center shrink-0 text-sm">
-                            {idx + 1}
-                          </div>
-                          <div className="space-y-1.5 flex-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <span
-                                className={`px-2.5 py-0.5 rounded-md text-xs font-bold border ${pClass}`}
-                              >
-                                {item.priority} Priority
-                              </span>
-                              <span className="text-xs text-slate-500">
-                                Impact:{' '}
-                                <span className={IMPACT_COLORS[item.impact]}>{item.impact}</span>
-                              </span>
-                              <span className="text-xs text-slate-400">•</span>
-                              <span className="text-xs text-slate-500">
-                                Effort: <strong className="text-slate-700">{item.effort}</strong>
-                              </span>
-                            </div>
-                            <h4 className="text-base font-bold text-slate-900 leading-snug">
-                              {item.action}
-                            </h4>
-                            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                              {item.why}
-                            </p>
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={() => triggerCopy(item.action, `playbook-${idx}`)}
-                          className="shrink-0 inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold transition-colors cursor-pointer"
-                        >
-                          {copiedKey === `playbook-${idx}` ? (
-                            <>
-                              <Check className="w-3.5 h-3.5 text-emerald-600" />
-                              <span className="text-emerald-700">Copied</span>
-                            </>
-                          ) : (
-                            <>
-                              <Copy className="w-3.5 h-3.5 text-slate-500" />
-                              <span>Copy Action</span>
-                            </>
-                          )}
-                        </button>
-                      </div>
-                    )
-                  })}
-                </div>
-              </div>
-            )}
+            {activeTab === 'playbook' && <OutrankPlaybookTab playbook={outrankPlaybook} />}
 
             {/* TAB 2: CONTENT GAPS & KEYWORDS */}
             {activeTab === 'gaps' && (
-              <div className="space-y-6">
-                {/* Content Gap Matrix */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-                  <div>
-                    <h3 className="text-lg font-bold text-slate-900">
-                      Unexploited Content Gaps & Information Gain Angles
-                    </h3>
-                    <p className="text-xs text-slate-500">
-                      Topics your competitor missed where you can provide superior value.
-                    </p>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {contentGaps.map((gap, i) => (
-                      <div
-                        key={i}
-                        className="bg-slate-50 rounded-xl p-5 border border-slate-200 flex flex-col justify-between"
-                      >
-                        <div>
-                          <div className="flex items-center justify-between mb-2">
-                            <span className="px-2 py-0.5 rounded bg-purple-100 text-purple-700 text-xs font-bold uppercase">
-                              {gap.searchIntent || 'Informational'}
-                            </span>
-                          </div>
-                          <h4 className="font-bold text-slate-900 text-base mb-2">{gap.topic}</h4>
-                          <p className="text-xs text-slate-600 mb-3 leading-relaxed">
-                            <strong>Why Searchers Care:</strong> {gap.whyImportant}
-                          </p>
-                          <div className="p-3 bg-white rounded-lg border border-slate-200 text-xs text-slate-800 leading-relaxed">
-                            <strong className="text-indigo-600">Suggested 10x Angle:</strong>{' '}
-                            {gap.suggestedAngle}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Keyword Opportunities */}
-                {keywordOpps.length > 0 && (
-                  <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
-                    <h3 className="text-lg font-bold text-slate-900">
-                      High-Yield Keyword Opportunities
-                    </h3>
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-left text-sm">
-                        <thead>
-                          <tr className="border-b border-slate-200 text-xs font-bold uppercase text-slate-500">
-                            <th className="py-3 px-3">Keyword</th>
-                            <th className="py-3 px-3">Intent</th>
-                            <th className="py-3 px-3">Difficulty</th>
-                            <th className="py-3 px-3">Strategic Value & Opportunity</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {keywordOpps.map((kw, i) => (
-                            <tr key={i} className="hover:bg-slate-50/70 transition-colors">
-                              <td className="py-3 px-3 font-bold text-slate-900">{kw.keyword}</td>
-                              <td className="py-3 px-3">
-                                <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-xs font-medium">
-                                  {kw.intent}
-                                </span>
-                              </td>
-                              <td className="py-3 px-3">
-                                <span className="text-xs font-semibold text-slate-700">
-                                  {kw.difficulty}
-                                </span>
-                              </td>
-                              <td className="py-3 px-3 text-xs text-slate-600 leading-relaxed">
-                                {kw.opportunity}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <ContentGapsTab
+                contentGaps={contentGaps}
+                keywordOpportunities={keywordOpps}
+              />
             )}
 
             {/* TAB 3: TECHNICAL BENCHMARKS */}
             {activeTab === 'comparison' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Competitor Metrics Card */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <div>
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                        Target Analyzed
-                      </span>
-                      <h4 className="font-bold text-slate-900 text-base truncate max-w-xs">
-                        {competitorSeo?.title || competitorUrl}
-                      </h4>
-                    </div>
-                    <div className="w-12 h-12 rounded-full bg-blue-50 border border-blue-200 flex flex-col items-center justify-center">
-                      <span className="text-sm font-black text-blue-700">
-                        {competitorSeo?.stats?.overallBenchmark || 50}
-                      </span>
-                      <span className="text-[9px] font-bold text-blue-500 -mt-1">/100</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3 text-xs sm:text-sm">
-                    <div className="flex justify-between py-2 border-b border-slate-100">
-                      <span className="text-slate-500">Estimated Word Count</span>
-                      <span className="font-bold text-slate-900">
-                        {competitorSeo?.stats?.wordCount?.toLocaleString() || 0} words
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-2 border-b border-slate-100">
-                      <span className="text-slate-500">Heading Structure</span>
-                      <span className="font-bold text-slate-900">
-                        {competitorSeo?.h1s?.length || 0} H1s • {competitorSeo?.h2s?.length || 0}{' '}
-                        H2s
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-2 border-b border-slate-100">
-                      <span className="text-slate-500">Internal Links</span>
-                      <span className="font-bold text-slate-900">
-                        {competitorSeo?.stats?.internalLinks || 0} links
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-2 border-b border-slate-100">
-                      <span className="text-slate-500">Images & Alt Tags</span>
-                      <span className="font-bold text-slate-900">
-                        {competitorSeo?.stats?.imagesWithAlt}/{competitorSeo?.stats?.totalImages}{' '}
-                        with alt ({competitorSeo?.stats?.imagesWithoutAlt} missing)
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-2 border-b border-slate-100">
-                      <span className="text-slate-500">Schema JSON-LD</span>
-                      <span
-                        className={`font-bold ${competitorSeo?.stats?.hasSchema ? 'text-emerald-600' : 'text-rose-600'}`}
-                      >
-                        {competitorSeo?.stats?.hasSchema ? '✓ Detected' : '✗ Missing'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-2">
-                      <span className="text-slate-500">Open Graph Social Tags</span>
-                      <span
-                        className={`font-bold ${competitorSeo?.stats?.hasOGTags ? 'text-emerald-600' : 'text-rose-600'}`}
-                      >
-                        {competitorSeo?.stats?.hasOGTags ? '✓ Present' : '✗ Incomplete'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Your URL Metrics or Industry Benchmark */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
-                  <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-                    <div>
-                      <span className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                        {yourSeo ? 'Your Page Data' : 'Top 1% Industry Target Benchmark'}
-                      </span>
-                      <h4 className="font-bold text-slate-900 text-base truncate max-w-xs">
-                        {yourSeo ? yourSeo.title : 'Recommended Goal for Position #1'}
-                      </h4>
-                    </div>
-                    <div className="w-12 h-12 rounded-full bg-emerald-50 border border-emerald-200 flex flex-col items-center justify-center">
-                      <span className="text-sm font-black text-emerald-700">
-                        {yourSeo ? yourSeo.stats?.overallBenchmark : 95}
-                      </span>
-                      <span className="text-[9px] font-bold text-emerald-500 -mt-1">/100</span>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3 text-xs sm:text-sm">
-                    <div className="flex justify-between py-2 border-b border-slate-100">
-                      <span className="text-slate-500">Target Word Count</span>
-                      <span className="font-bold text-slate-900">
-                        {yourSeo
-                          ? `${yourSeo.stats?.wordCount?.toLocaleString()} words`
-                          : '2,200+ comprehensive words'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-2 border-b border-slate-100">
-                      <span className="text-slate-500">Heading Hierarchy</span>
-                      <span className="font-bold text-slate-900">
-                        {yourSeo
-                          ? `${yourSeo.h1s?.length} H1s • ${yourSeo.h2s?.length} H2s`
-                          : '1 H1 • 6-10 H2s • Nested H3s'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-2 border-b border-slate-100">
-                      <span className="text-slate-500">Internal Silo Links</span>
-                      <span className="font-bold text-slate-900">
-                        {yourSeo
-                          ? `${yourSeo.stats?.internalLinks} links`
-                          : '10-15 contextual topic links'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-2 border-b border-slate-100">
-                      <span className="text-slate-500">Image Alt Coverage</span>
-                      <span className="font-bold text-emerald-700">
-                        {yourSeo
-                          ? `${yourSeo.stats?.imagesWithAlt}/${yourSeo.stats?.totalImages}`
-                          : '100% descriptive alt text'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-2 border-b border-slate-100">
-                      <span className="text-slate-500">Schema JSON-LD</span>
-                      <span className="font-bold text-emerald-600">
-                        {yourSeo
-                          ? yourSeo.stats?.hasSchema
-                            ? '✓ Detected'
-                            : '✗ Missing'
-                          : 'FAQPage + Article Schema'}
-                      </span>
-                    </div>
-                    <div className="flex justify-between py-2">
-                      <span className="text-slate-500">Open Graph Social</span>
-                      <span className="font-bold text-emerald-600">
-                        {yourSeo
-                          ? yourSeo.stats?.hasOGTags
-                            ? '✓ Present'
-                            : '✗ Missing'
-                          : 'Full og:title, og:image, twitter'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <HeadToHeadBenchmark
+                competitorSeo={competitorSeo}
+                yourSeo={yourSeo}
+                competitorUrl={competitorUrl}
+                yourUrl={yourUrl}
+              />
             )}
 
-            {/* TAB 4: FEATURED SNIPPET SNATCH */}
+            {/* TAB 4: BACKLINK ANGLES */}
+            {activeTab === 'backlinks' && (
+              <BacklinkAnglesTab backlinkAngles={backlinkAngles} />
+            )}
+
+            {/* TAB 5: FEATURED SNIPPET SNATCH */}
             {activeTab === 'snippets' && snippetSnatch && (
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold mb-2">
-                      <Crown className="w-3.5 h-3.5 text-amber-600" />
-                      <span>Featured Snippet Steal Opportunity</span>
-                    </div>
-                    <h3 className="text-lg font-bold text-slate-900">
-                      Target Query:{' '}
-                      <span className="text-blue-600">"{snippetSnatch.targetQuery}"</span>
-                    </h3>
-                  </div>
-
-                  <button
-                    onClick={() => triggerCopy(snippetSnatch.draftSnippet, 'snippet-snatch')}
-                    className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer"
-                  >
-                    {copiedKey === 'snippet-snatch' ? (
-                      <Check className="w-4 h-4" />
-                    ) : (
-                      <Copy className="w-4 h-4" />
-                    )}
-                    <span>
-                      {copiedKey === 'snippet-snatch' ? 'Copied Snippet!' : 'Copy Snippet'}
-                    </span>
-                  </button>
-                </div>
-
-                <div className="p-6 bg-slate-900 text-slate-100 rounded-2xl space-y-3">
-                  <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">
-                    Ready-to-Paste Position 0 Direct Answer
-                  </span>
-                  <p className="text-base sm:text-lg leading-relaxed font-serif text-slate-200">
-                    "{snippetSnatch.draftSnippet}"
-                  </p>
-                </div>
-              </div>
+              <SnippetSnatchTab snippetSnatch={snippetSnatch} />
             )}
           </div>
         )}
