@@ -18,6 +18,7 @@ const TOOL_SLUG_MAP = {
   '/website-tech-inspector': 'website-tech-inspector',
   '/ai-content-writer': 'ai-content-writer',
   '/blog-intro-generator': 'blog-intro-generator',
+  '/blog-conclusion-generator': 'blog-conclusion-generator',
   '/eeat-analyzer': 'eeat-analyzer',
 }
 

@@ -19,6 +19,7 @@ const TOOL_HREF_SLUGS = {
   '/website-tech-inspector': 'website-tech-inspector',
   '/ai-content-writer': 'ai-content-writer',
   '/blog-intro-generator': 'blog-intro-generator',
+  '/blog-conclusion-generator': 'blog-conclusion-generator',
   '/eeat-analyzer': 'eeat-analyzer',
 }
 
@@ -119,16 +120,22 @@ const NAV_ITEMS = [
     dropdown: {
       columns: [
         {
+          title: 'Blog & Writing',
+          items: [
+            { icon: '💡', label: 'Blog Topic Generator', href: '/blog-topic-generator' },
+            { icon: '🚀', label: 'Blog Intro Generator', href: '/blog-intro-generator' },
+            { icon: '🎯', label: 'Blog Conclusion Generator', href: '/blog-conclusion-generator' },
+            { icon: '✍️', label: 'AI Content Writer', href: '/ai-content-writer' },
+          ],
+        },
+        {
           title: 'Content & Strategy',
           items: [
             { icon: '📝', label: 'AI Content Analyzer', href: '/content-analyzer' },
             { icon: '✅', label: 'Content QA Checklist', href: '/content-qa' },
-            { icon: '💡', label: 'Blog Topic Generator', href: '/blog-topic-generator' },
+            { icon: '🛡️', label: 'E-E-A-T & AI Authority Analyzer', href: '/eeat-analyzer' },
             { icon: '❓', label: 'FAQ Generator', href: '/faq-generator' },
             { icon: '🎨', label: 'Logo Maker', href: '/logo-maker' },
-            { icon: '✍️', label: 'AI Content Writer', href: '/ai-content-writer' },
-            { icon: '🚀', label: 'Blog Intro Generator', badge: 'NEW', badgeColor: 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white', href: '/blog-intro-generator' },
-            { icon: '🛡️', label: 'E-E-A-T & AI Authority Analyzer', badge: 'NEW', badgeColor: 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white', href: '/eeat-analyzer' },
           ],
         },
         {
@@ -137,7 +144,6 @@ const NAV_ITEMS = [
             {
               icon: '📈',
               label: 'Google Rank Checker',
-              badgeColor: 'bg-white text-gray-900',
               href: '/google-rank-checker',
             },
             { icon: '🔍', label: 'SEO Website Audit', href: '/seo-audit' },
@@ -156,13 +162,11 @@ const NAV_ITEMS = [
             {
               icon: '🌐',
               label: 'Website Content Extractor',
-              badgeColor: 'bg-white text-gray-900',
               href: '/website-content-extractor',
             },
             {
               icon: '🖼️',
               label: 'Website Image Extractor',
-              badgeColor: 'bg-amber-300 text-slate-950',
               href: '/website-image-extractor',
             },
             {
@@ -173,7 +177,6 @@ const NAV_ITEMS = [
             {
               icon: '⚡',
               label: 'Tech & Theme Inspector',
-              badgeColor: 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white',
               href: '/website-tech-inspector',
             },
           ],
@@ -289,22 +292,24 @@ export default function Navbar() {
                     onMouseLeave={handleMouseLeave}
                   >
                     <div
-                      className="p-5 sm:p-6"
+                      className="p-3.5 sm:p-4"
                       style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)' }}
                     >
                       <div
-                        className={`grid gap-4 sm:gap-5 ${
+                        className={`grid gap-2 sm:gap-2.5 ${
                           item.dropdown.columns.length === 1
                             ? 'grid-cols-1'
                             : item.dropdown.columns.length === 2
                               ? 'grid-cols-2'
-                              : 'grid-cols-3'
+                              : item.dropdown.columns.length === 4
+                                ? 'grid-cols-2 lg:grid-cols-4'
+                                : 'grid-cols-3'
                         }`}
                       >
                         {item.dropdown.columns.map((col, ci) => (
-                          <div key={ci} className="space-y-1 min-w-[195px]">
+                          <div key={ci} className="space-y-0.5 min-w-[168px] sm:min-w-[175px]">
                             {col.title && (
-                              <div className="px-3 pb-2 text-[10px] font-extrabold uppercase tracking-widest text-white/75 border-b border-white/15 mb-1.5 flex items-center justify-between">
+                              <div className="px-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-white/75 border-b border-white/15 mb-1 flex items-center justify-between">
                                 <span>{col.title}</span>
                               </div>
                             )}
@@ -321,17 +326,17 @@ export default function Navbar() {
                                     key={sub.label}
                                     {...(isInternal ? { to: sub.href } : { href: sub.href })}
                                     onClick={() => setActiveDropdown(null)}
-                                    className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-white/95 hover:bg-white/20 hover:text-white transition-all text-[13px] font-medium group"
+                                    className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-white/95 hover:bg-white/20 hover:text-white transition-all text-xs sm:text-[13px] font-medium group"
                                   >
                                     {sub.icon && (
-                                      <span className="text-sm w-5 h-5 flex items-center justify-center shrink-0 leading-none group-hover:scale-110 transition-transform">
+                                      <span className="text-sm w-4 h-4 flex items-center justify-center shrink-0 leading-none group-hover:scale-110 transition-transform">
                                         {sub.icon}
                                       </span>
                                     )}
                                     <span className="leading-snug truncate">{sub.label}</span>
                                     {sub.badge && (
                                       <span
-                                        className={`ml-auto shrink-0 text-[9px] font-extrabold px-2 py-0.5 rounded-full shadow-2xs ${sub.badgeColor || 'bg-white text-gray-900'}`}
+                                        className={`ml-auto shrink-0 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full shadow-2xs ${sub.badgeColor || 'bg-white text-gray-900'}`}
                                       >
                                         {sub.badge}
                                       </span>

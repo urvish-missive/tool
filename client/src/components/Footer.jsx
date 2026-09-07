@@ -19,6 +19,7 @@ const FOOTER_TOOLS = [
   { label: 'Tech & Theme Inspector', href: '/website-tech-inspector', slug: 'website-tech-inspector' },
   { label: 'AI Content Writer', href: '/ai-content-writer', slug: 'ai-content-writer' },
   { label: 'Blog Intro Generator', href: '/blog-intro-generator', slug: 'blog-intro-generator' },
+  { label: 'Blog Conclusion Generator', href: '/blog-conclusion-generator', slug: 'blog-conclusion-generator' },
   { label: 'E-E-A-T Analyzer', href: '/eeat-analyzer', slug: 'eeat-analyzer' },
 ]
 

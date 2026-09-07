@@ -20,6 +20,7 @@ import imageExtractorRoutes from './routes/imageExtractorRoutes.js'
 import techInspectorRoutes from './routes/techInspectorRoutes.js'
 import contentWriterRoutes from './routes/contentWriterRoutes.js'
 import blogIntroRoutes from './routes/blogIntroRoutes.js'
+import blogConclusionRoutes from './routes/blogConclusionRoutes.js'
 import eeatRoutes from './routes/eeatRoutes.js'
 import deviceRoutes from './routes/deviceRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
@@ -77,6 +78,7 @@ app.use('/api/image-extractor', toolAccess('website-image-extractor'), imageExtr
 app.use('/api/tech-inspector', toolAccess('website-tech-inspector'), techInspectorRoutes)
 app.use('/api/content-writer', toolAccess('ai-content-writer'), contentWriterRoutes)
 app.use('/api/blog-intros', toolAccess('blog-intro-generator'), blogIntroRoutes)
+app.use('/api/blog-conclusion', toolAccess('blog-conclusion-generator'), blogConclusionRoutes)
 app.use('/api/eeat', toolAccess('eeat-analyzer'), eeatRoutes)
 app.use('/api/devices', deviceRoutes)
 
@@ -418,6 +420,32 @@ async function seedDefaults() {
           },
         })
         console.log('✓ E-E-A-T Analyzer tool config seeded')
+      }
+    } catch {}
+
+    // Ensure blog-conclusion-generator exists if database was already initialized
+    try {
+      const conclusionTool = await prisma.toolConfig.findUnique({ where: { slug: 'blog-conclusion-generator' } })
+      if (!conclusionTool) {
+        await prisma.toolConfig.create({
+          data: {
+            slug: 'blog-conclusion-generator',
+            name: 'Blog Conclusion Generator',
+            description: 'Generate high-converting blog post conclusions with specific H2 titles and intro loop closure',
+            dailyLimit: 50,
+            hourlyLimit: 15,
+            formFields: JSON.stringify({
+              topic: { enabled: true, label: 'Blog Topic / Title', required: true },
+              intro: { enabled: true, label: 'Blog Introduction', required: false },
+              keyTakeaways: { enabled: true, label: 'Key Takeaways', required: false },
+              ctaGoal: { enabled: true, label: 'Call to Action Goal', required: false },
+              funnelStage: { enabled: true, label: 'Funnel Stage', required: false },
+              tone: { enabled: true, label: 'Tone of Voice', required: false },
+              numVariations: { enabled: true, label: 'Number of Conclusions', required: false },
+            }),
+          },
+        })
+        console.log('✓ Blog Conclusion Generator tool config seeded')
       }
     } catch {}
   }

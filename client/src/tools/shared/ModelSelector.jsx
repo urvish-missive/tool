@@ -103,21 +103,31 @@ export default function ModelSelector({ value = 'gemini-3.7-flash', onChange, co
 
   return (
     <div className="relative">
-      <label className="block text-sm font-semibold text-gray-900 mb-1">{label}</label>
+      {label && (
+        <label className="block text-xs sm:text-sm font-semibold text-gray-900 mb-1">
+          {label}
+        </label>
+      )}
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="w-full flex items-center justify-between gap-2 rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-sm hover:border-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+        className="w-full flex items-center justify-between gap-2 rounded-xl border border-gray-300 bg-white px-3 py-2 text-xs sm:text-sm hover:border-gray-400 focus:ring-2 focus:ring-[#0C81F3] focus:border-[#0C81F3] outline-none transition-colors text-left cursor-pointer shadow-2xs"
       >
-        <div className="flex items-center gap-2">
-          <span className="text-gray-500">{selected.icon}</span>
-          <span className="font-medium text-gray-900">{selected.label}</span>
-          {selected.description && (
-            <span className="text-xs text-gray-400">({selected.description})</span>
+        <div className="flex items-center gap-2 min-w-0 overflow-hidden flex-1">
+          <span className="text-gray-500 shrink-0">{selected.icon}</span>
+          <span className="font-semibold text-gray-900 truncate whitespace-nowrap">
+            {selected.label}
+          </span>
+          {!compact && selected.description && (
+            <span className="text-xs text-gray-400 truncate whitespace-nowrap shrink-0 hidden md:inline">
+              ({selected.description})
+            </span>
           )}
         </div>
         <svg
-          className={`w-4 h-4 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 text-gray-400 shrink-0 transition-transform duration-200 ${
+            open ? 'rotate-180 text-[#0C81F3]' : ''
+          }`}
           fill="none"
           viewBox="0 0 24 24"
           strokeWidth={2}
@@ -129,8 +139,8 @@ export default function ModelSelector({ value = 'gemini-3.7-flash', onChange, co
 
       {open && (
         <>
-          <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
-          <div className="absolute z-20 mt-1 w-full rounded-lg border border-gray-200 bg-white shadow-lg overflow-hidden">
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="absolute left-0 bottom-full mb-1 sm:bottom-auto sm:top-full sm:mt-1 z-50 w-full min-w-[270px] rounded-xl border border-gray-200 bg-white shadow-xl overflow-hidden py-1">
             {MODELS.map((model) => {
               const isSelected = normalizedValue === model.value
               return (
@@ -141,20 +151,24 @@ export default function ModelSelector({ value = 'gemini-3.7-flash', onChange, co
                     onChange(model.value)
                     setOpen(false)
                   }}
-                  className={`w-full flex items-center gap-3 px-3 py-2.5 text-sm hover:bg-gray-50 transition-colors ${
-                    isSelected ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                  className={`w-full flex items-center gap-3 px-3.5 py-2.5 text-xs sm:text-sm hover:bg-blue-50/60 transition-colors cursor-pointer text-left ${
+                    isSelected ? 'bg-blue-50 text-[#0C81F3]' : 'text-gray-700'
                   }`}
                 >
-                  <span className={isSelected ? 'text-blue-500' : 'text-gray-400'}>
+                  <span className={`shrink-0 ${isSelected ? 'text-[#0C81F3]' : 'text-gray-400'}`}>
                     {model.icon}
                   </span>
-                  <div className="text-left">
-                    <div className="font-medium">{model.label}</div>
-                    <div className="text-xs text-gray-400">{model.description}</div>
+                  <div className="text-left min-w-0 flex-1">
+                    <div className="font-semibold truncate whitespace-nowrap">{model.label}</div>
+                    {model.description && (
+                      <div className="text-[11px] text-gray-400 truncate whitespace-nowrap">
+                        {model.description}
+                      </div>
+                    )}
                   </div>
                   {isSelected && (
                     <svg
-                      className="w-4 h-4 text-blue-500 ml-auto shrink-0"
+                      className="w-4 h-4 text-[#0C81F3] ml-auto shrink-0"
                       fill="none"
                       viewBox="0 0 24 24"
                       strokeWidth={2.5}

@@ -183,6 +183,16 @@ const TOOLS = [
     badge: 'New Tool',
   },
   {
+    id: 'blog_conclusion_generator',
+    title: 'Blog Conclusion Generator',
+    description:
+      'Craft high-impact, search-optimized conclusions featuring specific, creative H2 headlines (never "Conclusion") with intro loop closure and high-converting CTAs.',
+    icon: '🎯',
+    color: 'from-[#0C81F3] to-[#EB8988]',
+    path: '/blog-conclusion-generator',
+    badge: 'New Tool',
+  },
+  {
     id: 'eeat_analyzer',
     title: 'E-E-A-T & AI Authority Analyzer',
     description:
