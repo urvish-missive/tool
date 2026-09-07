@@ -10,11 +10,8 @@ import {
   CheckCircle2,
   XCircle,
   Search,
-  ArrowUpRight,
   TrendingUp,
   TrendingDown,
-  Minus,
-  Sparkles,
   Layers,
 } from 'lucide-react'
 
@@ -77,18 +74,18 @@ export default function HeadToHeadBenchmark({
   return (
     <div className="space-y-6">
       {/* Top Banner & Win Tally */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      <div className="bg-white rounded-3xl border border-gray-200 p-6 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider mb-2">
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-[#0C81F3] text-xs font-bold uppercase tracking-wider mb-1.5">
             <BarChart3 className="w-3.5 h-3.5" />
             Head-to-Head Technical Benchmarking
           </div>
-          <h3 className="text-xl font-black text-slate-900">
+          <h3 className="text-xl font-bold text-gray-900">
             {hasYourData
               ? 'Real-Time Domain & Content Comparison'
               : 'Competitor Technical Audit vs Top 1% Standard'}
           </h3>
-          <p className="text-xs sm:text-sm text-slate-500 mt-1">
+          <p className="text-xs sm:text-sm text-gray-500 mt-0.5">
             {hasYourData
               ? 'Comparing structural depth, on-page optimization, and authority signals between both pages.'
               : 'Audit of the competitor page compared against Google #1 ranking standards.'}
@@ -96,95 +93,95 @@ export default function HeadToHeadBenchmark({
         </div>
 
         {hasYourData && (
-          <div className="flex items-center gap-3 bg-slate-50 p-2.5 rounded-2xl border border-slate-200 shrink-0">
+          <div className="flex items-center gap-3 bg-gray-50 p-2.5 rounded-2xl border border-gray-200 shrink-0">
             <div className="px-3 py-1.5 rounded-xl bg-emerald-100 text-emerald-800 text-xs font-bold text-center">
               <span>Your Wins</span>
-              <div className="text-base font-black text-emerald-700">{yourWins}</div>
+              <div className="text-base font-extrabold text-emerald-700">{yourWins}</div>
             </div>
-            <div className="text-slate-300 font-bold">:</div>
+            <div className="text-gray-300 font-bold">:</div>
             <div className="px-3 py-1.5 rounded-xl bg-rose-100 text-rose-800 text-xs font-bold text-center">
               <span>Competitor</span>
-              <div className="text-base font-black text-rose-700">{compWins}</div>
+              <div className="text-base font-extrabold text-rose-700">{compWins}</div>
             </div>
           </div>
         )}
       </div>
 
       {/* Score Rings Section */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Competitor Score Card */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-7 shadow-sm space-y-5">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-gray-100">
             <div className="space-y-1">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">
+              <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">
                 Competitor Target
               </span>
-              <h4 className="font-bold text-slate-900 text-base truncate max-w-[240px] sm:max-w-xs" title={competitorSeo?.title}>
+              <h4 className="font-bold text-gray-900 text-base truncate max-w-[240px] sm:max-w-xs" title={competitorSeo?.title}>
                 {competitorSeo?.title || competitorUrl}
               </h4>
-              <p className="text-xs text-slate-400 truncate max-w-xs font-mono">{competitorUrl}</p>
+              <p className="text-xs text-gray-400 truncate max-w-xs font-mono">{competitorUrl}</p>
             </div>
             <ScoreRing
               score={compStats.overallBenchmark || 45}
-              size={84}
+              size={80}
               strokeWidth={7}
               label=""
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3 pt-1">
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-center">
-              <span className="text-xs font-medium text-slate-500">Content Depth</span>
-              <div className="text-lg font-black text-slate-900 mt-1">
+            <div className="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center">
+              <span className="text-xs font-medium text-gray-500">Content Depth</span>
+              <div className="text-lg font-bold text-gray-900 mt-0.5">
                 {compStats.contentDepthScore || 40}
-                <span className="text-xs font-normal text-slate-400">/100</span>
+                <span className="text-xs font-normal text-gray-400">/100</span>
               </div>
             </div>
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-center">
-              <span className="text-xs font-medium text-slate-500">Technical SEO</span>
-              <div className="text-lg font-black text-slate-900 mt-1">
+            <div className="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center">
+              <span className="text-xs font-medium text-gray-500">Technical SEO</span>
+              <div className="text-lg font-bold text-gray-900 mt-0.5">
                 {compStats.technicalScore || 40}
-                <span className="text-xs font-normal text-slate-400">/100</span>
+                <span className="text-xs font-normal text-gray-400">/100</span>
               </div>
             </div>
           </div>
         </div>
 
         {/* Your Score / Industry Target Card */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-7 shadow-sm space-y-5">
-          <div className="flex items-center justify-between pb-4 border-b border-slate-100">
+        <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-gray-100">
             <div className="space-y-1">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
                 {hasYourData ? 'Your Page Data' : 'Position #1 Industry Benchmark'}
               </span>
-              <h4 className="font-bold text-slate-900 text-base truncate max-w-[240px] sm:max-w-xs" title={yourSeo ? yourSeo.title : 'Top 1% SERP Standard'}>
-                {hasYourData ? yourSeo.title : 'High-Authority Industry Benchmark'}
+              <h4 className="font-bold text-gray-900 text-base truncate max-w-[240px] sm:max-w-xs" title={yourSeo ? yourSeo.title : 'Top 1% SERP Standard'}>
+                {hasYourData ? yourSeo.title : 'High-Authority Benchmark'}
               </h4>
-              <p className="text-xs text-slate-400 truncate max-w-xs font-mono">
+              <p className="text-xs text-gray-400 truncate max-w-xs font-mono">
                 {hasYourData ? yourUrl : 'SERP Position 1 Standard'}
               </p>
             </div>
             <ScoreRing
               score={hasYourData ? (yourStats.overallBenchmark || 50) : 95}
-              size={84}
+              size={80}
               strokeWidth={7}
               label=""
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3 pt-1">
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-center">
-              <span className="text-xs font-medium text-slate-500">Content Depth</span>
-              <div className="text-lg font-black text-slate-900 mt-1">
+            <div className="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center">
+              <span className="text-xs font-medium text-gray-500">Content Depth</span>
+              <div className="text-lg font-bold text-gray-900 mt-0.5">
                 {hasYourData ? (yourStats.contentDepthScore || 50) : 95}
-                <span className="text-xs font-normal text-slate-400">/100</span>
+                <span className="text-xs font-normal text-gray-400">/100</span>
               </div>
             </div>
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-100 text-center">
-              <span className="text-xs font-medium text-slate-500">Technical SEO</span>
-              <div className="text-lg font-black text-slate-900 mt-1">
+            <div className="p-3 rounded-xl bg-gray-50 border border-gray-100 text-center">
+              <span className="text-xs font-medium text-gray-500">Technical SEO</span>
+              <div className="text-lg font-bold text-gray-900 mt-0.5">
                 {hasYourData ? (yourStats.technicalScore || 50) : 95}
-                <span className="text-xs font-normal text-slate-400">/100</span>
+                <span className="text-xs font-normal text-gray-400">/100</span>
               </div>
             </div>
           </div>
@@ -192,13 +189,13 @@ export default function HeadToHeadBenchmark({
       </div>
 
       {/* Detailed Technical Comparison Table */}
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-        <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between">
-          <h4 className="text-base font-bold text-slate-900 flex items-center gap-2">
-            <FileText className="w-4 h-4 text-blue-600" />
+      <div className="bg-white rounded-3xl border border-gray-200 shadow-sm overflow-hidden">
+        <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+          <h4 className="text-base font-bold text-gray-900 flex items-center gap-2">
+            <FileText className="w-4 h-4 text-[#0C81F3]" />
             Core Technical & Content Signals Breakdown
           </h4>
-          <span className="text-xs text-slate-400 font-medium hidden sm:inline">
+          <span className="text-xs text-gray-400 font-medium hidden sm:inline">
             Direct HTML Extraction
           </span>
         </div>
@@ -206,189 +203,175 @@ export default function HeadToHeadBenchmark({
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs sm:text-sm">
             <thead>
-              <tr className="bg-slate-50/70 text-slate-500 text-[11px] font-bold uppercase tracking-wider border-b border-slate-100">
-                <th className="py-3.5 px-5">Signal / Metric</th>
-                <th className="py-3.5 px-5">Competitor Data</th>
-                <th className="py-3.5 px-5">{hasYourData ? 'Your Data' : 'Industry Standard'}</th>
-                <th className="py-3.5 px-5 text-right">Advantage / Delta</th>
+              <tr className="bg-gray-50/70 text-gray-500 text-[11px] font-bold uppercase tracking-wider border-b border-gray-100">
+                <th className="py-3 px-5">Signal / Metric</th>
+                <th className="py-3 px-5">Competitor Data</th>
+                <th className="py-3 px-5">{hasYourData ? 'Your Data' : 'Industry Standard'}</th>
+                <th className="py-3 px-5 text-right">Advantage / Delta</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100 text-slate-700 font-medium">
+            <tbody className="divide-y divide-gray-100 text-gray-700 font-medium">
               {/* Word Count */}
-              <tr className="hover:bg-slate-50/50 transition-colors">
-                <td className="py-4 px-5 font-bold text-slate-900 flex items-center gap-2">
-                  <FileText className="w-4 h-4 text-slate-400" />
+              <tr className="hover:bg-gray-50/50 transition-colors">
+                <td className="py-3.5 px-5 font-bold text-gray-900 flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-gray-400" />
                   Estimated Word Count
                 </td>
-                <td className="py-4 px-5">
-                  <strong className="text-slate-900">{compStats.wordCount?.toLocaleString() || 0}</strong> words
+                <td className="py-3.5 px-5">
+                  <strong className="text-gray-900">{compStats.wordCount?.toLocaleString() || 0}</strong> words
                 </td>
-                <td className="py-4 px-5">
-                  <strong className="text-slate-900">
-                    {hasYourData ? `${yourStats.wordCount?.toLocaleString() || 0} words` : '2,200+ comprehensive words'}
+                <td className="py-3.5 px-5">
+                  <strong className="text-gray-900">
+                    {hasYourData ? `${yourStats.wordCount?.toLocaleString() || 0} words` : '2,200+ words'}
                   </strong>
                 </td>
-                <td className="py-4 px-5 text-right">
+                <td className="py-3.5 px-5 text-right">
                   {hasYourData ? (
                     wordDiff > 0 ? (
-                      <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full font-bold text-xs">
-                        <TrendingUp className="w-3.5 h-3.5" /> +{wordDiff.toLocaleString()} words ahead
+                      <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full font-bold text-xs">
+                        <TrendingUp className="w-3.5 h-3.5" /> +{wordDiff.toLocaleString()} ahead
                       </span>
                     ) : wordDiff < 0 ? (
-                      <span className="inline-flex items-center gap-1 text-rose-700 bg-rose-50 px-2.5 py-1 rounded-full font-bold text-xs">
-                        <TrendingDown className="w-3.5 h-3.5" /> {wordDiff.toLocaleString()} words deficit
+                      <span className="inline-flex items-center gap-1 text-rose-700 bg-rose-50 px-2.5 py-0.5 rounded-full font-bold text-xs">
+                        <TrendingDown className="w-3.5 h-3.5" /> {wordDiff.toLocaleString()} deficit
                       </span>
                     ) : (
-                      <span className="text-slate-400 text-xs">Even</span>
+                      <span className="text-gray-400 text-xs">Equal</span>
                     )
                   ) : (
-                    <span className="text-blue-600 font-bold text-xs">Target: 2,000+ words</span>
+                    <span className="text-[#0C81F3] font-bold text-xs">Target: 2,000+ words</span>
                   )}
                 </td>
               </tr>
 
               {/* Headings */}
-              <tr className="hover:bg-slate-50/50 transition-colors">
-                <td className="py-4 px-5 font-bold text-slate-900 flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-slate-400" />
-                  Heading Depth (H1 / H2 / H3)
+              <tr className="hover:bg-gray-50/50 transition-colors">
+                <td className="py-3.5 px-5 font-bold text-gray-900 flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-gray-400" />
+                  Headings (H1 / H2 / H3)
                 </td>
-                <td className="py-4 px-5">
-                  {competitorSeo?.h1s?.length || 0} H1s • {competitorSeo?.h2s?.length || 0} H2s • {competitorSeo?.h3s?.length || 0} H3s
+                <td className="py-3.5 px-5">
+                  {competitorSeo?.h1s?.length || 0} H1 • {competitorSeo?.h2s?.length || 0} H2 • {competitorSeo?.h3s?.length || 0} H3
                 </td>
-                <td className="py-4 px-5">
+                <td className="py-3.5 px-5">
                   {hasYourData
-                    ? `${yourSeo?.h1s?.length || 0} H1s • ${yourSeo?.h2s?.length || 0} H2s • ${yourSeo?.h3s?.length || 0} H3s`
+                    ? `${yourSeo?.h1s?.length || 0} H1 • ${yourSeo?.h2s?.length || 0} H2 • ${yourSeo?.h3s?.length || 0} H3`
                     : '1 H1 • 6-10 H2s • Nested H3s'}
                 </td>
-                <td className="py-4 px-5 text-right">
+                <td className="py-3.5 px-5 text-right">
                   {hasYourData ? (
                     h2Diff > 0 ? (
-                      <span className="inline-flex items-center gap-1 text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full font-bold text-xs">
-                        +{h2Diff} more H2 sections
+                      <span className="text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-bold text-xs">
+                        +{h2Diff} more H2s
                       </span>
                     ) : h2Diff < 0 ? (
-                      <span className="inline-flex items-center gap-1 text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full font-bold text-xs">
+                      <span className="text-amber-700 bg-amber-50 px-2 py-0.5 rounded font-bold text-xs">
                         {Math.abs(h2Diff)} fewer H2s
                       </span>
                     ) : (
-                      <span className="text-slate-400 text-xs">Equal H2 depth</span>
+                      <span className="text-gray-400 text-xs">Equal depth</span>
                     )
                   ) : (
-                    <span className="text-slate-500 text-xs">Structured outline</span>
+                    <span className="text-gray-500 text-xs">Structured outline</span>
                   )}
                 </td>
               </tr>
 
               {/* Internal Links */}
-              <tr className="hover:bg-slate-50/50 transition-colors">
-                <td className="py-4 px-5 font-bold text-slate-900 flex items-center gap-2">
-                  <Link2 className="w-4 h-4 text-slate-400" />
-                  Internal Silo Links
+              <tr className="hover:bg-gray-50/50 transition-colors">
+                <td className="py-3.5 px-5 font-bold text-gray-900 flex items-center gap-2">
+                  <Link2 className="w-4 h-4 text-gray-400" />
+                  Internal Links
                 </td>
-                <td className="py-4 px-5">{compStats.internalLinks || 0} links</td>
-                <td className="py-4 px-5">
-                  {hasYourData ? `${yourStats.internalLinks || 0} links` : '10-15 topic silo links'}
+                <td className="py-3.5 px-5">{compStats.internalLinks || 0} links</td>
+                <td className="py-3.5 px-5">
+                  {hasYourData ? `${yourStats.internalLinks || 0} links` : '10-15 silo links'}
                 </td>
-                <td className="py-4 px-5 text-right">
+                <td className="py-3.5 px-5 text-right">
                   {hasYourData ? (
                     linksDiff >= 0 ? (
-                      <span className="text-emerald-600 font-bold text-xs">+{linksDiff} internal links</span>
+                      <span className="text-emerald-700 font-bold text-xs">+{linksDiff} links</span>
                     ) : (
                       <span className="text-rose-600 font-bold text-xs">{linksDiff} links</span>
                     )
                   ) : (
-                    <span className="text-slate-500 text-xs">Contextual link clusters</span>
+                    <span className="text-gray-500 text-xs">Topic clustering</span>
                   )}
                 </td>
               </tr>
 
               {/* Image Alt Coverage */}
-              <tr className="hover:bg-slate-50/50 transition-colors">
-                <td className="py-4 px-5 font-bold text-slate-900 flex items-center gap-2">
-                  <ImageIcon className="w-4 h-4 text-slate-400" />
-                  Image Alt Accessibility
+              <tr className="hover:bg-gray-50/50 transition-colors">
+                <td className="py-3.5 px-5 font-bold text-gray-900 flex items-center gap-2">
+                  <ImageIcon className="w-4 h-4 text-gray-400" />
+                  Image Alt Text
                 </td>
-                <td className="py-4 px-5">
-                  <div className="flex items-center gap-2">
-                    <span>{compStats.imagesWithAlt || 0}/{compStats.totalImages || 0}</span>
-                    <span className="text-xs text-slate-400">({compAltPct}%)</span>
-                  </div>
+                <td className="py-3.5 px-5">
+                  {compStats.imagesWithAlt || 0}/{compStats.totalImages || 0} ({compAltPct}%)
                 </td>
-                <td className="py-4 px-5">
-                  <div className="flex items-center gap-2">
-                    <span>{hasYourData ? `${yourStats.imagesWithAlt || 0}/${yourStats.totalImages || 0}` : '100%'}</span>
-                    <span className="text-xs text-slate-400">({hasYourData ? `${yourAltPct}%` : 'Goal'})</span>
-                  </div>
+                <td className="py-3.5 px-5">
+                  {hasYourData ? `${yourStats.imagesWithAlt || 0}/${yourStats.totalImages || 0} (${yourAltPct}%)` : '100%'}
                 </td>
-                <td className="py-4 px-5 text-right">
+                <td className="py-3.5 px-5 text-right">
                   {compStats.imagesWithoutAlt > 0 ? (
                     <span className="text-rose-600 bg-rose-50 px-2 py-0.5 rounded font-bold text-xs">
-                      {compStats.imagesWithoutAlt} images missing alt!
+                      {compStats.imagesWithoutAlt} missing alt
                     </span>
                   ) : (
-                    <span className="text-emerald-600 font-bold text-xs">Full Alt Coverage</span>
+                    <span className="text-emerald-700 font-bold text-xs">100% Coverage</span>
                   )}
                 </td>
               </tr>
 
               {/* Schema Markup */}
-              <tr className="hover:bg-slate-50/50 transition-colors">
-                <td className="py-4 px-5 font-bold text-slate-900 flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-slate-400" />
-                  Structured Data (Schema.org)
+              <tr className="hover:bg-gray-50/50 transition-colors">
+                <td className="py-3.5 px-5 font-bold text-gray-900 flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-gray-400" />
+                  Schema.org Structured Data
                 </td>
-                <td className="py-4 px-5">
+                <td className="py-3.5 px-5">
                   {compStats.hasSchema ? (
-                    <span className="inline-flex items-center gap-1 text-emerald-700 font-bold">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-500" /> JSON-LD Detected
-                    </span>
+                    <span className="text-emerald-700 font-bold">✓ Detected</span>
                   ) : (
-                    <span className="inline-flex items-center gap-1 text-rose-700 font-bold">
-                      <XCircle className="w-4 h-4 text-rose-500" /> Missing Schema
-                    </span>
+                    <span className="text-rose-600 font-bold">✗ Missing</span>
                   )}
                 </td>
-                <td className="py-4 px-5">
+                <td className="py-3.5 px-5">
                   {hasYourData ? (
                     yourStats.hasSchema ? (
-                      <span className="inline-flex items-center gap-1 text-emerald-700 font-bold">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-500" /> JSON-LD Detected
-                      </span>
+                      <span className="text-emerald-700 font-bold">✓ Detected</span>
                     ) : (
-                      <span className="inline-flex items-center gap-1 text-rose-700 font-bold">
-                        <XCircle className="w-4 h-4 text-rose-500" /> Missing Schema
-                      </span>
+                      <span className="text-rose-600 font-bold">✗ Missing</span>
                     )
                   ) : (
-                    <span className="text-emerald-600 font-bold text-xs">Article + FAQPage Recommended</span>
+                    <span className="text-emerald-700 font-semibold text-xs">FAQPage + Article</span>
                   )}
                 </td>
-                <td className="py-4 px-5 text-right">
+                <td className="py-3.5 px-5 text-right">
                   {!compStats.hasSchema ? (
-                    <span className="text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-full font-bold text-xs">
-                      ⚡ Quick Win with FAQ Schema
+                    <span className="text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full font-bold text-xs">
+                      ⚡ Easy Win with Schema
                     </span>
                   ) : (
-                    <span className="text-slate-400 text-xs">Implemented</span>
+                    <span className="text-gray-400 text-xs">Present</span>
                   )}
                 </td>
               </tr>
 
               {/* Open Graph Social */}
-              <tr className="hover:bg-slate-50/50 transition-colors">
-                <td className="py-4 px-5 font-bold text-slate-900 flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-slate-400" />
-                  Social Cards (og:title, og:image)
+              <tr className="hover:bg-gray-50/50 transition-colors">
+                <td className="py-3.5 px-5 font-bold text-gray-900 flex items-center gap-2">
+                  <Globe className="w-4 h-4 text-gray-400" />
+                  Social Tags (OG / Twitter)
                 </td>
-                <td className="py-4 px-5">
+                <td className="py-3.5 px-5">
                   {compStats.hasOGTags ? (
                     <span className="text-emerald-700 font-bold">✓ Configured</span>
                   ) : (
                     <span className="text-rose-600 font-bold">✗ Incomplete</span>
                   )}
                 </td>
-                <td className="py-4 px-5">
+                <td className="py-3.5 px-5">
                   {hasYourData ? (
                     yourStats.hasOGTags ? (
                       <span className="text-emerald-700 font-bold">✓ Configured</span>
@@ -396,11 +379,11 @@ export default function HeadToHeadBenchmark({
                       <span className="text-rose-600 font-bold">✗ Incomplete</span>
                     )
                   ) : (
-                    <span className="text-slate-700 font-medium">Full OG Metadata</span>
+                    <span className="text-gray-700">Full OpenGraph</span>
                   )}
                 </td>
-                <td className="py-4 px-5 text-right">
-                  <span className="text-slate-400 text-xs">Social Visibility</span>
+                <td className="py-3.5 px-5 text-right">
+                  <span className="text-gray-400 text-xs">Social Presence</span>
                 </td>
               </tr>
             </tbody>
@@ -409,25 +392,25 @@ export default function HeadToHeadBenchmark({
       </div>
 
       {/* Google SERP Snippet Simulator */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-5">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+      <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-7 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
           <div>
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wider mb-1">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-[#0C81F3] text-xs font-bold uppercase tracking-wider mb-1">
               <Search className="w-3.5 h-3.5" />
-              Google SERP Snippet Simulator
+              Google SERP Simulator
             </div>
-            <h4 className="text-base font-bold text-slate-900">
-              Search Result Appearance & Click-Through Optimization
+            <h4 className="text-base font-bold text-gray-900">
+              Search Result Appearance & CTR Preview
             </h4>
           </div>
 
           {hasYourData && (
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl text-xs font-bold">
+            <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl text-xs font-bold">
               <button
                 type="button"
                 onClick={() => setSerpView('both')}
-                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  serpView === 'both' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                  serpView === 'both' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-800'
                 }`}
               >
                 Side-by-Side
@@ -435,8 +418,8 @@ export default function HeadToHeadBenchmark({
               <button
                 type="button"
                 onClick={() => setSerpView('competitor')}
-                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  serpView === 'competitor' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                  serpView === 'competitor' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-800'
                 }`}
               >
                 Competitor
@@ -444,8 +427,8 @@ export default function HeadToHeadBenchmark({
               <button
                 type="button"
                 onClick={() => setSerpView('your')}
-                className={`px-3 py-1.5 rounded-lg transition-all cursor-pointer ${
-                  serpView === 'your' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-800'
+                className={`px-3 py-1 rounded-lg transition-all cursor-pointer ${
+                  serpView === 'your' ? 'bg-white text-gray-900 shadow-xs' : 'text-gray-500 hover:text-gray-800'
                 }`}
               >
                 Your Page
@@ -454,59 +437,59 @@ export default function HeadToHeadBenchmark({
           )}
         </div>
 
-        <div className={`grid gap-6 ${serpView === 'both' && hasYourData ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
+        <div className={`grid gap-4 ${serpView === 'both' && hasYourData ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1'}`}>
           {/* Competitor SERP Card */}
           {(serpView === 'both' || serpView === 'competitor') && (
-            <div className="p-5 rounded-2xl bg-slate-50/80 border border-slate-200 space-y-2">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 inline-block mb-1">
+            <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200 space-y-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-rose-700 bg-rose-50 px-2 py-0.5 rounded border border-rose-200 inline-block mb-1">
                 Competitor SERP Preview
               </span>
               <div className="space-y-1">
-                <p className="text-xs text-slate-600 truncate font-mono">
+                <p className="text-xs text-gray-500 truncate font-mono">
                   {formatSerpUrl(competitorUrl)}
                 </p>
-                <h5 className="text-base sm:text-lg font-medium text-[#1a0dab] hover:underline cursor-pointer leading-snug">
+                <h5 className="text-base font-medium text-[#1a0dab] hover:underline cursor-pointer leading-snug">
                   {competitorSeo?.title || competitorUrl}
                 </h5>
-                <p className="text-xs sm:text-sm text-[#4d5156] leading-relaxed">
+                <p className="text-xs text-[#4d5156] leading-relaxed">
                   {competitorSeo?.metaDescription || (
-                    <span className="italic text-slate-400">
-                      No meta description provided in HTML; Google will auto-extract a snippet from body content.
+                    <span className="italic text-gray-400">
+                      No meta description in HTML; Google will auto-generate from content.
                     </span>
                   )}
                 </p>
               </div>
-              <div className="pt-2 flex items-center gap-3 text-[11px] text-slate-500 border-t border-slate-200/60">
-                <span>Title Length: <strong>{competitorSeo?.title?.length || 0}</strong> chars (ideal: 50-60)</span>
+              <div className="pt-2 flex items-center gap-3 text-[11px] text-gray-400 border-t border-gray-200">
+                <span>Title: <strong>{competitorSeo?.title?.length || 0}</strong> chars</span>
                 <span>•</span>
-                <span>Meta Length: <strong>{competitorSeo?.metaDescription?.length || 0}</strong> chars (ideal: 140-160)</span>
+                <span>Meta: <strong>{competitorSeo?.metaDescription?.length || 0}</strong> chars</span>
               </div>
             </div>
           )}
 
           {/* Your Page SERP Card */}
           {(serpView === 'both' || serpView === 'your') && (
-            <div className="p-5 rounded-2xl bg-slate-50/80 border border-slate-200 space-y-2">
-              <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block mb-1">
-                {hasYourData ? 'Your SERP Preview' : 'Recommended Optimization Target'}
+            <div className="p-4 rounded-2xl bg-gray-50/80 border border-gray-200 space-y-1.5">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 inline-block mb-1">
+                {hasYourData ? 'Your SERP Preview' : 'Target Goal'}
               </span>
               <div className="space-y-1">
-                <p className="text-xs text-slate-600 truncate font-mono">
-                  {formatSerpUrl(hasYourData ? yourUrl : 'https://yourbrand.com/ultimate-guide')}
+                <p className="text-xs text-gray-500 truncate font-mono">
+                  {formatSerpUrl(hasYourData ? yourUrl : 'https://yourbrand.com/guide')}
                 </p>
-                <h5 className="text-base sm:text-lg font-medium text-[#1a0dab] hover:underline cursor-pointer leading-snug">
-                  {hasYourData ? (yourSeo?.title || yourUrl) : '10x Content Playbook: The Definitive Guide for Maximum Rankings'}
+                <h5 className="text-base font-medium text-[#1a0dab] hover:underline cursor-pointer leading-snug">
+                  {hasYourData ? (yourSeo?.title || yourUrl) : '10x Content Guide: The Complete Blueprint to Outrank Competitors'}
                 </h5>
-                <p className="text-xs sm:text-sm text-[#4d5156] leading-relaxed">
+                <p className="text-xs text-[#4d5156] leading-relaxed">
                   {hasYourData
                     ? (yourSeo?.metaDescription || 'No meta description found.')
                     : 'Discover actionable strategies, complete heading blueprints, and exploitable content gaps to outrank top competitors in search results.'}
                 </p>
               </div>
-              <div className="pt-2 flex items-center gap-3 text-[11px] text-slate-500 border-t border-slate-200/60">
-                <span>Title Length: <strong>{yourSeo?.title?.length || 58}</strong> chars</span>
+              <div className="pt-2 flex items-center gap-3 text-[11px] text-gray-400 border-t border-gray-200">
+                <span>Title: <strong>{yourSeo?.title?.length || 58}</strong> chars</span>
                 <span>•</span>
-                <span>Meta Length: <strong>{yourSeo?.metaDescription?.length || 152}</strong> chars</span>
+                <span>Meta: <strong>{yourSeo?.metaDescription?.length || 152}</strong> chars</span>
               </div>
             </div>
           )}

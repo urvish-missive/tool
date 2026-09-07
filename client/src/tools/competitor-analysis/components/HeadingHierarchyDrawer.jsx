@@ -27,8 +27,8 @@ export default function HeadingHierarchyDrawer({ competitorSeo, yourSeo, competi
   const renderHeadingList = (seoData, label, side, isCompetitor = false) => {
     if (!seoData) {
       return (
-        <div className="p-5 rounded-2xl bg-slate-50 border border-dashed border-slate-200 text-center">
-          <p className="text-xs text-slate-500">No URL analyzed for this slot.</p>
+        <div className="p-5 rounded-2xl bg-gray-50 border border-dashed border-gray-200 text-center">
+          <p className="text-xs text-gray-500">No URL analyzed for this slot.</p>
         </div>
       )
     }
@@ -38,10 +38,10 @@ export default function HeadingHierarchyDrawer({ competitorSeo, yourSeo, competi
 
     return (
       <div className="space-y-3">
-        <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+        <div className="flex items-center justify-between pb-2 border-b border-gray-100">
           <div>
             <span
-              className={`text-[11px] font-extrabold uppercase tracking-wider px-2 py-0.5 rounded ${
+              className={`text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${
                 isCompetitor
                   ? 'bg-rose-50 text-rose-700 border border-rose-200'
                   : 'bg-blue-50 text-blue-700 border border-blue-200'
@@ -49,14 +49,14 @@ export default function HeadingHierarchyDrawer({ competitorSeo, yourSeo, competi
             >
               {label}
             </span>
-            <p className="text-xs text-slate-500 mt-1 truncate max-w-xs font-medium">
+            <p className="text-xs text-gray-500 mt-1 truncate max-w-xs font-medium">
               {seoData.url || (isCompetitor ? competitorUrl : yourUrl)}
             </p>
           </div>
           <button
             type="button"
             onClick={() => copyHeadings(seoData, side)}
-            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 text-xs font-semibold transition-colors cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-600 text-xs font-medium transition-colors cursor-pointer"
           >
             {copiedSide === side ? (
               <>
@@ -65,7 +65,7 @@ export default function HeadingHierarchyDrawer({ competitorSeo, yourSeo, competi
               </>
             ) : (
               <>
-                <Copy className="w-3.5 h-3.5 text-slate-400" />
+                <Copy className="w-3.5 h-3.5 text-gray-400" />
                 <span>Copy Outline</span>
               </>
             )}
@@ -73,12 +73,12 @@ export default function HeadingHierarchyDrawer({ competitorSeo, yourSeo, competi
         </div>
 
         {totalHeadings === 0 ? (
-          <p className="text-xs text-slate-400 italic py-3">No H1-H3 headings detected in raw HTML.</p>
+          <p className="text-xs text-gray-400 italic py-3">No H1-H3 headings detected in raw HTML.</p>
         ) : (
           <div className="space-y-2 max-h-80 overflow-y-auto pr-1 text-xs">
             {seoData.h1s?.length > 0 && (
               <div className="space-y-1">
-                <span className="text-[10px] font-bold uppercase text-purple-600 tracking-wider">
+                <span className="text-[10px] font-bold uppercase text-purple-700 tracking-wider">
                   H1 Tags ({seoData.h1s.length})
                 </span>
                 {seoData.h1s.map((h, i) => (
@@ -94,14 +94,14 @@ export default function HeadingHierarchyDrawer({ competitorSeo, yourSeo, competi
 
             {seoData.h2s?.length > 0 && (
               <div className="space-y-1 pt-1">
-                <span className="text-[10px] font-bold uppercase text-blue-600 tracking-wider">
+                <span className="text-[10px] font-bold uppercase text-blue-700 tracking-wider">
                   H2 Subsections ({seoData.h2s.length})
                 </span>
                 <div className="space-y-1">
                   {seoData.h2s.map((h, i) => (
                     <div
                       key={i}
-                      className="p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-800 font-medium ml-2"
+                      className="p-2 rounded-lg bg-gray-50 border border-gray-200 text-gray-800 font-medium ml-2"
                     >
                       ## {h}
                     </div>
@@ -112,14 +112,14 @@ export default function HeadingHierarchyDrawer({ competitorSeo, yourSeo, competi
 
             {seoData.h3s?.length > 0 && (
               <div className="space-y-1 pt-1">
-                <span className="text-[10px] font-bold uppercase text-slate-500 tracking-wider">
-                  H3 Nested Items ({seoData.h3s.length})
+                <span className="text-[10px] font-bold uppercase text-gray-500 tracking-wider">
+                  H3 Items ({seoData.h3s.length})
                 </span>
                 <div className="space-y-1">
                   {seoData.h3s.map((h, i) => (
                     <div
                       key={i}
-                      className="p-1.5 rounded-lg bg-white border border-slate-100 text-slate-600 text-[11px] ml-4 truncate"
+                      className="p-1.5 rounded-lg bg-white border border-gray-100 text-gray-600 text-[11px] ml-4 truncate"
                       title={h}
                     >
                       ### {h}
@@ -135,39 +135,39 @@ export default function HeadingHierarchyDrawer({ competitorSeo, yourSeo, competi
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden transition-all">
+    <div className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden transition-all">
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-5 py-4 flex items-center justify-between bg-gradient-to-r from-slate-50 to-white hover:bg-slate-50 transition-colors text-left cursor-pointer"
+        className="w-full px-5 py-4 flex items-center justify-between bg-gradient-to-r from-gray-50 to-white hover:bg-gray-50 transition-colors text-left cursor-pointer"
       >
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
             <Layers className="w-4 h-4" />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <h4 className="text-sm font-bold text-gray-900 flex items-center gap-2">
               Heading Hierarchy & Content Outline Blueprint
-              <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-semibold">
-                {(competitorSeo?.h1s?.length || 0) + (competitorSeo?.h2s?.length || 0)} Competitor Headings
+              <span className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-semibold">
+                {(competitorSeo?.h1s?.length || 0) + (competitorSeo?.h2s?.length || 0)} Headings
               </span>
             </h4>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Compare on-page table of contents, semantic structure, and section depth
+            <p className="text-xs text-gray-500 mt-0.5">
+              Compare semantic structure, section counts, and content depth
             </p>
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+        <div className="flex items-center gap-2 text-xs font-semibold text-gray-500">
           <span>{isOpen ? 'Hide Outlines' : 'Inspect Outlines'}</span>
           {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
         </div>
       </button>
 
       {isOpen && (
-        <div className="p-5 border-t border-slate-100 grid grid-cols-1 md:grid-cols-2 gap-6 bg-slate-50/40">
+        <div className="p-5 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-6 bg-gray-50/40">
           <div>{renderHeadingList(competitorSeo, 'Competitor Outline', 'competitor', true)}</div>
-          <div>{renderHeadingList(yourSeo, 'Your Page Outline', 'your', false)}</div>
+          <div>{renderHeadingList(yourSeo, 'Your Outline', 'your', false)}</div>
         </div>
       )}
     </div>

@@ -250,97 +250,78 @@ export default function CompetitorAnalysisPage() {
               targetKeywords={targetKeywords}
             />
 
-            {/* Navigation Tabs */}
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-1.5 flex flex-wrap gap-1.5">
-              <button
-                type="button"
-                onClick={() => setActiveTab('playbook')}
-                className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                  activeTab === 'playbook'
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <Zap className="w-4 h-4" />
-                <span>10x Playbook</span>
-                <span
-                  className={`text-[11px] px-1.5 py-0.2 rounded-full font-extrabold ${
-                    activeTab === 'playbook' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
-                  }`}
-                >
-                  {outrankPlaybook.length}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab('gaps')}
-                className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                  activeTab === 'gaps'
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <Target className="w-4 h-4" />
-                <span>Content Gaps & Keywords</span>
-                <span
-                  className={`text-[11px] px-1.5 py-0.2 rounded-full font-extrabold ${
-                    activeTab === 'gaps' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
-                  }`}
-                >
-                  {contentGaps.length + keywordOpps.length}
-                </span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab('comparison')}
-                className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                  activeTab === 'comparison'
-                    ? 'bg-blue-600 text-white shadow-xs'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                }`}
-              >
-                <BarChart3 className="w-4 h-4" />
-                <span>Technical Benchmarks</span>
-              </button>
-
-              {backlinkAngles.length > 0 && (
+            {/* ── MULTI-VIEW TAB NAVIGATION (Matching Content QA Checklist theme) ── */}
+            <div className="border-b border-gray-200">
+              <div className="flex flex-wrap gap-2 sm:gap-4">
                 <button
                   type="button"
-                  onClick={() => setActiveTab('backlinks')}
-                  className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                    activeTab === 'backlinks'
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                  onClick={() => setActiveTab('playbook')}
+                  className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
+                    activeTab === 'playbook'
+                      ? 'border-[#0C81F3] text-[#0C81F3]'
+                      : 'border-transparent text-gray-500 hover:text-gray-900'
                   }`}
                 >
-                  <Link2 className="w-4 h-4" />
-                  <span>Backlink Angles</span>
-                  <span
-                    className={`text-[11px] px-1.5 py-0.2 rounded-full font-extrabold ${
-                      activeTab === 'backlinks' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'
+                  <Zap className="w-4 h-4" />
+                  <span>10x Outrank Playbook ({outrankPlaybook.length})</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('gaps')}
+                  className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
+                    activeTab === 'gaps'
+                      ? 'border-[#0C81F3] text-[#0C81F3]'
+                      : 'border-transparent text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  <Target className="w-4 h-4" />
+                  <span>Content Gaps & Keywords ({contentGaps.length + keywordOpps.length})</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('comparison')}
+                  className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
+                    activeTab === 'comparison'
+                      ? 'border-[#0C81F3] text-[#0C81F3]'
+                      : 'border-transparent text-gray-500 hover:text-gray-900'
+                  }`}
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  <span>Technical Benchmarks</span>
+                </button>
+
+                {backlinkAngles.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('backlinks')}
+                    className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
+                      activeTab === 'backlinks'
+                        ? 'border-[#0C81F3] text-[#0C81F3]'
+                        : 'border-transparent text-gray-500 hover:text-gray-900'
                     }`}
                   >
-                    {backlinkAngles.length}
-                  </span>
-                </button>
-              )}
+                    <Link2 className="w-4 h-4" />
+                    <span>Backlink Angles ({backlinkAngles.length})</span>
+                  </button>
+                )}
 
-              {snippetSnatch && (
-                <button
-                  type="button"
-                  onClick={() => setActiveTab('snippets')}
-                  className={`flex-1 min-w-[140px] py-2.5 px-4 rounded-xl text-xs sm:text-sm font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                    activeTab === 'snippets'
-                      ? 'bg-blue-600 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }`}
-                >
-                  <Crown className="w-4 h-4 text-amber-500" />
-                  <span>Snippet Snatch</span>
-                </button>
-              )}
+                {snippetSnatch && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('snippets')}
+                    className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all cursor-pointer ${
+                      activeTab === 'snippets'
+                        ? 'border-[#0C81F3] text-[#0C81F3]'
+                        : 'border-transparent text-gray-500 hover:text-gray-900'
+                    }`}
+                  >
+                    <Crown className="w-4 h-4 text-[#EB8988]" />
+                    <span>Position 0 Snippet</span>
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* TAB 1: 10X OUTRANK PLAYBOOK */}

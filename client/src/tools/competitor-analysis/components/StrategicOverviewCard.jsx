@@ -1,5 +1,15 @@
 import { useState } from 'react'
-import { Crown, Shield, Flame, Download, Copy, Check, FileSpreadsheet, Sparkles, Target } from 'lucide-react'
+import {
+  Crown,
+  Shield,
+  Flame,
+  Download,
+  Copy,
+  Check,
+  FileSpreadsheet,
+  Target,
+  Sparkles,
+} from 'lucide-react'
 
 export default function StrategicOverviewCard({
   results,
@@ -73,22 +83,18 @@ export default function StrategicOverviewCard({
       ['Section', 'Item / Keyword', 'Priority / Intent', 'Impact / Difficulty', 'Effort', 'Details / Strategy'],
     ]
 
-    // Playbook items
     ;(results.outrankPlaybook || []).forEach((p) => {
       rows.push(['Playbook Action', escapeCsv(p.action), escapeCsv(p.priority), escapeCsv(p.impact), escapeCsv(p.effort), escapeCsv(p.why)])
     })
 
-    // Content Gaps
     ;(results.contentGaps || []).forEach((g) => {
       rows.push(['Content Gap', escapeCsv(g.topic), escapeCsv(g.searchIntent), 'High Value', 'Medium', escapeCsv(`Angle: ${g.suggestedAngle} | Why: ${g.whyImportant}`)])
     })
 
-    // Keywords
     ;(results.keywordOpportunities || []).forEach((k) => {
       rows.push(['Keyword Target', escapeCsv(k.keyword), escapeCsv(k.intent), escapeCsv(k.difficulty), 'N/A', escapeCsv(k.opportunity)])
     })
 
-    // Backlinks
     ;(results.backlinkAngles || []).forEach((b) => {
       rows.push(['Backlink Asset', escapeCsv(b.angle), 'Link Building', 'High', 'High', escapeCsv(`Outreach: ${b.targetOutreach}`)])
     })
@@ -123,43 +129,42 @@ ${(results.competitorVulnerabilities || []).map((v) => `• ${v}`).join('\n')}
     : []
 
   return (
-    <div className="bg-gradient-to-br from-slate-950 via-slate-900 to-indigo-950 text-white rounded-3xl p-6 sm:p-8 shadow-2xl border border-white/10 relative overflow-hidden">
-      {/* Subtle background ambient glows */}
-      <div className="absolute top-0 right-0 w-96 h-96 bg-[#0C81F3]/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-80 h-80 bg-[#EB8988]/10 rounded-full blur-3xl pointer-events-none" />
-
+    <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 shadow-sm space-y-6">
       {/* Header section with badge and actions */}
-      <div className="relative z-10 flex flex-col lg:flex-row items-start justify-between gap-6 pb-6 border-b border-white/10">
-        <div className="space-y-3 max-w-3xl">
+      <div className="flex flex-col lg:flex-row items-start justify-between gap-5 pb-5 border-b border-gray-100">
+        <div className="space-y-2 max-w-3xl">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs font-bold uppercase tracking-wider">
-              <Crown className="w-3.5 h-3.5 text-amber-400" />
-              Strategic Intelligence Radar
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 text-[#0C81F3] border border-blue-200 text-xs font-bold uppercase tracking-wider">
+              <Crown className="w-3.5 h-3.5 text-amber-500" />
+              Strategic Intelligence Summary
             </span>
             {results.competitorSeo?.stats?.overallBenchmark && (
-              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-white/10 text-slate-300 text-xs font-semibold">
-                Competitor Strength: <strong className="text-white">{results.competitorSeo.stats.overallBenchmark}/100</strong>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-gray-100 text-gray-700 text-xs font-semibold">
+                Competitor Strength:{' '}
+                <strong className="text-gray-900">
+                  {results.competitorSeo.stats.overallBenchmark}/100
+                </strong>
               </span>
             )}
           </div>
 
-          <h3 className="text-2xl sm:text-3xl font-black text-white leading-tight tracking-tight">
+          <h3 className="text-xl sm:text-2xl font-bold text-gray-900 leading-snug">
             Competitor Moat & Vulnerability Assessment
           </h3>
 
-          <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
+          <p className="text-gray-600 text-sm sm:text-base leading-relaxed">
             {results.executiveSummary}
           </p>
 
           {keywordList.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5 pt-1">
-              <span className="text-xs text-slate-400 font-semibold flex items-center gap-1">
-                <Target className="w-3 h-3 text-blue-400" /> Keywords:
+              <span className="text-xs text-gray-500 font-semibold flex items-center gap-1">
+                <Target className="w-3 h-3 text-[#0C81F3]" /> Focus Queries:
               </span>
               {keywordList.map((kw, i) => (
                 <span
                   key={i}
-                  className="px-2 py-0.5 rounded-md bg-white/10 text-slate-200 text-xs font-medium border border-white/5"
+                  className="px-2.5 py-0.5 rounded-md bg-gray-100 text-gray-700 text-xs font-medium border border-gray-200"
                 >
                   {kw}
                 </span>
@@ -172,99 +177,101 @@ ${(results.competitorVulnerabilities || []).map((v) => `• ${v}`).join('\n')}
         <div className="flex flex-wrap sm:flex-nowrap lg:flex-col gap-2 shrink-0 w-full lg:w-auto">
           <button
             type="button"
-            onClick={copyExecutiveSummary}
-            className="flex-1 lg:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 text-white text-xs font-bold transition-all cursor-pointer shadow-sm"
-          >
-            {copiedKey === 'exec-summary' ? (
-              <>
-                <Check className="w-3.5 h-3.5 text-emerald-400" />
-                <span className="text-emerald-300">Copied Brief!</span>
-              </>
-            ) : (
-              <>
-                <Copy className="w-3.5 h-3.5 text-slate-300" />
-                <span>Copy Summary</span>
-              </>
-            )}
-          </button>
-
-          <button
-            type="button"
             onClick={exportReportMarkdown}
-            className="flex-1 lg:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold transition-all hover:opacity-95 cursor-pointer shadow-md"
+            className="flex-1 lg:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold transition-all hover:opacity-95 cursor-pointer shadow-xs"
           >
             <Download className="w-3.5 h-3.5" />
-            <span>Export Report (.md)</span>
+            <span>Download Report (.md)</span>
           </button>
 
-          <button
-            type="button"
-            onClick={exportReportCSV}
-            className="flex-1 lg:flex-none inline-flex items-center justify-center gap-2 px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 text-xs font-semibold transition-all cursor-pointer"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" />
-            <span>Export SpreadSheet (.csv)</span>
-          </button>
+          <div className="flex items-center gap-2 w-full">
+            <button
+              type="button"
+              onClick={copyExecutiveSummary}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 text-xs font-semibold transition-all cursor-pointer"
+            >
+              {copiedKey === 'exec-summary' ? (
+                <>
+                  <Check className="w-3.5 h-3.5 text-emerald-600" />
+                  <span className="text-emerald-700 font-bold">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="w-3.5 h-3.5 text-gray-400" />
+                  <span>Copy Brief</span>
+                </>
+              )}
+            </button>
+
+            <button
+              type="button"
+              onClick={exportReportCSV}
+              className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-200 text-gray-700 text-xs font-semibold transition-all cursor-pointer"
+            >
+              <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600" />
+              <span>CSV Export</span>
+            </button>
+          </div>
         </div>
       </div>
 
       {/* Moat vs Vulnerabilities 2-Column Grid */}
-      <div className="relative z-10 grid grid-cols-1 md:grid-cols-2 gap-5 pt-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Competitor Moat Card */}
-        <div className="bg-slate-900/80 backdrop-blur-sm rounded-2xl p-5 border border-emerald-500/20 shadow-inner flex flex-col justify-between">
+        <div className="bg-emerald-50/60 rounded-2xl p-5 border border-emerald-200 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between gap-2 mb-3">
-              <div className="flex items-center gap-2 text-emerald-400 font-bold text-sm">
-                <Shield className="w-4 h-4" />
-                <span>Competitor's Current Moat</span>
+              <div className="flex items-center gap-1.5 text-emerald-900 font-bold text-sm">
+                <Shield className="w-4 h-4 text-emerald-600" />
+                <span>Their Current Advantages (Moat)</span>
               </div>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-950/60 text-emerald-300 border border-emerald-500/30">
-                Their Advantage
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-emerald-100 text-emerald-800">
+                Moat
               </span>
             </div>
-            <ul className="space-y-2.5">
+            <ul className="space-y-2">
               {(results.competitorMoat || []).map((m, i) => (
                 <li
                   key={i}
-                  className="text-xs sm:text-sm text-slate-200 flex items-start gap-2.5 leading-relaxed"
+                  className="text-xs sm:text-sm text-emerald-950 flex items-start gap-2 leading-relaxed"
                 >
-                  <span className="text-emerald-400 font-bold text-base leading-none">•</span>
+                  <span className="text-emerald-600 font-bold shrink-0">•</span>
                   <span>{m}</span>
                 </li>
               ))}
             </ul>
           </div>
-          <p className="text-[11px] text-slate-400 mt-4 pt-3 border-t border-white/5 italic">
-            Respect these strengths when crafting your counter-strategy.
+          <p className="text-[11px] text-emerald-800/70 mt-3 pt-2.5 border-t border-emerald-200/60">
+            Acknowledge these strengths when crafting your counter-strategy.
           </p>
         </div>
 
         {/* Competitor Vulnerabilities Card */}
-        <div className="bg-rose-950/30 backdrop-blur-sm rounded-2xl p-5 border border-rose-500/30 shadow-inner flex flex-col justify-between">
+        <div className="bg-rose-50/60 rounded-2xl p-5 border border-rose-200 flex flex-col justify-between">
           <div>
             <div className="flex items-center justify-between gap-2 mb-3">
-              <div className="flex items-center gap-2 text-rose-400 font-bold text-sm">
-                <Flame className="w-4 h-4" />
-                <span>Exploitable Vulnerabilities</span>
+              <div className="flex items-center gap-1.5 text-rose-900 font-bold text-sm">
+                <Flame className="w-4 h-4 text-rose-600" />
+                <span>Exploitable Weaknesses (Where You Win)</span>
               </div>
-              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-rose-900/60 text-rose-200 border border-rose-500/30">
-                Your Entry Points
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded bg-rose-100 text-rose-800">
+                Entry Points
               </span>
             </div>
-            <ul className="space-y-2.5">
+            <ul className="space-y-2">
               {(results.competitorVulnerabilities || []).map((v, i) => (
                 <li
                   key={i}
-                  className="text-xs sm:text-sm text-slate-200 flex items-start gap-2.5 leading-relaxed"
+                  className="text-xs sm:text-sm text-rose-950 flex items-start gap-2 leading-relaxed"
                 >
-                  <span className="text-rose-400 font-bold text-base leading-none">•</span>
+                  <span className="text-rose-600 font-bold shrink-0">•</span>
                   <span>{v}</span>
                 </li>
               ))}
             </ul>
           </div>
-          <p className="text-[11px] text-rose-300/80 mt-4 pt-3 border-t border-rose-500/10 font-semibold">
-            ⚡ Focus your 10x content directly on these weaknesses to outrank them.
+          <p className="text-[11px] text-rose-800/70 mt-3 pt-2.5 border-t border-rose-200/60 font-medium">
+            ⚡ Focus your 10x content directly on these areas to outrank them.
           </p>
         </div>
       </div>
