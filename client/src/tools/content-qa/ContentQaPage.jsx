@@ -330,6 +330,7 @@ export default function ContentQaPage() {
 
   // Multi-Format Content Input State
   const [inputSourceMode, setInputSourceMode] = useState('text') // 'text' | 'gdoc' | 'web' | 'file'
+  const [gdocUrl, setGdocUrl] = useState('')
   const [webUrl, setWebUrl] = useState('')
   const [importError, setImportError] = useState(null)
   const [importSuccessMsg, setImportSuccessMsg] = useState(null)
