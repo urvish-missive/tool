@@ -386,12 +386,35 @@ model ToolConfig {
   enabled         Boolean  @default(true)
   dailyLimit      Int      @default(100)
   hourlyLimit     Int      @default(20)
+  deviceLimit     Int      @default(3) // default usage limit per device (0 = unlimited)
   requireEmail    Boolean  @default(true)
   requireName     Boolean  @default(true)
   requirePhone    Boolean  @default(false)
   requireCompany  Boolean  @default(false)
   showLeadPopup   Boolean  @default(false)
   formFields      String   @default("{}") // JSON: { fieldName: { enabled: bool, label: string, required: bool, type: string } }
+  popupFields     String   @default("{}") // JSON: { [fieldName]: { show: bool, required: bool } }
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }
+
+model DeviceUsage {
+  id           String    @id @default(auto()) @map("_id") @db.ObjectId
+  deviceId     String
+  toolSlug     String
+  email        String?
+  ip           String?
+  userAgent    String?
+  usageCount   Int       @default(0)
+  customLimit  Int?      // Optional custom override for this specific device
+  isBlocked    Boolean   @default(false)
+  lastUsedAt   DateTime  @default(now())
+  createdAt    DateTime  @default(now())
+
+  @@unique([deviceId, toolSlug])
+  @@index([deviceId])
+  @@index([email])
+  @@index([toolSlug])
+  @@index([lastUsedAt])
+}
+

@@ -40,22 +40,30 @@ export function validateAnalysis(req, res, next) {
 }
 
 export function validateLead(req, res, next) {
-  const { name, email } = req.body
+  const { name, email, phone } = req.body
   const errors = []
 
-  if (!name || typeof name !== 'string' || name.trim().length < 2) {
-    errors.push('Name is required (minimum 2 characters).')
+  // If email is provided, validate format; if not provided, require at least phone or name
+  if (email && typeof email === 'string' && email.trim()) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      errors.push('A valid email address is required.')
+    }
+  } else if (!phone && !name) {
+    errors.push('Please provide your contact information (email or phone).')
   }
-  if (!email || typeof email !== 'string' || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
-    errors.push('A valid email address is required.')
+
+  // If name is provided, ensure minimum length
+  if (name && typeof name === 'string' && name.trim().length === 1) {
+    errors.push('Name must be at least 2 characters.')
   }
 
   if (errors.length > 0) {
     return res.status(400).json({ success: false, error: errors.join(' ') })
   }
 
-  req.body.name = name.trim()
-  req.body.email = email.trim().toLowerCase()
+  const cleanEmail = email && typeof email === 'string' && email.trim() ? email.trim().toLowerCase() : ''
+  req.body.email = cleanEmail || (phone ? `${String(phone).replace(/\D/g, '')}@lead.local` : 'visitor@lead.local')
+  req.body.name = (name && typeof name === 'string' && name.trim()) || (cleanEmail ? cleanEmail.split('@')[0] : 'Visitor')
   if (req.body.company) req.body.company = req.body.company.trim()
   if (req.body.website) req.body.website = req.body.website.trim()
   if (req.body.phone) req.body.phone = req.body.phone.trim()

@@ -19,7 +19,9 @@ import extractorRoutes from './routes/extractorRoutes.js'
 import imageExtractorRoutes from './routes/imageExtractorRoutes.js'
 import techInspectorRoutes from './routes/techInspectorRoutes.js'
 import contentWriterRoutes from './routes/contentWriterRoutes.js'
+import deviceRoutes from './routes/deviceRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
+
 import { toolAccess } from './middleware/toolAccess.js'
 import prisma from './utils/prisma.js'
 
@@ -71,6 +73,7 @@ app.use('/api/extractor', toolAccess('website-content-extractor'), extractorRout
 app.use('/api/image-extractor', toolAccess('website-image-extractor'), imageExtractorRoutes)
 app.use('/api/tech-inspector', toolAccess('website-tech-inspector'), techInspectorRoutes)
 app.use('/api/content-writer', toolAccess('ai-content-writer'), contentWriterRoutes)
+app.use('/api/devices', deviceRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -81,8 +84,9 @@ app.get('/api/health', (req, res) => {
 app.get('/api/tools/public', async (req, res) => {
   try {
     const tools = await prisma.toolConfig.findMany({
-      select: { slug: true, name: true, enabled: true, requireEmail: true, requireName: true, requirePhone: true, requireCompany: true, showLeadPopup: true, formFields: true },
+      select: { slug: true, name: true, enabled: true, requireEmail: true, requireName: true, requirePhone: true, requireCompany: true, showLeadPopup: true, formFields: true, popupFields: true, deviceLimit: true },
     })
+
     res.json({ success: true, tools })
   } catch {
     res.json({ success: true, tools: [] })

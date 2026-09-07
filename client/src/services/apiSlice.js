@@ -1,18 +1,43 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 import { API_BASE_URL } from '../utils/apiUrl'
+import { getOrCreateDeviceId } from '../utils/deviceId'
+
+const rawBaseQuery = fetchBaseQuery({
+  baseUrl: API_BASE_URL,
+  timeout: 120000,
+  prepareHeaders: (headers) => {
+    headers.set('Content-Type', 'application/json')
+    const deviceId = getOrCreateDeviceId()
+    if (deviceId) {
+      headers.set('x-device-id', deviceId)
+    }
+    return headers
+  },
+})
+
+const baseQueryWithDeviceLimit = async (args, api, extraOptions) => {
+  const result = await rawBaseQuery(args, api, extraOptions)
+  if (result.error?.data && typeof window !== 'undefined') {
+    if (result.error.data.deviceBlocked) {
+      window.dispatchEvent(
+        new CustomEvent('seo:device-blocked', { detail: result.error.data })
+      )
+    } else if (result.error.data.deviceLimitReached) {
+      window.dispatchEvent(
+        new CustomEvent('seo:device-limit-reached', { detail: result.error.data })
+      )
+    }
+  }
+  return result
+}
 
 export const apiSlice = createApi({
   reducerPath: 'api',
-  baseQuery: fetchBaseQuery({
-    baseUrl: API_BASE_URL,
-    timeout: 120000,
-    prepareHeaders: (headers) => {
-      headers.set('Content-Type', 'application/json')
-      return headers
-    },
-  }),
-  tagTypes: ['Analysis', 'Lead', 'BlogTopic', 'TopicCluster'],
+  baseQuery: baseQueryWithDeviceLimit,
+  tagTypes: ['Analysis', 'Lead', 'BlogTopic', 'TopicCluster', 'Device'],
   endpoints: (builder) => ({
+
+
     // POST /api/content/analyze
     analyzeContent: builder.mutation({
       query: (payload) => ({
@@ -277,6 +302,9 @@ export const apiSlice = createApi({
                 if (updates.formFields && typeof updates.formFields === 'object') {
                   serializedUpdates.formFields = JSON.stringify(updates.formFields)
                 }
+                if (updates.popupFields && typeof updates.popupFields === 'object') {
+                  serializedUpdates.popupFields = JSON.stringify(updates.popupFields)
+                }
                 Object.assign(tool, serializedUpdates)
               }
             }
@@ -307,6 +335,75 @@ export const apiSlice = createApi({
         url: `/admin/activity?${new URLSearchParams(params)}`,
         headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
       }),
+    }),
+
+    // ─── Device Limits Management ──────────────────────
+    getAdminDevices: builder.query({
+      query: (params = {}) => {
+        const q = new URLSearchParams()
+        if (params.search) q.append('search', params.search)
+        if (params.tool) q.append('tool', params.tool)
+        if (params.status) q.append('status', params.status)
+        if (params.page) q.append('page', params.page)
+        if (params.limit) q.append('limit', params.limit)
+        return {
+          url: `/admin/devices?${q.toString()}`,
+          headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+        }
+      },
+      providesTags: ['Device'],
+    }),
+
+    resetDeviceLimit: builder.mutation({
+      query: (id) => ({
+        url: `/admin/devices/${id}/reset`,
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+      }),
+      invalidatesTags: ['Device'],
+    }),
+
+    setDeviceCustomLimit: builder.mutation({
+      query: ({ id, customLimit }) => ({
+        url: `/admin/devices/${id}/limit`,
+        method: 'PATCH',
+        body: { customLimit },
+        headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+      }),
+      invalidatesTags: ['Device'],
+    }),
+
+    toggleBlockDevice: builder.mutation({
+      query: (id) => ({
+        url: `/admin/devices/${id}/block`,
+        method: 'POST',
+        headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+      }),
+      invalidatesTags: ['Device'],
+    }),
+
+    deleteDevice: builder.mutation({
+      query: (id) => ({
+        url: `/admin/devices/${id}`,
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+      }),
+      invalidatesTags: ['Device'],
+    }),
+
+    // Public device linking
+    linkDeviceEmail: builder.mutation({
+      query: (body) => ({
+        url: '/devices/link-email',
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Device'],
+    }),
+
+    getDeviceStatus: builder.query({
+      query: (toolSlug) => `/devices/status?toolSlug=${encodeURIComponent(toolSlug)}`,
+      providesTags: ['Device'],
     }),
   }),
 })
@@ -346,7 +443,15 @@ export const {
   useGetAdminLeadsQuery,
   useDeleteAdminLeadMutation,
   useGetAdminActivityQuery,
+  useGetAdminDevicesQuery,
+  useResetDeviceLimitMutation,
+  useSetDeviceCustomLimitMutation,
+  useToggleBlockDeviceMutation,
+  useDeleteDeviceMutation,
+  useLinkDeviceEmailMutation,
+  useGetDeviceStatusQuery,
 } = apiSlice
+
 
 export const useGenerateBlogTopicsMutation = useGenerateTopicsMutation
 export const useGenerateWrittenContentMutation = useGenerateContentMutation

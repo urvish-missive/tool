@@ -29,15 +29,44 @@ export default function LeadCaptureModal({ show, onClose, onSubmit, toolSlug, ti
     if (toolsData?.success && toolsData?.tools) {
       const tool = toolsData.tools.find((t) => t.slug === toolSlug)
       if (tool) {
+        let popup = {}
+        try {
+          if (tool.popupFields) {
+            popup = typeof tool.popupFields === 'string' ? JSON.parse(tool.popupFields) : tool.popupFields
+          }
+        } catch {}
+
         return {
-          requireName: tool.requireName ?? true,
-          requireEmail: tool.requireEmail ?? true,
-          requirePhone: tool.requirePhone ?? false,
-          requireCompany: tool.requireCompany ?? false,
+          name: {
+            show: popup.name?.show !== undefined ? popup.name.show : true,
+            required: popup.name?.required !== undefined ? popup.name.required : (tool.requireName ?? true),
+          },
+          email: {
+            show: popup.email?.show !== undefined ? popup.email.show : true,
+            required: popup.email?.required !== undefined ? popup.email.required : (tool.requireEmail ?? true),
+          },
+          phone: {
+            show: popup.phone?.show !== undefined ? popup.phone.show : true,
+            required: popup.phone?.required !== undefined ? popup.phone.required : (tool.requirePhone ?? false),
+          },
+          company: {
+            show: popup.company?.show !== undefined ? popup.company.show : true,
+            required: popup.company?.required !== undefined ? popup.company.required : (tool.requireCompany ?? false),
+          },
+          website: {
+            show: popup.website?.show !== undefined ? popup.website.show : true,
+            required: popup.website?.required !== undefined ? popup.website.required : false,
+          },
         }
       }
     }
-    return DEFAULT_CONFIG
+    return {
+      name: { show: true, required: true },
+      email: { show: true, required: true },
+      phone: { show: true, required: false },
+      company: { show: true, required: false },
+      website: { show: true, required: false },
+    }
   }, [toolsData, toolSlug])
 
   // Reset form when modal opens
@@ -53,11 +82,42 @@ export default function LeadCaptureModal({ show, onClose, onSubmit, toolSlug, ti
     setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
   }
 
+  const allFieldDefs = [
+    { name: 'name', label: 'Name', type: 'text', placeholder: 'Your Name' },
+    { name: 'email', label: 'Business Email', type: 'email', placeholder: 'you@company.com' },
+    { name: 'phone', label: 'Phone', type: 'tel', placeholder: '+1 234 567 890' },
+    { name: 'company', label: 'Company', type: 'text', placeholder: 'Company Name' },
+    { name: 'website', label: 'Website', type: 'url', placeholder: 'https://example.com' },
+  ]
+
+  const fields = allFieldDefs
+    .filter((f) => fieldConfig[f.name]?.show !== false)
+    .map((f) => ({
+      ...f,
+      required: Boolean(fieldConfig[f.name]?.required),
+    }))
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    // Validate only visible and required fields
+    for (const f of fields) {
+      if (f.required && !form[f.name]?.trim()) {
+        setError(`Please provide your ${f.label.toLowerCase()}.`)
+        return
+      }
+    }
+
     try {
-      await submitLead({ ...form, source: toolSlug }).unwrap()
+      const payload = { source: toolSlug }
+      fields.forEach((f) => {
+        if (form[f.name]?.trim()) {
+          payload[f.name] = form[f.name].trim()
+        }
+      })
+
+      await submitLead(payload).unwrap()
       setLeadCaptured(true)
       // Auto-close after brief success animation
       setTimeout(() => {
@@ -75,26 +135,6 @@ export default function LeadCaptureModal({ show, onClose, onSubmit, toolSlug, ti
   }
 
   if (!show) return null
-
-  const fields = [
-    { name: 'name', label: 'Name', type: 'text', required: fieldConfig.requireName, col: true },
-    {
-      name: 'email',
-      label: 'Business Email',
-      type: 'email',
-      required: fieldConfig.requireEmail,
-      col: true,
-    },
-    {
-      name: 'company',
-      label: 'Company',
-      type: 'text',
-      required: fieldConfig.requireCompany,
-      col: true,
-    },
-    { name: 'website', label: 'Website', type: 'url', required: false, col: true },
-    { name: 'phone', label: 'Phone', type: 'tel', required: fieldConfig.requirePhone, col: false },
-  ]
 
   if (leadCaptured) {
     return (
@@ -167,30 +207,27 @@ export default function LeadCaptureModal({ show, onClose, onSubmit, toolSlug, ti
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid sm:grid-cols-2 gap-4">
-              {fields.map((f) => (
-                <div key={f.name} className={!f.col ? 'sm:col-span-2' : ''}>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    {f.label}
-                    {f.required && ' *'}
-                  </label>
-                  <input
-                    name={f.name}
-                    type={f.type}
-                    required={f.required}
-                    value={form[f.name]}
-                    onChange={handleChange}
-                    className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                    placeholder={
-                      f.type === 'email'
-                        ? 'you@company.com'
-                        : f.type === 'tel'
-                          ? '+1 234 567 890'
-                          : ''
-                    }
-                  />
-                </div>
-              ))}
+            <div className={fields.length === 1 ? 'space-y-4' : 'grid sm:grid-cols-2 gap-4'}>
+              {fields.map((f, idx) => {
+                const isSpanTwo = fields.length === 1 || (fields.length % 2 === 1 && idx === fields.length - 1)
+                return (
+                  <div key={f.name} className={isSpanTwo ? 'sm:col-span-2' : ''}>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      {f.label}
+                      {f.required && <span className="text-red-500 font-bold"> *</span>}
+                    </label>
+                    <input
+                      name={f.name}
+                      type={f.type}
+                      required={f.required}
+                      value={form[f.name]}
+                      onChange={handleChange}
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                      placeholder={f.placeholder}
+                    />
+                  </div>
+                )
+              })}
             </div>
 
             {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg p-2">{error}</p>}

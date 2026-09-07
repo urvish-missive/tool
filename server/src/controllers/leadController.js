@@ -4,14 +4,14 @@ export async function createLeadHandler(req, res) {
   try {
     const { name, email, company, website, phone, source, analysisId, auditId, researchId, blogTopicId } = req.body
 
-    if (!name || !email) {
-      return res.status(400).json({ success: false, error: 'Name and email are required' })
-    }
+    const cleanEmail = email && typeof email === 'string' && email.trim() ? email.trim().toLowerCase() : ''
+    const emailVal = cleanEmail || (phone ? `${String(phone).replace(/\D/g, '')}@lead.local` : 'visitor@lead.local')
+    const nameVal = (name && typeof name === 'string' && name.trim()) || (cleanEmail ? cleanEmail.split('@')[0] : 'Visitor')
 
     const lead = await prisma.lead.create({
       data: {
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
+        name: nameVal,
+        email: emailVal,
         company: company?.trim() || null,
         website: website?.trim() || null,
         phone: phone?.trim() || null,
@@ -22,6 +22,20 @@ export async function createLeadHandler(req, res) {
         blogTopicId: blogTopicId || null,
       },
     })
+
+    // Link device with email if deviceId present
+    const deviceId = req.headers['x-device-id'] || req.body?.deviceId
+    if (deviceId) {
+      try {
+        await prisma.deviceUsage.updateMany({
+          where: { deviceId },
+          data: { email: emailVal },
+        })
+      } catch (devErr) {
+        console.warn('Could not link device to email:', devErr.message)
+      }
+    }
+
 
     res.json({ success: true, leadId: lead.id })
   } catch (err) {

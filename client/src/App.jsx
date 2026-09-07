@@ -22,21 +22,27 @@ import AdminLogin from './pages/admin/AdminLogin'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminTools from './pages/admin/AdminTools'
+import AdminDevices from './pages/admin/AdminDevices'
 import AdminLeads from './pages/admin/AdminLeads'
 import AdminActivity from './pages/admin/AdminActivity'
+import GlobalDeviceLimitModal from './components/GlobalDeviceLimitModal'
 
 export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <GlobalDeviceLimitModal />
       <Routes>
+
         {/* Admin routes — no Navbar/Footer */}
         <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/admin" element={<AdminLayout />}>
           <Route index element={<AdminDashboard />} />
           <Route path="activity" element={<AdminActivity />} />
           <Route path="tools" element={<AdminTools />} />
+          <Route path="devices" element={<AdminDevices />} />
           <Route path="leads" element={<AdminLeads />} />
         </Route>
+
 
         {/* Public routes — with Navbar/Footer */}
         <Route

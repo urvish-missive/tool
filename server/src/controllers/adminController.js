@@ -208,11 +208,27 @@ export async function updateTool(req, res) {
     if (requirePhone !== undefined) data.requirePhone = requirePhone
     if (requireCompany !== undefined) data.requireCompany = requireCompany
     if (showLeadPopup !== undefined) data.showLeadPopup = showLeadPopup
+    if (req.body.deviceLimit !== undefined) {
+      data.deviceLimit = Math.max(0, parseInt(req.body.deviceLimit) || 0)
+    }
+
     if (req.body.formFields !== undefined) {
       // Store as JSON string — merge with existing fields if partial update
       const existing = await prisma.toolConfig.findUnique({ where: { id }, select: { formFields: true } })
       const prev = existing?.formFields ? JSON.parse(existing.formFields) : {}
       data.formFields = JSON.stringify({ ...prev, ...req.body.formFields })
+    }
+    if (req.body.popupFields !== undefined) {
+      if (typeof req.body.popupFields === 'string') {
+        data.popupFields = req.body.popupFields
+      } else {
+        const existing = await prisma.toolConfig.findUnique({ where: { id }, select: { popupFields: true } })
+        let prev = {}
+        try {
+          if (existing?.popupFields) prev = JSON.parse(existing.popupFields)
+        } catch {}
+        data.popupFields = JSON.stringify({ ...prev, ...req.body.popupFields })
+      }
     }
     if (name !== undefined) data.name = name
     if (description !== undefined) data.description = description
@@ -485,3 +501,164 @@ function startOfDay() {
   d.setHours(0, 0, 0, 0)
   return d
 }
+
+// ─── Device Limit Management ─────────────────────────────
+
+export async function getDevices(req, res) {
+  try {
+    const { search, tool, status, page = 1, limit = 50 } = req.query
+    const skip = (Math.max(1, parseInt(page)) - 1) * parseInt(limit)
+    const take = Math.min(Math.max(1, parseInt(limit)), 100)
+
+    const where = {}
+
+    // Tool filter
+    if (tool && tool !== 'all') {
+      where.toolSlug = tool
+    }
+
+    // Status filter (database level)
+    if (status === 'blocked') {
+      where.isBlocked = true
+    }
+
+    // Search by email, deviceId, IP
+    if (search && search.trim()) {
+      const q = search.trim()
+      where.OR = [
+        { email: { contains: q, mode: 'insensitive' } },
+        { deviceId: { contains: q, mode: 'insensitive' } },
+        { ip: { contains: q, mode: 'insensitive' } },
+      ]
+    }
+
+    const [devices, total, toolConfigs] = await Promise.all([
+      prisma.deviceUsage.findMany({
+        where,
+        orderBy: { lastUsedAt: 'desc' },
+        skip,
+        take,
+      }),
+      prisma.deviceUsage.count({ where }),
+      prisma.toolConfig.findMany({ select: { slug: true, name: true, deviceLimit: true } }),
+    ])
+
+    const toolMap = {}
+    toolConfigs.forEach(t => { toolMap[t.slug] = t })
+
+    const enrichedDevices = devices.map(d => {
+      const toolCfg = toolMap[d.toolSlug]
+      const defaultLimit = toolCfg?.deviceLimit ?? 3
+      const effectiveLimit = d.customLimit !== null && d.customLimit !== undefined
+        ? d.customLimit
+        : defaultLimit
+      const isLimitReached = effectiveLimit > 0 && d.usageCount >= effectiveLimit
+
+      return {
+        ...d,
+        toolName: toolCfg?.name || d.toolSlug,
+        defaultLimit,
+        effectiveLimit,
+        isLimitReached,
+      }
+    })
+
+    let filteredList = enrichedDevices
+    if (status === 'limit_reached') {
+      filteredList = enrichedDevices.filter(d => d.isLimitReached && !d.isBlocked)
+    } else if (status === 'active') {
+      filteredList = enrichedDevices.filter(d => !d.isLimitReached && !d.isBlocked)
+    }
+
+    const [totalDevicesCount, blockedCount, devicesWithEmail] = await Promise.all([
+      prisma.deviceUsage.count(),
+      prisma.deviceUsage.count({ where: { isBlocked: true } }),
+      prisma.deviceUsage.count({ where: { email: { not: null } } }),
+    ])
+
+    res.json({
+      success: true,
+      devices: filteredList,
+      pagination: {
+        page: parseInt(page),
+        limit: take,
+        total,
+        totalPages: Math.ceil(total / take),
+      },
+      stats: {
+        totalDevices: totalDevicesCount,
+        blockedDevices: blockedCount,
+        devicesWithEmail,
+      },
+    })
+  } catch (err) {
+    console.error('Get devices error:', err.message)
+    res.status(500).json({ success: false, error: 'Failed to fetch devices' })
+  }
+}
+
+export async function resetDeviceLimit(req, res) {
+  try {
+    const { id } = req.params
+    const updated = await prisma.deviceUsage.update({
+      where: { id },
+      data: { usageCount: 0, lastUsedAt: new Date() },
+    })
+    res.json({ success: true, message: 'Device limit reset successfully', device: updated })
+  } catch (err) {
+    console.error('Reset device limit error:', err.message)
+    res.status(500).json({ success: false, error: 'Failed to reset device limit' })
+  }
+}
+
+export async function setDeviceCustomLimit(req, res) {
+  try {
+    const { id } = req.params
+    const { customLimit } = req.body
+    const limitVal = customLimit === null || customLimit === undefined || customLimit === ''
+      ? null
+      : Math.max(0, parseInt(customLimit))
+
+    const updated = await prisma.deviceUsage.update({
+      where: { id },
+      data: { customLimit: limitVal },
+    })
+    res.json({ success: true, message: 'Device custom limit updated', device: updated })
+  } catch (err) {
+    console.error('Set custom limit error:', err.message)
+    res.status(500).json({ success: false, error: 'Failed to update custom limit' })
+  }
+}
+
+export async function toggleBlockDevice(req, res) {
+  try {
+    const { id } = req.params
+    const current = await prisma.deviceUsage.findUnique({ where: { id } })
+    if (!current) return res.status(404).json({ success: false, error: 'Device not found' })
+
+    const updated = await prisma.deviceUsage.update({
+      where: { id },
+      data: { isBlocked: !current.isBlocked },
+    })
+    res.json({
+      success: true,
+      message: updated.isBlocked ? 'Device blocked' : 'Device unblocked',
+      device: updated,
+    })
+  } catch (err) {
+    console.error('Toggle block error:', err.message)
+    res.status(500).json({ success: false, error: 'Failed to update device status' })
+  }
+}
+
+export async function deleteDevice(req, res) {
+  try {
+    const { id } = req.params
+    await prisma.deviceUsage.delete({ where: { id } })
+    res.json({ success: true, message: 'Device record deleted' })
+  } catch (err) {
+    console.error('Delete device error:', err.message)
+    res.status(500).json({ success: false, error: 'Failed to delete device' })
+  }
+}
+
