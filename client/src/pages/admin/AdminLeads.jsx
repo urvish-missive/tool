@@ -9,6 +9,7 @@ const SOURCES = [
   'blog-topics',
   'logo-maker',
   'seo-roi',
+  'ai-content-writer',
 ]
 
 export default function AdminLeads() {

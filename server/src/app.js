@@ -1,4 +1,4 @@
-import 'dotenv/config'
+import 'dotenv/config' // reloaded
 import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
@@ -18,6 +18,7 @@ import rankRoutes from './routes/rankRoutes.js'
 import extractorRoutes from './routes/extractorRoutes.js'
 import imageExtractorRoutes from './routes/imageExtractorRoutes.js'
 import techInspectorRoutes from './routes/techInspectorRoutes.js'
+import contentWriterRoutes from './routes/contentWriterRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 import { toolAccess } from './middleware/toolAccess.js'
 import prisma from './utils/prisma.js'
@@ -69,6 +70,7 @@ app.use('/api/rank', toolAccess('google-rank-checker'), rankRoutes)
 app.use('/api/extractor', toolAccess('website-content-extractor'), extractorRoutes)
 app.use('/api/image-extractor', toolAccess('website-image-extractor'), imageExtractorRoutes)
 app.use('/api/tech-inspector', toolAccess('website-tech-inspector'), techInspectorRoutes)
+app.use('/api/content-writer', toolAccess('ai-content-writer'), contentWriterRoutes)
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -208,6 +210,14 @@ async function seedDefaults() {
       { slug: 'website-tech-inspector', name: 'Website Tech & Theme Inspector', description: 'Extract website theme colors, technology stack, Google font families, and design specs', dailyLimit: 60, hourlyLimit: 15, formFields: JSON.stringify({
         url: { enabled: true, label: 'Website URL', required: true },
       })},
+      { slug: 'ai-content-writer', name: 'AI Content Writer', description: 'AI-powered SEO content writer for blog posts, articles, product pages, and more', dailyLimit: 50, hourlyLimit: 10, formFields: JSON.stringify({
+        keyword: { enabled: true, label: 'Topic / Primary Keyword', required: true },
+        contentType: { enabled: true, label: 'Content Type', required: false },
+        tone: { enabled: true, label: 'Tone', required: false },
+        wordCount: { enabled: true, label: 'Word Count', required: false },
+        targetAudience: { enabled: true, label: 'Target Audience', required: false },
+        secondaryKeywords: { enabled: true, label: 'Secondary Keywords', required: false },
+      })},
     ]
     await prisma.toolConfig.createMany({ data: tools })
     console.log('✓ Default tool configs created')
@@ -318,6 +328,31 @@ async function seedDefaults() {
           },
         })
         console.log('✓ Website Tech & Theme Inspector tool config seeded')
+      }
+    } catch {}
+
+    // Ensure ai-content-writer exists if database was already initialized
+    try {
+      const writerTool = await prisma.toolConfig.findUnique({ where: { slug: 'ai-content-writer' } })
+      if (!writerTool) {
+        await prisma.toolConfig.create({
+          data: {
+            slug: 'ai-content-writer',
+            name: 'AI Content Writer',
+            description: 'AI-powered SEO content writer for blog posts, articles, product pages, and more',
+            dailyLimit: 50,
+            hourlyLimit: 10,
+            formFields: JSON.stringify({
+              keyword: { enabled: true, label: 'Topic / Primary Keyword', required: true },
+              contentType: { enabled: true, label: 'Content Type', required: false },
+              tone: { enabled: true, label: 'Tone', required: false },
+              wordCount: { enabled: true, label: 'Word Count', required: false },
+              targetAudience: { enabled: true, label: 'Target Audience', required: false },
+              secondaryKeywords: { enabled: true, label: 'Secondary Keywords', required: false },
+            }),
+          },
+        })
+        console.log('✓ AI Content Writer tool config seeded')
       }
     } catch {}
   }

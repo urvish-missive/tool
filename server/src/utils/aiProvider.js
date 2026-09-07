@@ -5,6 +5,13 @@ import { fetchWithTimeout, extractAndCleanJSON } from './helpers.js'
 const AI_TIMEOUT = 45000
 
 const PROVIDERS = {
+  'gemini-3.5-flash-lite': {
+    url: process.env.AI_API_URL || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+    model: process.env.GEMINI_3_5_LITE_MODEL || 'gemini-3.5-flash-lite',
+    key: process.env.AI_API_KEY,
+    headerName: 'Authorization',
+    headerPrefix: 'Bearer ',
+  },
   'gemini-3.5-flash': {
     url: process.env.AI_API_URL || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
     model: process.env.GEMINI_3_5_MODEL || 'gemini-3.5-flash',
@@ -21,26 +28,27 @@ const PROVIDERS = {
   },
   gemini: {
     url: process.env.AI_API_URL || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
-    model: process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-3.7-flash',
+    model: process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite',
     key: process.env.AI_API_KEY,
     headerName: 'Authorization',
     headerPrefix: 'Bearer ',
   },
   groq: {
     url: 'https://api.groq.com/openai/v1/chat/completions',
-    model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+    model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
     key: process.env.GROQ_API_KEY,
     headerName: 'Authorization',
     headerPrefix: 'Bearer ',
   },
   openrouter: {
     url: 'https://openrouter.ai/api/v1/chat/completions',
-    model: process.env.OPENROUTER_MODEL || 'google/gemini-3.5-flash',
+    model: process.env.OPENROUTER_MODEL || 'minimax/minimax-m2.7:free',
     key: process.env.OPENROUTER_API_KEY,
     headerName: 'Authorization',
     headerPrefix: 'Bearer ',
   },
 }
+
 
 /* ── Core AI Call ───────────────────────────────────────────────── */
 
@@ -73,7 +81,43 @@ async function callProvider(providerName, messages, options = {}) {
     const status = response.status
     const bodyText = await response.text().catch(() => '')
 
-    // Handle 402 (credits exceeded) — retry with fewer tokens
+    // Handle 402 (credits exceeded) on OpenRouter — try free tier model
+    if (status === 402 && providerName === 'openrouter' && !provider.model.includes(':free')) {
+      console.log('OpenRouter paid credits exhausted; falling back to free tier model minimax/minimax-m2.7:free...')
+      try {
+        const freeOpts = { ...options, maxTokens: Math.min(maxTokens, 4000) }
+        const freeBody = {
+          model: 'minimax/minimax-m2.7:free',
+          messages,
+          temperature,
+          max_tokens: freeOpts.maxTokens,
+        }
+        if (jsonMode) freeBody.response_format = { type: 'json_object' }
+
+        const freeRes = await fetchWithTimeout(provider.url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            [provider.headerName]: `${provider.headerPrefix}${provider.key}`,
+          },
+          body: JSON.stringify(freeBody),
+        }, timeout)
+
+        if (freeRes.ok) {
+          const freeData = await freeRes.json()
+          let freeContent = freeData.choices?.[0]?.message?.content || ''
+          if (freeContent) {
+            freeContent = freeContent.replace(/<think>[\s\S]*?<\/think>/gi, '').trim()
+            freeContent = freeContent.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
+            return freeContent
+          }
+        }
+      } catch (freeErr) {
+        console.warn('OpenRouter free tier fallback failed:', freeErr.message)
+      }
+    }
+
+    // Handle 402 (credits exceeded) — retry with fewer tokens if applicable
     if (status === 402 && maxTokens > 1000) {
       console.log(`Retrying ${providerName} with reduced tokens (${Math.floor(maxTokens / 2)})`)
       return callProvider(providerName, messages, { ...options, maxTokens: Math.floor(maxTokens / 2) })
@@ -112,12 +156,14 @@ export async function callAI(messages, options = {}) {
   let targetProvider = preferredProvider
   if (targetProvider === 'gemini-3.5' || targetProvider === 'gemini_3_5') targetProvider = 'gemini-3.5-flash'
   if (targetProvider === 'gemini-3.7' || targetProvider === 'gemini_3_7') targetProvider = 'gemini-3.7-flash'
+  if (targetProvider === 'gemini-lite' || targetProvider === 'gemini-3.5-lite') targetProvider = 'gemini-3.5-flash-lite'
 
-  // Determine provider order (prioritize targetProvider, then fallback to others)
-  const allProviders = ['gemini-3.7-flash', 'groq', 'openrouter', 'gemini-3.5-flash'].filter(p => PROVIDERS[p]?.key)
+  // Determine provider order (prioritize targetProvider, then fallback to robust free providers)
+  const allProviders = ['groq', 'gemini-3.5-flash-lite', 'openrouter', 'gemini-3.7-flash', 'gemini-3.5-flash'].filter(p => PROVIDERS[p]?.key)
   const providerOrder = targetProvider && PROVIDERS[targetProvider]?.key
     ? [targetProvider, ...allProviders.filter(p => p !== targetProvider)]
     : allProviders
+
 
   console.log(`AI provider: ${providerOrder.join(' → ')} (preferred: ${targetProvider || 'default'})`)
   const errors = []

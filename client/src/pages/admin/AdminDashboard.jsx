@@ -125,6 +125,7 @@ export default function AdminDashboard() {
                 'Blog Topic Generator': 'bg-green-100 text-green-700',
                 'Logo Maker': 'bg-blue-100 text-blue-700',
                 'ROI Calculator': 'bg-pink-100 text-pink-700',
+                'AI Content Writer': 'bg-indigo-100 text-indigo-700',
               }
               const toolIcons = {
                 'Content Analyzer': '📝',
@@ -133,6 +134,7 @@ export default function AdminDashboard() {
                 'Blog Topic Generator': '💡',
                 'Logo Maker': '🎨',
                 'ROI Calculator': '💰',
+                'AI Content Writer': '✍️',
               }
               return (
                 <div

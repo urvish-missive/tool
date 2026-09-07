@@ -207,6 +207,33 @@ export const apiSlice = createApi({
       }),
     }),
 
+    // POST /api/content-writer/generate
+    generateContent: builder.mutation({
+      query: (payload) => ({
+        url: '/content-writer/generate',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
+    // POST /api/content-writer/rewrite
+    rewriteContent: builder.mutation({
+      query: (payload) => ({
+        url: '/content-writer/rewrite',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
+    // POST /api/content-writer/meta-tags
+    generateMetaTags: builder.mutation({
+      query: (payload) => ({
+        url: '/content-writer/meta-tags',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
     // GET /api/health
     healthCheck: builder.query({
       query: () => '/health',
@@ -307,6 +334,9 @@ export const {
   useAskWebsiteQuestionMutation,
   useExtractWebsiteImagesMutation,
   useInspectWebsiteTechMutation,
+  useGenerateContentMutation,
+  useRewriteContentMutation,
+  useGenerateMetaTagsMutation,
   useHealthCheckQuery,
   useGetPublicToolsQuery,
   useAdminLoginMutation,
@@ -319,3 +349,4 @@ export const {
 } = apiSlice
 
 export const useGenerateBlogTopicsMutation = useGenerateTopicsMutation
+export const useGenerateWrittenContentMutation = useGenerateContentMutation

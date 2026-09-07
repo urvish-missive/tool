@@ -17,6 +17,7 @@ const TOOL_HREF_SLUGS = {
   '/website-content-extractor': 'website-content-extractor',
   '/website-image-extractor': 'website-image-extractor',
   '/website-tech-inspector': 'website-tech-inspector',
+  '/ai-content-writer': 'ai-content-writer',
 }
 
 const NAV_ITEMS = [
@@ -123,6 +124,7 @@ const NAV_ITEMS = [
             { icon: '💡', label: 'Blog Topic Generator', href: '/blog-topic-generator' },
             { icon: '❓', label: 'FAQ Generator', href: '/faq-generator' },
             { icon: '🎨', label: 'Logo Maker', href: '/logo-maker' },
+            { icon: '✍️', label: 'AI Content Writer', badge: 'NEW', badgeColor: 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white', href: '/ai-content-writer' },
           ],
         },
         {

@@ -151,56 +151,200 @@ export function calculateCategoryScore(checks, issueCount, severityCounts) {
 export function extractAndCleanJSON(raw) {
   if (!raw || typeof raw !== 'string') return '{}'
 
-  // 1. Remove markdown fences anywhere in text
-  let cleaned = raw.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim()
+  // 1. Remove think tags if any
+  let cleaned = raw.replace(/<think>[\s\S]*?<\/think>/gi, '').trim()
 
-  // 2. Locate outermost JSON object {...} or array [...]
+  // 2. Remove markdown fences anywhere in text
+  cleaned = cleaned.replace(/```(?:json)?/gi, '').replace(/```/g, '').trim()
+
+  // 3. Locate outermost JSON object {...} or array [...]
   const firstBrace = cleaned.indexOf('{')
   const firstBracket = cleaned.indexOf('[')
 
   if (firstBrace !== -1 && (firstBracket === -1 || firstBrace < firstBracket)) {
-    const lastBrace = cleaned.lastIndexOf('}')
-    if (lastBrace > firstBrace) {
-      cleaned = cleaned.substring(firstBrace, lastBrace + 1)
+    const matchingBrace = findMatchingClosing(cleaned, firstBrace, '{', '}')
+    if (matchingBrace !== -1) {
+      cleaned = cleaned.substring(firstBrace, matchingBrace + 1)
+    } else {
+      cleaned = cleaned.substring(firstBrace)
     }
   } else if (firstBracket !== -1) {
-    const lastBracket = cleaned.lastIndexOf(']')
-    if (lastBracket > firstBracket) {
-      cleaned = cleaned.substring(firstBracket, lastBracket + 1)
+    const matchingBracket = findMatchingClosing(cleaned, firstBracket, '[', ']')
+    if (matchingBracket !== -1) {
+      cleaned = cleaned.substring(firstBracket, matchingBracket + 1)
+    } else {
+      cleaned = cleaned.substring(firstBracket)
     }
   }
 
-  // 3. Fix trailing commas before } or ]
+  // 4. Fix trailing commas before } or ]
   cleaned = cleaned.replace(/,\s*([}\]])/g, '$1')
 
-  // 4. Remove invalid control characters
-  cleaned = cleaned.replace(/[\x00-\x1F\x7F-\x9F]/g, (c) => {
-    if (c === '\n' || c === '\r' || c === '\t') return c
-    return ''
-  })
-
-  // 5. Try parsing; if truncated, attempt auto-closing
+  // 5. Try parsing as-is first
   try {
     JSON.parse(cleaned)
     return cleaned
   } catch {
-    let repaired = cleaned.replace(/,\s*$/, '')
-    const quotes = (repaired.match(/"/g) || []).length
-    if (quotes % 2 !== 0) repaired += '"'
+    // continue to repair
+  }
 
-    const openBraces = (repaired.match(/\{/g) || []).length - (repaired.match(/\}/g) || []).length
-    const openBrackets = (repaired.match(/\[/g) || []).length - (repaired.match(/\]/g) || []).length
+  // 6. Fix unescaped quotes, newlines, and tabs inside string values
+  let repaired = repairJSONStrings(cleaned)
+  try {
+    JSON.parse(repaired)
+    return repaired
+  } catch {
+    // continue
+  }
 
-    for (let i = 0; i < Math.max(0, openBrackets); i++) repaired += ']'
-    for (let i = 0; i < Math.max(0, openBraces); i++) repaired += '}'
+  // 7. Auto-close truncated JSON using balanced stack
+  repaired = autoCloseTruncatedJSON(repaired)
+  try {
+    JSON.parse(repaired)
+    return repaired
+  } catch {
+    return cleaned
+  }
+}
 
-    try {
-      JSON.parse(repaired)
-      return repaired
-    } catch {
-      return cleaned
+/**
+ * Find the matching closing brace or bracket for the root element.
+ * Returns -1 if not closed (e.g. truncated).
+ */
+function findMatchingClosing(str, startIndex, openChar, closeChar) {
+  let depth = 0
+  let inString = false
+  let isEsc = false
+  for (let i = startIndex; i < str.length; i++) {
+    const c = str[i]
+    if (inString) {
+      if (isEsc) {
+        isEsc = false
+      } else if (c === '\\') {
+        isEsc = true
+      } else if (c === '"') {
+        inString = false
+      }
+    } else {
+      if (c === '"') {
+        inString = true
+      } else if (c === openChar) {
+        depth++
+      } else if (c === closeChar) {
+        depth--
+        if (depth === 0) return i
+      }
     }
   }
+  return -1
+}
+
+/**
+ * Walk a JSON string and escape unescaped double-quotes, newlines, and tabs inside string values.
+ */
+function repairJSONStrings(str) {
+  let result = ''
+  let inString = false
+  let i = 0
+
+  while (i < str.length) {
+    const ch = str[i]
+
+    if (!inString) {
+      result += ch
+      if (ch === '"') inString = true
+      i++
+    } else {
+      if (ch === '\\') {
+        // Escaped character — copy both
+        result += ch + (str[i + 1] || '')
+        i += 2
+      } else if (ch === '"') {
+        // Check if this is the real end of the JSON string
+        const rest = str.substring(i + 1).replace(/^[\s\r\n]*/, '')
+        const nextChar = rest[0] || ''
+        if (nextChar === ':' || nextChar === ',' || nextChar === '}' || nextChar === ']' || nextChar === '') {
+          result += ch
+          inString = false
+          i++
+        } else {
+          // Unescaped quote inside content — escape it
+          result += '\\"'
+          i++
+        }
+      } else if (ch === '\n') {
+        result += '\\n'
+        i++
+      } else if (ch === '\r') {
+        result += '\\r'
+        i++
+      } else if (ch === '\t') {
+        result += '\\t'
+        i++
+      } else {
+        result += ch
+        i++
+      }
+    }
+  }
+
+  if (inString) {
+    result += '"'
+  }
+
+  return result
+}
+
+/**
+ * Auto-close truncated JSON by maintaining an opening brace/bracket stack.
+ */
+function autoCloseTruncatedJSON(str) {
+  let truncated = str.trim()
+
+  truncated = truncated.replace(/,\s*$/, '')
+  truncated = truncated.replace(/:\s*$/, ': ""')
+
+  let openQuote = false
+  let isEsc = false
+  const stack = []
+
+  for (let i = 0; i < truncated.length; i++) {
+    const c = truncated[i]
+    if (openQuote) {
+      if (isEsc) {
+        isEsc = false
+      } else if (c === '\\') {
+        isEsc = true
+      } else if (c === '"') {
+        openQuote = false
+      }
+    } else {
+      if (c === '"') {
+        openQuote = true
+      } else if (c === '{') {
+        stack.push('}')
+      } else if (c === '[') {
+        stack.push(']')
+      } else if (c === '}') {
+        if (stack.length && stack[stack.length - 1] === '}') stack.pop()
+      } else if (c === ']') {
+        if (stack.length && stack[stack.length - 1] === ']') stack.pop()
+      }
+    }
+  }
+
+  if (openQuote) {
+    truncated += '"'
+  }
+
+  truncated = truncated.replace(/,\s*$/, '')
+  truncated = truncated.replace(/:\s*$/, ': ""')
+
+  while (stack.length) {
+    truncated += stack.pop()
+  }
+
+  return truncated
 }
 
 // ─── Retry Wrapper ────────────────────────────────────────────

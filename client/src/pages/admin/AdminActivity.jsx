@@ -36,6 +36,12 @@ const TOOLS = [
     icon: '📈',
     color: 'bg-blue-100 text-blue-700',
   },
+  {
+    slug: 'ai-content-writer',
+    label: 'AI Content Writer',
+    icon: '✍️',
+    color: 'bg-indigo-100 text-indigo-700',
+  },
 ]
 
 export default function AdminActivity() {

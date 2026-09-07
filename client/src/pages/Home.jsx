@@ -17,6 +17,7 @@ const TOOL_SLUG_MAP = {
   website_content_extractor: 'website-content-extractor',
   website_image_extractor: 'website-image-extractor',
   website_tech_inspector: 'website-tech-inspector',
+  ai_content_writer: 'ai-content-writer',
 }
 
 const TOOLS = [
@@ -158,6 +159,16 @@ const TOOLS = [
     icon: '⚡',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/website-tech-inspector',
+    badge: 'New Tool',
+  },
+  {
+    id: 'ai_content_writer',
+    title: 'AI Content Writer',
+    description:
+      'Generate publication-ready, SEO-optimized blog posts, articles, product pages, and landing pages with AI. Includes meta tags, schema, and scoring.',
+    icon: '✍️',
+    color: 'from-[#0C81F3] to-[#EB8988]',
+    path: '/ai-content-writer',
     badge: 'New Tool',
   },
 ]

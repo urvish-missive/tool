@@ -40,6 +40,14 @@ const TOOL_FIELDS = {
     { key: 'contentType', label: 'Content Type', icon: '📄' },
     { key: 'topicCount', label: 'Topic Count', icon: '🔢' },
   ],
+  'ai-content-writer': [
+    { key: 'keyword', label: 'Topic / Primary Keyword', icon: '🎯' },
+    { key: 'contentType', label: 'Content Type', icon: '📄' },
+    { key: 'tone', label: 'Tone', icon: '🎨' },
+    { key: 'wordCount', label: 'Word Count', icon: '🔢' },
+    { key: 'targetAudience', label: 'Target Audience', icon: '👥' },
+    { key: 'secondaryKeywords', label: 'Secondary Keywords', icon: '🏷️' },
+  ],
   'logo-maker': [
     { key: 'brandName', label: 'Brand Name', icon: '✏️' },
     { key: 'description', label: 'Description', icon: '📝' },

@@ -179,6 +179,8 @@ model Lead {
   extractedImages     ExtractedImageProject? @relation(fields: [extractedImagesId], references: [id])
   extractedTechId     String?           @db.ObjectId
   extractedTech       ExtractedTechProject? @relation(fields: [extractedTechId], references: [id])
+  contentWriterId     String?           @db.ObjectId
+  contentWriter       ContentWriter?    @relation(fields: [contentWriterId], references: [id])
   createdAt          DateTime          @default(now())
 
   @@index([email])
@@ -348,6 +350,21 @@ model ExtractedTechProject {
 
   @@index([createdAt])
   @@index([websiteUrl])
+}
+
+model ContentWriter {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  keyword       String
+  contentType   String
+  tone          String
+  title         String
+  contentJson   String   // JSON full generated content
+  wordCount     Int      @default(0)
+  createdAt     DateTime @default(now())
+  leads         Lead[]
+
+  @@index([createdAt])
+  @@index([keyword])
 }
 
 // ─── Admin & Tool Management ────────────────────────────
