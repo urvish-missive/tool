@@ -19,6 +19,10 @@ import {
 } from 'lucide-react'
 import {
   LandingHero,
+  LandingMarquee,
+  LandingFunnelFlow,
+  LandingPillCloud,
+  LandingDarkImpact,
   LandingFeatures,
   LandingHowItWorks,
   LandingBeforeAfter,
@@ -355,7 +359,7 @@ export default function BlogIntroLandingPage() {
       </Helmet>
 
       <div className="landing-page min-h-screen bg-white">
-        {/* ═══════════════ HERO ═══════════════ */}
+        {/* ═══════════════ 1. HERO WITH FLOATING GLASS CARDS ═══════════════ */}
         <LandingHero
           badge="Himani's SEO Tools • Missive Digital"
           title={[
@@ -366,7 +370,7 @@ export default function BlogIntroLandingPage() {
           subtitle="AI-powered blog hooks engineered across the full funnel — TOFU (Awareness), MOFU (Consideration), and BOFU (Decision). 9 psychological formulas, 8 tones, zero writer's block."
           ctaLabel="Start Generating Free →"
           ctaOnClick={scrollToTool}
-          secondaryCta={{ label: 'See How It Works', onClick: scrollToTool }}
+          secondaryCta={{ label: 'Explore Funnel Frameworks', onClick: scrollToTool }}
           trustBadges={[
             'No sign-up required',
             '100% free',
@@ -375,10 +379,16 @@ export default function BlogIntroLandingPage() {
           ]}
         />
 
-        {/* ═══════════════ STATS ═══════════════ */}
+        {/* ═══════════════ 2. INFINITE CMS & PUBLISHING MARQUEE ═══════════════ */}
+        <LandingMarquee />
+
+        {/* ═══════════════ 3. INTERACTIVE FUNNEL FLOW VISUALIZER ═══════════════ */}
+        <LandingFunnelFlow onTryTool={scrollToTool} />
+
+        {/* ═══════════════ 4. STATS ROW ═══════════════ */}
         <LandingStats stats={STATS} />
 
-        {/* ═══════════════ FEATURES ═══════════════ */}
+        {/* ═══════════════ 5. FEATURES GRID (UPGRADED CARDS) ═══════════════ */}
         <LandingFeatures
           sectionLabel="Why This Tool?"
           heading="Blog Introductions That Actually Convert"
@@ -387,7 +397,10 @@ export default function BlogIntroLandingPage() {
           columns={3}
         />
 
-        {/* ═══════════════ HOW IT WORKS ═══════════════ */}
+        {/* ═══════════════ 6. SIGNATURE FLOATING PILL CLOUD ═══════════════ */}
+        <LandingPillCloud />
+
+        {/* ═══════════════ 7. HOW IT WORKS (STEP CARDS) ═══════════════ */}
         <LandingHowItWorks
           sectionLabel="How It Works"
           heading="From Topic to High-Converting Intro in 4 Steps"
@@ -395,7 +408,10 @@ export default function BlogIntroLandingPage() {
           steps={STEPS}
         />
 
-        {/* ═══════════════ BEFORE / AFTER ═══════════════ */}
+        {/* ═══════════════ 8. SIGNATURE DARK IMPACT SECTION (#171720) ═══════════════ */}
+        <LandingDarkImpact onCtaClick={scrollToTool} />
+
+        {/* ═══════════════ 9. BEFORE / AFTER COMPARISON ═══════════════ */}
         <LandingBeforeAfter
           sectionLabel="Results"
           heading="The Difference a Great Intro Makes"
@@ -404,13 +420,13 @@ export default function BlogIntroLandingPage() {
           after={BEFORE_AFTER.after}
         />
 
-        {/* ═══════════════ TRUST / E-E-A-T SECTION ═══════════════ */}
+        {/* ═══════════════ 10. TRUST / E-E-A-T SECTION ═══════════════ */}
         <TrustSection />
 
-        {/* ═══════════════ TOOL SECTION (Scroll Anchor) ═══════════════ */}
+        {/* ═══════════════ 11. TOOL SECTION (Scroll Anchor) ═══════════════ */}
         <ToolSection toolRef={toolRef} />
 
-        {/* ═══════════════ FAQ ═══════════════ */}
+        {/* ═══════════════ 12. FAQ ACCORDION ═══════════════ */}
         <LandingFAQ
           sectionLabel="Frequently Asked Questions"
           heading="Everything You Need to Know"
@@ -418,7 +434,7 @@ export default function BlogIntroLandingPage() {
           faqs={FAQS}
         />
 
-        {/* ═══════════════ FINAL CTA ═══════════════ */}
+        {/* ═══════════════ 13. FINAL RADIANT CTA ═══════════════ */}
         <LandingCTA
           heading="Stop Writing Boring Blog Intros"
           subheading="Join 2,000+ content marketers who use our AI generator to create high-converting introductions in seconds. No sign-up required."

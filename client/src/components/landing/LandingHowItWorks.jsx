@@ -43,17 +43,24 @@ export default function LandingHowItWorks({
             {steps.map((step, i) => {
               const Icon = step.icon
               return (
-                <div key={i} className="lp-reveal-child relative text-center group p-3 sm:p-0">
+                <div
+                  key={i}
+                  className="lp-reveal-child relative text-center group p-6 rounded-3xl bg-white border border-slate-200/80 shadow-xs hover:border-[#0C81F3]/40 hover:shadow-xl hover:shadow-slate-200/60 hover:-translate-y-1 transition-all duration-300 z-10"
+                >
+                  {/* Step index badge */}
+                  <span className="text-[10px] font-mono font-black uppercase tracking-widest text-[#0C81F3] bg-blue-50 px-2.5 py-0.5 rounded-full border border-blue-100 inline-block mb-3">
+                    Step 0{i + 1}
+                  </span>
+
                   {/* Step number circle */}
-                  <div className="relative inline-flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-gradient-to-br from-[#0C81F3] to-[#EB8988] text-white font-black text-base sm:text-lg shadow-lg shadow-[#0C81F3]/20 mb-3.5 sm:mb-4 group-hover:scale-110 transition-transform">
+                  <div className="relative flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-[#0C81F3] to-[#EB8988] text-white font-black text-base sm:text-lg shadow-lg shadow-[#0C81F3]/25 mx-auto mb-3.5 group-hover:scale-110 group-hover:rotate-2 transition-transform duration-300">
                     {Icon ? <Icon className="w-5 h-5 sm:w-6 sm:h-6" /> : i + 1}
-                    <span className="absolute inset-0 rounded-full border-2 border-[#0C81F3]/20 animate-ping opacity-30" />
                   </div>
 
-                  <h3 className="text-sm sm:text-base font-bold text-slate-900 mb-1 leading-snug">
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 mb-1.5 leading-snug group-hover:text-[#0C81F3] transition-colors">
                     {step.title}
                   </h3>
-                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed max-w-[240px] mx-auto font-normal">
+                  <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
                     {step.description}
                   </p>
                 </div>

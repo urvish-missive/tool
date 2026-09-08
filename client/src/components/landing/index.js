@@ -1,7 +1,12 @@
 export { default as LandingHero } from './LandingHero'
+export { default as LandingMarquee } from './LandingMarquee'
+export { default as LandingFunnelFlow } from './LandingFunnelFlow'
+export { default as LandingPillCloud } from './LandingPillCloud'
+export { default as LandingDarkImpact } from './LandingDarkImpact'
 export { default as LandingFeatures } from './LandingFeatures'
 export { default as LandingHowItWorks } from './LandingHowItWorks'
 export { default as LandingBeforeAfter } from './LandingBeforeAfter'
 export { default as LandingFAQ } from './LandingFAQ'
 export { default as LandingStats } from './LandingStats'
 export { default as LandingCTA } from './LandingCTA'
+

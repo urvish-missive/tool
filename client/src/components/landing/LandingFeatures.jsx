@@ -46,15 +46,18 @@ export default function LandingFeatures({
             return (
               <div
                 key={i}
-                className="lp-reveal-child group relative p-5 sm:p-6 rounded-2xl border border-slate-200/90 bg-slate-50/70 hover:bg-white hover:border-[#0C81F3]/40 hover:shadow-lg hover:shadow-slate-200/50 transition-all duration-300"
+                className="lp-reveal-child group relative p-6 sm:p-7 rounded-3xl border border-slate-200/90 bg-slate-50/70 hover:bg-white hover:border-[#0C81F3]/50 hover:shadow-xl hover:shadow-blue-500/10 hover:-translate-y-1.5 transition-all duration-300 overflow-hidden"
               >
+                {/* Subtle top gradient accent on hover */}
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
                 {/* Icon */}
-                <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-gradient-to-br from-[#0C81F3] to-[#EB8988] flex items-center justify-center mb-3.5 sm:mb-4 shadow-md shadow-[#0C81F3]/15 group-hover:scale-110 transition-transform">
-                  <Icon className="w-5 h-5 sm:w-5.5 sm:h-5.5 text-white" strokeWidth={2} />
+                <div className="w-11 h-11 sm:w-12 sm:h-12 rounded-2xl bg-gradient-to-br from-[#0C81F3] to-[#EB8988] flex items-center justify-center mb-4 shadow-md shadow-[#0C81F3]/20 group-hover:scale-110 group-hover:rotate-2 transition-all duration-300">
+                  <Icon className="w-5 h-5 sm:w-6 sm:h-6 text-white" strokeWidth={2} />
                 </div>
 
                 {/* Text */}
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 mb-1.5 leading-snug">
+                <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-2 leading-snug group-hover:text-[#0C81F3] transition-colors">
                   {f.title}
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-600 leading-relaxed font-normal">
