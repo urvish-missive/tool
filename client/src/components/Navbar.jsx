@@ -261,7 +261,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop nav */}
-          <div className="hidden lg:flex items-center gap-1">
+          <div className="hidden lg:flex items-center gap-2 xl:gap-3">
             {NAV_ITEMS.map((item, idx) => (
               <div
                 key={item.label}
@@ -275,7 +275,7 @@ export default function Navbar() {
                       setActiveDropdown(activeDropdown === idx ? null : idx)
                     }
                   }}
-                  className={`px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
+                  className={`px-3.5 xl:px-4 py-2 text-sm font-medium rounded-full transition-all duration-200 ${
                     activeDropdown === idx
                       ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -296,7 +296,7 @@ export default function Navbar() {
                       style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)' }}
                     >
                       <div
-                        className={`grid gap-2 sm:gap-2.5 ${
+                        className={`grid gap-2.5 sm:gap-3 ${
                           item.dropdown.columns.length === 1
                             ? 'grid-cols-1'
                             : item.dropdown.columns.length === 2
@@ -307,9 +307,9 @@ export default function Navbar() {
                         }`}
                       >
                         {item.dropdown.columns.map((col, ci) => (
-                          <div key={ci} className="space-y-0.5 min-w-[168px] sm:min-w-[175px]">
+                          <div key={ci} className="space-y-1 min-w-[168px] sm:min-w-[180px]">
                             {col.title && (
-                              <div className="px-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-white/75 border-b border-white/15 mb-1 flex items-center justify-between">
+                              <div className="px-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-white/75 border-b border-white/15 mb-1.5 flex items-center justify-between">
                                 <span>{col.title}</span>
                               </div>
                             )}
@@ -326,7 +326,7 @@ export default function Navbar() {
                                     key={sub.label}
                                     {...(isInternal ? { to: sub.href } : { href: sub.href })}
                                     onClick={() => setActiveDropdown(null)}
-                                    className="flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-white/95 hover:bg-white/20 hover:text-white transition-all text-xs sm:text-[13px] font-medium group"
+                                    className="flex items-center gap-2 px-2.5 py-1.5 sm:py-2 rounded-lg text-white/95 hover:bg-white/20 hover:text-white transition-all text-xs sm:text-[13px] font-medium group"
                                   >
                                     {sub.icon && (
                                       <span className="text-sm w-4 h-4 flex items-center justify-center shrink-0 leading-none group-hover:scale-110 transition-transform">
