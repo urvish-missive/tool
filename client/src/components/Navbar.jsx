@@ -228,6 +228,22 @@ export default function Navbar() {
     return disabled
   }, [toolsData])
 
+  const getVisibleColumns = (dropdown) => {
+    if (!dropdown?.columns) return []
+    return dropdown.columns
+      .map((col) => {
+        const visibleItems = col.items.filter((sub) => {
+          const slug = TOOL_HREF_SLUGS[sub.href]
+          return !slug || !disabledTools.has(slug)
+        })
+        return {
+          ...col,
+          items: visibleItems,
+        }
+      })
+      .filter((col) => col.items.length > 0)
+  }
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (navRef.current && !navRef.current.contains(e.target)) {
@@ -285,40 +301,39 @@ export default function Navbar() {
                 </button>
 
                 {/* Desktop dropdown */}
-                {item.dropdown && activeDropdown === idx && (
-                  <div
-                    className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-max max-w-[calc(100vw-2rem)] rounded-2xl overflow-hidden shadow-2xl border border-white/40 z-50"
-                    onMouseEnter={() => handleMouseEnter(idx)}
-                    onMouseLeave={handleMouseLeave}
-                  >
+                {item.dropdown && activeDropdown === idx && (() => {
+                  const visibleCols = getVisibleColumns(item.dropdown)
+                  if (visibleCols.length === 0) return null
+
+                  return (
                     <div
-                      className="p-3.5 sm:p-4"
-                      style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)' }}
+                      className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-max max-w-[calc(100vw-2rem)] rounded-2xl overflow-hidden shadow-2xl border border-white/40 z-50"
+                      onMouseEnter={() => handleMouseEnter(idx)}
+                      onMouseLeave={handleMouseLeave}
                     >
                       <div
-                        className={`grid gap-2.5 sm:gap-3 ${
-                          item.dropdown.columns.length === 1
-                            ? 'grid-cols-1'
-                            : item.dropdown.columns.length === 2
-                              ? 'grid-cols-2'
-                              : item.dropdown.columns.length === 4
-                                ? 'grid-cols-2 lg:grid-cols-4'
-                                : 'grid-cols-3'
-                        }`}
+                        className="p-3.5 sm:p-4"
+                        style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)' }}
                       >
-                        {item.dropdown.columns.map((col, ci) => (
-                          <div key={ci} className="space-y-1 min-w-[168px] sm:min-w-[180px]">
-                            {col.title && (
-                              <div className="px-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-white/75 border-b border-white/15 mb-1.5 flex items-center justify-between">
-                                <span>{col.title}</span>
-                              </div>
-                            )}
-                            {col.items
-                              .filter((sub) => {
-                                const slug = TOOL_HREF_SLUGS[sub.href]
-                                return !slug || !disabledTools.has(slug)
-                              })
-                              .map((sub) => {
+                        <div
+                          className={`grid gap-2.5 sm:gap-3 ${
+                            visibleCols.length === 1
+                              ? 'grid-cols-1'
+                              : visibleCols.length === 2
+                                ? 'grid-cols-2'
+                                : visibleCols.length === 4
+                                  ? 'grid-cols-2 lg:grid-cols-4'
+                                  : 'grid-cols-3'
+                          }`}
+                        >
+                          {visibleCols.map((col, ci) => (
+                            <div key={ci} className="space-y-1 min-w-[168px] sm:min-w-[180px]">
+                              {col.title && (
+                                <div className="px-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-white/75 border-b border-white/15 mb-1.5 flex items-center justify-between">
+                                  <span>{col.title}</span>
+                                </div>
+                              )}
+                              {col.items.map((sub) => {
                                 const isInternal = sub.href && sub.href.startsWith('/')
                                 const LinkComponent = isInternal ? Link : 'a'
                                 return (
@@ -344,12 +359,13 @@ export default function Navbar() {
                                   </LinkComponent>
                                 )
                               })}
-                          </div>
-                        ))}
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
+                  )
+                })()}
               </div>
             ))}
           </div>
@@ -423,21 +439,20 @@ export default function Navbar() {
                         />
                       </svg>
                     </button>
-                    {mobileExpanded === idx && (
-                      <div className="pl-4 pb-2 space-y-3">
-                        {item.dropdown.columns.map((col, cIdx) => (
-                          <div key={cIdx} className="space-y-1">
-                            {col.title && (
-                              <div className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400 px-4 pt-2">
-                                {col.title}
-                              </div>
-                            )}
-                            {col.items
-                              .filter((sub) => {
-                                const slug = TOOL_HREF_SLUGS[sub.href]
-                                return !slug || !disabledTools.has(slug)
-                              })
-                              .map((sub) => {
+                    {mobileExpanded === idx && (() => {
+                      const visibleCols = getVisibleColumns(item.dropdown)
+                      if (visibleCols.length === 0) return null
+
+                      return (
+                        <div className="pl-4 pb-2 space-y-3">
+                          {visibleCols.map((col, cIdx) => (
+                            <div key={cIdx} className="space-y-1">
+                              {col.title && (
+                                <div className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400 px-4 pt-2">
+                                  {col.title}
+                                </div>
+                              )}
+                              {col.items.map((sub) => {
                                 const isInternal = sub.href && sub.href.startsWith('/')
                                 const LinkComponent = isInternal ? Link : 'a'
                                 return (
@@ -466,10 +481,11 @@ export default function Navbar() {
                                   </LinkComponent>
                                 )
                               })}
-                          </div>
-                        ))}
-                      </div>
-                    )}
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    })()}
                   </>
                 ) : (
                   <a
