@@ -189,3 +189,4 @@ export async function generateAIReport(auditData, options = {}) {
 }
 
 export const analyzeAuditWithAI = generateAIReport
+export { generateFallbackAIReport }

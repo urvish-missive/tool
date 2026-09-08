@@ -1,4 +1,4 @@
-import { callAIAndParseJSON, callAI } from '../utils/aiProvider.js'
+import { callAIAndParseJSON, callAI, apiResultCache } from '../utils/aiProvider.js'
 import { extractAndCleanJSON } from '../utils/helpers.js'
 
 const CONTENT_TYPES = {
@@ -254,8 +254,8 @@ Generate exactly 5 FAQ questions and 5 key takeaways. Score each SEO dimension f
   ], {
     preferredProvider,
     temperature: 0.4,
-    maxTokens: 4000,
-    timeout: 60000,
+    maxTokens: 2000,
+    timeout: 20000,
     jsonMode: true,
   })
 
@@ -292,6 +292,12 @@ export async function generateContent({
 
   const wordTarget = Math.min(Math.max(parseInt(wordCount) || 1500, 300), 5000)
   const validType = CONTENT_TYPES[contentType] ? contentType : 'blog-post'
+
+  const cacheKey = apiResultCache.hashKey('content-writer', { keyword, contentType: validType, targetAudience, tone, wordTarget, kwList, websiteUrl, preferredProvider })
+  const cached = apiResultCache.get(cacheKey)
+  if (cached) {
+    return cached
+  }
 
   try {
     // ── Call 1: Article content ──
@@ -358,11 +364,14 @@ export async function generateContent({
       internalLinkSuggestions: Array.isArray(meta.internalLinkSuggestions) ? meta.internalLinkSuggestions : [],
       schemaMarkup: meta.schemaMarkup || null,
       seoScore: meta.seoScore || { title_optimization: 0, keyword_usage: 0, readability: 0, content_depth: 0, overall: 0 },
-      wordCount: wordTarget,
-      actualWordCount,
-      estimatedReadTime: `${Math.max(1, Math.ceil(actualWordCount / 250))} min read`,
+      wordCount: actualWordCount,
+      estimatedReadingTime: Math.max(1, Math.round(actualWordCount / 225)),
+      generatedAt: new Date().toISOString(),
       secondaryKeywords: Array.isArray(meta.secondaryKeywords) ? meta.secondaryKeywords : kwList,
     }
+
+    apiResultCache.set(cacheKey, finalResult, 15 * 60 * 1000)
+    return finalResult
   } catch (error) {
     console.error('Content writer AI error:', error.message)
     throw error

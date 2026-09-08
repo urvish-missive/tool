@@ -2,7 +2,7 @@ import { fetchWithTimeout, extractAndCleanJSON } from './helpers.js'
 
 /* ── Configuration ─────────────────────────────────────────────── */
 
-const AI_TIMEOUT = 18000
+const AI_TIMEOUT = 12000
 
 const PROVIDERS = {
   'gemini-3.5-flash-lite': {
@@ -42,7 +42,9 @@ const PROVIDERS = {
   },
   openrouter: {
     url: 'https://openrouter.ai/api/v1/chat/completions',
-    model: process.env.OPENROUTER_MODEL || 'minimax/minimax-m2.7:free',
+    model: process.env.OPENROUTER_MODEL && !process.env.OPENROUTER_MODEL.includes('minimax')
+      ? process.env.OPENROUTER_MODEL
+      : 'google/gemini-2.0-flash-exp:free',
     key: process.env.OPENROUTER_API_KEY,
     headerName: 'Authorization',
     headerPrefix: 'Bearer ',
@@ -222,3 +224,6 @@ export function getPrimaryProvider() {
   const configured = Object.keys(PROVIDERS).filter(p => PROVIDERS[p].key)
   return configured[0] || null
 }
+
+export { apiResultCache } from './cache.js'
+

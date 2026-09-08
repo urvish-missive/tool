@@ -1,4 +1,4 @@
-import { callAIAndParseJSON } from '../utils/aiProvider.js'
+import { callAIAndParseJSON, apiResultCache } from '../utils/aiProvider.js'
 
 /**
  * Funnel stage definitions and characteristics
@@ -301,6 +301,12 @@ export async function generateBlogIntroductions({
   count = 6,
   preferredProvider = 'gemini-3.5-flash-lite',
 }) {
+  const cacheKey = apiResultCache.hashKey('blog-intros', { topic, targetKeywords, targetAudience, funnelStage, tone, count, preferredProvider })
+  const cached = apiResultCache.get(cacheKey)
+  if (cached) {
+    return cached
+  }
+
   const userAudience = (targetAudience || '').trim()
   const effectiveAudience = userAudience || 'relevant industry readers, buyers, and practitioners'
   const parsedKeywords = Array.isArray(targetKeywords)
@@ -390,8 +396,8 @@ OUTPUT FORMAT (strictly JSON):
       { role: 'user', content: userPrompt },
     ]
 
-    // Generous token budget (up to 5500 tokens) so all 15-18 variations finish without truncation
-    const tokenBudget = Math.max(requestedCount * 320, 5000)
+    // Optimized token budget for fast response without truncation
+    const tokenBudget = Math.max(requestedCount * 280, 2500)
 
     const result = await callAIAndParseJSON(messages, {
       preferredProvider: preferredProvider || 'gemini-3.5-flash-lite',
@@ -491,7 +497,7 @@ OUTPUT FORMAT (strictly JSON):
         }
       })
 
-      return {
+      const output = {
         summary: {
           topic,
           totalGenerated: finalIntros.length,
@@ -508,6 +514,9 @@ OUTPUT FORMAT (strictly JSON):
         introductions: finalIntros,
         generatedAt: new Date().toISOString(),
       }
+
+      apiResultCache.set(cacheKey, output, 10 * 60 * 1000)
+      return output
     }
 
     throw new Error('AI returned empty introductions list')

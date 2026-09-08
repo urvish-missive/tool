@@ -1,4 +1,4 @@
-import { callAIAndParseJSON } from '../utils/aiProvider.js'
+import { callAIAndParseJSON, apiResultCache } from '../utils/aiProvider.js'
 
 /**
  * Funnel stage definitions and conversion intent for conclusions
@@ -203,6 +203,12 @@ export async function generateBlogConclusions({
     throw new Error('A valid blog topic or title is required (minimum 3 characters).')
   }
 
+  const cacheKey = apiResultCache.hashKey('blog-conclusions', { topic, intro, keyTakeaways, ctaGoal, ctaCustomText, targetKeywords, audience, funnelStage, tone, numVariations, preferredProvider })
+  const cached = apiResultCache.get(cacheKey)
+  if (cached) {
+    return cached
+  }
+
   const cleanTopic = topic.trim()
   const cleanIntro = (intro || '').trim()
   const cleanTakeaways = (keyTakeaways || '').trim()
@@ -282,7 +288,7 @@ ${stagePlan.map((s, idx) => `Variation ${idx + 1}: ${CONCLUSION_FUNNEL_STAGES[s]
     const result = await callAIAndParseJSON(messages, {
       preferredProvider: preferredProvider || 'gemini-3.5-flash-lite',
       temperature: 0.72,
-      maxTokens: Math.max(count * 450, 3200),
+      maxTokens: Math.min(Math.max(count * 350, 2200), 3600),
       timeout: 16000,
     })
 
@@ -354,13 +360,16 @@ ${stagePlan.map((s, idx) => `Variation ${idx + 1}: ${CONCLUSION_FUNNEL_STAGES[s]
         }
       }
 
-      return {
+      const output = {
         success: true,
         topic: cleanTopic,
         funnelFilter: funnelStage,
         totalGenerated: sanitized.length,
         conclusions: sanitized,
       }
+
+      apiResultCache.set(cacheKey, output, 10 * 60 * 1000)
+      return output
     }
 
     throw new Error('AI returned an unexpected response structure')

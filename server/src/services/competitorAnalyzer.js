@@ -1,4 +1,4 @@
-import { callAIAndParseJSON } from '../utils/aiProvider.js'
+import { callAIAndParseJSON, apiResultCache } from '../utils/aiProvider.js'
 
 /**
  * Safely fetch HTML with timeout
@@ -152,21 +152,24 @@ function extractSEOData(html, url) {
  * Analyze competitor website and generate 10x outranking strategy
  */
 export async function analyzeCompetitor({ competitorUrl, yourUrl, targetKeywords, preferredProvider }) {
+  const cacheKey = apiResultCache.hashKey('competitor', { competitorUrl, yourUrl, targetKeywords, preferredProvider })
+  const cached = apiResultCache.get(cacheKey)
+  if (cached) {
+    return cached
+  }
+
   try {
-    // 1. Fetch competitor HTML
-    const competitorHtml = await fetchHTML(competitorUrl)
+    // 1. Fetch competitor HTML & your HTML concurrently
+    const hasYourUrl = Boolean(yourUrl && yourUrl.trim())
+    const [competitorHtml, yourHtml] = await Promise.all([
+      fetchHTML(competitorUrl),
+      hasYourUrl ? fetchHTML(yourUrl).catch(() => null) : Promise.resolve(null),
+    ])
+
     const competitorSeo = extractSEOData(competitorHtml, competitorUrl)
+    const yourSeo = (hasYourUrl && yourHtml) ? extractSEOData(yourHtml, yourUrl) : null
 
-    // 2. Fetch your HTML if provided
-    let yourSeo = null
-    if (yourUrl && yourUrl.trim()) {
-      const yourHtml = await fetchHTML(yourUrl)
-      if (yourHtml) {
-        yourSeo = extractSEOData(yourHtml, yourUrl)
-      }
-    }
-
-    // 3. Generate AI Strategic Intelligence
+    // 2. Generate AI Strategic Intelligence
     const insights = await generateStrategicInsights({
       competitorUrl,
       competitorSeo,
@@ -176,7 +179,7 @@ export async function analyzeCompetitor({ competitorUrl, yourUrl, targetKeywords
       preferredProvider,
     })
 
-    return {
+    const result = {
       success: true,
       competitorUrl,
       yourUrl: yourUrl || null,
@@ -185,6 +188,9 @@ export async function analyzeCompetitor({ competitorUrl, yourUrl, targetKeywords
       yourSeo,
       ...insights,
     }
+
+    apiResultCache.set(cacheKey, result, 15 * 60 * 1000)
+    return result
   } catch (error) {
     console.error('Competitor analysis error:', error.message)
     return generateFallbackAnalysis(competitorUrl, yourUrl, targetKeywords)
@@ -273,7 +279,7 @@ Return a JSON object with this EXACT structure:
     const parsed = await callAIAndParseJSON([
       { role: 'system', content: systemMessage },
       { role: 'user', content: userMessage },
-    ], { preferredProvider, temperature: 0.4, maxTokens: 5000 })
+    ], { preferredProvider, temperature: 0.4, maxTokens: 3500 })
 
     return {
       executiveSummary: parsed.executiveSummary || 'Competitor analysis completed.',

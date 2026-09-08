@@ -5,7 +5,7 @@ import {
   fetchWithTimeout,
   countWords,
 } from '../utils/helpers.js'
-import { callAIAndParseJSON } from '../utils/aiProvider.js'
+import { callAIAndParseJSON, apiResultCache } from '../utils/aiProvider.js'
 
 const FETCH_TIMEOUT_MS = 14000
 const MAX_CONTENT_LENGTH = 10000
@@ -348,6 +348,12 @@ export async function analyzeEeat({
   targetKeywords = '',
   preferredProvider = 'gemini-3.5-flash-lite',
 }) {
+  const cacheKey = apiResultCache.hashKey('eeat', { url, content: content ? content.slice(0, 500) : '', title, contentType, targetKeywords, preferredProvider })
+  const cached = apiResultCache.get(cacheKey)
+  if (cached) {
+    return cached
+  }
+
   let scraped = null
   let textToAnalyze = ''
   let pageTitle = title?.trim() || ''
@@ -561,6 +567,9 @@ RETURN STRICTLY JSON WITH THIS FORMAT:
         analyzedAt: new Date().toISOString(),
         isFallback: false,
       }
+
+      apiResultCache.set(cacheKey, finalResult, 10 * 60 * 1000)
+      return finalResult
     }
 
     throw new Error('AI returned incomplete E-E-A-T structure')

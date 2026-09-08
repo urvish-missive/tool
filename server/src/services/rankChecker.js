@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio'
-import { callAIAndParseJSON } from '../utils/aiProvider.js'
+import { callAIAndParseJSON, apiResultCache } from '../utils/aiProvider.js'
 
 const DESKTOP_UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
@@ -597,6 +597,12 @@ export async function checkRank({
   const deviceType = device === 'mobile' ? 'mobile' : 'desktop'
   const isBrand = isBrandQuery(targetDomain, cleanKeyword)
 
+  const cacheKey = apiResultCache.hashKey('rank', { targetDomain, cleanKeyword, countryCode, deviceType, preferredProvider })
+  const cached = apiResultCache.get(cacheKey)
+  if (cached) {
+    return cached
+  }
+
   // Step 1: Attempt live SERP scrape (Google or Live Web search)
   let liveData = null
   try {
@@ -738,6 +744,9 @@ export async function checkRank({
     scrapedLive: hasLiveData,
     confidence,
   }
+
+  apiResultCache.set(cacheKey, result, 10 * 60 * 1000)
+  return result
 }
 
 /**
@@ -761,53 +770,38 @@ export async function checkBatchRanks({
     throw new Error('Please provide at least one keyword.')
   }
 
-  const primaryReport = await checkRank({
-    domain: targetDomain,
-    keyword: keywordList[0],
-    country,
-    device,
-    preferredProvider,
-  })
-
-  const remainingKeywords = keywordList.slice(1)
-  const batchSummaries = [
-    {
-      keyword: primaryReport.keyword,
-      position: primaryReport.position,
-      rankingUrl: primaryReport.rankingUrl,
-      searchIntent: primaryReport.searchIntent,
-      difficulty: primaryReport.difficulty,
-      volume: primaryReport.searchVolumeTier,
-    },
-  ]
-
-  if (remainingKeywords.length > 0) {
-    const additionalChecks = await Promise.allSettled(
-      remainingKeywords.map(k =>
-        checkRank({
-          domain: targetDomain,
-          keyword: k,
-          country,
-          device,
-          preferredProvider,
-        })
-      )
+  // Run all keyword checks concurrently in parallel
+  const results = await Promise.allSettled(
+    keywordList.map(k =>
+      checkRank({
+        domain: targetDomain,
+        keyword: k,
+        country,
+        device,
+        preferredProvider,
+      })
     )
+  )
 
-    for (const res of additionalChecks) {
-      if (res.status === 'fulfilled') {
-        const d = res.value
-        batchSummaries.push({
-          keyword: d.keyword,
-          position: d.position,
-          rankingUrl: d.rankingUrl,
-          searchIntent: d.searchIntent,
-          difficulty: d.difficulty,
-          volume: d.searchVolumeTier,
-        })
-      }
-    }
+  const fulfilled = results
+    .filter(r => r.status === 'fulfilled')
+    .map(r => r.value)
+
+  if (fulfilled.length === 0) {
+    // If all failed, re-throw the first error
+    const firstErr = results.find(r => r.status === 'rejected')?.reason
+    throw firstErr || new Error('Failed to retrieve rankings.')
   }
+
+  const primaryReport = fulfilled[0]
+  const batchSummaries = fulfilled.map(d => ({
+    keyword: d.keyword,
+    position: d.position,
+    rankingUrl: d.rankingUrl,
+    searchIntent: d.searchIntent,
+    difficulty: d.difficulty,
+    volume: d.searchVolumeTier,
+  }))
 
   return {
     ...primaryReport,

@@ -1,4 +1,4 @@
-import { callAIAndParseJSON } from '../utils/aiProvider.js'
+import { callAIAndParseJSON, apiResultCache } from '../utils/aiProvider.js'
 
 /**
  * AI-powered Blog Topic & Content Cluster Generator
@@ -18,6 +18,12 @@ export async function generateBlogTopics({
     : (typeof targetKeywords === 'string'
         ? targetKeywords.split(',').map(s => s.trim()).filter(Boolean)
         : [])
+
+  const cacheKey = apiResultCache.hashKey('blog-topics', { niche, targetKeywords: kwList, audience, contentGoal, count: targetCount, contentType, preferredProvider })
+  const cached = apiResultCache.get(cacheKey)
+  if (cached) {
+    return cached
+  }
   const keywordText = kwList.length > 0
     ? kwList.join(', ')
     : 'None specified — extrapolate high-intent terms for the niche'
@@ -100,7 +106,7 @@ Return a JSON object with this EXACT structure:
     ], {
       preferredProvider,
       temperature: 0.6,
-      maxTokens: 8000,
+      maxTokens: Math.min(Math.max(targetCount * 320, 2200), 4200),
       jsonMode: true,
     })
 
@@ -142,7 +148,7 @@ Return a JSON object with this EXACT structure:
     // Ensure exact count
     validatedTopics = validatedTopics.slice(0, targetCount)
 
-    return {
+    const output = {
       niche,
       targetKeywords: kwList,
       audience,
@@ -162,6 +168,9 @@ Return a JSON object with this EXACT structure:
       topics: validatedTopics,
       strategy: result.strategy || 'Publish the main cornerstone pillar guide first, then publish supporting cluster articles linked back using exact semantic anchors.',
     }
+
+    apiResultCache.set(cacheKey, output, 10 * 60 * 1000)
+    return output
   } catch (error) {
     console.error('Blog topic generator error (using 20-topic procedural engine):', error.message)
     return generateFallbackTopics({ niche, targetKeywords: kwList, audience, count: targetCount, contentType })

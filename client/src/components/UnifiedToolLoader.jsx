@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react'
-import { Sparkles, CheckCircle2, Loader2, Zap } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
+import { Sparkles, CheckCircle2, Loader2, Zap, Clock } from 'lucide-react'
 
 /**
  * UnifiedToolLoader — Universal premium AI loading screen for all tools.
- * Supports automated timer-based step progression or explicit step indices.
+ * Features ultra-smooth fluid progress animation, live elapsed timer, and adaptive step advancement.
  *
  * @param {string} title - Main loading title (e.g. "Auditing Website & Technical SEO...")
  * @param {string} [subtitle] - Contextual subtitle (e.g. "Extracting meta tags, schema markup and performance signals")
  * @param {Array<string>} [steps] - Array of step descriptions
  * @param {number} [currentStepIdx] - Optional controlled step index (0-based)
- * @param {number} [stepIntervalMs=2200] - Interval between automatic step advances
+ * @param {number} [stepIntervalMs=1400] - Interval between automatic step advances
  */
 export default function UnifiedToolLoader({
   title = 'AI Analysis in Progress...',
@@ -22,12 +22,17 @@ export default function UnifiedToolLoader({
     'Assembling executive report & deliverables',
   ],
   currentStepIdx,
-  stepIntervalMs = 2400,
+  stepIntervalMs = 1400,
 }) {
   const [internalIdx, setInternalIdx] = useState(0)
+  const [elapsedMs, setElapsedMs] = useState(0)
+  const startTimeRef = useRef(Date.now())
 
+  // Step advancement timer
   useEffect(() => {
+    startTimeRef.current = Date.now()
     if (typeof currentStepIdx === 'number') return
+
     setInternalIdx(0)
     const interval = setInterval(() => {
       setInternalIdx((prev) => (prev < steps.length - 1 ? prev + 1 : prev))
@@ -35,18 +40,32 @@ export default function UnifiedToolLoader({
     return () => clearInterval(interval)
   }, [currentStepIdx, steps.length, stepIntervalMs])
 
+  // High-frequency elapsed timer for fluid progress bar & live timer
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setElapsedMs(Date.now() - startTimeRef.current)
+    }, 100)
+    return () => clearInterval(timer)
+  }, [])
+
   const activeIdx = typeof currentStepIdx === 'number' ? currentStepIdx : internalIdx
-  const progressPercent = Math.min(Math.round(((activeIdx + 1) / steps.length) * 100), 96)
+
+  // Calculate smooth continuous progress:
+  // Combines step completion (anchor) with continuous elapsed time progression
+  const stepTargetPercent = ((activeIdx + 1) / steps.length) * 88
+  const timeProgress = Math.min(85, (elapsedMs / (steps.length * stepIntervalMs)) * 85)
+  const fluidPercent = Math.min(94, Math.max(12, Math.round(Math.max(stepTargetPercent, timeProgress))))
+  const elapsedSeconds = (elapsedMs / 1000).toFixed(1)
 
   return (
-    <div className="relative max-w-xl mx-auto my-8 px-4">
+    <div className="relative max-w-xl mx-auto my-8 px-4 animate-fade-in">
       {/* Ambient decorative glow */}
-      <div className="absolute -inset-1 bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] rounded-3xl blur-xl opacity-20 animate-pulse pointer-events-none" />
+      <div className="absolute -inset-1 bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] rounded-3xl blur-xl opacity-25 animate-pulse pointer-events-none" />
 
-      <div className="relative bg-white/95 backdrop-blur-xl rounded-2xl border border-slate-200/80 shadow-2xl p-6 sm:p-8 text-center space-y-6">
+      <div className="relative bg-white/95 backdrop-blur-xl rounded-3xl border border-slate-200/90 shadow-2xl p-6 sm:p-8 text-center space-y-6">
         {/* Animated Central Glowing Icon */}
         <div className="relative w-16 h-16 mx-auto flex items-center justify-center">
-          <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-[#0C81F3] to-[#EB8988] opacity-20 animate-ping" />
+          <div className="absolute inset-0 rounded-2xl bg-gradient-to-tr from-[#0C81F3] to-[#EB8988] opacity-25 animate-ping" />
           <div className="relative w-14 h-14 rounded-2xl bg-gradient-to-r from-[#0C81F3] to-[#EB8988] p-0.5 shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center">
             <div className="w-full h-full bg-white rounded-[14px] flex items-center justify-center">
               <Sparkles className="w-7 h-7 text-[#0C81F3] animate-pulse" />
@@ -54,12 +73,19 @@ export default function UnifiedToolLoader({
           </div>
         </div>
 
-        {/* Title & Subtitle */}
+        {/* Title, Subtitle & Live Status Badges */}
         <div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider mb-2">
-            <span className="w-2 h-2 rounded-full bg-[#0C81F3] animate-ping shrink-0" />
-            Live AI Generation
+          <div className="flex items-center justify-center gap-2 flex-wrap mb-2.5">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-100 text-blue-700 text-xs font-bold uppercase tracking-wider shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-[#0C81F3] animate-ping shrink-0" />
+              Live AI Processing
+            </span>
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-mono font-semibold">
+              <Clock className="w-3 h-3 text-slate-500" />
+              {elapsedSeconds}s
+            </span>
           </div>
+
           <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
             {title}
           </h3>
@@ -70,36 +96,35 @@ export default function UnifiedToolLoader({
           )}
         </div>
 
-        {/* Real-time Progress Bar */}
+        {/* Real-time Smooth Progress Bar */}
         <div className="space-y-1.5 max-w-md mx-auto">
           <div className="flex items-center justify-between text-xs font-bold">
             <span className="text-slate-600 flex items-center gap-1">
-              <Zap className="w-3.5 h-3.5 text-[#0C81F3]" />
-              Processing
+              <Zap className="w-3.5 h-3.5 text-[#0C81F3] animate-bounce" />
+              <span>Optimizing Output</span>
             </span>
-            <span className="text-[#0C81F3] font-mono">{progressPercent}%</span>
+            <span className="text-[#0C81F3] font-mono">{fluidPercent}%</span>
           </div>
-          <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/60">
+          <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden p-0.5 border border-slate-200/60 shadow-inner">
             <div
-              className="h-full bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] rounded-full transition-all duration-700 ease-out"
-              style={{ width: `${progressPercent}%` }}
+              className="h-full bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] rounded-full transition-all duration-300 ease-out"
+              style={{ width: `${fluidPercent}%` }}
             />
           </div>
         </div>
 
         {/* Step-by-Step Interactive Checklist */}
-        <div className="bg-slate-50/80 rounded-xl p-4 border border-slate-100 text-left space-y-2.5">
+        <div className="bg-slate-50/90 rounded-2xl p-4 border border-slate-100 text-left space-y-2.5">
           {steps.map((step, idx) => {
             const isDone = idx < activeIdx
             const isActive = idx === activeIdx
-            const isPending = idx > activeIdx
 
             return (
               <div
                 key={idx}
                 className={`flex items-center gap-3 text-xs sm:text-sm transition-all duration-300 ${
                   isActive
-                    ? 'text-slate-900 font-bold bg-white p-2 rounded-lg shadow-sm border border-slate-200/80'
+                    ? 'text-slate-900 font-bold bg-white p-2.5 rounded-xl shadow-xs border border-blue-200/80'
                     : isDone
                       ? 'text-slate-500 font-medium px-2 py-1'
                       : 'text-slate-400 px-2 py-1'
@@ -120,13 +145,19 @@ export default function UnifiedToolLoader({
                     Running
                   </span>
                 )}
+                {isDone && (
+                  <span className="ml-auto text-[10px] font-bold text-emerald-600 px-1 shrink-0">
+                    ✓ Done
+                  </span>
+                )}
               </div>
             )
           })}
         </div>
 
-        <p className="text-[11px] text-slate-400 text-center">
-          ⚡ Synthesizing verified data from search signals & entity models.
+        <p className="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1">
+          <span>⚡</span>
+          <span>Synthesizing verified data from search signals & entity models.</span>
         </p>
       </div>
     </div>
