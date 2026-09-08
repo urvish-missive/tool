@@ -363,7 +363,7 @@ export default function BlogConclusionGeneratorPage() {
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 pb-20">
       {/* Hero Header */}
-      <section className="relative overflow-hidden !pt-28 pt-8 pb-8 sm:!pt-32 sm:py-12 lg:py-14 bg-gradient-to-b from-slate-50 to-white border-b border-slate-200">
+      <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24 bg-gradient-to-b from-slate-50 to-white border-b border-slate-200">
         <div
           className="absolute inset-0 pointer-events-none"
           style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.05 }}

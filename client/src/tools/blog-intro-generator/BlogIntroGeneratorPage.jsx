@@ -316,7 +316,7 @@ export default function BlogIntroGeneratorPage() {
       />
 
       {/* Hero Header */}
-      <section className="relative overflow-hidden !pt-28 pt-8 pb-8 sm:!pt-32 sm:py-12 lg:py-14">
+      <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
         <div
           className="absolute inset-0"
           style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }}
