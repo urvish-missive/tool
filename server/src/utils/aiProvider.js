@@ -19,13 +19,6 @@ const PROVIDERS = {
     headerName: 'Authorization',
     headerPrefix: 'Bearer ',
   },
-  'gemini-3.7-flash': {
-    url: process.env.AI_API_URL || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
-    model: process.env.GEMINI_3_7_MODEL || process.env.GEMINI_MODEL || process.env.AI_MODEL || 'gemini-3.7-flash',
-    key: process.env.AI_API_KEY,
-    headerName: 'Authorization',
-    headerPrefix: 'Bearer ',
-  },
   gemini: {
     url: process.env.AI_API_URL || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
     model: process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite',
@@ -35,16 +28,49 @@ const PROVIDERS = {
   },
   groq: {
     url: 'https://api.groq.com/openai/v1/chat/completions',
-    model: process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+    model: process.env.GROQ_MODEL || 'openai/gpt-oss-120b',
     key: process.env.GROQ_API_KEY,
     headerName: 'Authorization',
     headerPrefix: 'Bearer ',
   },
   openrouter: {
     url: 'https://openrouter.ai/api/v1/chat/completions',
-    model: process.env.OPENROUTER_MODEL && !process.env.OPENROUTER_MODEL.includes('minimax')
-      ? process.env.OPENROUTER_MODEL
-      : 'google/gemini-2.0-flash-exp:free',
+    model: process.env.OPENROUTER_MODEL || 'cohere/north-mini-code:free',
+    key: process.env.OPENROUTER_API_KEY,
+    headerName: 'Authorization',
+    headerPrefix: 'Bearer ',
+  },
+  zen: {
+    url: process.env.ZEN_API_URL || 'https://opencode.ai/zen/v1/chat/completions',
+    model: process.env.ZEN_MODEL || 'big-pickle',
+    key: process.env.ZEN_API_KEY,
+    headerName: 'Authorization',
+    headerPrefix: 'Bearer ',
+  },
+  'zen-pickle': {
+    url: process.env.ZEN_API_URL || 'https://opencode.ai/zen/v1/chat/completions',
+    model: 'big-pickle',
+    key: process.env.ZEN_API_KEY,
+    headerName: 'Authorization',
+    headerPrefix: 'Bearer ',
+  },
+  'zen-mimo': {
+    url: process.env.ZEN_API_URL || 'https://opencode.ai/zen/v1/chat/completions',
+    model: 'mimo-v2.5-free',
+    key: process.env.ZEN_API_KEY,
+    headerName: 'Authorization',
+    headerPrefix: 'Bearer ',
+  },
+  'qwen-3.8': {
+    url: 'https://api.groq.com/openai/v1/chat/completions',
+    model: 'qwen/qwen3.8-27b',
+    key: process.env.GROQ_API_KEY,
+    headerName: 'Authorization',
+    headerPrefix: 'Bearer ',
+  },
+  'north-mini': {
+    url: 'https://openrouter.ai/api/v1/chat/completions',
+    model: 'cohere/north-mini-code:free',
     key: process.env.OPENROUTER_API_KEY,
     headerName: 'Authorization',
     headerPrefix: 'Bearer ',
@@ -60,7 +86,12 @@ async function callProvider(providerName, messages, options = {}) {
     throw new Error(`Provider "${providerName}" not configured (missing API key)`)
   }
 
-  const { temperature = 0.4, maxTokens = 4000, timeout = AI_TIMEOUT, jsonMode = false } = options
+  const {
+    temperature = 0.4,
+    maxTokens = 4000,
+    timeout = (providerName.startsWith('zen') ? 25000 : AI_TIMEOUT),
+    jsonMode = false
+  } = options
 
   const body = {
     model: provider.model,
@@ -68,16 +99,26 @@ async function callProvider(providerName, messages, options = {}) {
     temperature,
     max_tokens: maxTokens,
   }
-  if (jsonMode && providerName !== 'groq') body.response_format = { type: 'json_object' }
+  if (jsonMode && providerName !== 'groq' && !provider.noJsonFormat) {
+    body.response_format = { type: 'json_object' }
+  }
 
-    const response = await fetchWithTimeout(provider.url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        [provider.headerName]: `${provider.headerPrefix}${provider.key}`,
-      },
-      body: JSON.stringify(body),
-    }, timeout)
+  const headers = {
+    'Content-Type': 'application/json',
+    [provider.headerName]: `${provider.headerPrefix}${provider.key}`,
+  }
+
+  // OpenCode Zen requires x-opencode-session header and opencode user-agent for free-tier models
+  if (providerName.startsWith('zen') || provider.url?.includes('opencode.ai')) {
+    headers['x-opencode-session'] = 'session_' + Math.random().toString(36).substring(2, 12)
+    headers['User-Agent'] = 'opencode/1.0.0'
+  }
+
+  const response = await fetchWithTimeout(provider.url, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(body),
+  }, timeout)
 
   if (!response.ok) {
     const status = response.status
@@ -129,7 +170,7 @@ async function callProvider(providerName, messages, options = {}) {
   }
 
   const data = await response.json()
-  let content = data.choices?.[0]?.message?.content || ''
+  let content = data.choices?.[0]?.message?.content || data.choices?.[0]?.message?.reasoning_content || ''
   if (!content) throw new Error(`AI API ${providerName} returned empty content`)
 
   // Strip <think>...</think> tags (some models include reasoning)
@@ -154,14 +195,20 @@ async function callProvider(providerName, messages, options = {}) {
 export async function callAI(messages, options = {}) {
   const { preferredProvider, ...callOpts } = options
 
-  // Normalize provider alias
+  // Normalize provider alias (redirect failing/deprecated models to fastest working models)
   let targetProvider = preferredProvider
   if (targetProvider === 'gemini-3.5' || targetProvider === 'gemini_3_5') targetProvider = 'gemini-3.5-flash'
-  if (targetProvider === 'gemini-3.7' || targetProvider === 'gemini_3_7') targetProvider = 'gemini-3.7-flash'
+  if (targetProvider === 'gemini-3.7' || targetProvider === 'gemini_3_7' || targetProvider === 'gemini-3.7-flash' || targetProvider === 'gemini') targetProvider = 'gemini-3.5-flash-lite'
   if (targetProvider === 'gemini-lite' || targetProvider === 'gemini-3.5-lite') targetProvider = 'gemini-3.5-flash-lite'
+  if (targetProvider === 'qwen' || targetProvider === 'qwen-3.8' || targetProvider === 'qwen-3.8-27b' || targetProvider === 'qwen3.8') targetProvider = 'qwen-3.8'
+  if (targetProvider === 'zen' || targetProvider === 'zen-free' || targetProvider === 'opencode' || targetProvider === 'opencode-zen') targetProvider = 'zen'
+  if (targetProvider === 'big-pickle' || targetProvider === 'zen-pickle') targetProvider = 'zen-pickle'
+  if (targetProvider === 'mimo' || targetProvider === 'mimo-v2.5' || targetProvider === 'zen-mimo') targetProvider = 'zen-mimo'
+  if (targetProvider === 'north-mini' || targetProvider === 'north-mini-code') targetProvider = 'north-mini'
+  if (targetProvider === 'nemotron' || targetProvider === 'zen-nemotron' || targetProvider === 'ling' || targetProvider === 'zen-ling') targetProvider = 'zen'
 
-  // Determine provider order (prioritize fastest providers: gemini-3.5-flash-lite, gemini-3.7-flash, groq)
-  const allProviders = ['gemini-3.5-flash-lite', 'gemini-3.7-flash', 'groq', 'gemini-3.5-flash', 'openrouter'].filter(p => PROVIDERS[p]?.key)
+  // Determine provider order (prioritize fastest verified providers: gemini-3.5-flash-lite, qwen-3.8, groq, zen-mimo, zen, gemini-3.5-flash, north-mini, openrouter)
+  const allProviders = ['gemini-3.5-flash-lite', 'qwen-3.8', 'groq', 'zen-mimo', 'zen', 'gemini-3.5-flash', 'north-mini', 'openrouter'].filter(p => PROVIDERS[p]?.key)
   const providerOrder = targetProvider && PROVIDERS[targetProvider]?.key
     ? [targetProvider, ...allProviders.filter(p => p !== targetProvider)]
     : allProviders

@@ -4,7 +4,7 @@ const MODELS = [
   {
     value: 'gemini-3.5-flash-lite',
     label: 'Gemini 3.5 Flash Lite',
-    description: 'Fastest (~1-2s)',
+    description: 'Fastest (~1s)',
     icon: (
       <svg
         viewBox="0 0 24 24"
@@ -18,12 +18,61 @@ const MODELS = [
     ),
   },
   {
-    value: 'openrouter',
-    label: 'OpenRouter',
+    value: 'qwen-3.8',
+    label: 'Qwen 3.8 27B',
+    description: 'Ultra Fast (~0.5s)',
     icon: (
       <svg
         viewBox="0 0 24 24"
-        className="w-4 h-4"
+        className="w-4 h-4 text-indigo-500"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      >
+        <path d="M13 10V3L4 14h7v7l9-11h-7z" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+  {
+    value: 'groq',
+    label: 'GPT-OSS 120B',
+    description: 'Ultra Fast (~0.5s)',
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        className="w-4 h-4 text-amber-500"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      >
+        <path d="M13 10V3L4 14h7v7l9-11h-7z" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+  {
+    value: 'zen-mimo',
+    label: 'MiMo-V2.5',
+    description: 'Fast Multimodal',
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        className="w-4 h-4 text-cyan-500"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+      >
+        <path d="M13 10V3L4 14h7v7l9-11h-7z" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    ),
+  },
+  {
+    value: 'zen',
+    label: 'Big Pickle',
+    description: 'Deep Reasoning',
+    icon: (
+      <svg
+        viewBox="0 0 24 24"
+        className="w-4 h-4 text-emerald-500"
         fill="none"
         stroke="currentColor"
         strokeWidth="1.5"
@@ -39,11 +88,11 @@ const MODELS = [
   {
     value: 'gemini-3.5-flash',
     label: 'Gemini 3.5 Flash',
-    description: 'Google AI direct',
+    description: 'High Quality',
     icon: (
       <svg
         viewBox="0 0 24 24"
-        className="w-4 h-4"
+        className="w-4 h-4 text-blue-500"
         fill="none"
         stroke="currentColor"
         strokeWidth="1.5"
@@ -58,47 +107,30 @@ const MODELS = [
     ),
   },
   {
-    value: 'gemini-3.7-flash',
-    label: 'Gemini 3.7 Flash',
-    description: 'Google AI direct',
+    value: 'north-mini',
+    label: 'North Mini Code',
+    description: 'Code & Reasoning',
     icon: (
       <svg
         viewBox="0 0 24 24"
-        className="w-4 h-4"
+        className="w-4 h-4 text-purple-500"
         fill="none"
         stroke="currentColor"
         strokeWidth="1.5"
       >
-        <path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" strokeLinecap="round" strokeLinejoin="round" />
         <path
-          d="M9 9.563C9 9.252 9.252 9 9.563 9h.874c.311 0 .563.252.563.563v4.874a.563.563 0 01-.563.563h-.874A.563.563 0 019 14.437V9.564zM14.437 9c-.311 0-.563.252-.563.563v4.874c0 .311.252.563.563.563h.874c.311 0 .563-.252.563-.563V9.563A.563.563 0 0015.311 9h-.874z"
+          d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"
           strokeLinecap="round"
           strokeLinejoin="round"
         />
-      </svg>
-    ),
-  },
-  {
-    value: 'groq',
-    label: 'Groq',
-    description: 'Fast, free tier',
-    icon: (
-      <svg
-        viewBox="0 0 24 24"
-        className="w-4 h-4"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="1.5"
-      >
-        <path d="M13 10V3L4 14h7v7l9-11h-7z" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
   },
 ]
 
-export default function ModelSelector({ value = 'gemini-3.7-flash', onChange, compact = false, label = 'AI Model' }) {
+export default function ModelSelector({ value = 'gemini-3.5-flash-lite', onChange, compact = false, label = 'AI Model' }) {
   const [open, setOpen] = useState(false)
-  const normalizedValue = value === 'gemini' ? 'gemini-3.7-flash' : value
+  const normalizedValue = value === 'gemini' || value === 'gemini-3.7-flash' ? 'gemini-3.5-flash-lite' : value
   const selected = MODELS.find((m) => m.value === normalizedValue) || MODELS[0]
 
   return (
@@ -140,7 +172,7 @@ export default function ModelSelector({ value = 'gemini-3.7-flash', onChange, co
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 bottom-full mb-1 sm:bottom-auto sm:top-full sm:mt-1 z-50 w-full min-w-[270px] rounded-xl border border-gray-200 bg-white shadow-xl overflow-hidden py-1">
+          <div className="absolute left-0 bottom-full mb-1 sm:bottom-auto sm:top-full sm:mt-1 z-50 w-full min-w-[270px] max-h-80 overflow-y-auto rounded-xl border border-gray-200 bg-white shadow-xl py-1">
             {MODELS.map((model) => {
               const isSelected = normalizedValue === model.value
               return (

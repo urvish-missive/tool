@@ -12,7 +12,7 @@ export const keywordResearchSchema = z
       .or(z.literal('')),
     websiteUrl: z.string().trim().optional().or(z.literal('')),
     businessType: z.string().optional().or(z.literal('')),
-    preferredProvider: z.enum(['openrouter', 'gemini', 'gemini-3.5-flash', 'gemini-3.7-flash', 'groq']).default('openrouter'),
+    preferredProvider: z.string().optional().default('gemini-3.5-flash-lite'),
   })
   .refine(
     (data) => {

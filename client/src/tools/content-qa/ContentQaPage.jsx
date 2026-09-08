@@ -313,7 +313,7 @@ export default function ContentQaPage() {
   const [report, setReport] = useState(null)
   const [qaId, setQaId] = useState(null)
   const [statuses, setStatuses] = useState({})
-  const [expandedCats, setExpandedCats] = useState({})
+  // expandedCats removed — all category cards are always fully visible
   const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState('grid')
   const [filterMode, setFilterMode] = useState('all')
@@ -820,13 +820,7 @@ export default function ContentQaPage() {
         setStatuses(data.report.statuses)
       }
 
-      // Auto-expand categories that have issues
-      const initialExpanded = {}
-      HIMANI_CATEGORIES_DEF.forEach((c) => {
-        const catScore = data.report.categoryScores?.[c.id] || 100
-        if (catScore < 85) initialExpanded[c.id] = true
-      })
-      setExpandedCats(initialExpanded)
+
     } catch (err) {
       setError(
         err?.data?.error ||
@@ -879,9 +873,7 @@ export default function ContentQaPage() {
     })
   }
 
-  const toggleCat = (catId) => {
-    setExpandedCats((prev) => ({ ...prev, [catId]: !prev[catId] }))
-  }
+
 
   function getStatus(item) {
     if (statuses[item.id]) return statuses[item.id]
@@ -1701,7 +1693,7 @@ Audited with Missive Digital Content QA Tool.`
                         <Sparkles className="w-3.5 h-3.5 text-[#0C81F3]" />
                         Himani's Executive Assessment
                       </h4>
-                      <p className="text-xs text-gray-700 leading-relaxed">{report.ai.summary}</p>
+                      <p className="text-xs text-gray-700 leading-relaxed">{report.ai?.summary || 'Analysis complete against Himani Kankaria\'s 12-Pillar Content QA framework.'}</p>
                     </div>
 
                     <div className="bg-rose-50/40 rounded-2xl p-4 border border-rose-100/80">
@@ -1709,13 +1701,28 @@ Audited with Missive Digital Content QA Tool.`
                         <AlertCircle className="w-3.5 h-3.5 text-[#EB8988]" />
                         Top Priority Fixes
                       </h4>
-                      <ul className="space-y-1">
-                        {report.ai.topFixes?.slice(0, 3).map((fix, idx) => (
-                          <li key={idx} className="text-xs text-gray-700 flex items-start gap-1.5">
-                            <span className="text-[#EB8988] font-bold shrink-0">{idx + 1}.</span>
-                            <span>{fix}</span>
-                          </li>
-                        ))}
+                      <ul className="space-y-1.5">
+                        {report.ai?.topFixes?.length > 0
+                          ? report.ai.topFixes.slice(0, 3).map((fix, idx) => (
+                              <li key={idx} className="text-xs text-gray-700 flex items-start gap-1.5">
+                                <span className="text-[#EB8988] font-bold shrink-0">{idx + 1}.</span>
+                                <span>{fix}</span>
+                              </li>
+                            ))
+                          : (() => {
+                              const fallbackFixes = []
+                              if (report.quickStats?.emDashesCount > 0) fallbackFixes.push(`Remove all ${report.quickStats.emDashesCount} em dash(es) — replace with commas or sentence breaks.`)
+                              if (report.quickStats?.aiPhrasesCount > 0) fallbackFixes.push(`Replace ${report.quickStats.aiPhrasesCount} robotic AI cliché(s) with natural conversational phrasing.`)
+                              if (scores.failed > 0) fallbackFixes.push(`Address ${scores.failed} failed check(s) and ${scores.warnings} warning(s) in the 12-Pillar Checklist.`)
+                              if (fallbackFixes.length === 0) fallbackFixes.push('Review MANUAL items below — AI cannot evaluate brand voice and audience fit automatically.')
+                              return fallbackFixes.slice(0, 3).map((fix, idx) => (
+                                <li key={idx} className="text-xs text-gray-700 flex items-start gap-1.5">
+                                  <span className="text-[#EB8988] font-bold shrink-0">{idx + 1}.</span>
+                                  <span>{fix}</span>
+                                </li>
+                              ))
+                            })()
+                        }
                       </ul>
                     </div>
                   </div>
@@ -1793,44 +1800,22 @@ Audited with Missive Digital Content QA Tool.`
                         </button>
                       ))}
                     </div>
-
-                    <button
-                      onClick={() => {
-                        const allOpen =
-                          Object.keys(expandedCats).length === HIMANI_CATEGORIES_DEF.length
-                        if (allOpen) setExpandedCats({})
-                        else {
-                          const all = {}
-                          HIMANI_CATEGORIES_DEF.forEach((c) => (all[c.id] = true))
-                          setExpandedCats(all)
-                        }
-                      }}
-                      className="text-xs font-semibold text-[#0C81F3] hover:underline"
-                    >
-                      {Object.keys(expandedCats).length === HIMANI_CATEGORIES_DEF.length
-                        ? 'Collapse All'
-                        : 'Expand All Details'}
-                    </button>
                   </div>
 
-                  {/* 2-Column Responsive Card Grid */}
+                  {/* 2-Column Responsive Card Grid — all cards visible, equal height */}
                   <div className="grid md:grid-cols-2 gap-5">
                     {filteredCategories.map((cat) => {
                       const catScore = scores.cats[cat.id] ?? 100
-                      const isExpanded = expandedCats[cat.id]
                       const aiCat = report.ai?.categories?.[cat.id]
 
                       return (
                         <div
                           key={cat.id}
-                          className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden flex flex-col justify-between transition-all hover:border-[#0C81F3]/40"
+                          className="bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden transition-all hover:border-[#0C81F3]/40 flex flex-col"
                         >
-                          <div>
+                          <div className="flex-1 flex flex-col">
                             {/* Card Header */}
-                            <button
-                              onClick={() => toggleCat(cat.id)}
-                              className="w-full flex items-center justify-between p-4 sm:p-5 hover:bg-blue-50/30 transition-colors text-left"
-                            >
+                            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-100">
                               <div className="flex items-center gap-3">
                                 <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
                                   {cat.icon}
@@ -1848,22 +1833,15 @@ Audited with Missive Digital Content QA Tool.`
                                 </div>
                               </div>
 
-                              <div className="flex items-center gap-2.5">
-                                <span
-                                  className={`text-xs font-extrabold px-2.5 py-1 rounded-full border ${getScoreBg(catScore)}`}
-                                >
-                                  {catScore}%
-                                </span>
-                                {isExpanded ? (
-                                  <ChevronDown className="w-4 h-4 text-gray-400" />
-                                ) : (
-                                  <ChevronRight className="w-4 h-4 text-gray-400" />
-                                )}
-                              </div>
-                            </button>
+                              <span
+                                className={`text-xs font-extrabold px-2.5 py-1 rounded-full border ${getScoreBg(catScore)}`}
+                              >
+                                {catScore}%
+                              </span>
+                            </div>
 
                             {/* Checklist Items */}
-                            <div className="px-4 pb-4 space-y-1.5 border-t border-gray-100 pt-3">
+                            <div className="px-4 pb-4 border-t border-gray-100 pt-3 flex-1 flex flex-col justify-between gap-1.5">
                               {cat.items.map((item) => {
                                 const st = getStatus(item)
                                 const evidenceText = report.evidence?.[item.id]
@@ -1872,7 +1850,7 @@ Audited with Missive Digital Content QA Tool.`
                                   <div
                                     key={item.id}
                                     onClick={() => toggleStatus(item.id)}
-                                    className="p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors flex items-start gap-2.5 group"
+                                    className="p-2.5 rounded-xl hover:bg-gray-50 cursor-pointer transition-colors flex items-start gap-2.5 group shrink-0"
                                   >
                                     <div className="mt-0.5 shrink-0">
                                       {st === 'pass' ? (
@@ -1915,43 +1893,55 @@ Audited with Missive Digital Content QA Tool.`
                             </div>
                           </div>
 
-                          {/* Expanded AI Insights for Pillar */}
-                          {isExpanded && aiCat && (
-                            <div className="bg-blue-50/40 p-4 border-t border-blue-100 text-xs space-y-2">
-                              {aiCat.issues?.length > 0 && (
-                                <div>
-                                  <span className="font-bold text-rose-700 block mb-1">
-                                    Detected Issues:
-                                  </span>
-                                  {aiCat.issues.map((issue, idx) => (
-                                    <p
-                                      key={idx}
-                                      className="text-gray-700 text-[11px] mb-0.5 flex items-start gap-1"
-                                    >
-                                      <span className="text-rose-500">•</span>
-                                      {issue}
-                                    </p>
-                                  ))}
-                                </div>
-                              )}
-                              {aiCat.suggestions?.length > 0 && (
-                                <div>
-                                  <span className="font-bold text-[#0C81F3] block mb-1">
-                                    Himani's Suggestions:
-                                  </span>
-                                  {aiCat.suggestions.map((s, idx) => (
-                                    <p
-                                      key={idx}
-                                      className="text-gray-700 text-[11px] mb-0.5 flex items-start gap-1"
-                                    >
-                                      <span className="text-[#0C81F3]">→</span>
-                                      {s}
-                                    </p>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          )}
+                          {/* AI Insights for Pillar — always visible */}
+                          {(() => {
+                            const allIssues = [
+                              ...(aiCat?.issues || []),
+                              ...cat.items
+                                .filter(i => ['fail', 'warning'].includes(getStatus(i)) && report.evidence?.[i.id])
+                                .map(i => `${i.label}: ${report.evidence[i.id]}`),
+                            ]
+                            const allSuggestions = [
+                              ...(aiCat?.suggestions || []),
+                              ...cat.items
+                                .filter(i => ['fail', 'warning'].includes(getStatus(i)) && report.suggestions?.[i.id])
+                                .map(i => report.suggestions[i.id]),
+                            ]
+                            const hasIssues = allIssues.length > 0
+                            const hasSuggestions = allSuggestions.length > 0
+                            if (!hasIssues && !hasSuggestions && !aiCat?.verdict) return null
+                            return (
+                              <div className="bg-blue-50/40 p-4 border-t border-blue-100 text-xs space-y-2">
+                                {hasIssues && (
+                                  <div>
+                                    <span className="font-bold text-rose-700 block mb-1">Detected Issues:</span>
+                                    {allIssues.map((issue, idx) => (
+                                      <p key={idx} className="text-gray-700 text-[11px] mb-0.5 flex items-start gap-1">
+                                        <span className="text-rose-500">•</span>
+                                        <span>{issue}</span>
+                                      </p>
+                                    ))}
+                                  </div>
+                                )}
+                                {hasSuggestions && (
+                                  <div>
+                                    <span className="font-bold text-[#0C81F3] block mb-1">Himani's Suggestions:</span>
+                                    {[...new Set(allSuggestions)].map((s, idx) => (
+                                      <p key={idx} className="text-gray-700 text-[11px] mb-0.5 flex items-start gap-1">
+                                        <span className="text-[#0C81F3]">→</span>
+                                        <span>{s}</span>
+                                      </p>
+                                    ))}
+                                  </div>
+                                )}
+                                {aiCat?.verdict && (
+                                  <p className="text-[11px] text-gray-500 italic pt-1 border-t border-blue-200/60 mt-1">
+                                    {aiCat.verdict}
+                                  </p>
+                                )}
+                              </div>
+                            )
+                          })()}
                         </div>
                       )
                     })}
