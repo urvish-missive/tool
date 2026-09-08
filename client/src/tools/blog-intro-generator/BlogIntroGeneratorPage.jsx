@@ -78,7 +78,7 @@ const LOADING_STEPS = [
   'Polishing seamless transition bridges into first H2',
 ]
 
-export default function BlogIntroGeneratorPage() {
+export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
   const [selectedFunnel, setSelectedFunnel] = useState('all')
   const [activeFilterTab, setActiveFilterTab] = useState('all')
   const [favorites, setFavorites] = useState({})
@@ -302,7 +302,7 @@ export default function BlogIntroGeneratorPage() {
   const favCount = Object.values(favorites).filter(Boolean).length
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-24">
+    <div className={isEmbedded ? 'w-full' : 'min-h-screen bg-slate-50 text-slate-800 pb-20'}>
       {/* Lead Capture Modal */}
       <LeadCaptureModal
         show={showPopup}
@@ -317,39 +317,41 @@ export default function BlogIntroGeneratorPage() {
         subtitle="Generate unlimited TOFU, MOFU, and BOFU blog hooks and introductions engineered for high retention."
       />
 
-      {/* Hero Header */}
-      <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
-        <div
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }}
-        />
-        <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
+      {/* Hero Header — ONLY SHOWN WHEN NOT EMBEDDED */}
+      {!isEmbedded && (
+        <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24 bg-gradient-to-b from-slate-50 to-white border-b border-slate-200">
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.05 }}
+          />
+          <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-gradient-to-bl from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-gradient-to-tr from-[#A7D2FF]/20 to-[#F7B7B3]/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
 
-        <div className="relative max-w-4xl mx-auto px-3 sm:px-6 text-center">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[11px] sm:text-xs font-bold rounded-full mb-3 tracking-wide uppercase shadow-2xs">
-            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            <span>Himani's SEO Tools • Missive Digital</span>
+          <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[11px] sm:text-xs font-bold rounded-full mb-3 tracking-wide uppercase shadow-2xs">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Himani's SEO Tools • Missive Digital</span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight mb-2.5">
+              <span className="text-slate-900">Multiple Blog </span>
+              <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
+                Introduction Generator
+              </span>
+            </h1>
+
+            <p className="mt-2 text-xs sm:text-sm md:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
+              Generate high-converting, scroll-stopping blog post hooks engineered across the funnel:{' '}
+              <strong className="text-sky-700 font-semibold">TOFU (Awareness)</strong>,{' '}
+              <strong className="text-amber-700 font-semibold">MOFU (Consideration)</strong>, and{' '}
+              <strong className="text-emerald-700 font-semibold">BOFU (Decision)</strong>.
+            </p>
           </div>
-
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight mb-2.5">
-            <span className="text-slate-900">Multiple Blog </span>
-            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
-              Introduction Generator
-            </span>
-          </h1>
-
-          <p className="mt-2 text-xs sm:text-sm md:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Generate high-converting, scroll-stopping blog post hooks engineered across the funnel:{' '}
-            <strong className="text-sky-700 font-semibold">TOFU (Awareness)</strong>,{' '}
-            <strong className="text-amber-700 font-semibold">MOFU (Consideration)</strong>, and{' '}
-            <strong className="text-emerald-700 font-semibold">BOFU (Decision)</strong>.
-          </p>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Main Container */}
-      <div className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
+      <div className={isEmbedded ? 'w-full' : 'max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6'}>
         {/* Input Form Card — ONLY SHOWN WHEN NOT LOADING */}
         {!isLoading && (
           <div className="bg-white rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/40 border border-slate-200 p-4 sm:p-6 lg:p-7 mb-8 transition-all">
@@ -370,7 +372,7 @@ export default function BlogIntroGeneratorPage() {
                     type="text"
                     {...register('topic')}
                     placeholder="e.g. How to Scale Organic Traffic with Programmatic SEO"
-                    className={`w-full pl-3.5 pr-20 sm:pr-24 py-2.5 sm:py-3 bg-slate-50 border rounded-xl sm:rounded-2xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 focus:border-[#0C81F3] transition-all text-xs sm:text-sm font-medium ${
+                    className={`w-full pl-3.5 pr-24 sm:pr-28 py-2.5 sm:py-3 bg-slate-50 border rounded-xl sm:rounded-2xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 focus:border-[#0C81F3] transition-all text-xs sm:text-sm font-medium ${
                       errors.topic ? 'border-rose-300 ring-2 ring-rose-100' : 'border-slate-300'
                     }`}
                   />
@@ -378,7 +380,7 @@ export default function BlogIntroGeneratorPage() {
                     <button
                       type="button"
                       onClick={() => setValue('topic', '')}
-                      className="absolute right-12 sm:right-14 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                      className="absolute right-14 sm:right-16 top-1/2 -translate-y-1/2 text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                     >
                       Clear
                     </button>
@@ -407,7 +409,7 @@ export default function BlogIntroGeneratorPage() {
                 <label className="block text-xs sm:text-sm font-bold text-slate-800 mb-1.5">
                   Select Funnel Stage Focus
                 </label>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
+                <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
                   {FUNNEL_OPTIONS.map((opt) => {
                     const isSelected = selectedFunnel === opt.id
                     const Icon = opt.icon
@@ -419,21 +421,21 @@ export default function BlogIntroGeneratorPage() {
                           setSelectedFunnel(opt.id)
                           setValue('funnelStage', opt.id)
                         }}
-                        className={`p-2.5 sm:p-3 rounded-xl sm:rounded-2xl border text-left transition-all relative flex flex-col justify-between cursor-pointer ${
+                        className={`p-3 rounded-xl sm:rounded-2xl border text-left transition-all relative flex flex-col justify-between cursor-pointer ${
                           isSelected
                             ? 'border-[#0C81F3] bg-blue-50/60 shadow-xs ring-2 ring-[#0C81F3]/20'
                             : 'border-slate-200 bg-slate-50/50 hover:bg-slate-100/80 hover:border-slate-300'
                         }`}
                       >
-                        <div className="flex items-center justify-between mb-1.5">
+                        <div className="flex items-center justify-between mb-2">
                           <div
-                            className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg sm:rounded-xl flex items-center justify-center ${
+                            className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center ${
                               isSelected
                                 ? 'bg-[#0C81F3] text-white'
                                 : 'bg-white text-slate-500 border border-slate-200'
                             }`}
                           >
-                            <Icon className="w-3.5 h-3.5" />
+                            <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                           </div>
                           {opt.badge && (
                             <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-[#0C81F3] text-white">
@@ -443,7 +445,7 @@ export default function BlogIntroGeneratorPage() {
                         </div>
                         <div>
                           <p className="text-xs sm:text-sm font-bold text-slate-900 leading-tight">{opt.label}</p>
-                          <p className="text-[10px] sm:text-[11px] text-slate-500 mt-0.5 leading-snug line-clamp-2">{opt.sub}</p>
+                          <p className="text-[10px] sm:text-[11px] text-slate-500 mt-1 leading-snug">{opt.sub}</p>
                         </div>
                       </button>
                     )
@@ -452,7 +454,7 @@ export default function BlogIntroGeneratorPage() {
               </div>
 
               {/* Keywords & Target Audience Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label
                     htmlFor="keywords-input"
@@ -487,7 +489,7 @@ export default function BlogIntroGeneratorPage() {
               </div>
 
               {/* Tone of Voice & Count Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-1">
                 <div>
                   <label htmlFor="tone-select" className="block text-xs sm:text-sm font-bold text-slate-800 mb-1">
                     Tone of Voice
@@ -558,12 +560,12 @@ export default function BlogIntroGeneratorPage() {
                   />
                 </div>
 
-                <div className="flex items-center gap-2.5">
+                <div className="flex items-center gap-2.5 w-full sm:w-auto">
                   {dataResult && (
                     <button
                       type="button"
                       onClick={handleReset}
-                      className="px-4 py-2 sm:py-2.5 rounded-full border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-xs sm:text-sm cursor-pointer"
+                      className="flex-1 sm:flex-none px-4 py-2.5 rounded-full border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-xs sm:text-sm cursor-pointer text-center"
                     >
                       Reset
                     </button>
@@ -572,7 +574,7 @@ export default function BlogIntroGeneratorPage() {
                   <button
                     type="submit"
                     disabled={isLoading}
-                    className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-5 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-white hover:opacity-95 active:scale-[0.98] disabled:opacity-50 transition-all shadow-md shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer"
+                    className="flex-1 sm:flex-none rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-5 sm:px-6 py-2.5 sm:py-3 text-xs sm:text-sm font-bold text-white hover:opacity-95 active:scale-[0.98] disabled:opacity-50 transition-all shadow-md shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer text-center"
                   >
                     <Zap className="w-4 h-4 shrink-0" />
                     <span>Generate Blog Introductions</span>
@@ -916,17 +918,17 @@ export default function BlogIntroGeneratorPage() {
 
                       {/* Psychological Breakdown & Action Bar */}
                       <div className="pt-3 border-t border-slate-100 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5">
-                        <div className="text-xs text-slate-500 flex items-center gap-1.5">
-                          <HelpCircle className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                        <div className="text-xs text-slate-500 flex items-start sm:items-center gap-1.5">
+                          <HelpCircle className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5 sm:mt-0" />
                           <span>
-                            <strong className="text-slate-700">Why it works:</strong> {intro.whyItWorks}
+                            <strong className="text-slate-700 font-semibold">Why it works:</strong> {intro.whyItWorks}
                           </span>
                         </div>
 
                         <button
                           type="button"
                           onClick={() => handleCopyIntro(intro.id, intro.fullIntro)}
-                          className={`w-full sm:w-auto px-4 py-2 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs ${
+                          className={`w-full sm:w-auto px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 transition-all cursor-pointer shadow-xs shrink-0 ${
                             isCopiedIntro
                               ? 'bg-emerald-600 text-white'
                               : 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white hover:opacity-95'

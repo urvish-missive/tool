@@ -42,6 +42,12 @@ const TOOLS = [
     icon: '✍️',
     color: 'bg-indigo-100 text-indigo-700',
   },
+  {
+    slug: 'business-competitor-analytics',
+    label: 'Business Competitor Intel',
+    icon: '🏢',
+    color: 'bg-teal-100 text-teal-700',
+  },
 ]
 
 export default function AdminActivity() {

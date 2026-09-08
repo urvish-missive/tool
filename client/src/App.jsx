@@ -19,8 +19,11 @@ import WebsiteImageExtractorPage from './tools/website-image-extractor/WebsiteIm
 import WebsiteTechInspectorPage from './tools/website-tech-inspector/WebsiteTechInspectorPage'
 import AiContentWriterPage from './tools/ai-content-writer/AiContentWriterPage'
 import BlogIntroGeneratorPage from './tools/blog-intro-generator/BlogIntroGeneratorPage'
+import BlogIntroLandingPage from './pages/BlogIntroLandingPage'
 import BlogConclusionGeneratorPage from './tools/blog-conclusion-generator/BlogConclusionGeneratorPage'
 import EeatAnalyzerPage from './tools/eeat-analyzer/EeatAnalyzerPage'
+import BusinessCompetitorPage from './tools/business-competitor-analytics/BusinessCompetitorPage'
+import CaseStudyGeneratorPage from './tools/case-study-generator/CaseStudyGeneratorPage'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -180,7 +183,7 @@ export default function App() {
                     path="/blog-intro-generator"
                     element={
                       <ToolGuard toolPath="/blog-intro-generator">
-                        <BlogIntroGeneratorPage />
+                        <BlogIntroLandingPage />
                       </ToolGuard>
                     }
                   />
@@ -197,6 +200,22 @@ export default function App() {
                     element={
                       <ToolGuard toolPath="/eeat-analyzer">
                         <EeatAnalyzerPage />
+                      </ToolGuard>
+                    }
+                  />
+                  <Route
+                    path="/business-competitor-analytics"
+                    element={
+                      <ToolGuard toolPath="/business-competitor-analytics">
+                        <BusinessCompetitorPage />
+                      </ToolGuard>
+                    }
+                  />
+                  <Route
+                    path="/case-study-generator"
+                    element={
+                      <ToolGuard toolPath="/case-study-generator">
+                        <CaseStudyGeneratorPage />
                       </ToolGuard>
                     }
                   />

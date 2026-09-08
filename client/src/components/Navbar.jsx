@@ -21,6 +21,8 @@ const TOOL_HREF_SLUGS = {
   '/blog-intro-generator': 'blog-intro-generator',
   '/blog-conclusion-generator': 'blog-conclusion-generator',
   '/eeat-analyzer': 'eeat-analyzer',
+  '/business-competitor-analytics': 'business-competitor-analytics',
+  '/case-study-generator': 'case-study-generator',
 }
 
 const NAV_ITEMS = [
@@ -109,7 +111,7 @@ const NAV_ITEMS = [
               badgeColor: 'bg-white text-gray-900',
               href: '#',
             },
-            { icon: '📊', label: 'Case Study', href: '#' },
+            { icon: '📊', label: 'Case Study Generator', href: '/case-study-generator' },
           ],
         },
       ],
@@ -125,6 +127,13 @@ const NAV_ITEMS = [
             { icon: '💡', label: 'Blog Topic Generator', href: '/blog-topic-generator' },
             { icon: '🚀', label: 'Blog Intro Generator', href: '/blog-intro-generator' },
             { icon: '🎯', label: 'Blog Conclusion Generator', href: '/blog-conclusion-generator' },
+            {
+              icon: '📊',
+              label: 'Case Study Generator',
+              href: '/case-study-generator',
+              badge: 'NEW',
+              badgeColor: 'bg-emerald-500 text-white',
+            },
             { icon: '✍️', label: 'AI Content Writer', href: '/ai-content-writer' },
           ],
         },
@@ -137,9 +146,7 @@ const NAV_ITEMS = [
             { icon: '❓', label: 'FAQ Generator', href: '/faq-generator' },
             { icon: '🎨', label: 'Logo Maker', href: '/logo-maker' },
           ],
-        },
-        {
-          title: 'Rankings & Audits',
+        },        { title: 'Rankings & Audits',
           items: [
             {
               icon: '📈',
@@ -152,6 +159,13 @@ const NAV_ITEMS = [
               icon: '🕵️',
               label: 'Competitor Analysis',
               href: '/competitor-analysis',
+            },
+            {
+              icon: '🏢',
+              label: 'Business Competitor Intel',
+              href: '/business-competitor-analytics',
+              badge: 'NEW',
+              badgeColor: 'bg-white text-gray-900',
             },
             { icon: '💰', label: 'SEO ROI Calculator', href: '/seo-roi-calculator' },
           ],

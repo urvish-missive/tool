@@ -104,6 +104,11 @@ const TOOL_FIELDS = {
     { key: 'competitorUrl', label: 'Competitor URL', icon: '⚔️' },
     { key: 'targetKeyword', label: 'Target Keyword', icon: '🎯' },
   ],
+  'business-competitor-analytics': [
+    { key: 'competitorUrl', label: 'Competitor Website URL', icon: '🌐' },
+    { key: 'companyName', label: 'Company Name', icon: '🏢' },
+    { key: 'industry', label: 'Industry / Sector', icon: '🏭' },
+  ],
 }
 
 const POPUP_FIELD_DEFS = [

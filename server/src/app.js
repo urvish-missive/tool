@@ -22,6 +22,8 @@ import contentWriterRoutes from './routes/contentWriterRoutes.js'
 import blogIntroRoutes from './routes/blogIntroRoutes.js'
 import blogConclusionRoutes from './routes/blogConclusionRoutes.js'
 import eeatRoutes from './routes/eeatRoutes.js'
+import businessCompetitorRoutes from './routes/businessCompetitorRoutes.js'
+import caseStudyRoutes from './routes/caseStudyRoutes.js'
 import deviceRoutes from './routes/deviceRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 
@@ -80,6 +82,8 @@ app.use('/api/content-writer', toolAccess('ai-content-writer'), contentWriterRou
 app.use('/api/blog-intros', toolAccess('blog-intro-generator'), blogIntroRoutes)
 app.use('/api/blog-conclusion', toolAccess('blog-conclusion-generator'), blogConclusionRoutes)
 app.use('/api/eeat', toolAccess('eeat-analyzer'), eeatRoutes)
+app.use('/api/business-competitor', toolAccess('business-competitor-analytics'), businessCompetitorRoutes)
+app.use('/api/case-study', toolAccess('case-study-generator'), caseStudyRoutes)
 app.use('/api/devices', deviceRoutes)
 
 // Health check
@@ -236,6 +240,11 @@ async function seedDefaults() {
         targetAudience: { enabled: true, label: 'Target Audience', required: false },
         tone: { enabled: true, label: 'Tone of Voice', required: false },
         count: { enabled: true, label: 'Number of Introductions', required: false },
+      })},
+      { slug: 'business-competitor-analytics', name: 'Business Competitor Intelligence', description: 'Deep business intelligence on competitors: history, M&A, products, market position, marketing & sales strategies', dailyLimit: 30, hourlyLimit: 8, formFields: JSON.stringify({
+        competitorUrl: { enabled: true, label: 'Competitor Website URL', required: true },
+        companyName: { enabled: true, label: 'Company Name', required: false },
+        industry: { enabled: true, label: 'Industry / Sector', required: false },
       })},
     ]
     await prisma.toolConfig.createMany({ data: tools })
@@ -446,6 +455,54 @@ async function seedDefaults() {
           },
         })
         console.log('✓ Blog Conclusion Generator tool config seeded')
+      }
+    } catch {}
+
+    // Ensure business-competitor-analytics exists if database was already initialized
+    try {
+      const bizTool = await prisma.toolConfig.findUnique({ where: { slug: 'business-competitor-analytics' } })
+      if (!bizTool) {
+        await prisma.toolConfig.create({
+          data: {
+            slug: 'business-competitor-analytics',
+            name: 'Business Competitor Intelligence',
+            description: 'Deep business intelligence on competitors: history, M&A, products, market position, marketing & sales strategies',
+            dailyLimit: 30,
+            hourlyLimit: 8,
+            formFields: JSON.stringify({
+              competitorUrl: { enabled: true, label: 'Competitor Website URL', required: true },
+              companyName: { enabled: true, label: 'Company Name', required: false },
+              industry: { enabled: true, label: 'Industry / Sector', required: false },
+            }),
+          },
+        })
+        console.log('✓ Business Competitor Analytics tool config seeded')
+      }
+    } catch {}
+
+    // Ensure case-study-generator exists if database was already initialized
+    try {
+      const caseStudyTool = await prisma.toolConfig.findUnique({ where: { slug: 'case-study-generator' } })
+      if (!caseStudyTool) {
+        await prisma.toolConfig.create({
+          data: {
+            slug: 'case-study-generator',
+            name: 'Case Study Generator',
+            description: 'Generate marketing-engineered B2B case studies with multi-channel distribution strategies and Missive QA compliance',
+            dailyLimit: 50,
+            hourlyLimit: 12,
+            formFields: JSON.stringify({
+              clientName: { enabled: true, label: 'Client / Brand Name', required: false },
+              niche: { enabled: true, label: 'Niche / Industry', required: true },
+              challenge: { enabled: true, label: 'Challenge / Bottleneck', required: true },
+              solution: { enabled: true, label: 'Solution / Methodology', required: true },
+              metrics: { enabled: true, label: 'Quantifiable Metrics & Results', required: true },
+              targetAudience: { enabled: true, label: 'Target Audience / Personas', required: false },
+              tone: { enabled: true, label: 'Tone of Voice', required: false },
+            }),
+          },
+        })
+        console.log('✓ Case Study Generator tool config seeded')
       }
     } catch {}
   }

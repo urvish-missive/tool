@@ -21,6 +21,7 @@ const FOOTER_TOOLS = [
   { label: 'Blog Intro Generator', href: '/blog-intro-generator', slug: 'blog-intro-generator' },
   { label: 'Blog Conclusion Generator', href: '/blog-conclusion-generator', slug: 'blog-conclusion-generator' },
   { label: 'E-E-A-T Analyzer', href: '/eeat-analyzer', slug: 'eeat-analyzer' },
+  { label: 'Business Competitor Intel', href: '/business-competitor-analytics', slug: 'business-competitor-analytics' },
 ]
 
 export default function Footer() {

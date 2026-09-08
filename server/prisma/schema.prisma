@@ -181,6 +181,8 @@ model Lead {
   extractedTech       ExtractedTechProject? @relation(fields: [extractedTechId], references: [id])
   contentWriterId     String?           @db.ObjectId
   contentWriter       ContentWriter?    @relation(fields: [contentWriterId], references: [id])
+  businessCompetitorId String?          @db.ObjectId
+  businessCompetitor  BusinessCompetitor? @relation(fields: [businessCompetitorId], references: [id])
   createdAt          DateTime          @default(now())
 
   @@index([email])
@@ -365,6 +367,19 @@ model ContentWriter {
 
   @@index([createdAt])
   @@index([keyword])
+}
+
+model BusinessCompetitor {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  competitorUrl   String
+  companyName     String?
+  industry        String?
+  reportJson      String
+  createdAt       DateTime @default(now())
+  leads           Lead[]
+
+  @@index([createdAt])
+  @@index([competitorUrl])
 }
 
 // ─── Admin & Tool Management ────────────────────────────

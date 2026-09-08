@@ -19,6 +19,10 @@ const TOOL_SLUG_MAP = {
   website_tech_inspector: 'website-tech-inspector',
   ai_content_writer: 'ai-content-writer',
   blog_intro_generator: 'blog-intro-generator',
+  blog_conclusion_generator: 'blog-conclusion-generator',
+  eeat_analyzer: 'eeat-analyzer',
+  business_competitor_analytics: 'business-competitor-analytics',
+  case_study_generator: 'case-study-generator',
 }
 
 const TOOLS = [
@@ -200,6 +204,26 @@ const TOOLS = [
     icon: '🛡️',
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/eeat-analyzer',
+    badge: 'New Tool',
+  },
+  {
+    id: 'business_competitor_analytics',
+    title: 'Business Competitor Intelligence',
+    description:
+      'Deep business intelligence on any competitor — history, mergers & acquisitions, product lines, market position, marketing & sales strategies.',
+    icon: '🏢',
+    color: 'from-[#0C81F3] to-[#EB8988]',
+    path: '/business-competitor-analytics',
+    badge: 'New Tool',
+  },
+  {
+    id: 'case_study_generator',
+    title: 'Case Study Generator',
+    description:
+      'Generate conversion-engineered B2B case studies following Missive QA rules, complete with multi-channel distribution playbooks (blog weaving, same-domain links, testimonials, social & video).',
+    icon: '📊',
+    color: 'from-[#0C81F3] to-[#EB8988]',
+    path: '/case-study-generator',
     badge: 'New Tool',
   },
 ]

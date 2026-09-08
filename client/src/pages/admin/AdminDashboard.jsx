@@ -126,6 +126,7 @@ export default function AdminDashboard() {
                 'Logo Maker': 'bg-blue-100 text-blue-700',
                 'ROI Calculator': 'bg-pink-100 text-pink-700',
                 'AI Content Writer': 'bg-indigo-100 text-indigo-700',
+                'Business Competitor Intel': 'bg-teal-100 text-teal-700',
               }
               const toolIcons = {
                 'Content Analyzer': '📝',
@@ -135,6 +136,7 @@ export default function AdminDashboard() {
                 'Logo Maker': '🎨',
                 'ROI Calculator': '💰',
                 'AI Content Writer': '✍️',
+                'Business Competitor Intel': '🏢',
               }
               return (
                 <div

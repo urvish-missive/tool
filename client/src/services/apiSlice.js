@@ -296,6 +296,24 @@ export const apiSlice = createApi({
       }),
     }),
 
+    // POST /api/business-competitor/analyze
+    analyzeBusinessCompetitor: builder.mutation({
+      query: (payload) => ({
+        url: '/business-competitor/analyze',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
+    // POST /api/case-study/generate
+    generateCaseStudy: builder.mutation({
+      query: (payload) => ({
+        url: '/case-study/generate',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
     // GET /api/health
     healthCheck: builder.query({
       query: () => '/health',
@@ -473,6 +491,8 @@ export const {
   useGenerateBlogIntrosMutation,
   useGenerateBlogConclusionsMutation,
   useAnalyzeEeatMutation,
+  useAnalyzeBusinessCompetitorMutation,
+  useGenerateCaseStudyMutation,
   useRewriteContentMutation,
   useGenerateMetaTagsMutation,
   useHealthCheckQuery,

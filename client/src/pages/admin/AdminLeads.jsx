@@ -12,6 +12,7 @@ const SOURCES = [
   'logo-maker',
   'seo-roi',
   'ai-content-writer',
+  'business-competitor-analytics',
 ]
 
 export default function AdminLeads() {
