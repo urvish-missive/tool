@@ -1,4 +1,5 @@
 import { callAIAndParseJSON, apiResultCache } from '../utils/aiProvider.js'
+import { TONE_PROFILES } from './blogTopicGenerator.js'
 
 /**
  * Funnel stage definitions and characteristics
@@ -301,7 +302,18 @@ export async function generateBlogIntroductions({
   count = 6,
   preferredProvider = 'gemini-3.5-flash-lite',
 }) {
-  const cacheKey = apiResultCache.hashKey('blog-intros', { topic, targetKeywords, targetAudience, funnelStage, tone, count, preferredProvider })
+  const activeTone = (tone || 'conversational').toLowerCase().trim()
+  const toneProfile = TONE_PROFILES[activeTone] || TONE_PROFILES.conversational
+
+  const cacheKey = apiResultCache.hashKey('blog-intros', {
+    topic,
+    targetKeywords,
+    targetAudience,
+    funnelStage,
+    tone: activeTone,
+    count,
+    preferredProvider,
+  })
   const cached = apiResultCache.get(cacheKey)
   if (cached) {
     return cached
@@ -353,17 +365,18 @@ Generate high-retention, scroll-stopping blog post introductions engineered to s
 
 COPYWRITING RULES:
 1. First Sentence Hook: Must be an arresting pattern-interrupt. Zero preamble or meta-commentary.
-2. Body: Exactly 2 tight sentences building the tension or stakes.
-3. Bridge Line: Exactly 1 smooth transition sentence pulling the reader directly into the article.
-4. Target Audiences: Accurately identify 4-5 key audience segments / personas for this topic.
-5. Banned Clichés: Never use "In today's fast-paced world", "Look no further", "Delve into", "Tapestry", "Let's explore", "Whether you are a...".
-6. Return strictly valid JSON only.`
+2. Tone & Voice Mandate (${toneProfile.label}): ${toneProfile.directive} Every hook, body sentence, and bridge line must strictly embody this tone.
+3. Body: Exactly 2 tight sentences building the tension or stakes in this voice.
+4. Bridge Line: Exactly 1 smooth transition sentence pulling the reader directly into the article.
+5. Target Audiences: Accurately identify 4-5 key audience segments / personas for this topic.
+6. Banned Clichés: Never use "In today's fast-paced world", "Look no further", "Delve into", "Tapestry", "Let's explore", "Whether you are a...".
+7. Return strictly valid JSON only.`
 
   const userPrompt = `Generate exactly ${requestedCount} blog post introductions for:
 TOPIC: "${topic}"
 KEYWORDS: "${keywordsList || topic}"
 AUDIENCE: "${userAudience ? userAudience : 'Identify the top 4-5 relevant target audience segments for this topic'}"
-TONE: "${tone}"
+TONE OF VOICE: "${toneProfile.label}" — ${toneProfile.directive}
 
 DISTRIBUTION REQUIREMENTS:
 ${stageGuidance}

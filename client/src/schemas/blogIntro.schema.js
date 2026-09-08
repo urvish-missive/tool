@@ -14,6 +14,8 @@ export const blogIntroSchema = z.object({
     .enum([
       'conversational',
       'authoritative',
+      'storytelling',
+      'fun',
       'bold',
       'empathetic',
       'witty',

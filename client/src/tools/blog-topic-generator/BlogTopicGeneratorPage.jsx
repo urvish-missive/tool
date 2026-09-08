@@ -32,6 +32,17 @@ const CONTENT_GOALS = [
   'Customer Retention & Onboarding',
 ]
 
+const TONES = [
+  { id: 'authoritative', label: 'Authoritative & Thought-Leadership' },
+  { id: 'conversational', label: 'Conversational & Engaging' },
+  { id: 'storytelling', label: 'Storytelling & Narrative' },
+  { id: 'fun', label: 'Fun & Playful' },
+  { id: 'bold', label: 'Bold & Disruptive' },
+  { id: 'empathetic', label: 'Empathetic & Supportive' },
+  { id: 'witty', label: 'Witty & Energetic' },
+  { id: 'data-driven', label: 'Analytical & Data-Driven' },
+]
+
 const CONTENT_TYPES = [
   'All Formats',
   'Ultimate Guides',
@@ -62,6 +73,7 @@ export default function BlogTopicGeneratorPage() {
   const [targetKeywords, setTargetKeywords] = useState('')
   const [audience, setAudience] = useState('')
   const [contentGoal, setContentGoal] = useState(CONTENT_GOALS[0])
+  const [tone, setTone] = useState('authoritative')
   const [contentType, setContentType] = useState(CONTENT_TYPES[0])
   const [count, setCount] = useState(8)
   const [preferredProvider, setPreferredProvider] = useState('openrouter')
@@ -98,6 +110,7 @@ export default function BlogTopicGeneratorPage() {
         audience: audience.trim() || undefined,
         contentGoal,
         contentType,
+        tone,
         count: Number(count),
         preferredProvider,
       }).unwrap()
@@ -118,6 +131,8 @@ export default function BlogTopicGeneratorPage() {
     setNiche('')
     setTargetKeywords('')
     setAudience('')
+    setTone('authoritative')
+    setContentGoal(CONTENT_GOALS[0])
     setResults(null)
     setError('')
     resetMutation()
@@ -161,8 +176,10 @@ export default function BlogTopicGeneratorPage() {
 
   const exportFullMarkdown = () => {
     if (!results) return
+    const activeToneLabel = TONES.find((t) => t.id === (results.tone || tone))?.label || (results.tone || tone)
     const lines = [
       `# Editorial Content Strategy: ${niche}`,
+      `*Tone of Voice: ${activeToneLabel} | Content Goal: ${contentGoal}*`,
       '',
       `## Pillar Cornerstone Content`,
       `**Title:** ${pillarTopic?.title}`,
@@ -309,8 +326,30 @@ ${t.outline.map((o) => `  - ${o}`).join('\n')}
                 </select>
               </div>
 
-              {/* Count */}
+              {/* Tone of Voice */}
               <div>
+                <label
+                  htmlFor="tone"
+                  className="block text-sm font-bold text-slate-800 mb-2"
+                >
+                  Tone of Voice
+                </label>
+                <select
+                  id="tone"
+                  value={tone}
+                  onChange={(e) => setTone(e.target.value)}
+                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm bg-white font-medium"
+                >
+                  {TONES.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Count */}
+              <div className="md:col-span-2">
                 <label htmlFor="count" className="block text-sm font-bold text-slate-800 mb-2">
                   Number of Topics
                 </label>
@@ -415,9 +454,12 @@ ${t.outline.map((o) => `  - ${o}`).join('\n')}
                     <p className="text-slate-300 text-sm sm:text-base mt-2 leading-relaxed max-w-3xl">
                       {pillarTopic.summary}
                     </p>
-                    <div className="mt-3 inline-flex items-center gap-2 text-xs text-blue-200 bg-white/10 px-3 py-1 rounded-lg">
-                      <span>
+                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-blue-200">
+                      <span className="bg-white/10 px-3 py-1 rounded-lg">
                         Core Keyword: <strong>{pillarTopic.primaryKeyword}</strong>
+                      </span>
+                      <span className="bg-white/10 px-3 py-1 rounded-lg">
+                        Tone: <strong>{TONES.find((t) => t.id === (results.tone || tone))?.label || (results.tone || tone)}</strong>
                       </span>
                     </div>
                   </div>

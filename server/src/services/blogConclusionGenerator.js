@@ -1,4 +1,5 @@
 import { callAIAndParseJSON, apiResultCache } from '../utils/aiProvider.js'
+import { TONE_PROFILES } from './blogTopicGenerator.js'
 
 /**
  * Funnel stage definitions and conversion intent for conclusions
@@ -203,7 +204,22 @@ export async function generateBlogConclusions({
     throw new Error('A valid blog topic or title is required (minimum 3 characters).')
   }
 
-  const cacheKey = apiResultCache.hashKey('blog-conclusions', { topic, intro, keyTakeaways, ctaGoal, ctaCustomText, targetKeywords, audience, funnelStage, tone, numVariations, preferredProvider })
+  const activeTone = (tone || 'authoritative').toLowerCase().trim()
+  const toneProfile = TONE_PROFILES[activeTone] || TONE_PROFILES.authoritative
+
+  const cacheKey = apiResultCache.hashKey('blog-conclusions', {
+    topic,
+    intro,
+    keyTakeaways,
+    ctaGoal,
+    ctaCustomText,
+    targetKeywords,
+    audience,
+    funnelStage,
+    tone: activeTone,
+    numVariations,
+    preferredProvider,
+  })
   const cached = apiResultCache.get(cacheKey)
   if (cached) {
     return cached
@@ -244,6 +260,9 @@ CRITICAL RULES (NON-NEGOTIABLE):
    - Do not simply list bullet points. Synthesize the big-picture insight into an authoritative, actionable ending.
 4. **HIGH-CONVERTING CTA INTEGRATION**:
    - Seamlessly transition from the takeaway into the desired Call to Action (${ctaInfo.label}).
+5. **TONE OF VOICE MANDATE (${toneProfile.label})**:
+   - ${toneProfile.directive}
+   - Ensure the specific H2 titles, loop closure, body arguments, and CTA transitions authentically embody this tone.
 
 RETURN JSON STRICTLY IN THIS FORMAT (NO PREAMBLE, NO CODEBLOCKS):
 {
@@ -273,7 +292,7 @@ ${cleanTakeaways ? `- Key Takeaways Covered in Article:\n"""\n${cleanTakeaways.s
 - Target Audience: ${audience}
 - Primary Keywords: ${targetKeywords.length ? targetKeywords.join(', ') : cleanTopic}
 - Primary CTA Goal: ${ctaInfo.label} (Default Button Copy: "${defaultCtaBtn}")
-- Desired Tone: ${tone}
+- Desired Tone: ${toneProfile.label} (${toneProfile.directive})
 
 VARIATIONS TO GENERATE:
 Generate an array of exactly ${count} items corresponding to these funnel stages:
@@ -364,6 +383,7 @@ ${stagePlan.map((s, idx) => `Variation ${idx + 1}: ${CONCLUSION_FUNNEL_STAGES[s]
         success: true,
         topic: cleanTopic,
         funnelFilter: funnelStage,
+        tone: activeTone,
         totalGenerated: sanitized.length,
         conclusions: sanitized,
       }
@@ -388,6 +408,7 @@ ${stagePlan.map((s, idx) => `Variation ${idx + 1}: ${CONCLUSION_FUNNEL_STAGES[s]
       success: true,
       topic: cleanTopic,
       funnelFilter: funnelStage,
+      tone: activeTone,
       totalGenerated: fallbacks.length,
       conclusions: fallbacks,
       isFallback: true,

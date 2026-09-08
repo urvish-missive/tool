@@ -1,6 +1,52 @@
 import { callAIAndParseJSON, apiResultCache } from '../utils/aiProvider.js'
 
 /**
+ * Standardized Tone profiles with rich prompt directives
+ */
+export const TONE_PROFILES = {
+  conversational: {
+    id: 'conversational',
+    label: 'Conversational & Engaging',
+    directive: 'Write in a friendly, engaging, approachable voice like an experienced peer chatting over coffee. Use 2nd person ("you"), natural conversational hooks, relatable analogies, and clear, human storytelling.',
+  },
+  authoritative: {
+    id: 'authoritative',
+    label: 'Authoritative & Thought-Leadership',
+    directive: 'Write with executive authority, deep industry credibility, strategic foresight, and authoritative conviction. Eliminate fluff, use confident language, and frame insights as definitive strategic principles.',
+  },
+  bold: {
+    id: 'bold',
+    label: 'Bold & Disruptive',
+    directive: 'Use contrarian, pattern-interrupting framing that boldly challenges conventional wisdom, busts sacred cows in the industry, and takes an unapologetic stance that demands attention.',
+  },
+  empathetic: {
+    id: 'empathetic',
+    label: 'Empathetic & Supportive',
+    directive: 'Demonstrate profound empathy for the reader’s real pain points, decision fatigue, and challenges. Use an encouraging, warm, and highly supportive tone that validates their struggle and offers reassurance.',
+  },
+  witty: {
+    id: 'witty',
+    label: 'Witty & Energetic',
+    directive: 'Inject clever metaphors, sharp energetic pacing, vibrant wordplay, and intelligent humor while keeping the takeaways deeply actionable and memorable.',
+  },
+  'data-driven': {
+    id: 'data-driven',
+    label: 'Analytical & Data-Driven',
+    directive: 'Adopt a rigorous, objective, metric-focused analytical lens. Emphasize benchmarks, statistical realities, measurable outcomes, frameworks, and empirical rigor.',
+  },
+  storytelling: {
+    id: 'storytelling',
+    label: 'Storytelling & Narrative',
+    directive: 'Ground the content in immersive storytelling, narrative tension, relatable real-world anecdotes, and vivid scene-setting that hooks human curiosity and makes the reader feel part of an unfolding journey.',
+  },
+  fun: {
+    id: 'fun',
+    label: 'Fun & Playful',
+    directive: 'Keep it lighthearted, playful, and delightfully fun. Use casual upbeat phrasing, humorous twists, lively analogies, and an entertaining, high-vibe voice that makes reading effortless and smile-worthy.',
+  },
+}
+
+/**
  * AI-powered Blog Topic & Content Cluster Generator
  */
 export async function generateBlogTopics({
@@ -8,6 +54,7 @@ export async function generateBlogTopics({
   targetKeywords = [],
   audience = '',
   contentGoal = 'educational',
+  tone = 'authoritative',
   preferredProvider,
   count = 10,
   contentType = 'blog post',
@@ -19,7 +66,19 @@ export async function generateBlogTopics({
         ? targetKeywords.split(',').map(s => s.trim()).filter(Boolean)
         : [])
 
-  const cacheKey = apiResultCache.hashKey('blog-topics', { niche, targetKeywords: kwList, audience, contentGoal, count: targetCount, contentType, preferredProvider })
+  const activeTone = (tone || 'authoritative').toLowerCase().trim()
+  const toneProfile = TONE_PROFILES[activeTone] || TONE_PROFILES.authoritative
+
+  const cacheKey = apiResultCache.hashKey('blog-topics', {
+    niche,
+    targetKeywords: kwList,
+    audience,
+    contentGoal,
+    tone: activeTone,
+    count: targetCount,
+    contentType,
+    preferredProvider,
+  })
   const cached = apiResultCache.get(cacheKey)
   if (cached) {
     return cached
@@ -33,20 +92,23 @@ Your job is to generate highly differentiated, clickable, and search-optimized b
 
 Rules:
 1. Titles must be specific, magnetic, and strictly adhere to modern SERP CTR best practices (avoid generic phrases like "A Guide to X").
-2. Vary content angles (Tactical How-To, Contrarian / Myth-Busting, Data Benchmark, Direct Comparison, Deep Dive, Case Study).
-3. Include concise structured outlines (3 to 4 sections with H2: and H3: prefixes) offering high Information Gain.
-4. Group topics into logical topical clusters.
-5. CRITICAL COUNT REQUIREMENT: You MUST generate EXACTLY ${targetCount} topic objects in the "topics" array. Do not generate fewer.
-6. Return ONLY valid JSON, no markdown code blocks outside JSON.`
+2. Tone & Voice Mandate (${toneProfile.label}): ${toneProfile.directive} Every headline, hook, angle, and outline section must strictly reflect this tone.
+3. Vary content angles (Tactical How-To, Contrarian / Myth-Busting, Data Benchmark, Direct Comparison, Deep Dive, Case Study).
+4. Include concise structured outlines (3 to 4 sections with H2: and H3: prefixes) offering high Information Gain.
+5. Group topics into logical topical clusters.
+6. CRITICAL COUNT REQUIREMENT: You MUST generate EXACTLY ${targetCount} topic objects in the "topics" array. Do not generate fewer.
+7. Return ONLY valid JSON, no markdown code blocks outside JSON.`
 
   const userPrompt = `Generate EXACTLY ${targetCount} SEO-optimized blog topics for:
 - Niche: ${niche}
 - Target Keywords: ${keywordText}
 - Target Audience: ${audience || 'Professionals, practitioners and buyers in the ' + niche + ' space'}
 - Content Goal: ${contentGoal}
+- Tone of Voice: ${toneProfile.label} (${toneProfile.directive})
 - Preferred Content Type: ${contentType}
 
 CRITICAL: The "topics" array MUST contain EXACTLY ${targetCount} topic items.
+Ensure all topic titles, hooks, and outlines distinctly embody the requested "${toneProfile.label}" tone.
 Keep each outline to 3-4 clear points so the entire response stays within token limits.
 
 Return a JSON object with this EXACT structure:
@@ -152,6 +214,8 @@ Return a JSON object with this EXACT structure:
       niche,
       targetKeywords: kwList,
       audience,
+      contentGoal,
+      tone: activeTone,
       pillarTopic: result.pillarTopic || {
         title: `The Comprehensive Authority Guide to ${niche} (2025 Edition)`,
         primaryKeyword: kwList[0] || niche,
@@ -173,14 +237,14 @@ Return a JSON object with this EXACT structure:
     return output
   } catch (error) {
     console.error('Blog topic generator error (using 20-topic procedural engine):', error.message)
-    return generateFallbackTopics({ niche, targetKeywords: kwList, audience, count: targetCount, contentType })
+    return generateFallbackTopics({ niche, targetKeywords: kwList, audience, contentGoal, tone: activeTone, count: targetCount, contentType })
   }
 }
 
 /**
  * Procedural Fallback Engine containing 20 unique, rich SEO topic archetypes
  */
-export function generateFallbackTopics({ niche, targetKeywords, audience, count = 10, contentType }) {
+export function generateFallbackTopics({ niche, targetKeywords, audience, contentGoal = 'educational', tone = 'authoritative', count = 10, contentType }) {
   const seed = (targetKeywords && targetKeywords[0]) || niche || 'SEO Content'
   const secondary = (targetKeywords && targetKeywords[1]) || `${seed} Strategy`
   const targetCount = Math.min(Math.max(parseInt(count, 10) || 10, 1), 20)
@@ -583,6 +647,8 @@ export function generateFallbackTopics({ niche, targetKeywords, audience, count 
     niche,
     targetKeywords: targetKeywords || [seed],
     audience,
+    contentGoal,
+    tone,
     pillarTopic: {
       title: `The Master Blueprint to ${seed}: Modern Strategies, Workflows & Implementation`,
       primaryKeyword: seed,

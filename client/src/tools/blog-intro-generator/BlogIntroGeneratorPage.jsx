@@ -61,6 +61,8 @@ const FUNNEL_OPTIONS = [
 const TONES = [
   { id: 'conversational', label: 'Conversational & Engaging' },
   { id: 'authoritative', label: 'Authoritative & Thought-Leadership' },
+  { id: 'storytelling', label: 'Storytelling & Narrative' },
+  { id: 'fun', label: 'Fun & Playful' },
   { id: 'bold', label: 'Bold & Disruptive' },
   { id: 'empathetic', label: 'Empathetic & Supportive' },
   { id: 'witty', label: 'Witty & Energetic' },
@@ -222,8 +224,8 @@ export default function BlogIntroGeneratorPage() {
       `# Blog Introductions: ${dataResult.summary.topic}`,
       `*Generated on ${new Date().toLocaleDateString()} via Missive Digital Blog Intro Generator*`,
       dataResult.summary.targetAudience
-        ? `*Target Audience: ${dataResult.summary.targetAudience} | Tone: ${dataResult.summary.tone}*`
-        : `*Tone: ${dataResult.summary.tone}*`,
+        ? `*Target Audience: ${dataResult.summary.targetAudience} | Tone: ${TONES.find((t) => t.id === dataResult.summary.tone)?.label || dataResult.summary.tone}*`
+        : `*Tone: ${TONES.find((t) => t.id === dataResult.summary.tone)?.label || dataResult.summary.tone}*`,
       ((dataResult.summary?.targetAudiences?.length || dataResult.targetAudiences?.length)
         ? `*Target Audiences: ${(dataResult.summary?.targetAudiences || dataResult.targetAudiences).join(', ')}*`
         : ''),
@@ -623,7 +625,7 @@ export default function BlogIntroGeneratorPage() {
                         Audience: <strong className="text-slate-700">{dataResult.summary.targetAudience}</strong> •{' '}
                       </>
                     )}
-                    Tone: <strong className="text-slate-700 capitalize">{dataResult.summary.tone}</strong>
+                    Tone: <strong className="text-slate-700">{TONES.find((t) => t.id === dataResult.summary.tone)?.label || dataResult.summary.tone}</strong>
                   </p>
 
                   {/* Target Audience List */}

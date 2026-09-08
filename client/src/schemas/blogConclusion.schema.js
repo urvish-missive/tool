@@ -20,6 +20,8 @@ export const blogConclusionSchema = z.object({
     .enum([
       'authoritative',
       'conversational',
+      'storytelling',
+      'fun',
       'bold',
       'empathetic',
       'witty',

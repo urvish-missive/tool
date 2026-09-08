@@ -12,6 +12,7 @@ export async function generateTopicsHandler(req, res) {
       targetKeywords,
       audience,
       contentGoal,
+      tone = 'authoritative',
       preferredProvider,
       count = 10,
       contentType,
@@ -46,6 +47,7 @@ export async function generateTopicsHandler(req, res) {
       targetKeywords: parsedKeywords,
       audience: audience?.trim() || '',
       contentGoal: contentGoal || 'educational',
+      tone: tone || 'authoritative',
       preferredProvider,
       count: topicCount,
       contentType: contentType || 'blog post',
@@ -77,6 +79,7 @@ export async function generateTopicsHandler(req, res) {
       clusters: result.clusters,
       topics: result.topics,
       strategy: result.strategy,
+      tone: result.tone || tone,
       generatedAt: result.generatedAt,
       inputParams: result.inputParams,
     })
