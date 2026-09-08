@@ -643,6 +643,13 @@ export default function SeoAuditPage() {
   const pages = report?.pages || []
   const aiReport = report?.ai || report?.ai_report || {}
 
+  const rawAuditUrl = (report?.targetUrl || report?.url || '').trim()
+  const pageSpeedUrl = rawAuditUrl
+    ? (rawAuditUrl.startsWith('http://') || rawAuditUrl.startsWith('https://')
+        ? rawAuditUrl
+        : `https://${rawAuditUrl}`)
+    : ''
+
   const [showScoreInspector, setShowScoreInspector] = useState(false)
 
   const handlePillarClick = (cat) => {
@@ -1565,16 +1572,6 @@ export default function SeoAuditPage() {
                           </span>
                         </button>
                       </div>
-
-                      <a
-                        href={`https://pagespeed.web.dev/analysis?url=${encodeURIComponent(report.url)}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="px-3 py-1.5 rounded-xl text-xs font-bold text-gray-700 bg-gray-100 hover:bg-gray-200 border border-gray-200 flex items-center gap-1.5 transition-colors cursor-pointer"
-                      >
-                        <span>pagespeed.web.dev</span>
-                        <ExternalLink className="w-3 h-3 text-gray-500" />
-                      </a>
                     </div>
                   </div>
 

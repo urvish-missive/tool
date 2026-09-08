@@ -18,6 +18,7 @@ import {
   Target,
   ArrowRight,
   Filter,
+  Users,
 } from 'lucide-react'
 import { blogIntroSchema, parseBlogIntroForm } from '../../schemas/blogIntro.schema'
 import { useGenerateBlogIntrosMutation } from '../../services/apiSlice'
@@ -220,7 +221,12 @@ export default function BlogIntroGeneratorPage() {
     const content = [
       `# Blog Introductions: ${dataResult.summary.topic}`,
       `*Generated on ${new Date().toLocaleDateString()} via Missive Digital Blog Intro Generator*`,
-      `*Target Audience: ${dataResult.summary.targetAudience} | Tone: ${dataResult.summary.tone}*`,
+      dataResult.summary.targetAudience
+        ? `*Target Audience: ${dataResult.summary.targetAudience} | Tone: ${dataResult.summary.tone}*`
+        : `*Tone: ${dataResult.summary.tone}*`,
+      ((dataResult.summary?.targetAudiences?.length || dataResult.targetAudiences?.length)
+        ? `*Target Audiences: ${(dataResult.summary?.targetAudiences || dataResult.targetAudiences).join(', ')}*`
+        : ''),
       '',
       '---',
       '',
@@ -612,9 +618,37 @@ export default function BlogIntroGeneratorPage() {
                     "{dataResult.summary.topic}"
                   </h3>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Audience: <strong className="text-slate-700">{dataResult.summary.targetAudience}</strong> • Tone:{' '}
-                    <strong className="text-slate-700">{dataResult.summary.tone}</strong>
+                    {dataResult.summary.targetAudience && (
+                      <>
+                        Audience: <strong className="text-slate-700">{dataResult.summary.targetAudience}</strong> •{' '}
+                      </>
+                    )}
+                    Tone: <strong className="text-slate-700 capitalize">{dataResult.summary.tone}</strong>
                   </p>
+
+                  {/* Target Audience List */}
+                  {((dataResult.summary?.targetAudiences && dataResult.summary.targetAudiences.length > 0) ||
+                    (dataResult.targetAudiences && dataResult.targetAudiences.length > 0)) && (
+                    <div className="pt-2.5 flex flex-wrap items-center gap-1.5">
+                      <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
+                        <Users className="w-3.5 h-3.5 text-[#0C81F3]" /> Target Audiences:
+                      </span>
+                      {(dataResult.summary?.targetAudiences || dataResult.targetAudiences).map((aud, i) => (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => {
+                            setValue('targetAudience', aud)
+                            navigator.clipboard.writeText(aud)
+                          }}
+                          title="Click to apply to Target Audience input"
+                          className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-50/80 text-[#0C81F3] border border-blue-200/80 hover:bg-blue-100 hover:border-blue-300 transition-colors shadow-2xs cursor-pointer"
+                        >
+                          {aud}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Bulk Actions */}

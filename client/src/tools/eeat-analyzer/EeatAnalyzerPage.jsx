@@ -345,7 +345,7 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                       type="url"
                       {...register('url')}
                       placeholder="https://yourdomain.com/blog/comprehensive-guide"
-                      className={`w-full pl-3.5 pr-20 sm:pr-24 py-2.5 sm:py-3 bg-slate-50 border rounded-xl sm:rounded-2xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 focus:border-[#0C81F3] transition-all text-xs sm:text-sm font-medium ${
+                      className={`w-full pl-3.5 pr-20 sm:pr-24 py-2.5 sm:py-3 bg-slate-50 border rounded-xl sm:rounded-2xl text-slate-700 font-normal placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 focus:border-[#0C81F3] transition-all text-xs sm:text-sm ${
                         errors.url ? 'border-rose-300 ring-2 ring-rose-100' : 'border-slate-300'
                       }`}
                     />
@@ -380,7 +380,7 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                       type="text"
                       {...register('title')}
                       placeholder="e.g. Hands-on Benchmark: Postgres vs MySQL for Vector Search"
-                      className="w-full px-3 py-2 sm:py-2.5 bg-slate-50 border border-slate-300 rounded-lg sm:rounded-xl text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 focus:border-[#0C81F3]"
+                      className="w-full px-3 py-2 sm:py-2.5 bg-slate-50 border border-slate-300 rounded-lg sm:rounded-xl text-slate-700 font-normal placeholder:text-slate-400 text-xs sm:text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 focus:border-[#0C81F3]"
                     />
                   </div>
 
@@ -398,7 +398,7 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                       rows={6}
                       {...register('content')}
                       placeholder="Paste your full article draft, introduction, or section text here for pre-publication E-E-A-T vetting..."
-                      className={`w-full px-3 py-2.5 bg-slate-50 border rounded-xl text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm leading-relaxed focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 focus:border-[#0C81F3] ${
+                      className={`w-full px-3 py-2.5 bg-slate-50 border rounded-xl text-slate-700 font-normal placeholder:text-slate-400 text-xs sm:text-sm leading-relaxed focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 focus:border-[#0C81F3] ${
                         errors.content ? 'border-rose-300 ring-2 ring-rose-100' : 'border-slate-300'
                       }`}
                     />
@@ -464,7 +464,7 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                     type="text"
                     {...register('targetKeywords')}
                     placeholder="e.g. pgvector benchmark, enterprise seo audit"
-                    className="w-full px-3 py-2 sm:py-2.5 bg-slate-50 border border-slate-300 rounded-lg sm:rounded-xl text-slate-900 placeholder:text-slate-400 text-xs sm:text-sm font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 focus:border-[#0C81F3]"
+                    className="w-full px-3 py-2 sm:py-2.5 bg-slate-50 border border-slate-300 rounded-lg sm:rounded-xl text-slate-700 font-normal placeholder:text-slate-400 text-xs sm:text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 focus:border-[#0C81F3]"
                   />
                 </div>
 
@@ -557,7 +557,7 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                       </a>
                     )}
                   </div>
-                  <h3 className="text-lg sm:text-xl font-bold text-slate-900 leading-snug break-words">
+                  <h3 className="text-base sm:text-lg font-semibold text-slate-800 leading-snug break-words">
                     "{dataResult.title}"
                   </h3>
                   <p className="text-xs text-slate-600 leading-relaxed max-w-3xl">

@@ -130,6 +130,7 @@ export async function createAudit(req, res) {
     // 4. Build comprehensive report
     const report = {
       targetUrl: normalizedUrl,
+      url: normalizedUrl,
       totalPages: crawlData.totalPages,
       overallScore: scores.overallScore,
       technicalScore: scores.technicalScore,

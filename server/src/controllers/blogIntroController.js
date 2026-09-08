@@ -63,6 +63,7 @@ export async function generateBlogIntrosHandler(req, res) {
     res.json({
       success: true,
       summary: result.summary,
+      targetAudiences: result.targetAudiences || result.summary?.targetAudiences || [],
       introductions: result.introductions,
       generatedAt: result.generatedAt,
       isFallback: result.isFallback || false,
