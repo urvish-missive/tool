@@ -107,7 +107,7 @@ export default function ConfirmModal({
           <button
             type="button"
             onClick={onClose}
-            className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition"
+            className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition cursor-pointer"
             title="Close"
           >
             <X className="w-4 h-4" />
@@ -136,7 +136,7 @@ export default function ConfirmModal({
             type="button"
             disabled={busy}
             onClick={onClose}
-            className="px-4 py-2 text-xs font-semibold text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition disabled:opacity-50"
+            className="px-4 py-2 text-xs font-semibold text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-xl transition disabled:opacity-50 cursor-pointer"
           >
             {cancelText}
           </button>
@@ -145,7 +145,7 @@ export default function ConfirmModal({
             type="button"
             disabled={busy}
             onClick={handleConfirmClick}
-            className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl shadow-sm transition focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${styles.confirmBtn}`}
+            className={`inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl shadow-sm transition focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 ${styles.confirmBtn} cursor-pointer`}
           >
             {busy ? (
               <>

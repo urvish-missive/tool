@@ -115,7 +115,7 @@ export default function LandingMissiveQA() {
           </span>
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight mb-2.5 sm:mb-3">
             Built on Himani Kankaria's{' '}
-            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#0C81F3] to-[#EB8988] bg-clip-text text-transparent">
               12-Pillar QA Framework
             </span>
           </h2>

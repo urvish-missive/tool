@@ -133,7 +133,7 @@ export async function sendPdfEmail({ to, name, reportTitle, pdfBuffer, filename 
       throw new Error(error.message || 'Resend error')
     }
 
-    console.log(`[EmailService] ✓ Email successfully sent via Resend! ID: ${data?.id}`)
+    console.log(`[EmailService] [OK] Email successfully sent via Resend! ID: ${data?.id}`)
     return {
       success: true,
       provider: 'resend',
@@ -164,7 +164,7 @@ export async function sendPdfEmail({ to, name, reportTitle, pdfBuffer, filename 
       ],
     })
 
-    console.log(`[EmailService] ✓ Email sent via SMTP to ${to} (Message ID: ${info.messageId})`)
+    console.log(`[EmailService] [OK] Email sent via SMTP to ${to} (Message ID: ${info.messageId})`)
     return {
       success: true,
       provider: 'smtp',
@@ -175,7 +175,7 @@ export async function sendPdfEmail({ to, name, reportTitle, pdfBuffer, filename 
 
   // 3. Fallback: Simulation when no provider credentials are set yet
   console.log(`\n================== [EMAIL SERVICE] ==================`)
-  console.log(`[EmailService] 📧 SIMULATED EMAIL DELIVERY:`)
+  console.log(`[EmailService] [SIMULATION] EMAIL DELIVERY:`)
   console.log(`  To: ${to} (${name || 'Visitor'})`)
   console.log(`  Subject: ${subject}`)
   console.log(`  Attachment: ${cleanFilename} (${Math.round(pdfBuffer.length / 1024)} KB)`)

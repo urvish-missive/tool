@@ -17,7 +17,7 @@ const THEME_DEFINITIONS = [
     id: 'topic-headings',
     title: 'Heading Hierarchy & Tag Structure (H1, H2, H3)',
     category: 'onpage',
-    icon: '📑',
+    icon: null,
     description:
       'Proper heading hierarchy signals the primary topic (H1) and structured subtopics (H2/H3) to search crawlers, screen readers, and LLMs.',
     recommendation:
@@ -29,7 +29,7 @@ const THEME_DEFINITIONS = [
     id: 'topic-titles',
     title: 'HTML Title Tags & Search Snippet Optimization',
     category: 'onpage',
-    icon: '📄',
+    icon: null,
     description:
       'Title tags are the primary clickable link in Google search results and one of the highest weighted on-page ranking signals.',
     recommendation:
@@ -41,7 +41,7 @@ const THEME_DEFINITIONS = [
     id: 'topic-descriptions',
     title: 'Meta Descriptions & Search Snippet Relevance',
     category: 'onpage',
-    icon: '📝',
+    icon: null,
     description:
       'Meta descriptions communicate context in search snippets and directly influence organic click-through rate (CTR).',
     recommendation:
@@ -53,7 +53,7 @@ const THEME_DEFINITIONS = [
     id: 'topic-images',
     title: 'Image Optimization & Descriptive ALT Text',
     category: 'onpage',
-    icon: '🖼️',
+    icon: null,
     description:
       'ALT attributes are critical for visual search indexing (Google Images), web accessibility compliance, and image SEO contextual signals.',
     recommendation:
@@ -65,7 +65,7 @@ const THEME_DEFINITIONS = [
     id: 'topic-content',
     title: 'Content Depth, Word Count & Topical Coverage',
     category: 'content',
-    icon: '📊',
+    icon: null,
     description:
       'Search engines reward comprehensive, authoritative content that answers user questions in depth and avoids thin content flags.',
     recommendation:
@@ -77,7 +77,7 @@ const THEME_DEFINITIONS = [
     id: 'topic-assets',
     title: 'Render-Blocking Assets & JavaScript Payloads',
     category: 'performance',
-    icon: '⚡',
+    icon: null,
     description:
       'Synchronous scripts in <head> and excessive JS bundles delay First Contentful Paint (FCP) and Largest Contentful Paint (LCP).',
     recommendation:
@@ -89,7 +89,7 @@ const THEME_DEFINITIONS = [
     id: 'topic-sitemaps',
     title: 'XML Sitemaps, Robots.txt & Crawl Directives',
     category: 'technical',
-    icon: '🗺️',
+    icon: null,
     description:
       'Search bots require clean crawl paths via valid XML sitemaps and properly configured robots.txt directive files.',
     recommendation:
@@ -101,7 +101,7 @@ const THEME_DEFINITIONS = [
     id: 'topic-urls',
     title: 'URL Structure, Canonicals & Duplicate Handling',
     category: 'technical',
-    icon: '🔗',
+    icon: null,
     description:
       'Clean URL slugs and self-referencing canonical tags prevent duplicate content indexing and consolidate search ranking signals.',
     recommendation:
@@ -113,7 +113,7 @@ const THEME_DEFINITIONS = [
     id: 'topic-mobile',
     title: 'Mobile Usability & Viewport Configuration',
     category: 'mobile',
-    icon: '📱',
+    icon: null,
     description:
       'Google uses mobile-first indexing; pages must configure responsive viewports and maintain touch accessibility without restricting zoom.',
     recommendation:
@@ -125,7 +125,7 @@ const THEME_DEFINITIONS = [
     id: 'topic-schema',
     title: 'Schema.org Structured Data & Rich Entities',
     category: 'schema',
-    icon: '🏷️',
+    icon: null,
     description:
       'Schema.org JSON-LD structured data enables search engines to understand page entities and unlocks rich SERP features.',
     recommendation:
@@ -137,7 +137,7 @@ const THEME_DEFINITIONS = [
     id: 'topic-links',
     title: 'Internal Link Architecture & Link Equity Silos',
     category: 'links',
-    icon: '🌐',
+    icon: null,
     description:
       'Internal linking distributes PageRank equity throughout topical clusters and guides search bots to deep priority pages.',
     recommendation:
@@ -149,7 +149,7 @@ const THEME_DEFINITIONS = [
     id: 'topic-security',
     title: 'HTTPS Encryption, SSL & Security Headers',
     category: 'security',
-    icon: '🔒',
+    icon: null,
     description:
       'HTTPS is a confirmed Google ranking signal and essential for user security, preventing man-in-the-middle exploits.',
     recommendation:
@@ -174,7 +174,7 @@ export function groupAndDeduplicateIssues(rawIssues) {
       id: `topic-${(issue.category || 'general')}`,
       title: issue.title,
       category: issue.category || 'technical',
-      icon: '🔍',
+      icon: null,
       description: issue.description || '',
       recommendation: issue.recommendation || '',
     }

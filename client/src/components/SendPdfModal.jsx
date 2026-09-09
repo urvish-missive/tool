@@ -138,7 +138,7 @@ export default function SendPdfModal({
         {status !== 'generating' && status !== 'sending' && (
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition"
+            className="absolute top-4 right-4 p-1.5 text-gray-400 hover:text-gray-600 rounded-full hover:bg-gray-100 transition cursor-pointer"
             title="Close"
           >
             <X className="w-4 h-4" />
@@ -177,7 +177,7 @@ export default function SendPdfModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full py-2.5 px-4 bg-[#0C81F3] hover:bg-[#0b74da] text-white font-semibold text-xs rounded-xl shadow transition"
+                className="w-full py-2.5 px-4 bg-[#0C81F3] hover:bg-[#0b74da] text-white font-semibold text-xs rounded-xl shadow transition cursor-pointer"
               >
                 Done
               </button>
@@ -267,7 +267,7 @@ export default function SendPdfModal({
                       type="button"
                       disabled={status === 'generating' || status === 'sending'}
                       onClick={onClose}
-                      className="px-3.5 py-2 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition disabled:opacity-40"
+                      className="px-3.5 py-2 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition disabled:opacity-40 cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -275,7 +275,7 @@ export default function SendPdfModal({
                     <button
                       type="submit"
                       disabled={status === 'generating' || status === 'sending'}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0C81F3] hover:bg-[#0b74da] text-white font-semibold rounded-xl shadow transition disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0C81F3] hover:bg-[#0b74da] text-white font-semibold rounded-xl shadow transition disabled:opacity-50 cursor-pointer"
                     >
                       {status === 'generating' ? (
                         <>

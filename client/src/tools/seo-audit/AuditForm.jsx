@@ -1,8 +1,7 @@
-import { useForm, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { seoAuditSchema } from '../../schemas/seoAudit.schema'
 import { normalizeUrl } from '../../utils/normalizeUrl'
-import ModelSelector from '../shared/ModelSelector'
 
 export default function AuditForm({ onSubmit, isLoading }) {
   const {
@@ -14,14 +13,12 @@ export default function AuditForm({ onSubmit, isLoading }) {
     resolver: zodResolver(seoAuditSchema),
     defaultValues: {
       websiteUrl: '',
-      preferredProvider: 'gemini-3.5-flash',
     },
   })
 
   const onValid = (data) => {
     onSubmit({
       websiteUrl: normalizeUrl(data.websiteUrl),
-      preferredProvider: data.preferredProvider,
     })
   }
 
@@ -47,15 +44,6 @@ export default function AuditForm({ onSubmit, isLoading }) {
         {fieldError('websiteUrl') && (
           <p className="mt-1 text-xs text-red-600">{fieldError('websiteUrl')}</p>
         )}
-      </div>
-
-      {/* AI Model Selector */}
-      <div>
-        <Controller
-          control={control}
-          name="preferredProvider"
-          render={({ field }) => <ModelSelector value={field.value} onChange={field.onChange} />}
-        />
       </div>
 
       {/* Submit */}

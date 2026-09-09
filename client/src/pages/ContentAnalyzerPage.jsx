@@ -5,7 +5,6 @@ import AIAnalyticsSection from '../components/AIAnalyticsSection'
 import DynamicLeadForm from '../components/DynamicLeadForm'
 import LeadCaptureModal from '../components/LeadCaptureModal'
 import { useLeadPopup } from '../components/useLeadPopup'
-import ModelSelector from '../tools/shared/ModelSelector'
 import useToolFields from '../hooks/useToolFields'
 
 const CONTENT_TYPES = [
@@ -32,7 +31,6 @@ export default function ContentAnalyzerPage() {
   const [secondaryKeywords, setSecondaryKeywords] = useState('')
   const [contentType, setContentType] = useState('Blog Post')
   const [searchIntent, setSearchIntent] = useState('Auto Detect')
-  const [aiModel, setAiModel] = useState('openrouter')
   const [validationError, setValidationError] = useState('')
 
   const {
@@ -137,7 +135,6 @@ export default function ContentAnalyzerPage() {
         secondaryKeywords: secondaryKws.length > 0 ? secondaryKws : undefined,
         contentType,
         searchIntent,
-        preferredProvider: aiModel,
       }).unwrap()
       stopProgress()
     } catch {
@@ -149,7 +146,6 @@ export default function ContentAnalyzerPage() {
     secondaryKeywords,
     contentType,
     searchIntent,
-    aiModel,
     analyzeContent,
     simulateProgress,
   ])
@@ -324,11 +320,6 @@ export default function ContentAnalyzerPage() {
                     ))}
                   </select>
                 </div>
-              </div>
-
-              {/* Model Selector */}
-              <div className="pt-2 border-t border-gray-100">
-                <ModelSelector value={aiModel} onChange={setAiModel} compact={true} />
               </div>
 
               {/* Validation Error */}

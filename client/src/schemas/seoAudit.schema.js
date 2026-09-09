@@ -20,7 +20,6 @@ const urlField = z
 
 export const seoAuditSchema = z.object({
   websiteUrl: urlField,
-  preferredProvider: z.string().optional().default('gemini-3.5-flash'),
 })
 
 export function parseSeoAuditForm(data) {

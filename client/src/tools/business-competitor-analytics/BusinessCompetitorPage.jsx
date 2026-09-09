@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { businessCompetitorSchema } from '../../schemas/businessCompetitor.schema'
 import { useAnalyzeBusinessCompetitorMutation } from '../../services/apiSlice'
-import ModelSelector from '../shared/ModelSelector'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
 import {
@@ -43,7 +42,6 @@ const TABS = [
 ]
 
 export default function BusinessCompetitorPage() {
-  const [preferredProvider, setPreferredProvider] = useState('openrouter')
   const [analyze, { isLoading }] = useAnalyzeBusinessCompetitorMutation()
   const [results, setResults] = useState(null)
   const [error, setError] = useState('')
@@ -68,7 +66,6 @@ export default function BusinessCompetitorPage() {
         competitorUrl: data.competitorUrl.trim(),
         companyName: data.companyName?.trim() || undefined,
         industry: data.industry?.trim() || undefined,
-        preferredProvider,
       }).unwrap()
       setResults(result)
       setTimeout(() => {
@@ -92,7 +89,6 @@ export default function BusinessCompetitorPage() {
         competitorUrl: results.competitorUrl,
         companyName: results.companyName,
         industry: results.industry,
-        preferredProvider,
         ...leadData,
       }).unwrap()
     } catch {}
@@ -186,10 +182,6 @@ export default function BusinessCompetitorPage() {
                   </div>
                 </div>
 
-                {/* Model Selector */}
-                <div>
-                  <ModelSelector value={preferredProvider} onChange={setPreferredProvider} compact />
-                </div>
               </div>
 
               {/* Actions */}
@@ -474,8 +466,9 @@ export default function BusinessCompetitorPage() {
                               </div>
                             </div>
                             {n.significance && (
-                              <p className="text-xs text-gray-600 mt-2 bg-white rounded-lg p-2 border border-slate-100">
-                                💡 {n.significance}
+                              <p className="text-xs text-gray-600 mt-2 bg-white rounded-lg p-2 border border-slate-100 flex items-start gap-1.5">
+                                <Lightbulb className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                                <span>{n.significance}</span>
                               </p>
                             )}
                           </div>

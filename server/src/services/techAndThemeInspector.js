@@ -365,58 +365,58 @@ function detectTechStack($, html, headers = {}) {
   const generator = ($('meta[name="generator"]').attr('content') || '').toLowerCase()
   if (generator.includes('wordpress') || htmlLower.includes('/wp-content/') || htmlLower.includes('/wp-includes/')) {
     const versionMatch = generator.match(/wordpress\s*([\d.]+)/)
-    addTech('WordPress', 'CMS / Platform', 'High', versionMatch ? versionMatch[1] : null, '📝')
+    addTech('WordPress', 'CMS / Platform', 'High', versionMatch ? versionMatch[1] : null)
   }
   if (htmlLower.includes('cdn.shopify.com') || htmlLower.includes('shopify.theme') || $('script[src*="shopify"]').length) {
-    addTech('Shopify', 'CMS / E-Commerce', 'High', null, '🛍️')
+    addTech('Shopify', 'CMS / E-Commerce', 'High', null)
   }
   if ($('[data-wf-page]').length || $('[data-wf-site]').length || htmlLower.includes('assets.website-files.com')) {
-    addTech('Webflow', 'CMS / Site Builder', 'High', null, '🌊')
+    addTech('Webflow', 'CMS / Site Builder', 'High', null)
   }
   if (htmlLower.includes('wix.com') || htmlLower.includes('wix-code') || headers['x-wix-renderer-server']) {
-    addTech('Wix', 'CMS / Site Builder', 'High', null, '✨')
+    addTech('Wix', 'CMS / Site Builder', 'High', null)
   }
   if (htmlLower.includes('static1.squarespace.com') || htmlLower.includes('squarespace-core')) {
-    addTech('Squarespace', 'CMS / Site Builder', 'High', null, '⬛')
+    addTech('Squarespace', 'CMS / Site Builder', 'High', null)
   }
   if (generator.includes('ghost') || htmlLower.includes('ghost.org')) {
-    addTech('Ghost', 'CMS / Publishing', 'High', null, '👻')
+    addTech('Ghost', 'CMS / Publishing', 'High', null)
   }
   if (generator.includes('drupal') || htmlLower.includes('drupal.js')) {
-    addTech('Drupal', 'CMS / Platform', 'High', null, '💧')
+    addTech('Drupal', 'CMS / Platform', 'High', null)
   }
   if (generator.includes('joomla')) {
-    addTech('Joomla', 'CMS / Platform', 'High', null, '⭐')
+    addTech('Joomla', 'CMS / Platform', 'High', null)
   }
   if (generator.includes('hubspot') || htmlLower.includes('hs-scripts.com')) {
-    addTech('HubSpot CMS', 'CMS / Marketing', 'High', null, '🟧')
+    addTech('HubSpot CMS', 'CMS / Marketing', 'High', null)
   }
 
   // 2. JavaScript Frameworks & SSR
   if ($('script#__NEXT_DATA__').length || htmlLower.includes('/_next/static/')) {
-    addTech('Next.js', 'JS Framework / SSR', 'High', null, '▲')
+    addTech('Next.js', 'JS Framework / SSR', 'High', null)
   }
   if ($('#__nuxt').length || $('div[data-server-rendered]').length || htmlLower.includes('/_nuxt/')) {
-    addTech('Nuxt.js', 'JS Framework / SSR', 'High', null, '💚')
+    addTech('Nuxt.js', 'JS Framework / SSR', 'High', null)
   }
   if ($('[data-reactroot]').length || htmlLower.includes('react.production.min.js') || htmlLower.includes('react-dom')) {
-    addTech('React', 'JS Library', 'High', null, '⚛️')
+    addTech('React', 'JS Library', 'High', null)
   }
   if ($('[data-v-]').length || htmlLower.includes('vue.runtime') || htmlLower.includes('vue.min.js')) {
-    addTech('Vue.js', 'JS Framework', 'High', null, '🟩')
+    addTech('Vue.js', 'JS Framework', 'High', null)
   }
   if ($('[ng-version]').length || $('[ng-app]').length || htmlLower.includes('angular.js')) {
     const ngVersion = $('[ng-version]').attr('ng-version')
-    addTech('Angular', 'JS Framework', 'High', ngVersion || null, '🅰️')
+    addTech('Angular', 'JS Framework', 'High', ngVersion || null)
   }
   if ($('[data-astro-]').length || htmlLower.includes('astro-island')) {
-    addTech('Astro', 'Static Site Generator', 'High', null, '🚀')
+    addTech('Astro', 'Static Site Generator', 'High', null)
   }
   if ($('[x-data]').length || $('[x-init]').length) {
-    addTech('Alpine.js', 'JS Framework', 'High', null, '🏔️')
+    addTech('Alpine.js', 'JS Framework', 'High', null)
   }
   if (htmlLower.includes('jquery') || $('script[src*="jquery"]').length) {
-    addTech('jQuery', 'JS Library', 'High', null, '💲')
+    addTech('jQuery', 'JS Library', 'High', null)
   }
 
   // 3. CSS Frameworks
@@ -427,70 +427,70 @@ function detectTechStack($, html, headers = {}) {
     $('body[class*="flex items-"]').length ||
     $('body[class*="grid grid-cols-"]').length
   ) {
-    addTech('Tailwind CSS', 'CSS Framework', 'High', null, '🎨')
+    addTech('Tailwind CSS', 'CSS Framework', 'High', null)
   }
   if ($('link[href*="bootstrap"]').length || $('script[src*="bootstrap"]').length || $('[class*="col-md-"]').length) {
-    addTech('Bootstrap', 'CSS Framework', 'High', null, '🅱️')
+    addTech('Bootstrap', 'CSS Framework', 'High', null)
   }
   if ($('link[href*="bulma"]').length || $('[class*="is-primary"]').length) {
-    addTech('Bulma', 'CSS Framework', 'Medium', null, '🥬')
+    addTech('Bulma', 'CSS Framework', 'Medium', null)
   }
 
   // 4. Analytics & Tracking
   if (htmlLower.includes('googletagmanager.com/gtm.js') || htmlLower.includes('gtm-')) {
-    addTech('Google Tag Manager', 'Tag Management', 'High', null, '🏷️')
+    addTech('Google Tag Manager', 'Tag Management', 'High', null)
   }
   if (htmlLower.includes('googletagmanager.com/gtag/js') || htmlLower.includes('gtag(') || htmlLower.includes('g-')) {
-    addTech('Google Analytics 4 (GA4)', 'Analytics', 'High', null, '📊')
+    addTech('Google Analytics 4 (GA4)', 'Analytics', 'High', null)
   }
   if (htmlLower.includes('connect.facebook.net/en_us/fbevents.js') || htmlLower.includes('fbq(')) {
-    addTech('Meta Pixel (Facebook)', 'Ad Tracking', 'High', null, '🔵')
+    addTech('Meta Pixel (Facebook)', 'Ad Tracking', 'High', null)
   }
   if (htmlLower.includes('static.hotjar.com') || htmlLower.includes('hotjar.com')) {
-    addTech('Hotjar', 'Behavior Analytics', 'High', null, '🔥')
+    addTech('Hotjar', 'Behavior Analytics', 'High', null)
   }
   if (htmlLower.includes('cdn.segment.com/analytics.js')) {
-    addTech('Segment', 'Customer Data Platform', 'High', null, '🟢')
+    addTech('Segment', 'Customer Data Platform', 'High', null)
   }
   if (htmlLower.includes('cdn.mxpnl.com') || htmlLower.includes('mixpanel')) {
-    addTech('Mixpanel', 'Product Analytics', 'High', null, '📈')
+    addTech('Mixpanel', 'Product Analytics', 'High', null)
   }
 
   // 5. Server, CDN & Infrastructure
   if (headers['cf-ray'] || headers['cf-cache-status'] || serverHeader.includes('cloudflare')) {
-    addTech('Cloudflare', 'CDN & Security', 'High', null, '☁️')
+    addTech('Cloudflare', 'CDN & Security', 'High', null)
   }
   if (headers['x-vercel-id'] || headers['x-vercel-cache']) {
-    addTech('Vercel', 'Hosting & Edge Network', 'High', null, '▲')
+    addTech('Vercel', 'Hosting & Edge Network', 'High', null)
   }
   if (headers['x-nf-request-id'] || serverHeader.includes('netlify')) {
-    addTech('Netlify', 'Hosting & CDN', 'High', null, '🔷')
+    addTech('Netlify', 'Hosting & CDN', 'High', null)
   }
   if (headers['x-amz-cf-id'] || htmlLower.includes('cloudfront.net')) {
-    addTech('AWS CloudFront', 'CDN', 'High', null, '📦')
+    addTech('AWS CloudFront', 'CDN', 'High', null)
   }
   if (serverHeader.includes('nginx')) {
-    addTech('Nginx', 'Web Server', 'High', null, '⚡')
+    addTech('Nginx', 'Web Server', 'High', null)
   }
   if (serverHeader.includes('apache')) {
-    addTech('Apache', 'Web Server', 'High', null, '🪶')
+    addTech('Apache', 'Web Server', 'High', null)
   }
   if (poweredBy.includes('php')) {
-    addTech('PHP', 'Backend Runtime', 'High', null, '🐘')
+    addTech('PHP', 'Backend Runtime', 'High', null)
   }
   if (poweredBy.includes('express') || serverHeader.includes('express')) {
-    addTech('Express.js / Node', 'Backend Framework', 'High', null, '🟢')
+    addTech('Express.js / Node', 'Backend Framework', 'High', null)
   }
 
   // 6. E-Commerce & Payments
   if (htmlLower.includes('js.stripe.com') || htmlLower.includes('stripe-')) {
-    addTech('Stripe Payments', 'Payment Processor', 'High', null, '💳')
+    addTech('Stripe Payments', 'Payment Processor', 'High', null)
   }
   if (htmlLower.includes('paypal.com/sdk')) {
-    addTech('PayPal Checkout', 'Payment Processor', 'High', null, '🅿️')
+    addTech('PayPal Checkout', 'Payment Processor', 'High', null)
   }
   if (htmlLower.includes('woocommerce')) {
-    addTech('WooCommerce', 'E-Commerce Platform', 'High', null, '🛒')
+    addTech('WooCommerce', 'E-Commerce Platform', 'High', null)
   }
 
   // Group by category

@@ -1,122 +1,158 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useGetAdminToolsQuery, useUpdateAdminToolMutation } from '../../services/apiSlice'
-import { ChevronDown, Search, X } from 'lucide-react'
+import {
+  ChevronDown,
+  Search,
+  X,
+  FileText,
+  Target,
+  Tag,
+  File,
+  Globe,
+  Clipboard,
+  Key,
+  Briefcase,
+  DollarSign,
+  TrendingUp,
+  BarChart3,
+  Calendar,
+  Rocket,
+  Factory,
+  Hash,
+  Palette,
+  Edit3,
+  Newspaper,
+  Image,
+  Clock,
+  Star,
+  Smartphone,
+  Sparkles,
+  Bot,
+  HelpCircle,
+  Swords,
+  Building2,
+  User,
+  Mail,
+  Phone,
+  Eye,
+  EyeOff,
+} from 'lucide-react'
 
 // Default field definitions per tool slug
 const TOOL_FIELDS = {
   'content-analyzer': [
-    { key: 'content', label: 'Content', icon: '📝' },
-    { key: 'keyword', label: 'Primary Keyword', icon: '🎯' },
-    { key: 'secondaryKeywords', label: 'Secondary Keywords', icon: '🏷️' },
-    { key: 'contentType', label: 'Content Type', icon: '📄' },
-    { key: 'country', label: 'Country', icon: '🌍' },
+    { key: 'content', label: 'Content', icon: FileText },
+    { key: 'keyword', label: 'Primary Keyword', icon: Target },
+    { key: 'secondaryKeywords', label: 'Secondary Keywords', icon: Tag },
+    { key: 'contentType', label: 'Content Type', icon: File },
+    { key: 'country', label: 'Country', icon: Globe },
   ],
   'seo-audit': [
-    { key: 'url', label: 'Website URL', icon: '🌐' },
-    { key: 'html', label: 'Paste HTML', icon: '📋' },
-    { key: 'keyword', label: 'Target Keyword', icon: '🎯' },
+    { key: 'url', label: 'Website URL', icon: Globe },
+    { key: 'html', label: 'Paste HTML', icon: Clipboard },
+    { key: 'keyword', label: 'Target Keyword', icon: Target },
   ],
   'keyword-research': [
-    { key: 'seedKeyword', label: 'Seed Keyword', icon: '🔑' },
-    { key: 'websiteUrl', label: 'Website URL', icon: '🌐' },
-    { key: 'country', label: 'Country', icon: '🌍' },
-    { key: 'businessType', label: 'Business Type', icon: '💼' },
+    { key: 'seedKeyword', label: 'Seed Keyword', icon: Key },
+    { key: 'websiteUrl', label: 'Website URL', icon: Globe },
+    { key: 'country', label: 'Country', icon: Globe },
+    { key: 'businessType', label: 'Business Type', icon: Briefcase },
   ],
   'seo-roi': [
-    { key: 'currency', label: 'Currency', icon: '💱' },
-    { key: 'traffic', label: 'Monthly Traffic', icon: '📈' },
-    { key: 'leads', label: 'Monthly Leads', icon: '🎯' },
-    { key: 'custValue', label: 'Customer Value', icon: '💰' },
-    { key: 'custRate', label: 'Lead → Customer Rate', icon: '📊' },
-    { key: 'convRate', label: 'Organic → Lead Rate', icon: '📊' },
-    { key: 'investment', label: 'Monthly Investment', icon: '💵' },
-    { key: 'months', label: 'Campaign Duration', icon: '📅' },
-    { key: 'growthPreset', label: 'Growth Scenario', icon: '🚀' },
+    { key: 'currency', label: 'Currency', icon: DollarSign },
+    { key: 'traffic', label: 'Monthly Traffic', icon: TrendingUp },
+    { key: 'leads', label: 'Monthly Leads', icon: Target },
+    { key: 'custValue', label: 'Customer Value', icon: DollarSign },
+    { key: 'custRate', label: 'Lead → Customer Rate', icon: BarChart3 },
+    { key: 'convRate', label: 'Organic → Lead Rate', icon: BarChart3 },
+    { key: 'investment', label: 'Monthly Investment', icon: DollarSign },
+    { key: 'months', label: 'Campaign Duration', icon: Calendar },
+    { key: 'growthPreset', label: 'Growth Scenario', icon: Rocket },
   ],
   'blog-topics': [
-    { key: 'niche', label: 'Niche / Industry', icon: '🏭' },
-    { key: 'targetKeywords', label: 'Target Keywords', icon: '🔑' },
-    { key: 'audience', label: 'Target Audience', icon: '👥' },
-    { key: 'contentGoal', label: 'Content Goal', icon: '🎯' },
-    { key: 'contentType', label: 'Content Type', icon: '📄' },
-    { key: 'topicCount', label: 'Topic Count', icon: '🔢' },
+    { key: 'niche', label: 'Niche / Industry', icon: Factory },
+    { key: 'targetKeywords', label: 'Target Keywords', icon: Key },
+    { key: 'audience', label: 'Target Audience', icon: User },
+    { key: 'contentGoal', label: 'Content Goal', icon: Target },
+    { key: 'contentType', label: 'Content Type', icon: File },
+    { key: 'topicCount', label: 'Topic Count', icon: Hash },
   ],
   'ai-content-writer': [
-    { key: 'keyword', label: 'Topic / Primary Keyword', icon: '🎯' },
-    { key: 'contentType', label: 'Content Type', icon: '📄' },
-    { key: 'tone', label: 'Tone', icon: '🎨' },
-    { key: 'wordCount', label: 'Word Count', icon: '🔢' },
-    { key: 'targetAudience', label: 'Target Audience', icon: '👥' },
-    { key: 'secondaryKeywords', label: 'Secondary Keywords', icon: '🏷️' },
+    { key: 'keyword', label: 'Topic / Primary Keyword', icon: Target },
+    { key: 'contentType', label: 'Content Type', icon: File },
+    { key: 'tone', label: 'Tone', icon: Palette },
+    { key: 'wordCount', label: 'Word Count', icon: Hash },
+    { key: 'targetAudience', label: 'Target Audience', icon: User },
+    { key: 'secondaryKeywords', label: 'Secondary Keywords', icon: Tag },
   ],
   'logo-maker': [
-    { key: 'brandName', label: 'Brand Name', icon: '✏️' },
-    { key: 'description', label: 'Description', icon: '📝' },
-    { key: 'industry', label: 'Industry', icon: '🏭' },
-    { key: 'style', label: 'Style', icon: '🎨' },
-    { key: 'primaryColor', label: 'Primary Color', icon: '🔴' },
-    { key: 'secondaryColor', label: 'Secondary Color', icon: '🔵' },
+    { key: 'brandName', label: 'Brand Name', icon: Edit3 },
+    { key: 'description', label: 'Description', icon: FileText },
+    { key: 'industry', label: 'Industry', icon: Factory },
+    { key: 'style', label: 'Style', icon: Palette },
+    { key: 'primaryColor', label: 'Primary Color', icon: Palette },
+    { key: 'secondaryColor', label: 'Secondary Color', icon: Palette },
   ],
   'content-qa': [
-    { key: 'content', label: 'Content', icon: '📝' },
-    { key: 'title', label: 'Title', icon: '📰' },
-    { key: 'targetKeyword', label: 'Target Keyword', icon: '🎯' },
-    { key: 'metaDescription', label: 'Meta Description', icon: '📄' },
-    { key: 'urlSlug', label: 'URL Slug', icon: '🌐' },
+    { key: 'content', label: 'Content', icon: FileText },
+    { key: 'title', label: 'Title', icon: Newspaper },
+    { key: 'targetKeyword', label: 'Target Keyword', icon: Target },
+    { key: 'metaDescription', label: 'Meta Description', icon: File },
+    { key: 'urlSlug', label: 'URL Slug', icon: Globe },
   ],
   'xml-sitemap-generator': [
-    { key: 'websiteUrl', label: 'Website URL', icon: '🌐' },
-    { key: 'maxPages', label: 'Max URLs', icon: '🔢' },
-    { key: 'crawlDepth', label: 'Crawl Depth', icon: '📊' },
-    { key: 'includeImages', label: 'Include Images', icon: '🖼️' },
-    { key: 'changefreq', label: 'Change Frequency', icon: '⏱️' },
-    { key: 'priority', label: 'Priority', icon: '⭐' },
+    { key: 'websiteUrl', label: 'Website URL', icon: Globe },
+    { key: 'maxPages', label: 'Max URLs', icon: Hash },
+    { key: 'crawlDepth', label: 'Crawl Depth', icon: BarChart3 },
+    { key: 'includeImages', label: 'Include Images', icon: Image },
+    { key: 'changefreq', label: 'Change Frequency', icon: Clock },
+    { key: 'priority', label: 'Priority', icon: Star },
   ],
   'google-rank-checker': [
-    { key: 'domain', label: 'Domain / Website', icon: '🌐' },
-    { key: 'keyword', label: 'Target Keyword', icon: '🎯' },
-    { key: 'country', label: 'Country', icon: '🌍' },
-    { key: 'device', label: 'Device', icon: '📱' },
+    { key: 'domain', label: 'Domain / Website', icon: Globe },
+    { key: 'keyword', label: 'Target Keyword', icon: Target },
+    { key: 'country', label: 'Country', icon: Globe },
+    { key: 'device', label: 'Device', icon: Smartphone },
   ],
   'website-content-extractor': [
-    { key: 'url', label: 'Website URL', icon: '🌐' },
-    { key: 'extractAIOverview', label: 'AI Overview', icon: '✨' },
+    { key: 'url', label: 'Website URL', icon: Globe },
+    { key: 'extractAIOverview', label: 'AI Overview', icon: Sparkles },
   ],
   'website-image-extractor': [
-    { key: 'url', label: 'Website URL', icon: '🌐' },
+    { key: 'url', label: 'Website URL', icon: Globe },
   ],
   'website-tech-inspector': [
-    { key: 'url', label: 'Website URL', icon: '🌐' },
+    { key: 'url', label: 'Website URL', icon: Globe },
   ],
   'geo-analyzer': [
-    { key: 'url', label: 'Website URL', icon: '🌐' },
-    { key: 'content', label: 'Content Draft', icon: '📝' },
-    { key: 'targetQuery', label: 'Target Search Query', icon: '🎯' },
-    { key: 'targetEngine', label: 'AI Search Focus', icon: '🤖' },
+    { key: 'url', label: 'Website URL', icon: Globe },
+    { key: 'content', label: 'Content Draft', icon: FileText },
+    { key: 'targetQuery', label: 'Target Search Query', icon: Target },
+    { key: 'targetEngine', label: 'AI Search Focus', icon: Bot },
   ],
   'faq-generator': [
-    { key: 'topic', label: 'Topic / Keyword', icon: '❓' },
-    { key: 'count', label: 'Question Count', icon: '🔢' },
-    { key: 'tone', label: 'Tone', icon: '🎨' },
+    { key: 'topic', label: 'Topic / Keyword', icon: HelpCircle },
+    { key: 'count', label: 'Question Count', icon: Hash },
+    { key: 'tone', label: 'Tone', icon: Palette },
   ],
   'competitor-analyzer': [
-    { key: 'url', label: 'Your Website URL', icon: '🌐' },
-    { key: 'competitorUrl', label: 'Competitor URL', icon: '⚔️' },
-    { key: 'targetKeyword', label: 'Target Keyword', icon: '🎯' },
+    { key: 'url', label: 'Your Website URL', icon: Globe },
+    { key: 'competitorUrl', label: 'Competitor URL', icon: Swords },
+    { key: 'targetKeyword', label: 'Target Keyword', icon: Target },
   ],
   'business-competitor-analytics': [
-    { key: 'competitorUrl', label: 'Competitor Website URL', icon: '🌐' },
-    { key: 'companyName', label: 'Company Name', icon: '🏢' },
-    { key: 'industry', label: 'Industry / Sector', icon: '🏭' },
+    { key: 'competitorUrl', label: 'Competitor Website URL', icon: Globe },
+    { key: 'companyName', label: 'Company Name', icon: Building2 },
+    { key: 'industry', label: 'Industry / Sector', icon: Factory },
   ],
 }
 
 const POPUP_FIELD_DEFS = [
-  { key: 'name', label: 'Name', icon: '👤', defaultShow: true, defaultReq: true },
-  { key: 'email', label: 'Business Email', icon: '✉️', defaultShow: true, defaultReq: true },
-  { key: 'phone', label: 'Phone', icon: '📞', defaultShow: true, defaultReq: false },
-  { key: 'company', label: 'Company', icon: '🏢', defaultShow: true, defaultReq: false },
-  { key: 'website', label: 'Website', icon: '🌐', defaultShow: true, defaultReq: false },
+  { key: 'name', label: 'Name', icon: User, defaultShow: true, defaultReq: true },
+  { key: 'email', label: 'Business Email', icon: Mail, defaultShow: true, defaultReq: true },
+  { key: 'phone', label: 'Phone', icon: Phone, defaultShow: true, defaultReq: false },
+  { key: 'company', label: 'Company', icon: Building2, defaultShow: true, defaultReq: false },
+  { key: 'website', label: 'Website', icon: Globe, defaultShow: true, defaultReq: false },
 ]
 
 export default function AdminTools() {
@@ -295,7 +331,7 @@ export default function AdminTools() {
               <button
                 type="button"
                 onClick={() => setSearchQuery('')}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5"
+                className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 p-0.5 cursor-pointer"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -530,7 +566,7 @@ export default function AdminTools() {
                                   : 'bg-gray-50 text-gray-400 border-gray-200 line-through'
                               }`}
                             >
-                              <span>{field.icon}</span>
+                              {field.icon && <field.icon className="w-3.5 h-3.5" />}
                               {field.label}
                             </button>
                           )
@@ -639,7 +675,11 @@ export default function AdminTools() {
                                   }`}
                                 >
                                   <div className="flex items-center gap-2">
-                                    <span className="text-sm">{field.icon}</span>
+                                    {field.icon && (
+                                      <span className="text-sm">
+                                        <field.icon className="w-3.5 h-3.5 text-gray-500" />
+                                      </span>
+                                    )}
                                     <div>
                                       <span
                                         className={`text-xs font-medium ${
@@ -672,7 +712,17 @@ export default function AdminTools() {
                                           : 'Field is hidden from popup'
                                       }
                                     >
-                                      <span>{isShown ? '👁️ Show' : '🚫 Hidden'}</span>
+                                      <span className="inline-flex items-center gap-1">
+                                        {isShown ? (
+                                          <>
+                                            <Eye className="w-3 h-3" /> Show
+                                          </>
+                                        ) : (
+                                          <>
+                                            <EyeOff className="w-3 h-3" /> Hidden
+                                          </>
+                                        )}
+                                      </span>
                                     </button>
 
                                     {/* Required / Optional Toggle */}
@@ -697,7 +747,7 @@ export default function AdminTools() {
                                             : 'Optional field'
                                       }
                                     >
-                                      {isRequired ? '★ Required' : 'Optional'}
+                                      {isRequired ? 'Required' : 'Optional'}
                                     </button>
                                   </div>
                                 </div>
@@ -721,13 +771,14 @@ export default function AdminTools() {
                               return visibleList.map((d) => (
                                 <span
                                   key={d.key}
-                                  className={`text-[10px] px-2 py-0.5 rounded-full border ${
+                                  className={`text-[10px] px-2 py-0.5 rounded-full border inline-flex items-center gap-1 ${
                                     pf[d.key]?.required
                                       ? 'bg-blue-50 text-blue-700 border-blue-200 font-medium'
                                       : 'bg-gray-50 text-gray-600 border-gray-200'
                                   }`}
                                 >
-                                  {d.icon} {d.label}
+                                  {d.icon && <d.icon className="w-3 h-3" />}
+                                  <span>{d.label}</span>
                                   {pf[d.key]?.required ? ' *' : ''}
                                 </span>
                               ))

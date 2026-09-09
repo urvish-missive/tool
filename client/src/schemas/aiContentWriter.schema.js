@@ -28,7 +28,6 @@ export const aiContentWriterSchema = z.object({
   wordCount: z.number().min(300).max(5000).default(1500),
   targetAudience: z.string().max(300).optional().default(''),
   secondaryKeywords: z.string().max(500).optional().default(''),
-  preferredProvider: z.string().default('openrouter'),
 })
 
 export function parseAiContentWriterForm(data) {

@@ -29,7 +29,6 @@ export const blogConclusionSchema = z.object({
     ])
     .default('authoritative'),
   numVariations: z.number().min(3).max(9).default(6),
-  preferredProvider: z.string().optional().default('gemini-3.5-flash-lite'),
 })
 
 export function parseBlogConclusionForm(data) {

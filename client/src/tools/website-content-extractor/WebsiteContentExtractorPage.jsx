@@ -2,20 +2,16 @@ import { useState } from 'react'
 import {
   useExtractWebsiteContentMutation,
 } from '../../services/apiSlice'
-import ModelSelector from '../shared/ModelSelector'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import {
   Globe,
-  Search,
   Sparkles,
   FileText,
   ShieldCheck,
   Building,
-  User,
   Mail,
-  Phone,
   Share2,
   ExternalLink,
   Copy,
@@ -26,17 +22,12 @@ import {
   ChevronUp,
   RefreshCw,
   AlertCircle,
-  HelpCircle,
   Eye,
   CheckCircle2,
   Tag,
   Code,
-  Link as LinkIcon,
-  Image as ImageIcon,
   Clock,
   BookOpen,
-  ArrowRight,
-  ShieldAlert,
   Zap,
 } from 'lucide-react'
 
@@ -71,7 +62,6 @@ const FAQ_ITEMS = [
 export default function WebsiteContentExtractorPage() {
   // Input State
   const [url, setUrl] = useState('')
-  const [preferredProvider, setPreferredProvider] = useState('gemini-3.5-flash-lite')
   const [extractAIOverview, setExtractAIOverview] = useState(true)
 
   // API Mutations
@@ -108,7 +98,6 @@ export default function WebsiteContentExtractorPage() {
 
     const payload = {
       url: url.trim(),
-      preferredProvider,
       extractAIOverview,
     }
 
@@ -245,7 +234,7 @@ export default function WebsiteContentExtractorPage() {
                   <button
                     type="button"
                     onClick={() => setUrl('')}
-                    className="absolute right-24 text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors"
+                    className="absolute right-24 text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                   >
                     Clear
                   </button>
@@ -258,7 +247,7 @@ export default function WebsiteContentExtractorPage() {
                       if (text) setUrl(text.trim())
                     } catch {}
                   }}
-                  className="absolute right-3 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition-colors shadow-2xs"
+                  className="absolute right-3 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition-colors shadow-2xs cursor-pointer"
                 >
                   Paste
                 </button>
@@ -268,9 +257,6 @@ export default function WebsiteContentExtractorPage() {
             {/* Options & Action Row */}
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-5 border-t border-slate-100">
               <div className="flex flex-wrap items-center gap-4">
-                <div className="w-full sm:w-48">
-                  <ModelSelector value={preferredProvider} onChange={setPreferredProvider} compact={true} />
-                </div>
                 <label className="flex items-center gap-2 cursor-pointer select-none">
                   <input
                     type="checkbox"

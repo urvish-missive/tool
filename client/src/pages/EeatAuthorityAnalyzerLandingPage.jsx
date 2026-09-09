@@ -2,16 +2,11 @@ import { useEffect, useRef, useCallback } from 'react'
 import useScrollReveal from '../components/landing/useScrollReveal'
 import { Helmet } from 'react-helmet-async'
 import {
-  Sparkles,
-  Target,
-  TrendingUp,
   Compass,
-  Zap,
   CheckCircle2,
   Clock,
   BarChart3,
   Users,
-  BookOpen,
   PenTool,
   ShieldCheck,
   Globe,
@@ -19,10 +14,6 @@ import {
   Search,
   Crown,
   Database,
-  UserCheck,
-  FileText,
-  ClipboardCheck,
-  AlertTriangle,
   Wand2,
 } from 'lucide-react'
 import {
@@ -32,12 +23,11 @@ import {
   LandingDarkImpact,
   LandingFeatures,
   LandingHowItWorks,
-  LandingBeforeAfter,
   LandingStats,
   LandingFAQ,
   LandingCTA,
   LandingMissiveQA,
-  LandingBannedWordsWall,
+  LandingLiveDemo,
 } from '../components/landing'
 import EeatAnalyzerPage from '../tools/eeat-analyzer/EeatAnalyzerPage'
 
@@ -191,34 +181,12 @@ const STEPS = [
   },
 ]
 
-const BEFORE_AFTER = {
-  before: {
-    title: 'Without This Tool',
-    items: [
-      'Publishing content with weak or missing author authority signals',
-      'Theoretical advice with no proven experience or primary source citations',
-      'No trust signals that help Google AI confidently cite your content',
-      'Generic SEO advice that never addresses what AI Search actually extracts',
-      'Slow, invisible rankings while competitors get cited in AI answers',
-    ],
-  },
-  after: {
-    title: 'With This Tool',
-    items: [
-      'Clear E-E-A-T scores across 15 quality dimensions, not guesswork',
-      'Specific fixes: add author credentials, primary sources, and proof',
-      'Content structured for AI Search extraction and confident citations',
-      'Prioritized recommendations you can implement in hours, not weeks',
-      'Visible 2-3x ranking gains in both traditional and AI Search results',
-    ],
-  },
-}
 
 const STATS = [
   { value: '10M+', label: 'Pages analyzed with the framework' },
   { value: '2-3x', label: 'Higher AI Search rankings' },
   { value: '15', label: 'E-E-A-T quality dimensions scored' },
-  { value: '3s', label: 'Average full audit time' },
+  { value: '20-30 sec', label: 'Average full audit time' },
 ]
 
 const FAQS = [
@@ -259,62 +227,62 @@ const EEAT_PILLS = [
   {
     text: 'Hands-On Experience Signals',
     color: 'bg-sky-50 text-[#0C81F3] border-sky-200 hover:bg-sky-100',
-    icon: '👤',
+    icon: '',
   },
   {
     text: 'Author Credentials',
     color: 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100',
-    icon: '🎓',
+    icon: ''
   },
   {
     text: 'Primary Source Citations',
     color: 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100',
-    icon: '📚',
+    icon: ''
   },
   {
     text: 'AI Overview Optimization',
     color: 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100',
-    icon: '🤖',
+    icon: ''
   },
   {
     text: 'Trust & Transparency',
     color: 'bg-teal-50 text-teal-800 border-teal-200 hover:bg-teal-100',
-    icon: '🛡️',
+    icon: ''
   },
   {
     text: 'Content Depth vs Breadth',
     color: 'bg-lime-50 text-lime-800 border-lime-200 hover:bg-lime-100',
-    icon: '🧠',
+    icon: ''
   },
   {
     text: 'Quantifiable Proof & Metrics',
     color: 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100',
-    icon: '📈',
+    icon: ''
   },
   {
     text: 'Insight-First Structure',
     color: 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100',
-    icon: '💡',
+    icon: ''
   },
   {
     text: 'Read Aloud Test',
     color: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200 hover:bg-fuchsia-100',
-    icon: '🎙️',
+    icon: ''
   },
   {
     text: 'Zero Em Dashes',
     color: 'bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200',
-    icon: '✍️',
+    icon: ''
   },
   {
     text: 'Missive 12-Pillar Compliance',
     color: 'bg-orange-50 text-orange-800 border-orange-200 hover:bg-orange-100',
-    icon: '✅',
+    icon: ''
   },
   {
     text: 'Google E-E-A-T Aligned',
     color: 'bg-slate-100 text-slate-700 border-slate-300 hover:bg-slate-200',
-    icon: '🏆',
+    icon: ''
   },
 ]
 
@@ -325,7 +293,7 @@ function TrustSection() {
   const items = [
     { icon: Users, value: '2,000+', label: 'Active content strategists monthly' },
     { icon: BarChart3, value: '45,000+', label: 'Content pieces audited' },
-    { icon: Clock, value: '3s', label: 'Average audit time' },
+    { icon: Clock, value: '20-30 sec', label: 'Average audit time' },
   ]
 
   return (
@@ -417,59 +385,24 @@ function AuthorityBanner() {
   )
 }
 
-/* ─────────────── Tool Section ─────────────── */
-function ToolSection({ toolRef }) {
-  const headerRef = useScrollReveal()
-
-  return (
-    <section
-      ref={toolRef}
-      id="tool"
-      className="py-12 sm:py-16 lg:py-20 bg-slate-50 border-y border-slate-200/70 scroll-mt-20"
-    >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div ref={headerRef} className="lp-reveal text-center mb-8 sm:mb-10">
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[10px] sm:text-xs font-bold rounded-full mb-3 tracking-wider uppercase shadow-md shadow-[#0C81F3]/20">
-            <Zap className="w-3.5 h-3.5" />
-            Try It Now: 100% Free
-          </span>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-2 sm:mb-2.5 leading-tight">
-            <span>E-E-A-T &amp; AI Search </span>
-            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
-              Authority Analyzer
-            </span>
-          </h2>
-          <p className="text-xs sm:text-sm md:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed font-normal">
-            Audit any URL or draft across 15+ authority dimensions, get prioritized fixes, and
-            build content Google AI can confidently extract and cite.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2.5 mt-3.5">
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-[#0C81F3] border border-blue-200/60 whitespace-nowrap shrink-0">
-              <CheckCircle2 className="w-3 h-3 text-[#0C81F3]" /> 15-Pillar Matrix
-            </span>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200/60 whitespace-nowrap shrink-0">
-              <Sparkles className="w-3 h-3 text-purple-600" /> AI Search Ready
-            </span>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60 whitespace-nowrap shrink-0">
-              <Target className="w-3 h-3 text-emerald-600" /> Actionable Fixes
-            </span>
-          </div>
-        </div>
-
-        <div className="tool-embed">
-          <EeatAnalyzerPage isEmbedded={true} />
-        </div>
-      </div>
-    </section>
-  )
-}
-
 /* ─────────────── Landing Page Component ─────────────── */
 export default function EeatAuthorityAnalyzerLandingPage() {
   const toolRef = useRef(null)
 
   const scrollToTool = useCallback(() => {
-    toolRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const el = toolRef.current || document.getElementById('tool')
+    if (!el) return
+    const navHeight = 90
+    const top = el.getBoundingClientRect().top + window.pageYOffset - navHeight
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+  }, [])
+
+  const scrollToSection = useCallback((sectionId) => {
+    const el = document.getElementById(sectionId)
+    if (!el) return
+    const navHeight = 90
+    const top = el.getBoundingClientRect().top + window.pageYOffset - navHeight
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
   }, [])
 
   useEffect(() => {
@@ -526,53 +459,65 @@ export default function EeatAuthorityAnalyzerLandingPage() {
           subtitle="Analyze your content for Expertise, Experience, Authoritativeness and Trustworthiness using advanced AI. Get a scored 15-pillar breakdown and prioritized fixes so Google AI can confidently extract and cite your content."
           ctaLabel="Analyze Your Content Free →"
           ctaOnClick={scrollToTool}
-          secondaryCta={{ label: 'See the E-E-A-T Pillars', onClick: scrollToTool }}
+          secondaryCta={{
+            label: 'Explore 15-Pillar Matrix ↓',
+            onClick: () => scrollToSection('features'),
+          }}
           trustBadges={[
             'No sign-up required',
             '100% free forever',
             '15-Pillar authority matrix',
             'AI Search ready',
           ]}
-          floatingCards={{
-            topLeft: {
-              icon: ShieldCheck,
-              tag: 'E-E-A-T Compliance',
-              title: '90%+ Authority Score',
-              stat: '2-3x Ranking Boost',
-              tagColor: 'text-[#0C81F3]',
-              gradient: 'from-[#0C81F3] to-[#67A7FF]',
-            },
-            topRight: {
-              icon: TrendingUp,
-              tag: 'AI Search Optimization',
-              title: '+67% Organic Visibility',
-              sub: 'vs. weak-authority content',
-              tagColor: 'text-emerald-600',
-              gradient: 'from-emerald-500 to-teal-600',
-            },
-            bottomLeft: {
-              tag: '15 Authority Pillars',
-              sub: 'Scored in one audit',
-              icon: '✓',
-            },
-            bottomRight: {
-              tag: 'Instant Results',
-              sub: '3-second analysis',
-              icon: '⚡',
-            },
-          }}
+          toolRef={toolRef}
+          toolLabel="Run the E-E-A-T Audit • Live"
+          toolSlot={<EeatAnalyzerPage isEmbedded={true} />}
         />
 
         {/* ═══════════════ 2. INFINITE CMS & PUBLISHING MARQUEE ═══════════════ */}
         <LandingMarquee />
 
-        {/* ═══════════════ 3. STATS ROW ═══════════════ */}
+        {/* ═══════════════ 3. ANIMATED LIVE DEMO ═══════════════ */}
+        <LandingLiveDemo
+          badge="See It Audit"
+          heading="Watch an E-E-A-T Audit Run Live"
+          subheading="Drop in a URL or draft and watch the AI score authority signals across the quality matrix in real time."
+          accentIcon={ShieldCheck}
+          examples={[
+            {
+              label: 'B2B SaaS & Tech',
+              input: 'https://yoursite.com/blog/enterprise-seo-migration-guide',
+              outputTitle: 'Experience Pillar: 14/20',
+              outputBody:
+                'Missing first-hand deployment data. Add a specific before/after metric from a real migration to lift this pillar into the 18+ range.',
+              outputMeta: ['Experience', '-6 pts', 'Fixable in 1 edit'],
+            },
+            {
+              label: 'YMYL · Finance',
+              input: 'https://yoursite.com/guides/business-loan-rates-2026',
+              outputTitle: 'Trust Pillar: 11/20',
+              outputBody:
+                'No author credentials or last-reviewed date detected. YMYL content needs verifiable expertise disclosure to pass Google quality checks.',
+              outputMeta: ['Trust', 'YMYL Flag', 'High Priority'],
+            },
+            {
+              label: 'How-To Guide',
+              input: 'Paste draft: "Our new dashboard cuts audit time by..."',
+              outputTitle: 'Overall Score: 92/100',
+              outputBody:
+                'Strong primary-source citations and hands-on proof. Content is structured for confident AI Search extraction and citation.',
+              outputMeta: ['15/15 Pillars', 'AI Search Ready', 'Publish Ready'],
+            },
+          ]}
+        />
+
+        {/* ═══════════════ 4. STATS ROW ═══════════════ */}
         <LandingStats stats={STATS} />
 
-        {/* ═══════════════ 4. 12-PILLAR MISSIVE QA AUDIT MATRIX ═══════════════ */}
+        {/* ═══════════════ 5. 12-PILLAR MISSIVE QA AUDIT MATRIX ═══════════════ */}
         <LandingMissiveQA />
 
-        {/* ═══════════════ 5. FEATURES GRID ═══════════════ */}
+        {/* ═══════════════ 6. FEATURES GRID ═══════════════ */}
         <LandingFeatures
           sectionLabel="Why This Tool?"
           heading="Optimize for the AI Search Era"
@@ -580,9 +525,6 @@ export default function EeatAuthorityAnalyzerLandingPage() {
           features={FEATURES}
           columns={3}
         />
-
-        {/* ═══════════════ 6. BANNED WORDS WALL VS MISSIVE STANDARDS ═══════════════ */}
-        <LandingBannedWordsWall />
 
         {/* ═══════════════ 7. SIGNATURE FLOATING PILL CLOUD ═══════════════ */}
         <LandingPillCloud
@@ -608,7 +550,7 @@ export default function EeatAuthorityAnalyzerLandingPage() {
           title={
             <>
               Weak Authority Means Invisible Content.{' '}
-              <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#0C81F3] to-[#EB8988] bg-clip-text text-transparent">
                 Build E-E-A-T Before AI Overlooks You
               </span>
             </>
@@ -634,7 +576,7 @@ export default function EeatAuthorityAnalyzerLandingPage() {
               gradient: 'from-[#EB8988] to-[#FFB7B2]',
             },
             {
-              value: '3s',
+              value: '20-30s',
               label: 'Full Audit Time',
               sub: 'Then prioritized, actionable fixes',
               gradient: 'from-[#0C81F3] to-[#EB8988]',
@@ -649,33 +591,21 @@ export default function EeatAuthorityAnalyzerLandingPage() {
         {/* ═══════════════ 10. E-E-A-T AUTHORITY BANNER ═══════════════ */}
         <AuthorityBanner />
 
-        {/* ═══════════════ 11. BEFORE / AFTER COMPARISON ═══════════════ */}
-        <LandingBeforeAfter
-          sectionLabel="Results"
-          heading="The Difference Strong E-E-A-T Makes"
-          subheading="Every dimension in the framework exists to catch a specific signal gap that hurts rankings or AI citations. Here is what changes when your content actually demonstrates authority."
-          before={BEFORE_AFTER.before}
-          after={BEFORE_AFTER.after}
-        />
-
-        {/* ═══════════════ 12. TRUST / E-E-A-T SECTION ═══════════════ */}
+        {/* ═══════════════ 11. TRUST / E-E-A-T SECTION ═══════════════ */}
         <TrustSection />
 
-        {/* ═══════════════ 13. EMBEDDED TOOL SECTION ═══════════════ */}
-        <ToolSection toolRef={toolRef} />
-
-        {/* ═══════════════ 14. FAQ ACCORDION ═══════════════ */}
+        {/* ═══════════════ 12. FAQ ACCORDION ═══════════════ */}
         <LandingFAQ
           sectionLabel="Frequently Asked Questions"
-          heading="Everything You Need to Know"
-          subheading="Got questions about our E-E-A-T analyzer? We have answered the most common ones below."
+          heading="E-E-A-T Analyzer FAQs"
+          subheading="Understand how this tool scores authority, catches weak signals, and gives you actionable fixes."
           faqs={FAQS}
         />
 
-        {/* ═══════════════ 15. FINAL RADIANT CTA ═══════════════ */}
+        {/* ═══════════════ 13. FINAL RADIANT CTA ═══════════════ */}
         <LandingCTA
           heading="Stop Publishing Content AI Overlooks"
-          subheading="Join 2,000+ content strategists who audit authority before they publish. 100% free, no sign-up required."
+          subheading="Audit your content for E-E-A-T and AI search readiness. 100% free, no sign-up required."
           ctaLabel="Analyze My Content Free"
           ctaOnClick={scrollToTool}
         />

@@ -55,7 +55,7 @@ export default function DeviceLimitModal({ isOpen, onClose, limitData }) {
         }`}>
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-white/50"
+            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-white/50 cursor-pointer"
             aria-label="Close modal"
           >
             <X className="w-5 h-5" />
@@ -94,7 +94,7 @@ export default function DeviceLimitModal({ isOpen, onClose, limitData }) {
               </p>
               <button
                 onClick={onClose}
-                className="w-full mt-4 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-sm font-medium transition-colors"
+                className="w-full mt-4 px-4 py-2.5 bg-gray-900 hover:bg-gray-800 text-white rounded-xl text-sm font-medium transition-colors cursor-pointer"
               >
                 Close
               </button>
@@ -111,7 +111,7 @@ export default function DeviceLimitModal({ isOpen, onClose, limitData }) {
                   <button
                     type="button"
                     onClick={copyDeviceId}
-                    className="flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-700 font-medium shrink-0 px-2 py-1 bg-white border border-gray-200 rounded-md shadow-xs hover:bg-gray-50"
+                    className="flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-700 font-medium shrink-0 px-2 py-1 bg-white border border-gray-200 rounded-md shadow-xs hover:bg-gray-50 cursor-pointer"
                   >
                     {copiedId ? <Check className="w-3 h-3 text-green-600" /> : <Copy className="w-3 h-3" />}
                     {copiedId ? 'Copied' : 'Copy'}

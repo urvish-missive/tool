@@ -174,7 +174,6 @@ export async function generateAIReport(auditData, options = {}) {
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: prompt },
     ], {
-      preferredProvider: (options.preferredProvider && options.preferredProvider !== 'openrouter') ? options.preferredProvider : 'gemini-3.5-flash-lite',
       temperature: 0.25,
       maxTokens: 2500,
       jsonMode: true,

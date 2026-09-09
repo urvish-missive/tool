@@ -1,4 +1,5 @@
 import ScoreRing from './ScoreRing'
+import { Check, AlertCircle, AlertTriangle } from 'lucide-react'
 
 const SCORE_LABELS = {
   overall_score: 'Overall',
@@ -73,7 +74,7 @@ export default function AnalysisReport({ report }) {
           <ul className="space-y-2">
             {report.strengths.map((s, i) => (
               <li key={i} className="flex items-start gap-2 text-gray-700">
-                <span className="text-green-500 mt-0.5 shrink-0">✓</span>
+                <Check className="w-4 h-4 text-green-500 mt-0.5 shrink-0" />
                 <span>{s}</span>
               </li>
             ))}
@@ -88,7 +89,7 @@ export default function AnalysisReport({ report }) {
             {report.critical_issues.map((issue, i) => (
               <div key={i} className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <div className="flex items-center gap-2 mb-1">
-                  <span className="text-red-500">🔴</span>
+                  <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
                   <span className="font-semibold text-red-800">{issue.issue}</span>
                 </div>
                 <p className="text-sm text-red-700 mt-1">
@@ -109,7 +110,7 @@ export default function AnalysisReport({ report }) {
           <ul className="space-y-2">
             {report.warnings.map((w, i) => (
               <li key={i} className="flex items-start gap-2 text-gray-700">
-                <span className="text-amber-500 mt-0.5 shrink-0">🟡</span>
+                <AlertTriangle className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" />
                 <span>{w}</span>
               </li>
             ))}

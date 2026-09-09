@@ -8,11 +8,13 @@ import {
   Link2,
   Image as ImageIcon,
   CheckCircle2,
-  XCircle,
   Search,
   TrendingUp,
   TrendingDown,
   Layers,
+  Check,
+  X,
+  Zap,
 } from 'lucide-react'
 
 export default function HeadToHeadBenchmark({
@@ -331,17 +333,25 @@ export default function HeadToHeadBenchmark({
                 </td>
                 <td className="py-3.5 px-5">
                   {compStats.hasSchema ? (
-                    <span className="text-emerald-700 font-bold">✓ Detected</span>
+                    <span className="text-emerald-700 font-bold inline-flex items-center gap-1">
+                      <Check className="w-3.5 h-3.5" /> Detected
+                    </span>
                   ) : (
-                    <span className="text-rose-600 font-bold">✗ Missing</span>
+                    <span className="text-rose-600 font-bold inline-flex items-center gap-1">
+                      <X className="w-3.5 h-3.5" /> Missing
+                    </span>
                   )}
                 </td>
                 <td className="py-3.5 px-5">
                   {hasYourData ? (
                     yourStats.hasSchema ? (
-                      <span className="text-emerald-700 font-bold">✓ Detected</span>
+                      <span className="text-emerald-700 font-bold inline-flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5" /> Detected
+                      </span>
                     ) : (
-                      <span className="text-rose-600 font-bold">✗ Missing</span>
+                      <span className="text-rose-600 font-bold inline-flex items-center gap-1">
+                        <X className="w-3.5 h-3.5" /> Missing
+                      </span>
                     )
                   ) : (
                     <span className="text-emerald-700 font-semibold text-xs">FAQPage + Article</span>
@@ -349,8 +359,8 @@ export default function HeadToHeadBenchmark({
                 </td>
                 <td className="py-3.5 px-5 text-right">
                   {!compStats.hasSchema ? (
-                    <span className="text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full font-bold text-xs">
-                      ⚡ Easy Win with Schema
+                    <span className="text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full font-bold text-xs inline-flex items-center gap-1">
+                      <Zap className="w-3 h-3 text-emerald-600" /> Easy Win with Schema
                     </span>
                   ) : (
                     <span className="text-gray-400 text-xs">Present</span>
@@ -366,17 +376,25 @@ export default function HeadToHeadBenchmark({
                 </td>
                 <td className="py-3.5 px-5">
                   {compStats.hasOGTags ? (
-                    <span className="text-emerald-700 font-bold">✓ Configured</span>
+                    <span className="text-emerald-700 font-bold inline-flex items-center gap-1">
+                      <Check className="w-3.5 h-3.5" /> Configured
+                    </span>
                   ) : (
-                    <span className="text-rose-600 font-bold">✗ Incomplete</span>
+                    <span className="text-rose-600 font-bold inline-flex items-center gap-1">
+                      <X className="w-3.5 h-3.5" /> Incomplete
+                    </span>
                   )}
                 </td>
                 <td className="py-3.5 px-5">
                   {hasYourData ? (
                     yourStats.hasOGTags ? (
-                      <span className="text-emerald-700 font-bold">✓ Configured</span>
+                      <span className="text-emerald-700 font-bold inline-flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5" /> Configured
+                      </span>
                     ) : (
-                      <span className="text-rose-600 font-bold">✗ Incomplete</span>
+                      <span className="text-rose-600 font-bold inline-flex items-center gap-1">
+                        <X className="w-3.5 h-3.5" /> Incomplete
+                      </span>
                     )
                   ) : (
                     <span className="text-gray-700">Full OpenGraph</span>

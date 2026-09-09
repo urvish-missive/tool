@@ -815,7 +815,7 @@ export async function researchKeywords(input) {
     console.log(`Crawling website for keyword context: ${input.websiteUrl}`)
     crawlData = await crawlWebsite(input.websiteUrl)
     if (crawlData) {
-      console.log(`✓ Crawled ${crawlData.pagesCrawled} pages — found ${crawlData.productTerms.length} section headings, ${crawlData.headings.h2.length} H2 headings`)
+      console.log(`[OK] Crawled ${crawlData.pagesCrawled} pages — found ${crawlData.productTerms.length} section headings, ${crawlData.headings.h2.length} H2 headings`)
     }
   }
 
@@ -830,7 +830,7 @@ export async function researchKeywords(input) {
       input.detectedLanguage = siteDetails.detectedLanguage
       input.detectedRegion = siteDetails.detectedRegion
     }
-    console.log(`✓ Dynamically extracted primary SEO keyword from website: "${input.seedKeyword}" (${input.businessType || 'General'})`)
+    console.log(`[OK] Dynamically extracted primary SEO keyword from website: "${input.seedKeyword}" (${input.businessType || 'General'})`)
   }
 
   // Step 2: Auto-detect language & region dynamically (zero hardcoded words)
@@ -843,10 +843,10 @@ export async function researchKeywords(input) {
   input.detectedLanguage = detectedLanguage
   input.detectedRegion = detectedRegion
 
-  console.log(`🌐 Detected Language: ${detectedLanguage} (${languageCode}) | Market/Region: ${detectedRegion} (${countryCode})`)
+  console.log(`[Language] Detected Language: ${detectedLanguage} (${languageCode}) | Market/Region: ${detectedRegion} (${countryCode})`)
 
   // Step 3: Live scrape Google & Bing Search Suggestions and Competitor SERPs in parallel
-  console.log(`🔍 Scraping live Google & Bing search suggestions and competitor pages for "${input.seedKeyword}"...`)
+  console.log(`[Search] Scraping live Google & Bing search suggestions and competitor pages for "${input.seedKeyword}"...`)
   const [searchKeywordsResult, competitorResult] = await Promise.allSettled([
     scrapeSearchEngineKeywords(input.seedKeyword, languageCode, countryCode),
     scrapeCompetitorKeywords(input.seedKeyword, languageCode),
@@ -855,7 +855,7 @@ export async function researchKeywords(input) {
   const searchEngineKeywords = searchKeywordsResult.status === 'fulfilled' ? searchKeywordsResult.value : []
   const competitorInsights = competitorResult.status === 'fulfilled' ? competitorResult.value : { competitors: [], competitorKeywords: [] }
 
-  console.log(`✓ Scraped ${searchEngineKeywords.length} live Google/Bing search queries, ${competitorInsights.competitors.length} ranking competitor pages`)
+  console.log(`[OK] Scraped ${searchEngineKeywords.length} live Google/Bing search queries, ${competitorInsights.competitors.length} ranking competitor pages`)
 
   // Step 4: AI synthesis in detected language
   const providers = getConfiguredProviders()
@@ -870,7 +870,7 @@ export async function researchKeywords(input) {
       { role: 'user', content: buildUserPrompt(input, crawlData, searchEngineKeywords, competitorInsights) },
     ], { temperature: 0.4, maxTokens: 2500, jsonMode: true, preferredProvider: input.preferredProvider })
 
-    console.log(`✓ AI keyword research complete in ${detectedLanguage} — ${parsed.keywords?.length || 0} keywords generated`)
+    console.log(`[OK] AI keyword research complete in ${detectedLanguage} — ${parsed.keywords?.length || 0} keywords generated`)
     return validateReport(parsed, input.seedKeyword, detectedLanguage, detectedRegion, searchEngineKeywords, competitorInsights)
   } catch (err) {
     console.error(`AI keyword research failed: ${err.message}`)

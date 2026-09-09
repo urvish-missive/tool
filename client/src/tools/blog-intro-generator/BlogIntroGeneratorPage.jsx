@@ -19,13 +19,13 @@ import {
   ArrowRight,
   Filter,
   Users,
+  Anchor,
 } from 'lucide-react'
 import { blogIntroSchema, parseBlogIntroForm } from '../../schemas/blogIntro.schema'
 import { useGenerateBlogIntrosMutation } from '../../services/apiSlice'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
-import ModelSelector from '../shared/ModelSelector'
 
 const FUNNEL_OPTIONS = [
   {
@@ -105,14 +105,12 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
       funnelStage: 'all',
       tone: 'conversational',
       count: 9,
-      preferredProvider: 'gemini-3.5-flash-lite',
     },
   })
 
   const topicValue = watch('topic')
   const countValue = watch('count')
   const toneValue = watch('tone')
-  const preferredProvider = watch('preferredProvider')
 
   const [generateBlogIntros, { isLoading }] = useGenerateBlogIntrosMutation()
 
@@ -138,7 +136,6 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
         funnelStage: formData.funnelStage || 'all',
         tone: formData.tone || 'conversational',
         count: Number(formData.count) || 9,
-        preferredProvider: formData.preferredProvider || 'gemini-3.5-flash-lite',
       }).unwrap()
 
       setDataResult(res)
@@ -239,13 +236,13 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
           `- **Emotional Trigger:** ${intro.emotionalTrigger}`,
           `- **Word Count:** ${intro.wordCount} words (~${intro.readingTimeSeconds}s read)`,
           '',
-          `### 🪝 Opening Hook:`,
+          `### Opening Hook:`,
           `> "${intro.hookLine}"`,
           '',
-          `### 📄 Full Introduction:`,
+          `### Full Introduction:`,
           intro.fullIntro,
           '',
-          `### ↗ Transition to H2:`,
+          `### Transition to H2:`,
           `*${intro.transition}*`,
           '',
           `*Why It Works: ${intro.whyItWorks}*`,
@@ -302,7 +299,7 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
   const favCount = Object.values(favorites).filter(Boolean).length
 
   return (
-    <div className={isEmbedded ? 'w-full' : 'min-h-screen bg-slate-50 text-slate-800 pb-20'}>
+    <div className={isEmbedded ? 'w-full @container' : 'min-h-screen bg-slate-50 text-slate-800 pb-20 @container'}>
       {/* Lead Capture Modal */}
       <LeadCaptureModal
         show={showPopup}
@@ -409,7 +406,7 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                 <label className="block text-xs sm:text-sm font-bold text-slate-800 mb-1.5">
                   Select Funnel Stage Focus
                 </label>
-                <div className="grid grid-cols-1 xs:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
+                <div className="grid grid-cols-1 @min-[380px]:grid-cols-2 @min-[620px]:grid-cols-4 gap-2 sm:gap-2.5">
                   {FUNNEL_OPTIONS.map((opt) => {
                     const isSelected = selectedFunnel === opt.id
                     const Icon = opt.icon
@@ -454,7 +451,7 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
               </div>
 
               {/* Keywords & Target Audience Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 @min-[420px]:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label
                     htmlFor="keywords-input"
@@ -489,7 +486,7 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
               </div>
 
               {/* Tone of Voice & Count Row */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-1">
+              <div className="grid grid-cols-1 @min-[420px]:grid-cols-2 gap-3 sm:gap-4 pt-1">
                 <div>
                   <label htmlFor="tone-select" className="block text-xs sm:text-sm font-bold text-slate-800 mb-1">
                     Tone of Voice
@@ -518,7 +515,7 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                         : `${countValue} for ${selectedFunnel.toUpperCase()}`}
                     </span>
                   </div>
-                  <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+                  <div className="grid grid-cols-2 @min-[880px]:grid-cols-4 gap-1.5 sm:gap-2">
                     {[
                       { n: 6, sub: '2 / stage' },
                       { n: 9, sub: '3 / stage', badge: 'Ideal' },
@@ -550,15 +547,8 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                 </div>
               </div>
 
-              {/* Action Row & Model Selector */}
+              {/* Action Row */}
               <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                <div className="w-full sm:w-56">
-                  <ModelSelector
-                    value={preferredProvider}
-                    onChange={(val) => setValue('preferredProvider', val)}
-                    compact={true}
-                  />
-                </div>
 
                 <div className="flex items-center gap-2.5 w-full sm:w-auto">
                   {dataResult && (
@@ -678,7 +668,7 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
               </div>
 
               {/* Funnel Distribution Badges */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
+              <div className="grid grid-cols-2 @min-[520px]:grid-cols-4 gap-2 sm:gap-2.5">
                 <div className="p-2.5 sm:p-3 rounded-xl bg-sky-50/70 border border-sky-200">
                   <div className="text-[10px] sm:text-[11px] font-bold text-sky-700 uppercase tracking-wider">
                     TOFU Awareness
@@ -704,8 +694,9 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                 </div>
 
                 <div className="p-2.5 sm:p-3 rounded-xl bg-purple-50/70 border border-purple-200">
-                  <div className="text-[10px] sm:text-[11px] font-bold text-purple-700 uppercase tracking-wider">
-                    ⭐ Pinned
+                  <div className="text-[10px] sm:text-[11px] font-bold text-purple-700 uppercase tracking-wider flex items-center gap-1">
+                    <Star className="w-3.5 h-3.5 fill-purple-700" />
+                    <span>Pinned</span>
                   </div>
                   <div className="text-xl sm:text-2xl font-black text-purple-900 mt-0.5">{favCount}</div>
                   <div className="text-[10px] text-purple-600">Saved Favorites</div>
@@ -782,13 +773,14 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                 <button
                   type="button"
                   onClick={() => setActiveFilterTab('favorites')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                  className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all cursor-pointer inline-flex items-center gap-1.5 ${
                     activeFilterTab === 'favorites'
                       ? 'bg-purple-600 text-white shadow-xs'
                       : 'bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200'
                   }`}
                 >
-                  ⭐ Saved ({favCount})
+                  <Star className="w-3.5 h-3.5 fill-current" />
+                  <span>Saved ({favCount})</span>
                 </button>
               )}
             </div>
@@ -803,7 +795,7 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                   <button
                     type="button"
                     onClick={() => setActiveFilterTab('all')}
-                    className="mt-2 text-xs text-[#0C81F3] font-bold hover:underline"
+                    className="mt-2 text-xs text-[#0C81F3] font-bold hover:underline cursor-pointer"
                   >
                     View All Intros
                   </button>
@@ -878,8 +870,9 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                       {/* Opening Hook Line Callout */}
                       <div className={`p-3 sm:p-4 rounded-xl border ${stageStyles.hookBg}`}>
                         <div className="flex items-center justify-between gap-2 mb-1">
-                          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1">
-                            <span>🪝</span> Opening Hook Line (Sentence 1)
+                          <span className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                            <Anchor className="w-3.5 h-3.5 text-[#0C81F3]" />
+                            <span>Opening Hook Line (Sentence 1)</span>
                           </span>
                           <button
                             type="button"

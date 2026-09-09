@@ -178,7 +178,7 @@ export default function LeadCaptureModal({ show, onClose, onSubmit, toolSlug, ti
           {onClose && (
             <button
               onClick={onClose}
-              className="absolute top-4 right-4 p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+              className="absolute top-4 right-4 p-1 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
             >
               <svg
                 className="w-5 h-5"
@@ -235,7 +235,7 @@ export default function LeadCaptureModal({ show, onClose, onSubmit, toolSlug, ti
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-8 py-3.5 text-sm font-semibold text-white hover:from-[#0D73D1] hover:to-[#E77771] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#0C81F3]/25 hover:shadow-[#0C81F3]/40"
+              className="w-full rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-8 py-3.5 text-sm font-semibold text-white hover:from-[#0D73D1] hover:to-[#E77771] disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-[#0C81F3]/25 hover:shadow-[#0C81F3]/40 cursor-pointer"
             >
               {isLoading ? 'Submitting...' : 'Unlock Free Tool →'}
             </button>

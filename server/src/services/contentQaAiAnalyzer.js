@@ -245,9 +245,6 @@ export async function reviewContentQA(content, title, targetKeyword, metaDescrip
 
   try {
     console.log(`Starting Himani 12-Pillar AI QA review — providers: ${providers.map(p => p.name).join(', ')}`)
-    const chosenProvider = (options.preferredProvider && options.preferredProvider !== 'openrouter')
-      ? options.preferredProvider
-      : 'gemini-3.5-flash-lite'
 
     const parsed = await callAIAndParseJSON([
       { role: 'system', content: SYSTEM_PROMPT },
@@ -257,10 +254,9 @@ export async function reviewContentQA(content, title, targetKeyword, metaDescrip
       maxTokens: 2200,
       jsonMode: true,
       timeout: 15000,
-      preferredProvider: chosenProvider,
     })
 
-    console.log('✓ Himani AI content QA review complete — overall:', parsed?.overallScore)
+    console.log('[OK] Himani AI content QA review complete — overall:', parsed?.overallScore)
     return validateReport(parsed)
   } catch (err) {
     console.error('AI content QA review failed:', err.message)
@@ -489,7 +485,6 @@ Return a JSON object:
       temperature: 0.35,
       maxTokens: 3500,
       jsonMode: true,
-      preferredProvider: options.preferredProvider,
     })
 
     return {

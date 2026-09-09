@@ -24,6 +24,10 @@ import {
   Eye,
   ArrowUpRight,
   Compass,
+  Trophy,
+  Award,
+  TrendingUp,
+  CheckCircle2,
 } from 'lucide-react'
 
 const LOADING_STEPS = [
@@ -35,16 +39,16 @@ const LOADING_STEPS = [
 ]
 
 const COUNTRIES = [
-  { code: 'US', name: 'United States', flag: '🇺🇸', domain: 'google.com' },
-  { code: 'GB', name: 'United Kingdom', flag: '🇬🇧', domain: 'google.co.uk' },
-  { code: 'IN', name: 'India', flag: '🇮🇳', domain: 'google.co.in' },
-  { code: 'CA', name: 'Canada', flag: '🇨🇦', domain: 'google.ca' },
-  { code: 'AU', name: 'Australia', flag: '🇦🇺', domain: 'google.com.au' },
-  { code: 'DE', name: 'Germany', flag: '🇩🇪', domain: 'google.de' },
-  { code: 'FR', name: 'France', flag: '🇫🇷', domain: 'google.fr' },
-  { code: 'AE', name: 'United Arab Emirates', flag: '🇦🇪', domain: 'google.ae' },
-  { code: 'SG', name: 'Singapore', flag: '🇸🇬', domain: 'google.com.sg' },
-  { code: 'NL', name: 'Netherlands', flag: '🇳🇱', domain: 'google.nl' },
+  { code: 'US', name: 'United States', domain: 'google.com' },
+  { code: 'GB', name: 'United Kingdom', domain: 'google.co.uk' },
+  { code: 'IN', name: 'India', domain: 'google.co.in' },
+  { code: 'CA', name: 'Canada', domain: 'google.ca' },
+  { code: 'AU', name: 'Australia', domain: 'google.com.au' },
+  { code: 'DE', name: 'Germany', domain: 'google.de' },
+  { code: 'FR', name: 'France', domain: 'google.fr' },
+  { code: 'AE', name: 'United Arab Emirates', domain: 'google.ae' },
+  { code: 'SG', name: 'Singapore', domain: 'google.com.sg' },
+  { code: 'NL', name: 'Netherlands', domain: 'google.nl' },
 ]
 
 const FAQ_ITEMS = [
@@ -395,7 +399,7 @@ export default function GoogleRankCheckerPage() {
                   >
                     {COUNTRIES.map((c) => (
                       <option key={c.code} value={c.code}>
-                        {c.flag} {c.name} ({c.domain})
+                        {c.name} ({c.domain})
                       </option>
                     ))}
                   </select>
@@ -458,8 +462,8 @@ export default function GoogleRankCheckerPage() {
                     <AlertTriangle className="w-5 h-5 text-amber-600" />
                   </div>
                   <div className="space-y-1.5">
-                    <h4 className="font-bold text-amber-900 text-sm">
-                      ⚠️ AI Estimate — Not a Verified Ranking
+                    <h4 className="font-bold text-amber-900 text-sm flex items-center gap-1.5">
+                      <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" /> AI Estimate — Not a Verified Ranking
                     </h4>
                     <p className="text-xs sm:text-sm text-amber-800 leading-relaxed">
                       {rankData.estimateReason}
@@ -502,12 +506,12 @@ export default function GoogleRankCheckerPage() {
                       {rankData.countryName} ({rankData.device})
                     </span>
                     {rankData.scrapedLive ? (
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold">
-                        ✅ Live SERP Verified
+                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold inline-flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> Live SERP Verified
                       </span>
                     ) : (
-                      <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold">
-                        ⚠️ AI Estimate ({rankData.confidence || 30}% confidence)
+                      <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold inline-flex items-center gap-1">
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-400" /> AI Estimate ({rankData.confidence || 30}% confidence)
                       </span>
                     )}
                   </div>
@@ -545,17 +549,29 @@ export default function GoogleRankCheckerPage() {
                     <span className="text-xs text-slate-300 font-medium">
                       Search Position Status
                     </span>
-                    <p className="text-sm sm:text-base font-bold text-white">
-                      {rankData.position === 1
-                        ? '🏆 Position #1 Winner'
-                        : rankData.position <= 3
-                          ? '🥈 Top 3 (Above the Fold)'
-                          : rankData.position <= 10
-                            ? '📈 First Page of Google'
-                            : rankData.position <= 20
-                              ? '⚠️ Striking Distance (Page 2)'
-                              : '🎯 Not in Top 100'}
-                    </p>
+                    <div className="text-sm sm:text-base font-bold text-white flex items-center gap-1.5">
+                      {rankData.position === 1 ? (
+                        <>
+                          <Trophy className="w-4 h-4 text-amber-400 shrink-0" /> Position #1 Winner
+                        </>
+                      ) : rankData.position <= 3 ? (
+                        <>
+                          <Award className="w-4 h-4 text-slate-300 shrink-0" /> Top 3 (Above the Fold)
+                        </>
+                      ) : rankData.position <= 10 ? (
+                        <>
+                          <TrendingUp className="w-4 h-4 text-emerald-400 shrink-0" /> First Page of Google
+                        </>
+                      ) : rankData.position <= 20 ? (
+                        <>
+                          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" /> Striking Distance (Page 2)
+                        </>
+                      ) : (
+                        <>
+                          <Target className="w-4 h-4 text-rose-400 shrink-0" /> Not in Top 100
+                        </>
+                      )}
+                    </div>
                     <a
                       href={rankData.liveSearchUrl}
                       target="_blank"

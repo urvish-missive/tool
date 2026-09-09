@@ -31,7 +31,6 @@ export const caseStudySchema = z.object({
       'data-driven',
     ])
     .default('authoritative'),
-  preferredProvider: z.string().optional().default('gemini-3.5-flash-lite'),
 })
 
 export function parseCaseStudyForm(data) {

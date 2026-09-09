@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useGenerateContentMutation } from '../../services/apiSlice'
-import ModelSelector from '../shared/ModelSelector'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import { aiContentWriterSchema, parseAiContentWriterForm } from '../../schemas/aiContentWriter.schema'
 import {
@@ -16,7 +15,6 @@ import {
   ChevronUp,
   FileText,
   Code,
-  Layers,
   BarChart3,
   Globe,
   Tag,
@@ -27,20 +25,24 @@ import {
   Link,
   CheckCircle2,
   AlertCircle,
-  PenLine,
   AlignLeft,
   Search,
+  ShoppingBag,
+  Landmark,
+  ListOrdered,
+  BookOpen,
+  Mail,
 } from 'lucide-react'
 
 const CONTENT_TYPES = [
-  { value: 'blog-post', label: 'Blog Post', icon: '📝' },
-  { value: 'product-page', label: 'Product Page', icon: '🛒' },
-  { value: 'landing-page', label: 'Landing Page', icon: '🌐' },
-  { value: 'pillar-page', label: 'Pillar Page', icon: '🏛️' },
-  { value: 'listicle', label: 'Listicle', icon: '📋' },
-  { value: 'how-to', label: 'How-To Guide', icon: '📖' },
-  { value: 'case-study', label: 'Case Study', icon: '📊' },
-  { value: 'email', label: 'Email Copy', icon: '✉️' },
+  { value: 'blog-post', label: 'Blog Post', icon: FileText },
+  { value: 'product-page', label: 'Product Page', icon: ShoppingBag },
+  { value: 'landing-page', label: 'Landing Page', icon: Globe },
+  { value: 'pillar-page', label: 'Pillar Page', icon: Landmark },
+  { value: 'listicle', label: 'Listicle', icon: ListOrdered },
+  { value: 'how-to', label: 'How-To Guide', icon: BookOpen },
+  { value: 'case-study', label: 'Case Study', icon: BarChart3 },
+  { value: 'email', label: 'Email Copy', icon: Mail },
 ]
 
 const TONES = [
@@ -115,7 +117,6 @@ export default function AiContentWriterPage() {
       wordCount: 1500,
       targetAudience: '',
       secondaryKeywords: '',
-      preferredProvider: 'openrouter',
     },
   })
 
@@ -153,7 +154,6 @@ export default function AiContentWriterPage() {
       wordCount: Number(parsed.data.wordCount),
       targetAudience: parsed.data.targetAudience,
       secondaryKeywords: parsed.data.secondaryKeywords,
-      preferredProvider: parsed.data.preferredProvider,
     })
       .unwrap()
       .then((result) => {
@@ -330,7 +330,7 @@ export default function AiContentWriterPage() {
                               : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                           }`}
                         >
-                          <span className="text-sm">{ct.icon}</span>
+                          {ct.icon && <ct.icon className="w-4 h-4 shrink-0" />}
                           {ct.label}
                         </button>
                       ))}
@@ -416,18 +416,8 @@ export default function AiContentWriterPage() {
               </div>
             </div>
 
-            {/* Model Selector & Submit */}
+            {/* Submit */}
             <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-              <div className="w-full sm:w-auto sm:min-w-[190px]">
-                <Controller
-                  control={control}
-                  name="preferredProvider"
-                  render={({ field }) => (
-                    <ModelSelector value={field.value} onChange={field.onChange} compact={true} />
-                  )}
-                />
-              </div>
-
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
                 {dataResult && (
                   <button
@@ -508,7 +498,7 @@ export default function AiContentWriterPage() {
                 </div>
                 <button
                   onClick={handleReset}
-                  className="px-4 py-2 text-sm font-medium text-[#0C81F3] hover:bg-blue-50 rounded-lg whitespace-nowrap"
+                  className="px-4 py-2 text-sm font-medium text-[#0C81F3] hover:bg-blue-50 rounded-lg whitespace-nowrap cursor-pointer"
                 >
                   ← New Article
                 </button>
@@ -529,7 +519,7 @@ export default function AiContentWriterPage() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === tab.id ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-slate-500 hover:text-slate-900'}`}
+                    className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all whitespace-nowrap ${activeTab === tab.id ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-slate-500 hover:text-slate-900'} cursor-pointer`}
                   >
                     <tab.icon className="w-4 h-4" />
                     <span>{tab.label}</span>
@@ -547,7 +537,7 @@ export default function AiContentWriterPage() {
                     <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Article Title</h3>
                     <button
                       onClick={() => triggerCopy(dataResult.title, 'title')}
-                      className="px-3 py-1.5 text-xs font-semibold text-[#0C81F3] bg-blue-50 rounded-lg hover:bg-blue-100 flex items-center gap-1.5"
+                      className="px-3 py-1.5 text-xs font-semibold text-[#0C81F3] bg-blue-50 rounded-lg hover:bg-blue-100 flex items-center gap-1.5 cursor-pointer"
                     >
                       {copiedState === 'title' ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
                       {copiedState === 'title' ? 'Copied!' : 'Copy'}
@@ -566,7 +556,7 @@ export default function AiContentWriterPage() {
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                   <button
                     onClick={() => setHeadingsExpanded(!headingsExpanded)}
-                    className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors"
+                    className="w-full flex items-center justify-between p-5 hover:bg-slate-50 transition-colors cursor-pointer"
                   >
                     <h3 className="text-sm font-bold text-slate-900">
                       Article Body ({headings.length} sections)
@@ -677,9 +667,13 @@ export default function AiContentWriterPage() {
                           )}
                           <button
                             onClick={() => triggerCopy(item.value || '', item.key)}
-                            className="text-xs font-semibold text-[#0C81F3] hover:bg-blue-50 rounded px-2 py-1"
+                            className="text-xs font-semibold text-[#0C81F3] hover:bg-blue-50 rounded px-2 py-1 cursor-pointer"
                           >
-                            {copiedState === item.key ? '✓' : 'Copy'}
+                            {copiedState === item.key ? (
+                              <Check className="w-3.5 h-3.5 text-green-600 inline" />
+                            ) : (
+                              'Copy'
+                            )}
                           </button>
                         </div>
                       </div>
@@ -699,7 +693,7 @@ export default function AiContentWriterPage() {
                   <h3 className="text-sm font-bold text-slate-900">Article Schema.org JSON-LD</h3>
                   <button
                     onClick={() => triggerCopy(schemaJson, 'schema')}
-                    className="px-3 py-1.5 text-xs font-semibold text-[#0C81F3] bg-blue-50 rounded-lg hover:bg-blue-100 flex items-center gap-1.5"
+                    className="px-3 py-1.5 text-xs font-semibold text-[#0C81F3] bg-blue-50 rounded-lg hover:bg-blue-100 flex items-center gap-1.5 cursor-pointer"
                   >
                     {copiedState === 'schema' ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
                     {copiedState === 'schema' ? 'Copied!' : 'Copy'}
@@ -763,7 +757,7 @@ export default function AiContentWriterPage() {
                     <div key={i} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
                       <button
                         onClick={() => toggleFaq(i)}
-                        className="w-full flex items-center justify-between p-4 sm:p-5 text-left hover:bg-slate-50 transition-colors"
+                        className="w-full flex items-center justify-between p-4 sm:p-5 text-left hover:bg-slate-50 transition-colors cursor-pointer"
                       >
                         <div className="flex items-start gap-3 flex-1 min-w-0">
                           <div className="w-7 h-7 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white flex items-center justify-center text-xs font-bold shrink-0">
@@ -778,9 +772,15 @@ export default function AiContentWriterPage() {
                           <p className="text-sm text-slate-700 leading-relaxed">{faq.answer}</p>
                           <button
                             onClick={() => triggerCopy(faq.question + '\n\n' + faq.answer, `faq-${i}`)}
-                            className="mt-3 px-3 py-1.5 text-xs font-semibold text-[#0C81F3] bg-blue-50 rounded-lg hover:bg-blue-100"
+                            className="mt-3 px-3 py-1.5 text-xs font-semibold text-[#0C81F3] bg-blue-50 rounded-lg hover:bg-blue-100 cursor-pointer"
                           >
-                            {copiedState === `faq-${i}` ? '✓ Copied' : 'Copy FAQ'}
+                            {copiedState === `faq-${i}` ? (
+                              <span className="inline-flex items-center gap-1">
+                                <Check className="w-3.5 h-3.5 text-green-600" /> Copied
+                              </span>
+                            ) : (
+                              'Copy FAQ'
+                            )}
                           </button>
                         </div>
                       )}
@@ -797,7 +797,7 @@ export default function AiContentWriterPage() {
                 <div className="grid sm:grid-cols-3 gap-3">
                   <button
                     onClick={() => handleDownloadFile(fullMarkdownContent, `${dataResult.slug || 'article'}.md`, 'text/markdown')}
-                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left"
+                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left cursor-pointer"
                   >
                     <FileText className="w-5 h-5 text-[#0C81F3] mb-2" />
                     <div className="text-sm font-bold text-slate-900">Markdown</div>
@@ -805,7 +805,7 @@ export default function AiContentWriterPage() {
                   </button>
                   <button
                     onClick={() => handleDownloadFile(fullHtmlContent, `${dataResult.slug || 'article'}.html`, 'text/html')}
-                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left"
+                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left cursor-pointer"
                   >
                     <Code className="w-5 h-5 text-purple-600 mb-2" />
                     <div className="text-sm font-bold text-slate-900">HTML</div>
@@ -813,7 +813,7 @@ export default function AiContentWriterPage() {
                   </button>
                   <button
                     onClick={() => handleDownloadFile(plainTextContent, `${dataResult.slug || 'article'}.txt`, 'text/plain')}
-                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left"
+                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left cursor-pointer"
                   >
                     <AlignLeft className="w-5 h-5 text-emerald-600 mb-2" />
                     <div className="text-sm font-bold text-slate-900">Plain Text</div>
@@ -825,21 +825,39 @@ export default function AiContentWriterPage() {
                 <div className="flex flex-wrap gap-2 pt-2">
                   <button
                     onClick={() => triggerCopy(fullMarkdownContent, 'allMd')}
-                    className="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                    className="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
                   >
-                    {copiedState === 'allMd' ? '✓ Copied Markdown' : 'Copy as Markdown'}
+                    {copiedState === 'allMd' ? (
+                      <span className="inline-flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5 text-green-600" /> Copied Markdown
+                      </span>
+                    ) : (
+                      'Copy as Markdown'
+                    )}
                   </button>
                   <button
                     onClick={() => triggerCopy(fullHtmlContent, 'allHtml')}
-                    className="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                    className="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
                   >
-                    {copiedState === 'allHtml' ? '✓ Copied HTML' : 'Copy as HTML'}
+                    {copiedState === 'allHtml' ? (
+                      <span className="inline-flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5 text-green-600" /> Copied HTML
+                      </span>
+                    ) : (
+                      'Copy as HTML'
+                    )}
                   </button>
                   <button
                     onClick={() => triggerCopy(plainTextContent, 'allText')}
-                    className="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors"
+                    className="px-4 py-2 text-xs font-semibold rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition-colors cursor-pointer"
                   >
-                    {copiedState === 'allText' ? '✓ Copied Text' : 'Copy as Plain Text'}
+                    {copiedState === 'allText' ? (
+                      <span className="inline-flex items-center gap-1">
+                        <Check className="w-3.5 h-3.5 text-green-600" /> Copied Text
+                      </span>
+                    ) : (
+                      'Copy as Plain Text'
+                    )}
                   </button>
                 </div>
               </div>

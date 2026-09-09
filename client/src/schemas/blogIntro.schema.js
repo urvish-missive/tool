@@ -23,7 +23,6 @@ export const blogIntroSchema = z.object({
     ])
     .default('conversational'),
   count: z.number().min(3).max(18).default(9),
-  preferredProvider: z.string().optional().default('gemini-3.5-flash-lite'),
 })
 
 export function parseBlogIntroForm(data) {

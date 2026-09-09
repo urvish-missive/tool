@@ -1,4 +1,4 @@
-import React from 'react'
+import 'react'
 import {
   ChevronLeft,
   ChevronRight,
@@ -122,7 +122,7 @@ export default function TablePagination({
           onClick={() => onPageChange(1)}
           disabled={safeCurrentPage <= 1 || isLoading}
           title="First page"
-          className="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg disabled:opacity-30 disabled:pointer-events-none transition-colors"
+          className="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
         >
           <ChevronsLeft className="w-4 h-4" />
         </button>
@@ -133,7 +133,7 @@ export default function TablePagination({
           onClick={() => onPageChange(safeCurrentPage - 1)}
           disabled={safeCurrentPage <= 1 || isLoading}
           title="Previous page"
-          className="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg disabled:opacity-30 disabled:pointer-events-none transition-colors"
+          className="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
         >
           <ChevronLeft className="w-4 h-4" />
         </button>
@@ -163,7 +163,7 @@ export default function TablePagination({
                   isActive
                     ? 'bg-[#0C81F3] text-white shadow-sm font-bold'
                     : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                }`}
+                } cursor-pointer`}
               >
                 {p}
               </button>
@@ -177,7 +177,7 @@ export default function TablePagination({
           onClick={() => onPageChange(safeCurrentPage + 1)}
           disabled={safeCurrentPage >= safeTotalPages || isLoading}
           title="Next page"
-          className="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg disabled:opacity-30 disabled:pointer-events-none transition-colors"
+          className="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
         >
           <ChevronRight className="w-4 h-4" />
         </button>
@@ -188,7 +188,7 @@ export default function TablePagination({
           onClick={() => onPageChange(safeTotalPages)}
           disabled={safeCurrentPage >= safeTotalPages || isLoading}
           title="Last page"
-          className="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg disabled:opacity-30 disabled:pointer-events-none transition-colors"
+          className="p-1.5 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded-lg disabled:opacity-30 disabled:pointer-events-none transition-colors cursor-pointer"
         >
           <ChevronsRight className="w-4 h-4" />
         </button>

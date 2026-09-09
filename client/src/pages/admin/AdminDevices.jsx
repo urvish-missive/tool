@@ -139,7 +139,7 @@ export default function AdminDevices() {
         <button
           onClick={() => refetch()}
           disabled={isFetching}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-700 hover:bg-gray-50 shadow-sm transition-colors cursor-pointer"
         >
           <RefreshCw className={`w-4 h-4 ${isFetching ? 'animate-spin text-[#0C81F3]' : ''}`} />
           <span>Refresh</span>
@@ -274,7 +274,7 @@ export default function AdminDevices() {
                           </code>
                           <button
                             onClick={() => copyToClipboard(device.deviceId, device.id)}
-                            className="text-gray-400 hover:text-gray-600 p-1 rounded"
+                            className="text-gray-400 hover:text-gray-600 p-1 rounded cursor-pointer"
                             title="Copy full Device ID"
                           >
                             {copiedId === device.id ? (
@@ -389,7 +389,7 @@ export default function AdminDevices() {
                             onClick={() => handleResetLimit(device)}
                             disabled={isResetting}
                             title="Reset limit (usage = 0)"
-                            className="p-1.5 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                            className="p-1.5 text-gray-500 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
                           >
                             <RotateCcw className="w-4 h-4" />
                           </button>
@@ -399,7 +399,7 @@ export default function AdminDevices() {
                             onClick={() => openCustomLimitModal(device)}
                             disabled={isSettingLimit}
                             title="Set custom limit for this device"
-                            className="p-1.5 text-gray-500 hover:text-[#0C81F3] hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-1.5 text-gray-500 hover:text-[#0C81F3] hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
                           >
                             <Sliders className="w-4 h-4" />
                           </button>
@@ -413,7 +413,7 @@ export default function AdminDevices() {
                               device.isBlocked
                                 ? 'text-red-600 hover:bg-red-50'
                                 : 'text-gray-400 hover:text-red-500 hover:bg-red-50'
-                            }`}
+                            } cursor-pointer`}
                           >
                             <Ban className="w-4 h-4" />
                           </button>
@@ -423,7 +423,7 @@ export default function AdminDevices() {
                             onClick={() => setDeviceToDelete(device)}
                             disabled={isDeleting}
                             title="Delete record"
-                            className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                            className="p-1.5 text-gray-400 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -481,14 +481,14 @@ export default function AdminDevices() {
                 <button
                   type="button"
                   onClick={() => setEditingDevice(null)}
-                  className="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg"
+                  className="px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isSettingLimit}
-                  className="px-4 py-1.5 text-xs font-semibold bg-[#0C81F3] text-white rounded-lg hover:bg-[#0969c3]"
+                  className="px-4 py-1.5 text-xs font-semibold bg-[#0C81F3] text-white rounded-lg hover:bg-[#0969c3] cursor-pointer"
                 >
                   Save Limit
                 </button>

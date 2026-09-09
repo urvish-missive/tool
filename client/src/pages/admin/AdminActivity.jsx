@@ -1,4 +1,18 @@
 import { useState } from 'react'
+import {
+  FileText,
+  Search,
+  Target,
+  Lightbulb,
+  Palette,
+  DollarSign,
+  Map,
+  TrendingUp,
+  PenTool,
+  Building2,
+  Wrench,
+  BarChart3,
+} from 'lucide-react'
 import { useGetAdminActivityQuery } from '../../services/apiSlice'
 
 const TOOLS = [
@@ -6,46 +20,46 @@ const TOOLS = [
   {
     slug: 'content-analyzer',
     label: 'Content Analyzer',
-    icon: '📝',
+    icon: FileText,
     color: 'bg-purple-100 text-purple-700',
   },
-  { slug: 'seo-audit', label: 'SEO Audit', icon: '🔍', color: 'bg-orange-100 text-orange-700' },
+  { slug: 'seo-audit', label: 'SEO Audit', icon: Search, color: 'bg-orange-100 text-orange-700' },
   {
     slug: 'keyword-research',
     label: 'Keyword Research',
-    icon: '🎯',
+    icon: Target,
     color: 'bg-yellow-100 text-yellow-700',
   },
   {
     slug: 'blog-topic-generator',
     label: 'Blog Topics',
-    icon: '💡',
+    icon: Lightbulb,
     color: 'bg-green-100 text-green-700',
   },
-  { slug: 'logo-maker', label: 'Logo Maker', icon: '🎨', color: 'bg-blue-100 text-blue-700' },
-  { slug: 'seo-roi', label: 'ROI Calculator', icon: '💰', color: 'bg-pink-100 text-pink-700' },
+  { slug: 'logo-maker', label: 'Logo Maker', icon: Palette, color: 'bg-blue-100 text-blue-700' },
+  { slug: 'seo-roi', label: 'ROI Calculator', icon: DollarSign, color: 'bg-pink-100 text-pink-700' },
   {
     slug: 'xml-sitemap-generator',
     label: 'Sitemap Generator',
-    icon: '🗺️',
+    icon: Map,
     color: 'bg-teal-100 text-teal-700',
   },
   {
     slug: 'google-rank-checker',
     label: 'Rank Checker',
-    icon: '📈',
+    icon: TrendingUp,
     color: 'bg-blue-100 text-blue-700',
   },
   {
     slug: 'ai-content-writer',
     label: 'AI Content Writer',
-    icon: '✍️',
+    icon: PenTool,
     color: 'bg-indigo-100 text-indigo-700',
   },
   {
     slug: 'business-competitor-analytics',
     label: 'Business Competitor Intel',
-    icon: '🏢',
+    icon: Building2,
     color: 'bg-teal-100 text-teal-700',
   },
 ]
@@ -67,7 +81,7 @@ export default function AdminActivity() {
 
   const getToolConfig = (slug) =>
     TOOLS.find((t) => t.slug === slug) || {
-      icon: '🛠️',
+      icon: Wrench,
       color: 'bg-gray-100 text-gray-600',
       label: slug,
     }
@@ -110,9 +124,9 @@ export default function AdminActivity() {
               toolFilter === t.slug
                 ? 'bg-[#0C81F3] text-white border-[#0C81F3]'
                 : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:text-gray-900'
-            }`}
+            } cursor-pointer`}
           >
-            {t.icon && <span className="mr-1">{t.icon}</span>}
+            {t.icon && <t.icon className="w-3.5 h-3.5 inline mr-1 shrink-0" />}
             {t.label}
           </button>
         ))}
@@ -126,7 +140,7 @@ export default function AdminActivity() {
         </div>
       ) : activity.length === 0 ? (
         <div className="bg-white border border-gray-200 rounded-xl p-12 text-center shadow-sm">
-          <span className="text-4xl block mb-3">📊</span>
+          <BarChart3 className="w-10 h-10 text-gray-300 mx-auto mb-3" />
           <h3 className="text-lg font-semibold text-gray-900 mb-1">No activity yet</h3>
           <p className="text-sm text-gray-500">
             Tool usage will appear here once users start using your tools.
@@ -167,7 +181,7 @@ export default function AdminActivity() {
                         <span
                           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${tc.color}`}
                         >
-                          <span>{tc.icon}</span>
+                          {tc.icon && <tc.icon className="w-3.5 h-3.5 shrink-0" />}
                           {tc.label}
                         </span>
                       </td>
@@ -223,7 +237,7 @@ export default function AdminActivity() {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page <= 1}
-                  className="px-3 py-1 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="px-3 py-1 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 >
                   ← Previous
                 </button>
@@ -246,7 +260,7 @@ export default function AdminActivity() {
                         pageNum === page
                           ? 'bg-[#0C81F3] text-white border-[#0C81F3]'
                           : 'border-gray-200 text-gray-600 hover:bg-white'
-                      }`}
+                      } cursor-pointer`}
                     >
                       {pageNum}
                     </button>
@@ -255,7 +269,7 @@ export default function AdminActivity() {
                 <button
                   onClick={() => setPage((p) => Math.min(pagination.pages, p + 1))}
                   disabled={page >= pagination.pages}
-                  className="px-3 py-1 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                  className="px-3 py-1 text-xs font-medium rounded-lg border border-gray-200 text-gray-600 hover:bg-white disabled:opacity-40 disabled:cursor-not-allowed transition-colors cursor-pointer"
                 >
                   Next →
                 </button>

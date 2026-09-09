@@ -324,7 +324,7 @@ Return a JSON object with this EXACT structure:
       })
 
       if (result && Array.isArray(result.topics) && result.topics.length > 0) {
-        console.log(`✓ Generated ${result.topics.length} custom AI topics using ${prov}`)
+        console.log(`[OK] Generated ${result.topics.length} custom AI topics using ${prov}`)
         break
       }
     } catch (err) {

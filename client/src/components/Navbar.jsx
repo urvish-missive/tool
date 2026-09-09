@@ -1,5 +1,47 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
 import { Link } from 'react-router-dom'
+import {
+  Bot,
+  Smartphone,
+  Target,
+  BarChart3,
+  Search,
+  FileText,
+  Briefcase,
+  User,
+  ShoppingCart,
+  Edit,
+  PenTool,
+  Tag,
+  Globe,
+  Code2,
+  Cloud,
+  Radio,
+  Stethoscope,
+  DollarSign,
+  PhoneCall,
+  Gem,
+  Home as HomeIcon,
+  Utensils,
+  Wine,
+  CheckSquare,
+  Lightbulb,
+  Rocket,
+  ShieldCheck,
+  HelpCircle,
+  Palette,
+  TrendingUp,
+  UserCheck,
+  Building2,
+  Image,
+  Map,
+  Zap,
+  Info,
+  Users,
+  Phone,
+  Mail,
+  MapPin,
+} from 'lucide-react'
 import { useGetPublicToolsQuery } from '../services/apiSlice'
 
 const TOOL_HREF_SLUGS = {
@@ -32,11 +74,11 @@ const NAV_ITEMS = [
       columns: [
         {
           items: [
-            { icon: '🤖', label: 'AI SEO', href: '#' },
-            { icon: '📱', label: 'CAF Framework', href: '#' },
-            { icon: '🎯', label: 'GEO Readiness Score', href: '#' },
+            { icon: Bot, label: 'AI SEO', href: '#' },
+            { icon: Smartphone, label: 'CAF Framework', href: '#' },
+            { icon: Target, label: 'GEO Readiness Score', href: '#' },
             {
-              icon: '📊',
+              icon: BarChart3,
               label: 'Telecom AI SEO',
               badge: 'BLOG',
               badgeColor: 'bg-white text-gray-900',
@@ -53,20 +95,20 @@ const NAV_ITEMS = [
       columns: [
         {
           items: [
-            { icon: '🔍', label: 'SEO', href: '#' },
-            { icon: '📝', label: 'Content Consulting', href: '#' },
-            { icon: '💼', label: 'LinkedIn Marketing', href: '#' },
-            { icon: '📊', label: 'Personal Branding', href: '#' },
-            { icon: '🛒', label: 'Ecommerce SEO', href: '#' },
+            { icon: Search, label: 'SEO', href: '#' },
+            { icon: FileText, label: 'Content Consulting', href: '#' },
+            { icon: Briefcase, label: 'LinkedIn Marketing', href: '#' },
+            { icon: User, label: 'Personal Branding', href: '#' },
+            { icon: ShoppingCart, label: 'Ecommerce SEO', href: '#' },
           ],
         },
         {
           items: [
-            { icon: '✏️', label: 'Content Optimization', href: '#' },
-            { icon: '✍️', label: 'Content Writing', href: '#' },
-            { icon: '🏷️', label: 'Content Audit', href: '#' },
-            { icon: '🌐', label: 'Digital Marketing', href: '#' },
-            { icon: '💻', label: 'Web Design & Development', href: '#' },
+            { icon: Edit, label: 'Content Optimization', href: '#' },
+            { icon: PenTool, label: 'Content Writing', href: '#' },
+            { icon: Tag, label: 'Content Audit', href: '#' },
+            { icon: Globe, label: 'Digital Marketing', href: '#' },
+            { icon: Code2, label: 'Web Design & Development', href: '#' },
           ],
         },
       ],
@@ -78,19 +120,19 @@ const NAV_ITEMS = [
       columns: [
         {
           items: [
-            { icon: '☁️', label: 'SaaS', href: '#' },
-            { icon: '📶', label: 'Telecom', href: '#' },
-            { icon: '🏥', label: 'Healthcare', href: '#' },
-            { icon: '💰', label: 'Fintech', href: '#' },
-            { icon: '📞', label: 'Tele Marketing', href: '#' },
+            { icon: Cloud, label: 'SaaS', href: '#' },
+            { icon: Radio, label: 'Telecom', href: '#' },
+            { icon: Stethoscope, label: 'Healthcare', href: '#' },
+            { icon: DollarSign, label: 'Fintech', href: '#' },
+            { icon: PhoneCall, label: 'Tele Marketing', href: '#' },
           ],
         },
         {
           items: [
-            { icon: '💎', label: 'Jewelry', href: '#' },
-            { icon: '🏠', label: 'Real Estate', href: '#' },
-            { icon: '🍽️', label: 'Restaurant', href: '#' },
-            { icon: '🍷', label: 'Food and Beverages', href: '#' },
+            { icon: Gem, label: 'Jewelry', href: '#' },
+            { icon: HomeIcon, label: 'Real Estate', href: '#' },
+            { icon: Utensils, label: 'Restaurant', href: '#' },
+            { icon: Wine, label: 'Food and Beverages', href: '#' },
           ],
         },
       ],
@@ -102,16 +144,16 @@ const NAV_ITEMS = [
       columns: [
         {
           items: [
-            { icon: '✏️', label: 'Blog', href: '#' },
-            { icon: '✅', label: 'Content QA Checklist', href: '/content-qa' },
+            { icon: Edit, label: 'Blog', href: '#' },
+            { icon: CheckSquare, label: 'Content QA Checklist', href: '/content-qa' },
             {
-              icon: '🔍',
+              icon: Search,
               label: 'SEO Strategies',
               badge: 'WEBINAR',
               badgeColor: 'bg-white text-gray-900',
               href: '#',
             },
-            { icon: '📊', label: 'Case Study Generator', href: '/case-study-generator' },
+            { icon: BarChart3, label: 'Case Study Generator', href: '/case-study-generator' },
           ],
         },
       ],
@@ -124,72 +166,72 @@ const NAV_ITEMS = [
         {
           title: 'Blog & Writing',
           items: [
-            { icon: '💡', label: 'Blog Topic Generator', href: '/blog-topic-generator' },
-            { icon: '🚀', label: 'Blog Intro Generator', href: '/blog-intro-generator' },
-            { icon: '🎯', label: 'Blog Conclusion Generator', href: '/blog-conclusion-generator' },
+            { icon: Lightbulb, label: 'Blog Topic Generator', href: '/blog-topic-generator' },
+            { icon: Rocket, label: 'Blog Intro Generator', href: '/blog-intro-generator' },
+            { icon: Target, label: 'Blog Conclusion Generator', href: '/blog-conclusion-generator' },
             {
-              icon: '📊',
+              icon: BarChart3,
               label: 'Case Study Generator',
               href: '/case-study-generator',
               badge: 'NEW',
               badgeColor: 'bg-emerald-500 text-white',
             },
-            { icon: '✍️', label: 'AI Content Writer', href: '/ai-content-writer' },
+            { icon: PenTool, label: 'AI Content Writer', href: '/ai-content-writer' },
           ],
         },
         {
           title: 'Content & Strategy',
           items: [
-            { icon: '📝', label: 'AI Content Analyzer', href: '/content-analyzer' },
-            { icon: '✅', label: 'Content QA Checklist', href: '/content-qa' },
-            { icon: '🛡️', label: 'E-E-A-T & AI Authority Analyzer', href: '/eeat-analyzer' },
-            { icon: '❓', label: 'FAQ Generator', href: '/faq-generator' },
-            { icon: '🎨', label: 'Logo Maker', href: '/logo-maker' },
+            { icon: FileText, label: 'AI Content Analyzer', href: '/content-analyzer' },
+            { icon: CheckSquare, label: 'Content QA Checklist', href: '/content-qa' },
+            { icon: ShieldCheck, label: 'E-E-A-T & AI Authority Analyzer', href: '/eeat-analyzer' },
+            { icon: HelpCircle, label: 'FAQ Generator', href: '/faq-generator' },
+            { icon: Palette, label: 'Logo Maker', href: '/logo-maker' },
           ],
         },        { title: 'Rankings & Audits',
           items: [
             {
-              icon: '📈',
+              icon: TrendingUp,
               label: 'Google Rank Checker',
               href: '/google-rank-checker',
             },
-            { icon: '🔍', label: 'SEO Website Audit', href: '/seo-audit' },
-            { icon: '🎯', label: 'Keyword Research', href: '/keyword-research' },
+            { icon: Search, label: 'SEO Website Audit', href: '/seo-audit' },
+            { icon: Target, label: 'Keyword Research', href: '/keyword-research' },
             {
-              icon: '🕵️',
+              icon: UserCheck,
               label: 'Competitor Analysis',
               href: '/competitor-analysis',
             },
             {
-              icon: '🏢',
+              icon: Building2,
               label: 'Business Competitor Intel',
               href: '/business-competitor-analytics',
               badge: 'NEW',
               badgeColor: 'bg-white text-gray-900',
             },
-            { icon: '💰', label: 'SEO ROI Calculator', href: '/seo-roi-calculator' },
+            { icon: DollarSign, label: 'SEO ROI Calculator', href: '/seo-roi-calculator' },
           ],
         },
         {
           title: 'Crawling & Extraction',
           items: [
             {
-              icon: '🌐',
+              icon: Globe,
               label: 'Website Content Extractor',
               href: '/website-content-extractor',
             },
             {
-              icon: '🖼️',
+              icon: Image,
               label: 'Website Image Extractor',
               href: '/website-image-extractor',
             },
             {
-              icon: '🗺️',
+              icon: Map,
               label: 'XML Sitemap Generator',
               href: '/xml-sitemap-generator',
             },
             {
-              icon: '⚡',
+              icon: Zap,
               label: 'Tech & Theme Inspector',
               href: '/website-tech-inspector',
             },
@@ -204,19 +246,19 @@ const NAV_ITEMS = [
       columns: [
         {
           items: [
-            { icon: 'ℹ️', label: 'About', href: '#' },
-            { icon: '👥', label: 'Contact', href: '#' },
+            { icon: Info, label: 'About', href: '#' },
+            { icon: Users, label: 'Contact', href: '#' },
           ],
         },
         {
           items: [
-            { icon: '📞', label: '+91 95370 95025', href: 'tel:+919537095025' },
+            { icon: Phone, label: '+91 95370 95025', href: 'tel:+919537095025' },
             {
-              icon: '✉️',
+              icon: Mail,
               label: 'hello@missivedigital.com',
               href: 'mailto:hello@missivedigital.com',
             },
-            { icon: '📍', label: '825, Iconic Shyamal, Ahmedabad, 380015', href: '#' },
+            { icon: MapPin, label: '825, Iconic Shyamal, Ahmedabad, 380015', href: '#' },
           ],
         },
       ],
@@ -309,7 +351,7 @@ export default function Navbar() {
                     activeDropdown === idx
                       ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white'
                       : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
+                  } cursor-pointer`}
                 >
                   {item.label}
                 </button>
@@ -359,7 +401,7 @@ export default function Navbar() {
                                   >
                                     {sub.icon && (
                                       <span className="text-sm w-4 h-4 flex items-center justify-center shrink-0 leading-none group-hover:scale-110 transition-transform">
-                                        {sub.icon}
+                                        <sub.icon className="w-3.5 h-3.5" />
                                       </span>
                                     )}
                                     <span className="leading-snug truncate">{sub.label}</span>
@@ -394,7 +436,7 @@ export default function Navbar() {
             </a>
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
-              className="lg:hidden p-2 rounded-xl text-gray-600 hover:bg-gray-100"
+              className="lg:hidden p-2 rounded-xl text-gray-600 hover:bg-gray-100 cursor-pointer"
               aria-label="Toggle menu"
               aria-expanded={mobileOpen}
             >
@@ -436,7 +478,7 @@ export default function Navbar() {
                   <>
                     <button
                       onClick={() => setMobileExpanded(mobileExpanded === idx ? null : idx)}
-                      className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl"
+                      className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl cursor-pointer"
                     >
                       {item.label}
                       <svg
@@ -481,7 +523,7 @@ export default function Navbar() {
                                   >
                                     {sub.icon && (
                                       <span className="text-sm w-5 h-5 flex items-center justify-center shrink-0">
-                                        {sub.icon}
+                                        <sub.icon className="w-4 h-4 text-gray-500" />
                                       </span>
                                     )}
                                     <span className="truncate">{sub.label}</span>

@@ -13,21 +13,20 @@ import {
   Compass,
   CheckCircle2,
   AlertCircle,
-  HelpCircle,
   Target,
   ArrowRight,
-  Filter,
   FileText,
   MousePointerClick,
   Flag,
   Lightbulb,
+  Rocket,
+  ShieldCheck,
 } from 'lucide-react'
 import { blogConclusionSchema, parseBlogConclusionForm } from '../../schemas/blogConclusion.schema'
 import { useGenerateBlogConclusionsMutation } from '../../services/apiSlice'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
-import ModelSelector from '../shared/ModelSelector'
 
 const FUNNEL_OPTIONS = [
   {
@@ -83,7 +82,7 @@ const TONES = [
 const SAMPLE_PRESETS = [
   {
     id: 'programmatic-seo',
-    badgeIcon: '🚀',
+    badgeIcon: Rocket,
     shortName: 'Programmatic SEO',
     description: 'B2B SaaS Organic Traffic & Scaling',
     topic: 'How to Scale Organic Traffic to 100K/Mo with Programmatic SEO',
@@ -100,7 +99,7 @@ const SAMPLE_PRESETS = [
   },
   {
     id: 'saas-churn',
-    badgeIcon: '🛡️',
+    badgeIcon: ShieldCheck,
     shortName: 'SaaS Churn Reduction',
     description: 'Customer Retention & Expansion Playbook',
     topic: 'B2B SaaS Churn Reduction: Why Your Best Customers Quietly Leave',
@@ -117,7 +116,7 @@ const SAMPLE_PRESETS = [
   },
   {
     id: 'technical-seo',
-    badgeIcon: '⚡',
+    badgeIcon: Zap,
     shortName: 'Technical SEO 2026',
     description: 'AI Search Engines & LLM Indexing Audits',
     topic: 'The Complete Guide to Technical SEO Audits for AI-Driven Search',
@@ -175,7 +174,6 @@ export default function BlogConclusionGeneratorPage({ isEmbedded = false }) {
       targetAudience: '',
       tone: 'authoritative',
       numVariations: 6,
-      preferredProvider: 'gemini-3.5-flash-lite',
     },
   })
 
@@ -185,7 +183,6 @@ export default function BlogConclusionGeneratorPage({ isEmbedded = false }) {
     useLeadPopup('blog-conclusion-generator')
 
   const [pendingForm, setPendingForm] = useState(null)
-  const preferredProvider = watch('preferredProvider')
   const countValue = watch('numVariations')
 
   const handleLoadSample = (preset = SAMPLE_PRESETS[0]) => {
@@ -281,7 +278,6 @@ export default function BlogConclusionGeneratorPage({ isEmbedded = false }) {
       targetAudience: '',
       tone: 'authoritative',
       numVariations: 6,
-      preferredProvider: 'gemini-3.5-flash-lite',
     })
     setSelectedFunnel('all')
     setSelectedCta('demo')
@@ -306,7 +302,6 @@ export default function BlogConclusionGeneratorPage({ isEmbedded = false }) {
         targetAudience: formData.targetAudience?.trim() || '',
         tone: formData.tone || 'authoritative',
         numVariations: Number(formData.numVariations) || 6,
-        preferredProvider: formData.preferredProvider || 'gemini-3.5-flash-lite',
       }
 
       const res = await generateConclusions(payload).unwrap()
@@ -363,7 +358,7 @@ export default function BlogConclusionGeneratorPage({ isEmbedded = false }) {
   }, [favorites])
 
   return (
-    <div className={isEmbedded ? 'w-full' : 'min-h-screen bg-slate-50 text-slate-800 pb-20'}>
+    <div className={isEmbedded ? 'w-full @container' : 'min-h-screen bg-slate-50 text-slate-800 pb-20 @container'}>
       {/* Hero Header: only shown when standalone */}
       {!isEmbedded && (
         <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24 bg-gradient-to-b from-slate-50 to-white border-b border-slate-200">
@@ -451,7 +446,7 @@ export default function BlogConclusionGeneratorPage({ isEmbedded = false }) {
                           : 'bg-white hover:bg-blue-50 text-slate-700 hover:text-[#0C81F3] border border-slate-200 hover:border-blue-200'
                       }`}
                     >
-                      <span>{preset.badgeIcon}</span>
+                      {preset.badgeIcon && <preset.badgeIcon className="w-3.5 h-3.5" />}
                       <span>{preset.shortName}</span>
                     </button>
                   )
@@ -610,7 +605,7 @@ export default function BlogConclusionGeneratorPage({ isEmbedded = false }) {
                 <label className="block text-xs sm:text-sm font-bold text-slate-800 mb-1.5">
                   Select Funnel Stage Focus
                 </label>
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
+                <div className="grid grid-cols-2 @min-[620px]:grid-cols-4 gap-2 sm:gap-2.5">
                   {FUNNEL_OPTIONS.map((opt) => {
                     const isSelected = selectedFunnel === opt.id
                     const Icon = opt.icon
@@ -655,7 +650,7 @@ export default function BlogConclusionGeneratorPage({ isEmbedded = false }) {
                 <label className="block text-xs sm:text-sm font-bold text-slate-800 mb-1.5">
                   Desired Call to Action (CTA)
                 </label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 @min-[460px]:grid-cols-3 gap-2">
                   {CTA_OPTIONS.map((opt) => {
                     const isSelected = selectedCta === opt.id
                     const Icon = opt.icon
@@ -695,7 +690,7 @@ export default function BlogConclusionGeneratorPage({ isEmbedded = false }) {
               </div>
 
               {/* Optional Fine-Tuning Grid */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
+              <div className="grid grid-cols-1 @min-[620px]:grid-cols-3 gap-3 pt-1">
                 {/* Tone Selector */}
                 <div>
                   <label
@@ -771,15 +766,8 @@ export default function BlogConclusionGeneratorPage({ isEmbedded = false }) {
                 </div>
               </div>
 
-              {/* Model Selector & Action Row */}
+              {/* Action Row */}
               <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-                <div className="w-full sm:w-72">
-                  <ModelSelector
-                    value={preferredProvider}
-                    onChange={(val) => setValue('preferredProvider', val)}
-                    compact={true}
-                  />
-                </div>
 
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
                   <button

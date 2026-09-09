@@ -19,17 +19,13 @@ import {
   Bot,
   UserCheck,
   Code,
-  ArrowRight,
-  HelpCircle,
   TrendingUp,
-  Layers,
 } from 'lucide-react'
 import { eeatSchema, parseEeatForm } from '../../schemas/eeat.schema'
 import { useAnalyzeEeatMutation } from '../../services/apiSlice'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
-import ModelSelector from '../shared/ModelSelector'
 
 const CONTENT_TYPES = [
   {
@@ -103,13 +99,11 @@ export default function EeatAnalyzerPage({ isEmbedded = false }) {
       title: '',
       contentType: 'auto',
       targetKeywords: '',
-      preferredProvider: 'gemini-3.5-flash-lite',
     },
   })
 
   const modeValue = watch('mode')
   const contentTypeValue = watch('contentType')
-  const preferredProvider = watch('preferredProvider')
   const contentText = watch('content')
 
   const [analyzeEeat, { isLoading }] = useAnalyzeEeatMutation()
@@ -135,7 +129,6 @@ export default function EeatAnalyzerPage({ isEmbedded = false }) {
         title: formData.title?.trim() || '',
         contentType: formData.contentType || 'auto',
         targetKeywords: formData.targetKeywords?.trim() || '',
-        preferredProvider: formData.preferredProvider || 'gemini-3.5-flash-lite',
       }).unwrap()
 
       if (res.success && res.data) {
@@ -241,7 +234,7 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
   }
 
   return (
-    <div className={isEmbedded ? 'w-full' : 'min-h-screen bg-slate-50/50 pb-24'}>
+    <div className={isEmbedded ? 'w-full @container' : 'min-h-screen bg-slate-50/50 pb-24 @container'}>
       {/* Lead Capture Modal */}
       <LeadCaptureModal
         show={showPopup}
@@ -421,7 +414,7 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                     Calibrates scoring against Google Quality Rater benchmarks
                   </span>
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+                <div className="grid grid-cols-2 @min-[480px]:grid-cols-3 @min-[760px]:grid-cols-6 gap-2">
                   {CONTENT_TYPES.map((type) => {
                     const isSelected = contentTypeValue === type.id
                     const Icon = type.icon
@@ -456,7 +449,7 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
               </div>
 
               {/* Target Keywords Row */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
+              <div className="grid grid-cols-1 @min-[420px]:grid-cols-2 gap-3 pt-1">
                 <div>
                   <label htmlFor="eeat-keywords" className="block text-xs sm:text-sm font-bold text-slate-800 mb-1">
                     Primary Keywords / Target Search Intent <span className="text-xs font-normal text-slate-400">(Optional)</span>
@@ -468,16 +461,6 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                     placeholder="e.g. pgvector benchmark, enterprise seo audit"
                     className="w-full px-3 py-2 sm:py-2.5 bg-slate-50 border border-slate-300 rounded-lg sm:rounded-xl text-slate-700 font-normal placeholder:text-slate-400 text-xs sm:text-sm focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 focus:border-[#0C81F3]"
                   />
-                </div>
-
-                <div className="flex items-end">
-                  <div className="w-full">
-                    <ModelSelector
-                      value={preferredProvider}
-                      onChange={(val) => setValue('preferredProvider', val)}
-                      compact={true}
-                    />
-                  </div>
                 </div>
               </div>
 
@@ -601,7 +584,7 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
               </div>
 
               {/* 5-Pillar Score Cards Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 sm:gap-2.5">
+              <div className="grid grid-cols-2 @min-[480px]:grid-cols-3 @min-[680px]:grid-cols-5 gap-2 sm:gap-2.5">
                 {/* 1. Experience */}
                 <div
                   onClick={() => setActivePillarTab('experience')}
@@ -723,7 +706,7 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 @min-[520px]:grid-cols-2 gap-4">
                 {/* Strengths */}
                 <div className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200 space-y-2">
                   <div className="text-xs font-bold text-emerald-800 flex items-center gap-1.5 uppercase tracking-wider">
@@ -770,7 +753,7 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 @min-[520px]:grid-cols-2 gap-4">
                 {/* 1. Experience Booster */}
                 <div className="p-4 rounded-xl border border-sky-200 bg-sky-50/40 space-y-2">
                   <div className="flex items-center justify-between">
@@ -863,7 +846,7 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                       <span>{copiedItem === 'aiDef' ? 'Copied All!' : 'Copy AI Blocks'}</span>
                     </button>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  <div className="grid grid-cols-1 @min-[520px]:grid-cols-2 gap-2.5">
                     {dataResult.boosters.aiOverviewDefinitions.map((def, i) => (
                       <div key={i} className="bg-white p-3 rounded-lg border border-blue-100 text-xs text-slate-800 leading-relaxed font-mono">
                         {def}

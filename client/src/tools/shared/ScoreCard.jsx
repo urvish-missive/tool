@@ -1,3 +1,5 @@
+import React from 'react'
+
 export default function ScoreCard({ score, label, icon }) {
   const color =
     score >= 80 ? '#16a34a' : score >= 60 ? '#ca8a04' : score >= 40 ? '#ea580c' : '#dc2626'
@@ -39,7 +41,15 @@ export default function ScoreCard({ score, label, icon }) {
         </div>
       </div>
       <div className="mt-2">
-        {icon && <span className="text-lg block mb-0.5">{icon}</span>}
+        {icon && (
+          <span className="text-lg block mb-0.5">
+            {typeof icon === 'string'
+              ? icon
+              : typeof icon === 'function' || (typeof icon === 'object' && !icon.props)
+              ? React.createElement(icon, { className: 'w-4 h-4 mx-auto' })
+              : icon}
+          </span>
+        )}
         <span className="text-xs font-medium text-gray-600">{label}</span>
       </div>
     </div>

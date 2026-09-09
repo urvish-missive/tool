@@ -15,8 +15,6 @@ import {
   Check,
   ExternalLink,
   Image as ImageIcon,
-  FileCode2,
-  Share2,
   AlertTriangle,
   Search,
   Maximize2,
@@ -477,7 +475,7 @@ export default function WebsiteImageExtractorPage() {
                   <button
                     type="button"
                     onClick={() => setUrl('')}
-                    className="absolute right-24 text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors"
+                    className="absolute right-24 text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                   >
                     Clear
                   </button>
@@ -722,9 +720,9 @@ export default function WebsiteImageExtractorPage() {
                   {searchQuery && (
                     <button
                       onClick={() => setSearchQuery('')}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-slate-600 cursor-pointer"
                     >
-                      ✕
+                      <X className="w-3.5 h-3.5" />
                     </button>
                   )}
                 </div>

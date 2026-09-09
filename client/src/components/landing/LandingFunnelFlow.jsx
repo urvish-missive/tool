@@ -113,7 +113,7 @@ export default function LandingFunnelFlow({
             {heading || (
               <>
                 Hooks Engineered Across the{' '}
-                <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-[#0C81F3] to-[#EB8988] bg-clip-text text-transparent">
                   Entire Funnel
                 </span>
               </>

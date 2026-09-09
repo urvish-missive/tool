@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
-import { Sparkles, CheckCircle2, Loader2, Zap, Clock } from 'lucide-react'
+import { Sparkles, CheckCircle2, Loader2, Zap, Clock, Check } from 'lucide-react'
 
 /**
  * UnifiedToolLoader — Universal premium AI loading screen for all tools.
@@ -22,7 +22,7 @@ export default function UnifiedToolLoader({
     'Assembling executive report & deliverables',
   ],
   currentStepIdx,
-  stepIntervalMs = 1400,
+  stepIntervalMs = 4500,
 }) {
   const [internalIdx, setInternalIdx] = useState(0)
   const [elapsedMs, setElapsedMs] = useState(0)
@@ -50,11 +50,11 @@ export default function UnifiedToolLoader({
 
   const activeIdx = typeof currentStepIdx === 'number' ? currentStepIdx : internalIdx
 
-  // Calculate smooth continuous progress:
-  // Combines step completion (anchor) with continuous elapsed time progression
-  const stepTargetPercent = ((activeIdx + 1) / steps.length) * 88
-  const timeProgress = Math.min(85, (elapsedMs / (steps.length * stepIntervalMs)) * 85)
-  const fluidPercent = Math.min(94, Math.max(12, Math.round(Math.max(stepTargetPercent, timeProgress))))
+  // Calculate smooth continuous progress over 20-30 seconds:
+  const totalTargetMs = Math.max(22000, steps.length * stepIntervalMs)
+  const stepTargetPercent = ((activeIdx + 1) / steps.length) * 92
+  const timeProgress = Math.min(94, (elapsedMs / totalTargetMs) * 94)
+  const fluidPercent = Math.min(98, Math.max(8, Math.round(Math.max(stepTargetPercent, timeProgress))))
   const elapsedSeconds = (elapsedMs / 1000).toFixed(1)
 
   return (
@@ -146,8 +146,9 @@ export default function UnifiedToolLoader({
                   </span>
                 )}
                 {isDone && (
-                  <span className="ml-auto text-[10px] font-bold text-emerald-600 px-1 shrink-0">
-                    ✓ Done
+                  <span className="ml-auto text-[10px] font-bold text-emerald-600 px-1 shrink-0 flex items-center gap-1">
+                    <Check className="w-3 h-3" />
+                    <span>Done</span>
                   </span>
                 )}
               </div>
@@ -155,8 +156,8 @@ export default function UnifiedToolLoader({
           })}
         </div>
 
-        <p className="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1">
-          <span>⚡</span>
+        <p className="text-[11px] text-slate-400 text-center flex items-center justify-center gap-1.5">
+          <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" />
           <span>Synthesizing verified data from search signals & entity models.</span>
         </p>
       </div>

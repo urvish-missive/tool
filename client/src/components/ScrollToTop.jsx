@@ -14,7 +14,12 @@ export default function ScrollToTop() {
     if (hash) {
       const element = document.getElementById(hash.replace('#', ''))
       if (element) {
-        element.scrollIntoView({ behavior: 'smooth' })
+        const navHeight = 90
+        const targetY = element.getBoundingClientRect().top + window.pageYOffset - navHeight
+        window.scrollTo({
+          top: Math.max(0, targetY),
+          behavior: 'smooth',
+        })
         return
       }
     }

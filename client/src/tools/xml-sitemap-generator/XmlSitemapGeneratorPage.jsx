@@ -26,6 +26,7 @@ import {
   FileText,
   Compass,
   CheckCircle,
+  Lightbulb,
 } from 'lucide-react'
 
 const LOADING_STEPS = [
@@ -1302,8 +1303,9 @@ export default function XmlSitemapGeneratorPage() {
                       </div>
                       <p className="text-slate-600 leading-relaxed text-xs">{issue.description}</p>
                       {issue.recommendation && (
-                        <p className="text-xs font-semibold text-slate-800 pt-0.5">
-                          💡 <strong>Fix:</strong> {issue.recommendation}
+                        <p className="text-xs font-semibold text-slate-800 pt-0.5 flex items-start gap-1">
+                          <Lightbulb className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                          <span><strong>Fix:</strong> {issue.recommendation}</span>
                         </p>
                       )}
                     </div>

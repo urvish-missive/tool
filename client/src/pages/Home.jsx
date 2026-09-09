@@ -1,5 +1,27 @@
 import { Link } from 'react-router-dom'
 import { useMemo } from 'react'
+import {
+  BarChart3,
+  Search,
+  Target,
+  Lightbulb,
+  Palette,
+  CheckSquare,
+  HelpCircle,
+  Swords,
+  DollarSign,
+  Map,
+  TrendingUp,
+  Globe,
+  Image,
+  Zap,
+  PenTool,
+  Rocket,
+  ShieldCheck,
+  Building2,
+  Sparkles,
+  ArrowUpRight,
+} from 'lucide-react'
 import { useGetPublicToolsQuery } from '../services/apiSlice'
 
 const TOOL_SLUG_MAP = {
@@ -31,7 +53,7 @@ const TOOLS = [
     title: 'Content Analyzer',
     description:
       'AI-driven on-page SEO analyzer with real-time scoring, content gaps, readability, and strategic insights.',
-    icon: '📊',
+    icon: BarChart3,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/content-analyzer',
     badge: 'Free Tool',
@@ -41,7 +63,7 @@ const TOOLS = [
     title: 'SEO Audit',
     description:
       'Deep technical SEO website crawler analyzing meta tags, headings, schema markup, and performance.',
-    icon: '🔍',
+    icon: Search,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/seo-audit',
     badge: 'Free Tool',
@@ -51,7 +73,7 @@ const TOOLS = [
     title: 'Keyword Research',
     description:
       'Discover high-intent keyword opportunities, topic clusters, search intent, and long-tail ideas.',
-    icon: '🎯',
+    icon: Target,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/keyword-research',
     badge: 'Free Tool',
@@ -61,7 +83,7 @@ const TOOLS = [
     title: 'Blog Topic Generator',
     description:
       'Generate catchy, SEO-optimized blog topic ideas with headlines, target keywords, and content briefs.',
-    icon: '💡',
+    icon: Lightbulb,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/blog-topic-generator',
     badge: 'Free Tool',
@@ -71,7 +93,7 @@ const TOOLS = [
     title: 'AI Logo Maker',
     description:
       'Create unique, customizable SVG vector logos for your brand with instant downloads in multiple formats.',
-    icon: '🎨',
+    icon: Palette,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/logo-maker',
     badge: 'Free Tool',
@@ -81,7 +103,7 @@ const TOOLS = [
     title: 'Content QA Checklist',
     description:
       'Comprehensive 12-pillar pre-publish QA checklist to catch errors, polish tone, and verify claims.',
-    icon: '✅',
+    icon: CheckSquare,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/content-qa',
     badge: 'Free Tool',
@@ -91,7 +113,7 @@ const TOOLS = [
     title: 'FAQ Generator',
     description:
       'Generate high-converting FAQs formulated to win Google Featured Snippets and valid Schema.org JSON-LD.',
-    icon: '❓',
+    icon: HelpCircle,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/faq-generator',
     badge: 'Free Tool',
@@ -101,7 +123,7 @@ const TOOLS = [
     title: 'Competitor Analysis',
     description:
       'Reverse-engineer competitor rankings, find content gaps, and get a customized 10x outrank playbook.',
-    icon: '⚔️',
+    icon: Swords,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/competitor-analysis',
     badge: 'Free Tool',
@@ -111,7 +133,7 @@ const TOOLS = [
     title: 'SEO ROI Calculator',
     description:
       'Model organic growth scenarios, calculate break-even timelines, and build an executive business case.',
-    icon: '💰',
+    icon: DollarSign,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/seo-roi-calculator',
     badge: 'Free Tool',
@@ -121,7 +143,7 @@ const TOOLS = [
     title: 'XML Sitemap Generator',
     description:
       'Deep crawler creating Google-compliant XML sitemaps with image tags, hreflang alternates, and Search Console readiness.',
-    icon: '🗺️',
+    icon: Map,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/xml-sitemap-generator',
     badge: 'New Tool',
@@ -131,7 +153,7 @@ const TOOLS = [
     title: 'Google Rank Checker',
     description:
       'Real-time Google search rankings with top 10 competitor landscape, SERP features breakdown, and 10x outrank roadmap.',
-    icon: '📈',
+    icon: TrendingUp,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/google-rank-checker',
     badge: 'New Tool',
@@ -141,7 +163,7 @@ const TOOLS = [
     title: 'Website Content Extractor',
     description:
       'Extract clean text, metadata, schema, and ownership clues with grounded AI Q&A answering anything about the site.',
-    icon: '🌐',
+    icon: Globe,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/website-content-extractor',
     badge: 'New Tool',
@@ -151,7 +173,7 @@ const TOOLS = [
     title: 'Website Image Extractor',
     description:
       'Extract all high-res images, vector SVGs, logos, and social share graphics with SEO alt text analysis and bulk download.',
-    icon: '🖼️',
+    icon: Image,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/website-image-extractor',
     badge: 'New Tool',
@@ -161,7 +183,7 @@ const TOOLS = [
     title: 'Website Tech & Theme Inspector',
     description:
       'Extract website theme color palettes, technology stack, CMS, and Google Font typography with 1-click token exports.',
-    icon: '⚡',
+    icon: Zap,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/website-tech-inspector',
     badge: 'New Tool',
@@ -171,7 +193,7 @@ const TOOLS = [
     title: 'AI Content Writer',
     description:
       'Generate publication-ready, SEO-optimized blog posts, articles, product pages, and landing pages with AI. Includes meta tags, schema, and scoring.',
-    icon: '✍️',
+    icon: PenTool,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/ai-content-writer',
     badge: 'New Tool',
@@ -181,7 +203,7 @@ const TOOLS = [
     title: 'Multiple Blog Intro Generator',
     description:
       'Generate high-converting, scroll-stopping blog post introductions across TOFU, MOFU, and BOFU funnel categories with psychological conversion hooks.',
-    icon: '🚀',
+    icon: Rocket,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/blog-intro-generator',
     badge: 'New Tool',
@@ -191,7 +213,7 @@ const TOOLS = [
     title: 'Blog Conclusion Generator',
     description:
       'Craft high-impact, search-optimized conclusions featuring specific, creative H2 headlines (never "Conclusion") with intro loop closure and high-converting CTAs.',
-    icon: '🎯',
+    icon: Target,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/blog-conclusion-generator',
     badge: 'New Tool',
@@ -201,7 +223,7 @@ const TOOLS = [
     title: 'E-E-A-T & AI Authority Analyzer',
     description:
       'Forensically audit Experience, Expertise, Authoritativeness, and Trustworthiness with 1-click E-E-A-T boosters, JSON-LD schema, and AI Overview citation readiness.',
-    icon: '🛡️',
+    icon: ShieldCheck,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/eeat-analyzer',
     badge: 'New Tool',
@@ -211,7 +233,7 @@ const TOOLS = [
     title: 'Business Competitor Intelligence',
     description:
       'Deep business intelligence on any competitor — history, mergers & acquisitions, product lines, market position, marketing & sales strategies.',
-    icon: '🏢',
+    icon: Building2,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/business-competitor-analytics',
     badge: 'New Tool',
@@ -221,7 +243,7 @@ const TOOLS = [
     title: 'Case Study Generator',
     description:
       'Generate conversion-engineered B2B case studies following Missive QA rules, complete with multi-channel distribution playbooks (blog weaving, same-domain links, testimonials, social & video).',
-    icon: '📊',
+    icon: BarChart3,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/case-study-generator',
     badge: 'New Tool',
@@ -259,7 +281,8 @@ export default function Home() {
           <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
           <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
             <span className="inline-flex items-center gap-2 px-5 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-6 tracking-wider uppercase shadow-lg shadow-[#0C81F3]/25">
-              <span>✨ Curated by Himani Kankaria • Missive Digital</span>
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Curated by Himani Kankaria • Missive Digital</span>
             </span>
             <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
               <span className="text-gray-900">Himani's </span>
@@ -288,7 +311,9 @@ export default function Home() {
                   <div className={`h-2 bg-gradient-to-r ${tool.color}`} />
                   <div className="p-6 sm:p-8">
                     <div className="flex items-start justify-between mb-4">
-                      <span className="text-4xl">{tool.icon}</span>
+                      <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 flex items-center justify-center text-[#0C81F3] shadow-xs group-hover:scale-105 group-hover:bg-[#0C81F3] group-hover:text-white transition-all duration-300">
+                        {tool.icon && <tool.icon className="w-6 h-6" />}
+                      </div>
                       <span
                         className={`px-3 py-1 bg-gradient-to-r ${tool.color} text-white text-xs font-bold rounded-full`}
                       >
@@ -329,7 +354,8 @@ export default function Home() {
 
                 <div className="space-y-3 text-center md:text-left flex-1">
                   <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-xs text-blue-300 font-semibold">
-                    <span>💡 Agency-Grade SEO Architecture</span>
+                    <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Agency-Grade SEO Architecture</span>
                   </div>
 
                   <h3 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
@@ -361,7 +387,7 @@ export default function Home() {
                       className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white font-bold hover:opacity-95 transition-all shadow-md shrink-0"
                     >
                       <span>Explore Missive Digital</span>
-                      <span>↗</span>
+                      <ArrowUpRight className="w-4 h-4" />
                     </a>
                   </div>
                 </div>

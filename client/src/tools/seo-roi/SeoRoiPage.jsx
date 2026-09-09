@@ -1,32 +1,19 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useMemo } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useCalculateROIMutation } from '../../services/apiSlice'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
 import { useLeadPopup } from '../../components/useLeadPopup'
-import ModelSelector from '../shared/ModelSelector'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import { seoRoiSchema, parseSeoRoiForm } from '../../schemas/seoRoi.schema'
 import {
   Calculator,
   TrendingUp,
-  DollarSign,
-  Calendar,
-  Sparkles,
-  BarChart3,
-  Check,
-  Copy,
   Download,
   RefreshCw,
-  Zap,
-  Target,
-  ShieldCheck,
   Award,
-  ArrowUpRight,
-  PieChart,
   Lightbulb,
-  AlertCircle,
   Clock,
 } from 'lucide-react'
 
@@ -252,7 +239,6 @@ export default function SeoRoiPage() {
       investment: 2500,
       duration: 12,
       currency: 'USD',
-      preferredProvider: 'openrouter',
     },
   })
 
@@ -297,7 +283,6 @@ export default function SeoRoiPage() {
         monthlySeoInvestment: Number(parsed.data.investment),
         campaignMonths: Number(parsed.data.duration),
         currency: parsed.data.currency,
-        preferredProvider: parsed.data.preferredProvider,
       }).unwrap()
 
       setResults(res)
@@ -520,16 +505,6 @@ export default function SeoRoiPage() {
 
             {/* Model Selector & Actions */}
             <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-              <div className="w-full sm:w-auto sm:min-w-[190px]">
-                <Controller
-                  control={control}
-                  name="preferredProvider"
-                  render={({ field }) => (
-                    <ModelSelector value={field.value} onChange={field.onChange} compact={true} />
-                  )}
-                />
-              </div>
-
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
                 {results && (
                   <button

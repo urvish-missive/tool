@@ -10,7 +10,6 @@ import { getScoreColor, getScoreBg } from '../../utils/scoreHelpers'
 import PageSpeedGauge, {
   PageSpeedLegend,
   PageSpeedShape,
-  getPageSpeedRating,
   getCwvMetricRating,
 } from '../../components/PageSpeedGauge'
 import {
@@ -19,7 +18,6 @@ import {
   AlertTriangle,
   Code,
   Calendar,
-  Layers,
   Sparkles,
   Copy,
   Check,
@@ -31,10 +29,8 @@ import {
   FileText,
   Search,
   Zap,
-  RotateCcw,
   Smartphone,
   Monitor,
-  Globe,
   Link as LinkIcon,
   Database,
   Lock,
@@ -42,14 +38,12 @@ import {
   Info,
   Server,
   Award,
-  Users,
-  Compass,
-  Layout,
   SlidersHorizontal,
-  ClipboardCheck,
   AlertCircle,
-  Wand2,
   X,
+  Heading,
+  Map,
+  Tag,
 } from 'lucide-react'
 
 const LOADING_STEPS = [
@@ -65,27 +59,27 @@ const SEVERITY_CONFIG = {
   CRITICAL: {
     bg: 'bg-rose-50/80 border-rose-200 text-rose-800',
     badge: 'bg-rose-600 text-white',
-    icon: '🔴',
+    icon: AlertCircle,
   },
   HIGH: {
     bg: 'bg-orange-50/80 border-orange-200 text-orange-800',
     badge: 'bg-orange-500 text-white',
-    icon: '🟠',
+    icon: AlertTriangle,
   },
   MEDIUM: {
     bg: 'bg-amber-50/80 border-amber-200 text-amber-800',
     badge: 'bg-amber-500 text-white',
-    icon: '🟡',
+    icon: AlertTriangle,
   },
   LOW: {
     bg: 'bg-blue-50/80 border-blue-200 text-blue-800',
     badge: 'bg-blue-600 text-white',
-    icon: '🔵',
+    icon: Info,
   },
   INFO: {
     bg: 'bg-slate-50/80 border-slate-200 text-slate-800',
     badge: 'bg-slate-600 text-white',
-    icon: 'ℹ️',
+    icon: Info,
   },
 }
 
@@ -198,7 +192,15 @@ function GroupedIssueCard({ issue }) {
       <div className="p-4 sm:p-5">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
           <div className="flex items-start gap-3 flex-1 min-w-0">
-            <span className="text-lg shrink-0 mt-0.5">{issue.icon || style.icon}</span>
+            <div className="shrink-0 mt-0.5">
+              {style.icon && (
+                <style.icon className={`w-4 h-4 ${
+                  issue.severity === 'CRITICAL' ? 'text-rose-600' :
+                  issue.severity === 'HIGH' ? 'text-orange-500' :
+                  issue.severity === 'MEDIUM' ? 'text-amber-500' : 'text-blue-500'
+                }`} />
+              )}
+            </div>
             <div className="space-y-2 flex-1 min-w-0">
               <div className="flex flex-wrap items-center gap-1.5">
                 <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${style.badge}`}>
@@ -226,7 +228,7 @@ function GroupedIssueCard({ issue }) {
                         key={sIdx}
                         className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-semibold bg-slate-100/90 text-slate-800 border border-slate-200"
                       >
-                        <span className="text-[10px]">{sfStyle.icon}</span>
+                        {sfStyle.icon && <sfStyle.icon className="w-3 h-3 text-slate-500 shrink-0" />}
                         <span>{sf.title}</span>
                         <span className="text-[10px] text-slate-500 font-mono font-bold">({sf.count}p)</span>
                       </span>
@@ -439,12 +441,12 @@ function ScoreFormulaModal({ isOpen, onClose, report, scoreBreakdown, onDownload
                     {/* Passed Criteria */}
                     {positives.length > 0 && (
                       <div className="space-y-1 bg-emerald-50/50 p-2.5 rounded-xl border border-emerald-100">
-                        <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider block">
-                          ✓ Passed Checks ({positives.length}):
+                        <span className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider flex items-center gap-1">
+                          <Check className="w-3 h-3 text-emerald-600" /> Passed Checks ({positives.length}):
                         </span>
                         {positives.map((pos, pIdx) => (
                           <div key={pIdx} className="text-[11px] text-emerald-900 flex items-start gap-1.5">
-                            <span className="text-emerald-600 font-bold shrink-0">✓</span>
+                            <Check className="w-3 h-3 text-emerald-600 font-bold shrink-0 mt-0.5" />
                             <span className="leading-tight">{pos}</span>
                           </div>
                         ))}
@@ -454,12 +456,12 @@ function ScoreFormulaModal({ isOpen, onClose, report, scoreBreakdown, onDownload
                     {/* Deductions Applied */}
                     {deductions.length > 0 ? (
                       <div className="space-y-1 bg-rose-50/50 p-2.5 rounded-xl border border-rose-100">
-                        <span className="text-[10px] font-bold text-rose-800 uppercase tracking-wider block">
-                          ✗ Deductions Applied ({deductions.length}):
+                        <span className="text-[10px] font-bold text-rose-800 uppercase tracking-wider flex items-center gap-1">
+                          <X className="w-3 h-3 text-rose-600" /> Deductions Applied ({deductions.length}):
                         </span>
                         {deductions.map((ded, dIdx) => (
                           <div key={dIdx} className="text-[11px] text-rose-900 flex items-start gap-1.5">
-                            <span className="text-rose-600 font-bold shrink-0">✗</span>
+                            <X className="w-3 h-3 text-rose-600 font-bold shrink-0 mt-0.5" />
                             <span className="leading-tight">{ded}</span>
                           </div>
                         ))}
@@ -818,7 +820,7 @@ export default function SeoAuditPage() {
                     className="mt-2.5 inline-flex items-center gap-1.5 text-xs font-bold text-[#0C81F3] hover:text-[#0a6ecf] hover:underline cursor-pointer bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-xl border border-blue-200 transition-colors shadow-xs"
                   >
                     <Info className="w-3.5 h-3.5" />
-                    <span>💡 Why this score? (View Deductions)</span>
+                    <span>Why this score? (View Deductions)</span>
                   </button>
                 </div>
 
@@ -834,7 +836,7 @@ export default function SeoAuditPage() {
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                        📑 H1 Hierarchy
+                        <Heading className="w-4 h-4 text-purple-600 shrink-0" /> H1 Hierarchy
                       </span>
                       <span
                         className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${
@@ -848,10 +850,15 @@ export default function SeoAuditPage() {
                           : `${report.onpageSummary?.multipleH1 || 0} multi-H1`}
                       </span>
                     </div>
-                    <p className="text-[11px] text-gray-600">
-                      {report.onpageSummary?.multipleH1 === 0 && report.onpageSummary?.missingH1 === 0
-                        ? '✓ Exactly one H1 heading on all analyzed pages.'
-                        : `Found multiple H1 headings on ${report.onpageSummary?.multipleH1 || 0} page(s). Inspect evidence tab.`}
+                    <p className="text-[11px] text-gray-600 flex items-start gap-1">
+                      {report.onpageSummary?.multipleH1 === 0 && report.onpageSummary?.missingH1 === 0 ? (
+                        <>
+                          <Check className="w-3 h-3 text-emerald-600 shrink-0 mt-0.5" />
+                          <span>Exactly one H1 heading on all analyzed pages.</span>
+                        </>
+                      ) : (
+                        <span>{`Found multiple H1 headings on ${report.onpageSummary?.multipleH1 || 0} page(s). Inspect evidence tab.`}</span>
+                      )}
                     </p>
                   </div>
 
@@ -865,7 +872,7 @@ export default function SeoAuditPage() {
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                        🗺️ Sitemap Discovery
+                        <Map className="w-4 h-4 text-emerald-600 shrink-0" /> Sitemap Discovery
                       </span>
                       <span
                         className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${
@@ -877,10 +884,15 @@ export default function SeoAuditPage() {
                         {sitemapProbe.detectedSitemaps?.length || 0} Found
                       </span>
                     </div>
-                    <p className="text-[11px] text-gray-600">
-                      {sitemapProbe.found
-                        ? `✓ ${sitemapProbe.totalDiscoveredUrls || 0} URLs indexed across sitemaps.`
-                        : 'No valid XML sitemap found across standard variations.'}
+                    <p className="text-[11px] text-gray-600 flex items-start gap-1">
+                      {sitemapProbe.found ? (
+                        <>
+                          <Check className="w-3 h-3 text-emerald-600 shrink-0 mt-0.5" />
+                          <span>{`${sitemapProbe.totalDiscoveredUrls || 0} URLs indexed across sitemaps.`}</span>
+                        </>
+                      ) : (
+                        <span>No valid XML sitemap found across standard variations.</span>
+                      )}
                     </p>
                   </div>
 
@@ -895,7 +907,7 @@ export default function SeoAuditPage() {
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-bold text-purple-900 flex items-center gap-1.5">
-                        ⚡ Google PageSpeed
+                        <Zap className="w-4 h-4 text-amber-500 shrink-0" /> Google PageSpeed
                       </span>
                       <span className="text-xs font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800 group-hover:bg-purple-200">
                         {pageSpeed.mobile?.score || 74}/100 Mobile
@@ -917,7 +929,7 @@ export default function SeoAuditPage() {
                   >
                     <div className="flex items-center justify-between mb-1">
                       <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                        🏷️ Schema.org Entities
+                        <Tag className="w-4 h-4 text-blue-600 shrink-0" /> Schema.org Entities
                       </span>
                       <span
                         className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${
@@ -929,10 +941,15 @@ export default function SeoAuditPage() {
                         {report.schemaSummary?.totalSchemas || 0} Detected
                       </span>
                     </div>
-                    <p className="text-[11px] text-gray-600">
-                      {report.schemaSummary?.totalSchemas > 0
-                        ? `✓ Entity schemas: ${report.schemaSummary?.schemasFound?.slice(0, 3).join(', ')}.`
-                        : 'No JSON-LD structured data detected. Implement schema.org.'}
+                    <p className="text-[11px] text-gray-600 flex items-start gap-1">
+                      {report.schemaSummary?.totalSchemas > 0 ? (
+                        <>
+                          <Check className="w-3 h-3 text-emerald-600 shrink-0 mt-0.5" />
+                          <span>{`Entity schemas: ${report.schemaSummary?.schemasFound?.slice(0, 3).join(', ')}.`}</span>
+                        </>
+                      ) : (
+                        <span>No JSON-LD structured data detected. Implement schema.org.</span>
+                      )}
                     </p>
                   </div>
                 </div>
@@ -985,7 +1002,7 @@ export default function SeoAuditPage() {
                   className="self-start sm:self-auto px-3.5 py-1.5 rounded-xl text-xs font-bold bg-blue-50 hover:bg-blue-100 text-[#0C81F3] border border-blue-200 transition-colors flex items-center gap-1.5 cursor-pointer shadow-xs"
                 >
                   <Info className="w-3.5 h-3.5" />
-                  <span>💡 Why this score? (View Deductions)</span>
+                  <span>Why this score? (View Deductions)</span>
                 </button>
               </div>
 
@@ -1182,7 +1199,7 @@ export default function SeoAuditPage() {
                   {issues.filter(i => i.category?.toLowerCase() === 'technical').length === 0 ? (
                     <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-900 flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>✓ 100% clean technical checks! No sitemap, robots, or URL structure defects detected.</span>
+                      <span>100% clean technical checks! No sitemap, robots, or URL structure defects detected.</span>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -1336,7 +1353,7 @@ export default function SeoAuditPage() {
                   {issues.filter(i => i.category?.toLowerCase() === 'onpage').length === 0 ? (
                     <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-900 flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>✓ 100% clean on-page hierarchy! Perfect single H1 tag and metadata on all pages.</span>
+                      <span>100% clean on-page hierarchy! Perfect single H1 tag and metadata on all pages.</span>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -1503,7 +1520,7 @@ export default function SeoAuditPage() {
                   {issues.filter(i => i.category?.toLowerCase() === 'performance').length === 0 ? (
                     <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-900 flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>✓ Optimal loading speed, clean mobile viewport, and lightweight assets!</span>
+                      <span>Optimal loading speed, clean mobile viewport, and lightweight assets!</span>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -1751,7 +1768,7 @@ export default function SeoAuditPage() {
                   {issues.filter(i => i.category?.toLowerCase() === 'content').length === 0 ? (
                     <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-900 flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>✓ Excellent content depth across all audited pages without thin content flags.</span>
+                      <span>Excellent content depth across all audited pages without thin content flags.</span>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -1866,7 +1883,7 @@ export default function SeoAuditPage() {
                   {issues.filter(i => i.category?.toLowerCase() === 'mobile').length === 0 ? (
                     <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-900 flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>✓ Full mobile-friendly compliance! Viewport meta tags and touch scaling properly configured.</span>
+                      <span>Full mobile-friendly compliance! Viewport meta tags and touch scaling properly configured.</span>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -1947,7 +1964,9 @@ export default function SeoAuditPage() {
 
                     <div className="p-4 bg-slate-950 rounded-xl font-mono text-xs space-y-2 text-slate-300">
                       <div className="flex items-center justify-between text-emerald-400 font-bold text-[11px]">
-                        <span>✓ Viewport tag active on {pages.length} audited page(s)</span>
+                        <span className="flex items-center gap-1">
+                          <Check className="w-3 h-3" /> Viewport tag active on {pages.length} audited page(s)
+                        </span>
                         <span>HTTP 200 OK</span>
                       </div>
                       <div className="text-slate-400 text-[11px] break-all">
@@ -1978,7 +1997,7 @@ export default function SeoAuditPage() {
                   {issues.filter(i => ['schema', 'structureddata'].includes(i.category?.toLowerCase())).length === 0 ? (
                     <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-900 flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>✓ Valid JSON-LD structured data detected across crawled pages.</span>
+                      <span>Valid JSON-LD structured data detected across crawled pages.</span>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -2047,7 +2066,7 @@ export default function SeoAuditPage() {
                   {issues.filter(i => i.category?.toLowerCase() === 'links').length === 0 ? (
                     <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-900 flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>✓ Balanced internal and outbound link architecture across all audited pages.</span>
+                      <span>Balanced internal and outbound link architecture across all audited pages.</span>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -2142,7 +2161,7 @@ export default function SeoAuditPage() {
                   {issues.filter(i => i.category?.toLowerCase() === 'security').length === 0 ? (
                     <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-900 flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>✓ Full HTTPS & security compliance across all audited pages.</span>
+                      <span>Full HTTPS & security compliance across all audited pages.</span>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -2217,8 +2236,16 @@ export default function SeoAuditPage() {
                             <span className="font-bold text-gray-900 block">{item.label}</span>
                             <span className="text-[11px] text-gray-500">{item.detail}</span>
                           </div>
-                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${item.pass ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
-                            {item.pass ? '✓ Pass' : '⚠ Warning'}
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold inline-flex items-center gap-1 ${item.pass ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}>
+                            {item.pass ? (
+                              <>
+                                <Check className="w-3 h-3 text-emerald-600" /> Pass
+                              </>
+                            ) : (
+                              <>
+                                <AlertTriangle className="w-3 h-3 text-amber-600" /> Warning
+                              </>
+                            )}
                           </span>
                         </div>
                       ))}

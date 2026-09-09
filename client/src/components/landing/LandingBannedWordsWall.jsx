@@ -2,11 +2,9 @@ import { useState } from 'react'
 import {
   Ban,
   CheckCircle2,
-  AlertTriangle,
-  ArrowRight,
-  Sparkles,
-  ShieldAlert,
   Search,
+  X,
+  Check,
 } from 'lucide-react'
 import useScrollReveal from './useScrollReveal'
 
@@ -228,11 +226,11 @@ export default function LandingBannedWordsWall() {
               {/* In Context Contrast */}
               <div className="pt-1 text-[11px] space-y-1">
                 <div className="text-rose-600 flex items-start gap-1.5 font-mono">
-                  <span className="font-bold shrink-0">✗</span>
+                  <X className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                   <span className="line-through">{item.exampleFail}</span>
                 </div>
                 <div className="text-emerald-700 flex items-start gap-1.5 font-mono font-medium">
-                  <span className="font-bold shrink-0">✓</span>
+                  <Check className="w-3.5 h-3.5 shrink-0 mt-0.5" />
                   <span>{item.examplePass}</span>
                 </div>
               </div>

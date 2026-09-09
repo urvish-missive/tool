@@ -1,3 +1,4 @@
+import React from 'react'
 import useScrollReveal from './useScrollReveal'
 
 /**
@@ -54,7 +55,7 @@ export default function LandingHowItWorks({
 
                   {/* Step number circle */}
                   <div className="relative flex items-center justify-center w-12 h-12 sm:w-14 sm:h-14 rounded-2xl bg-gradient-to-br from-[#0C81F3] to-[#EB8988] text-white font-black text-base sm:text-lg shadow-lg shadow-[#0C81F3]/25 mx-auto mb-3.5 group-hover:scale-110 group-hover:rotate-2 transition-transform duration-300">
-                    {Icon ? <Icon className="w-5 h-5 sm:w-6 sm:h-6" /> : i + 1}
+                    {React.isValidElement(Icon) ? Icon : Icon ? <Icon className="w-5 h-5 sm:w-6 sm:h-6" /> : i + 1}
                   </div>
 
                   <h3 className="text-sm sm:text-base font-bold text-slate-900 mb-1.5 leading-snug group-hover:text-[#0C81F3] transition-colors">

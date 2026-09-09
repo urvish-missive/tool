@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { useAnalyzeCompetitorMutation } from '../../services/apiSlice'
-import ModelSelector from '../shared/ModelSelector'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import StrategicOverviewCard from './components/StrategicOverviewCard'
 import HeadToHeadBenchmark from './components/HeadToHeadBenchmark'
@@ -23,7 +22,6 @@ export default function CompetitorAnalysisPage() {
   const [competitorUrl, setCompetitorUrl] = useState('')
   const [yourUrl, setYourUrl] = useState('')
   const [targetKeywords, setTargetKeywords] = useState('')
-  const [preferredProvider, setPreferredProvider] = useState('openrouter')
   const [analyzeCompetitor, { isLoading, reset: resetMutation }] = useAnalyzeCompetitorMutation()
 
   const [results, setResults] = useState(null)
@@ -44,7 +42,6 @@ export default function CompetitorAnalysisPage() {
         competitorUrl: competitorUrl.trim(),
         yourUrl: yourUrl.trim() || undefined,
         targetKeywords: targetKeywords.trim() || undefined,
-        preferredProvider,
       }).unwrap()
 
       setResults(result)
@@ -177,16 +174,8 @@ export default function CompetitorAnalysisPage() {
               </div>
             </div>
 
-            {/* Model Selector & Actions */}
-            <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-              <div className="w-full sm:w-auto sm:min-w-[190px]">
-                <ModelSelector
-                  value={preferredProvider}
-                  onChange={setPreferredProvider}
-                  compact={true}
-                />
-              </div>
-
+            {/* Actions */}
+            <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-4">
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
                 {results && (
                   <button

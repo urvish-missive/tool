@@ -17,55 +17,59 @@ import {
   Quote,
   Edit3,
   RefreshCw,
+  Target,
+  Search,
+  Bot,
+  FileText,
 } from 'lucide-react'
 
 const PILLARS_META = [
   {
     key: 'seo_score',
     label: 'SEO Optimization',
-    icon: '🎯',
+    icon: Target,
     desc: 'Keyword placement, metadata alignment, and on-page density',
   },
   {
     key: 'intent_score',
     label: 'Search Intent',
-    icon: '🔍',
+    icon: Search,
     desc: 'Alignment with user search query expectations and journey',
   },
   {
     key: 'depth_score',
     label: 'Content Depth',
-    icon: '📚',
+    icon: BookOpen,
     desc: 'Coverage of entities, subtopics, and comprehensive solutions',
   },
   {
     key: 'readability_score',
     label: 'Readability',
-    icon: '📖',
+    icon: FileText,
     desc: 'Sentence cadence, scannability, and Flesch reading score',
   },
   {
     key: 'structure_score',
     label: 'Structure & Flow',
-    icon: '🏗️',
+    icon: Layers,
     desc: 'Heading hierarchy, bite-sized sections, and visual anchors',
   },
   {
     key: 'usefulness_score',
     label: 'Actionable Value',
-    icon: '💡',
+    icon: Lightbulb,
     desc: 'Real-world takeaways, examples, and practical guidance',
   },
   {
     key: 'geo_citation_score',
     label: 'GEO / AI Overview',
-    icon: '🤖',
+    icon: Bot,
     desc: 'Probability of being extracted and cited by AI engines',
   },
   {
     key: 'eeat_score',
     label: 'E-E-A-T Trust',
-    icon: '🛡️',
+    icon: ShieldCheck,
     desc: 'First-hand experience, authority proof, and brand credibility',
   },
 ]
@@ -227,11 +231,22 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
               <span
                 className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border ${getScoreBadge(overall)}`}
               >
-                {overall >= 80
-                  ? '✓ Ready to Rank & Publish'
-                  : overall >= 60
-                    ? '⚡ Minor Optimization Needed'
-                    : '⚠️ Critical Fixes Required'}
+                {overall >= 80 ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Ready to Rank & Publish</span>
+                  </>
+                ) : overall >= 60 ? (
+                  <>
+                    <Zap className="w-3.5 h-3.5 text-amber-600" />
+                    <span>Minor Optimization Needed</span>
+                  </>
+                ) : (
+                  <>
+                    <AlertTriangle className="w-3.5 h-3.5 text-rose-600" />
+                    <span>Critical Fixes Required</span>
+                  </>
+                )}
               </span>
             </div>
 
@@ -251,7 +266,8 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  🎯 SEO Optimization
+                  <Target className="w-4 h-4 text-[#0C81F3]" />
+                  <span>SEO Optimization</span>
                 </span>
                 <span
                   className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full ${getScoreBadge(report.seo_score || 0)}`}
@@ -272,7 +288,8 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  🔍 Search Intent Match
+                  <Search className="w-4 h-4 text-emerald-600" />
+                  <span>Search Intent Match</span>
                 </span>
                 <span
                   className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full ${getScoreBadge(report.intent_score || 0)}`}
@@ -290,7 +307,8 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
             <div className="p-4 sm:p-5 rounded-2xl border bg-purple-50/70 border-purple-200 transition-all">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-purple-900 flex items-center gap-1.5">
-                  🤖 GEO / AI Citation
+                  <Bot className="w-4 h-4 text-purple-600" />
+                  <span>GEO / AI Citation</span>
                 </span>
                 <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
                   {report.geo_citation_score || 75}/100
@@ -308,7 +326,8 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
-                  🛡️ E-E-A-T Trust Score
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <span>E-E-A-T Trust Score</span>
                 </span>
                 <span
                   className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full ${getScoreBadge(report.eeat_score || 72)}`}
@@ -382,7 +401,9 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
                   className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-3 hover:border-slate-300 transition-all"
                 >
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl">{pillar.icon}</span>
+                    <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-700">
+                      {pillar.icon && <pillar.icon className="w-5 h-5" />}
+                    </div>
                     <span
                       className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full border ${getScoreBadge(val)}`}
                     >
@@ -424,7 +445,7 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
                     key={i}
                     className="text-xs sm:text-sm text-emerald-800 flex items-start gap-2 bg-white/70 p-3 rounded-xl border border-emerald-100"
                   >
-                    <span className="text-emerald-600 font-bold mt-0.5">✓</span>
+                    <Check className="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" />
                     <span className="font-medium leading-relaxed">{str}</span>
                   </li>
                 ))}

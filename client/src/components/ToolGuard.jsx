@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+
 import { useGetPublicToolsQuery } from '../services/apiSlice'
 
 const TOOL_SLUG_MAP = {

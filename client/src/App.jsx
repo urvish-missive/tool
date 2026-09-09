@@ -7,7 +7,7 @@ import ContentAnalyzerPage from './pages/ContentAnalyzerPage'
 import SeoAuditPage from './tools/seo-audit/SeoAuditPage'
 import KeywordResearchPage from './tools/keyword-research/KeywordResearchPage'
 import SeoRoiPage from './tools/seo-roi/SeoRoiPage'
-import BlogTopicGeneratorPage from './tools/blog-topic-generator/BlogTopicGeneratorPage'
+import BlogTopicLandingPage from './pages/BlogTopicLandingPage'
 import LogoMakerPage from './tools/logo-maker/LogoMakerPage'
 import FaqGeneratorPage from './tools/faq-generator/FaqGeneratorPage'
 import CompetitorAnalysisPage from './tools/competitor-analysis/CompetitorAnalysisPage'
@@ -18,13 +18,11 @@ import WebsiteContentExtractorPage from './tools/website-content-extractor/Websi
 import WebsiteImageExtractorPage from './tools/website-image-extractor/WebsiteImageExtractorPage'
 import WebsiteTechInspectorPage from './tools/website-tech-inspector/WebsiteTechInspectorPage'
 import AiContentWriterPage from './tools/ai-content-writer/AiContentWriterPage'
-import BlogIntroGeneratorPage from './tools/blog-intro-generator/BlogIntroGeneratorPage'
 import BlogIntroLandingPage from './pages/BlogIntroLandingPage'
-import BlogConclusionGeneratorPage from './tools/blog-conclusion-generator/BlogConclusionGeneratorPage'
 import BlogConclusionLandingPage from './pages/BlogConclusionLandingPage'
 import EeatAuthorityAnalyzerLandingPage from './pages/EeatAuthorityAnalyzerLandingPage'
 import BusinessCompetitorPage from './tools/business-competitor-analytics/BusinessCompetitorPage'
-import CaseStudyGeneratorPage from './tools/case-study-generator/CaseStudyGeneratorPage'
+import CaseStudyLandingPage from './pages/CaseStudyLandingPage'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -90,7 +88,7 @@ export default function App() {
                     path="/blog-topic-generator"
                     element={
                       <ToolGuard toolPath="/blog-topic-generator">
-                        <BlogTopicGeneratorPage />
+                        <BlogTopicLandingPage />
                       </ToolGuard>
                     }
                   />
@@ -218,7 +216,7 @@ export default function App() {
                     path="/case-study-generator"
                     element={
                       <ToolGuard toolPath="/case-study-generator">
-                        <CaseStudyGeneratorPage />
+                        <CaseStudyLandingPage />
                       </ToolGuard>
                     }
                   />

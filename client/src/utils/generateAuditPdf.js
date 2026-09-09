@@ -582,8 +582,8 @@ export function generateAuditPdf(report) {
   // Sitemap & Variations Diagnostics Box
   const sitemapProbe = report.sitemapProbe || {}
   const sitemapStatus = sitemapProbe.found
-    ? `\u2713 Valid XML Sitemap Detected: ${sitemapProbe.detectedSitemaps?.join(', ') || 'sitemap.xml'} (${sitemapProbe.totalDiscoveredUrls || 0} indexed URLs)`
-    : '✗ No valid XML sitemap found across standard variations (/sitemap.xml, /sitemap_index.xml, /wp-sitemap.xml).'
+    ? `[Pass] Valid XML Sitemap Detected: ${sitemapProbe.detectedSitemaps?.join(', ') || 'sitemap.xml'} (${sitemapProbe.totalDiscoveredUrls || 0} indexed URLs)`
+    : '[Issue] No valid XML sitemap found across standard variations (/sitemap.xml, /sitemap_index.xml, /wp-sitemap.xml).'
   const smLines = getLines(doc, sitemapStatus, CW - 8, 6.8)
   const smBoxH = 14 + smLines.length * 3.4
 
@@ -602,8 +602,8 @@ export function generateAuditPdf(report) {
   })
 
   const robotsStatus = report.robotsTxt
-    ? `\u2713 Robots.txt active with ${report.robotsSitemapUrls?.length || 0} sitemap directive(s).`
-    : '✗ Robots.txt file is missing or empty.'
+    ? `[Pass] Robots.txt active with ${report.robotsSitemapUrls?.length || 0} sitemap directive(s).`
+    : '[Issue] Robots.txt file is missing or empty.'
   printText(doc, robotsStatus, M + 4, y + 9.2 + smLines.length * 3.4, {
     size: 6.2,
     color: C.gray,

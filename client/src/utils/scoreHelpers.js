@@ -30,8 +30,10 @@ export function getScoreBg(score) {
   return 'bg-rose-50 border-rose-200 text-rose-800'
 }
 
+import { Check, Zap, AlertTriangle } from 'lucide-react'
+
 export function getScoreStatus(val) {
-  if (val >= 80) return { label: 'Ready to Rank & Publish', icon: '✓', variant: 'success' }
-  if (val >= 60) return { label: 'Minor Optimization Needed', icon: '⚡', variant: 'warning' }
-  return { label: 'Critical Fixes Required', icon: '⚠️', variant: 'danger' }
+  if (val >= 80) return { label: 'Ready to Rank & Publish', icon: Check, iconName: 'check', variant: 'success' }
+  if (val >= 60) return { label: 'Minor Optimization Needed', icon: Zap, iconName: 'zap', variant: 'warning' }
+  return { label: 'Critical Fixes Required', icon: AlertTriangle, iconName: 'alert-triangle', variant: 'danger' }
 }

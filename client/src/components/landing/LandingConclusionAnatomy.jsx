@@ -1,10 +1,7 @@
 import { useState } from 'react'
 import {
   Layers,
-  Sparkles,
-  Target,
   ArrowRight,
-  CheckCircle2,
   Zap,
   Check,
   Copy,
@@ -164,9 +161,11 @@ export default function LandingConclusionAnatomy() {
   }
 
   return (
-    <section className="py-16 sm:py-20 lg:py-24 bg-white border-b border-slate-200/70 relative overflow-hidden">
-      {/* Background radial highlight */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[450px] bg-gradient-to-r from-blue-100/30 via-indigo-100/20 to-pink-100/30 rounded-full blur-3xl pointer-events-none" />
+    <section id="anatomy" className="py-16 sm:py-20 lg:py-24 bg-white border-b border-slate-200/70 relative scroll-mt-24">
+      {/* Background radial highlight isolated in overflow-hidden container */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[450px] bg-gradient-to-r from-blue-100/30 via-indigo-100/20 to-pink-100/30 rounded-full blur-3xl" />
+      </div>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
@@ -177,7 +176,7 @@ export default function LandingConclusionAnatomy() {
           </span>
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[42px] font-extrabold text-slate-900 tracking-tight leading-tight mb-3 sm:mb-4">
             Anatomy of a{' '}
-            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#0C81F3] to-[#EB8988] bg-clip-text text-transparent">
               10/10 High-Converting Conclusion
             </span>
           </h2>

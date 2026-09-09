@@ -1,17 +1,33 @@
 import { useState, useEffect, useCallback } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useResearchKeywordsMutation } from '../../services/apiSlice'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
 import { useLeadPopup } from '../../components/useLeadPopup'
-import ModelSelector from '../shared/ModelSelector'
 import useToolFields from '../../hooks/useToolFields'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import {
   keywordResearchSchema,
   parseKeywordResearchForm,
 } from '../../schemas/keywordResearch.schema'
+import {
+  Trophy,
+  Search,
+  Star,
+  Check,
+  Swords,
+  Target,
+  Globe,
+  Download,
+  Lightbulb,
+  HelpCircle,
+  Hash,
+  Zap,
+  BarChart3,
+  FolderTree,
+  FileText,
+} from 'lucide-react'
 
 const BUSINESS_TYPES = [
   'B2B',
@@ -67,7 +83,7 @@ function SearchEngineKeywordsSection({ searchEngineKeywords }) {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="text-xl">🏆</span>
+            <Trophy className="w-5 h-5 text-amber-500 shrink-0" />
             <h3 className="text-lg font-bold text-gray-900">
               Live Search Autocomplete & High-Ranking Queries
             </h3>
@@ -85,7 +101,7 @@ function SearchEngineKeywordsSection({ searchEngineKeywords }) {
                 filter === f
                   ? 'bg-blue-600 text-white shadow-sm'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
+              } cursor-pointer`}
             >
               {f === 'Both' ? `Google & Bing (${bothCount})` : f === 'Google' ? `Google (${googleCount})` : f === 'Bing' ? `Bing (${bingCount})` : `All (${searchEngineKeywords.length})`}
             </button>
@@ -108,7 +124,7 @@ function SearchEngineKeywordsSection({ searchEngineKeywords }) {
             {filtered.map((k, i) => (
               <tr key={i} className="hover:bg-blue-50/40 transition-colors">
                 <td className="py-2.5 pr-4 font-medium text-gray-900 flex items-center gap-2">
-                  <span className="text-blue-500 text-xs">🔍</span>
+                  <Search className="w-3.5 h-3.5 text-blue-500 shrink-0" />
                   {k.keyword}
                 </td>
                 <td className="py-2.5 pr-4">
@@ -117,7 +133,7 @@ function SearchEngineKeywordsSection({ searchEngineKeywords }) {
                       SOURCE_BADGES[k.source] || 'bg-gray-100 text-gray-700'
                     }`}
                   >
-                    {k.source === 'Google & Bing' && '⭐'}
+                    {k.source === 'Google & Bing' && <Star className="w-3 h-3 text-amber-300 fill-amber-300 shrink-0" />}
                     {k.source}
                   </span>
                 </td>
@@ -144,9 +160,15 @@ function SearchEngineKeywordsSection({ searchEngineKeywords }) {
                 <td className="py-2.5 text-right">
                   <button
                     onClick={() => copyKeyword(k.keyword, i)}
-                    className="text-xs text-blue-600 hover:text-blue-800 font-semibold px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+                    className="text-xs text-blue-600 hover:text-blue-800 font-semibold px-2 py-1 rounded hover:bg-blue-50 transition-colors cursor-pointer"
                   >
-                    {copiedIdx === i ? '✓ Copied' : 'Copy'}
+                    {copiedIdx === i ? (
+                      <span className="inline-flex items-center gap-1 text-emerald-600">
+                        <Check className="w-3 h-3" /> Copied
+                      </span>
+                    ) : (
+                      'Copy'
+                    )}
                   </button>
                 </td>
               </tr>
@@ -168,7 +190,7 @@ function CompetitorIntelligenceSection({ competitorInsights }) {
     <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8 space-y-6">
       <div>
         <div className="flex items-center gap-2">
-          <span className="text-xl">⚔️</span>
+          <Swords className="w-5 h-5 text-rose-500 shrink-0" />
           <h3 className="text-lg font-bold text-gray-900">
             Competitor Keyword Intelligence (What Competitors Use On Their Pages)
           </h3>
@@ -183,7 +205,7 @@ function CompetitorIntelligenceSection({ competitorInsights }) {
         <div className="bg-gradient-to-br from-amber-50/60 to-orange-50/40 rounded-xl border border-amber-200/80 p-5 space-y-3">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-bold text-amber-950 flex items-center gap-1.5">
-              <span>🎯</span> High-Impact Keywords Used by Top-Ranking Competitors
+              <Target className="w-4 h-4 text-amber-600 shrink-0" /> High-Impact Keywords Used by Top-Ranking Competitors
             </h4>
             <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold">
               Actionable Gap
@@ -224,7 +246,7 @@ function CompetitorIntelligenceSection({ competitorInsights }) {
       {competitors.length > 0 && (
         <div className="space-y-3">
           <h4 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
-            <span>🌐</span> Top-Ranking Competitor URLs in Search Results
+            <Globe className="w-4 h-4 text-blue-500 shrink-0" /> Top-Ranking Competitor URLs in Search Results
           </h4>
           <div className="grid sm:grid-cols-2 gap-3">
             {competitors.map((comp, idx) => (
@@ -344,9 +366,9 @@ function KeywordTable({ keywords }) {
         </div>
         <button
           onClick={exportCSV}
-          className="px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-200 transition-colors flex items-center gap-1.5"
+          className="px-4 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-200 transition-colors flex items-center gap-1.5 cursor-pointer"
         >
-          <span>📥</span> Export CSV
+          <Download className="w-4 h-4" /> Export CSV
         </button>
       </div>
 
@@ -423,9 +445,15 @@ function KeywordTable({ keywords }) {
                 <td className="py-2.5 text-right">
                   <button
                     onClick={() => copyKeyword(k.keyword, i)}
-                    className="text-xs text-blue-600 hover:text-blue-800 font-semibold px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+                    className="text-xs text-blue-600 hover:text-blue-800 font-semibold px-2 py-1 rounded hover:bg-blue-50 transition-colors cursor-pointer"
                   >
-                    {copiedIdx === i ? '✓ Copied' : 'Copy'}
+                    {copiedIdx === i ? (
+                      <span className="inline-flex items-center gap-1 text-emerald-600">
+                        <Check className="w-3 h-3" /> Copied
+                      </span>
+                    ) : (
+                      'Copy'
+                    )}
                   </button>
                 </td>
               </tr>
@@ -461,8 +489,9 @@ function TopicClusterViz({ clusters }) {
             <div className="border-t border-gray-200 pt-2">
               <span className="text-xs font-semibold text-gray-500 uppercase">Content Ideas</span>
               {cluster.contentIdeas.map((idea, j) => (
-                <p key={j} className="text-xs text-gray-600 mt-1">
-                  💡 {idea}
+                <p key={j} className="text-xs text-gray-600 mt-1 flex items-start gap-1.5">
+                  <Lightbulb className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
+                  <span>{idea}</span>
                 </p>
               ))}
             </div>
@@ -487,8 +516,14 @@ function QuestionKeywords({ questions }) {
     <div>
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs text-gray-400">{questions.length} questions</span>
-        <button onClick={copyAll} className="text-xs text-blue-600 hover:text-blue-800 font-medium">
-          {copied ? '✓ Copied All' : 'Copy All'}
+        <button onClick={copyAll} className="text-xs text-blue-600 hover:text-blue-800 font-medium cursor-pointer">
+          {copied ? (
+            <span className="inline-flex items-center gap-1 text-emerald-600">
+              <Check className="w-3.5 h-3.5" /> Copied All
+            </span>
+          ) : (
+            'Copy All'
+          )}
         </button>
       </div>
       <div className="space-y-2">
@@ -497,7 +532,7 @@ function QuestionKeywords({ questions }) {
             key={i}
             className="flex items-center gap-2 text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-2"
           >
-            <span className="text-purple-500 shrink-0">❓</span>
+            <HelpCircle className="w-4 h-4 text-purple-500 shrink-0" />
             {q}
           </div>
         ))}
@@ -544,7 +579,6 @@ export default function KeywordResearchPage() {
       seedKeyword: '',
       websiteUrl: '',
       businessType: 'B2B',
-      preferredProvider: 'openrouter',
     },
   })
   const seedKeyword = watch('seedKeyword')
@@ -583,7 +617,6 @@ export default function KeywordResearchPage() {
         seedKeyword: parsed.data.seedKeyword || undefined,
         websiteUrl: parsed.data.websiteUrl || undefined,
         businessType: parsed.data.businessType,
-        preferredProvider: parsed.data.preferredProvider,
       })
     },
     [researchKeywords]
@@ -719,13 +752,6 @@ export default function KeywordResearchPage() {
                     </select>
                   </div>
                 )}
-                <Controller
-                  control={control}
-                  name="preferredProvider"
-                  render={({ field }) => (
-                    <ModelSelector value={field.value} onChange={field.onChange} />
-                  )}
-                />
               </div>
 
               <button
@@ -774,8 +800,8 @@ export default function KeywordResearchPage() {
                     <h2 className="text-xl font-bold text-gray-900">
                       Keyword Report for "{report.seedKeyword}"
                     </h2>
-                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
-                      🌐 {report.detectedLanguage || 'English'} ({report.detectedRegion || 'Global'})
+                    <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 inline-flex items-center gap-1.5">
+                      <Globe className="w-3.5 h-3.5 text-blue-500 shrink-0" /> {report.detectedLanguage || 'English'} ({report.detectedRegion || 'Global'})
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
@@ -800,20 +826,22 @@ export default function KeywordResearchPage() {
               {/* Overview Cards */}
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 {[
-                  ['Total Keywords', report.keywords?.length || 0, '🔢'],
-                  ['Live Google/Bing', report.searchEngineKeywords?.length || 0, '⚡'],
-                  ['Competitor Terms', report.competitorInsights?.competitorKeywords?.length || 0, '⚔️'],
+                  ['Total Keywords', report.keywords?.length || 0, Hash],
+                  ['Live Google/Bing', report.searchEngineKeywords?.length || 0, Zap],
+                  ['Competitor Terms', report.competitorInsights?.competitorKeywords?.length || 0, Swords],
                   ...Object.entries(intentCounts).map(([intent, count]) => [
                     intent,
                     count,
-                    INTENT_COLORS[intent] ? '🎯' : '📊',
+                    INTENT_COLORS[intent] ? Target : BarChart3,
                   ]),
-                ].slice(0, 6).map(([label, count, icon]) => (
+                ].slice(0, 6).map(([label, count, IconComp]) => (
                   <div
                     key={label}
-                    className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 text-center"
+                    className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 text-center flex flex-col items-center justify-center"
                   >
-                    <span className="text-2xl block mb-1">{icon}</span>
+                    <span className="text-blue-600 mb-1">
+                      <IconComp className="w-5 h-5 mx-auto" />
+                    </span>
                     <div className="text-lg font-bold text-gray-900">{count}</div>
                     <div className="text-xs text-gray-500 truncate">{label}</div>
                   </div>
@@ -828,14 +856,18 @@ export default function KeywordResearchPage() {
 
               {/* 3. All Keywords Table */}
               <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">📊 Complete Master Keyword List</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                  <BarChart3 className="w-5 h-5 text-blue-600" /> Complete Master Keyword List
+                </h3>
                 <KeywordTable keywords={report.keywords || []} />
               </div>
 
               {/* 4. Topic Clusters */}
               {report.topicClusters?.length > 0 && (
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">🗂️ Topic Clusters & Content Hubs</h3>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <FolderTree className="w-5 h-5 text-indigo-600" /> Topic Clusters & Content Hubs
+                  </h3>
                   <TopicClusterViz clusters={report.topicClusters} />
                 </div>
               )}
@@ -843,7 +875,9 @@ export default function KeywordResearchPage() {
               {/* 5. Question Keywords */}
               {report.questionKeywords?.length > 0 && (
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">❓ Question Keywords (PAA)</h3>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <HelpCircle className="w-5 h-5 text-purple-600" /> Question Keywords (PAA)
+                  </h3>
                   <QuestionKeywords questions={report.questionKeywords} />
                 </div>
               )}
@@ -851,7 +885,9 @@ export default function KeywordResearchPage() {
               {/* 6. Content Opportunities */}
               {report.contentOpportunities?.length > 0 && (
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
-                  <h3 className="text-lg font-bold text-gray-900 mb-4">📝 High-Intent Content Opportunities</h3>
+                  <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-emerald-600" /> High-Intent Content Opportunities
+                  </h3>
                   <ContentOpportunities opportunities={report.contentOpportunities} />
                 </div>
               )}
@@ -861,12 +897,12 @@ export default function KeywordResearchPage() {
                 {report.quickWins?.length > 0 && (
                   <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
                     <h3 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
-                      <span>⚡</span> Quick Wins
+                      <Zap className="w-4 h-4 text-amber-500" /> Quick Wins
                     </h3>
                     <ul className="space-y-2">
                       {report.quickWins.map((w, i) => (
                         <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-                          <span className="text-green-500 font-bold mt-0.5 shrink-0">✓</span>
+                          <Check className="w-4 h-4 text-emerald-500 mt-0.5 shrink-0" />
                           <span>{w}</span>
                         </li>
                       ))}
@@ -877,7 +913,7 @@ export default function KeywordResearchPage() {
                 {report.recommendations?.length > 0 && (
                   <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6">
                     <h3 className="text-base font-bold text-gray-900 mb-3 flex items-center gap-2">
-                      <span>💡</span> Strategic Recommendations
+                      <Lightbulb className="w-4 h-4 text-blue-500" /> Strategic Recommendations
                     </h3>
                     <ul className="space-y-2">
                       {report.recommendations.map((r, i) => (

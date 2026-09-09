@@ -32,8 +32,8 @@ export default function LandingDarkImpact({
       gradient: 'from-[#67A7FF] to-[#EB8988]',
     },
     {
-      value: '15s',
-      label: 'Instant Generation',
+      value: '20-30s',
+      label: 'Deep AI Generation',
       sub: 'Save 30-45 minutes of blank-page staring',
       gradient: 'from-[#EB8988] to-[#FFB7B2]',
     },
@@ -78,7 +78,7 @@ export default function LandingDarkImpact({
             {title || (
               <>
                 The First 3 Sentences Decide{' '}
-                <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-[#0C81F3] to-[#EB8988] bg-clip-text text-transparent">
                   80% of Your Organic ROI
                 </span>
               </>

@@ -121,7 +121,7 @@ export async function analyzeWithAI(content, targetKeyword, secondaryKeywords, c
       { role: 'user', content: buildUserPrompt(content, targetKeyword, secondaryKeywords, contentType, searchIntent, programmaticMetrics) },
     ], { temperature: 0.3, maxTokens: 8000, jsonMode: true, preferredProvider: options.preferredProvider })
 
-    console.log('✓ AI analysis complete — scores:', { overall: parsed.overall_score, seo: parsed.seo_score })
+    console.log('[OK] AI analysis complete — scores:', { overall: parsed.overall_score, seo: parsed.seo_score })
     return validateReport(parsed, programmaticMetrics)
   } catch (err) {
     console.error('AI content analysis failed:', err.message)

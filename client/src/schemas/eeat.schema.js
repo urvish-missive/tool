@@ -10,7 +10,6 @@ export const eeatSchema = z
       .enum(['auto', 'ymyl', 'review', 'b2b_saas', 'guide', 'news'])
       .default('auto'),
     targetKeywords: z.string().max(500).optional().default(''),
-    preferredProvider: z.string().optional().default('gemini-3.5-flash-lite'),
   })
   .superRefine((data, ctx) => {
     if (data.mode === 'url') {

@@ -83,7 +83,7 @@ export default function AdminLayout() {
             </Link>
             <button
               onClick={logout}
-              className="flex-1 text-xs text-red-500 hover:text-red-700 py-2 rounded-lg hover:bg-red-50 transition-colors"
+              className="flex-1 text-xs text-red-500 hover:text-red-700 py-2 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
             >
               Logout
             </button>
@@ -105,7 +105,7 @@ export default function AdminLayout() {
         <header className="shrink-0 sticky top-0 z-20 bg-white/80 backdrop-blur-xl border-b border-gray-200 h-16 flex items-center px-4 lg:px-8">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="lg:hidden p-2 -ml-2 text-gray-500 hover:text-gray-900"
+            className="lg:hidden p-2 -ml-2 text-gray-500 hover:text-gray-900 cursor-pointer"
           >
             <svg
               className="w-6 h-6"

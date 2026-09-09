@@ -118,16 +118,16 @@ app.use((err, req, res, _next) => {
 async function start() {
   try {
     await prisma.$connect()
-    console.log('✓ Database connected successfully')
+    console.log('[OK] Database connected successfully')
 
     // Auto-seed default admin and tool configs
     await seedDefaults()
   } catch (err) {
-    console.error('✗ Database connection failed:', err.message)
+    console.error('[ERROR] Database connection failed:', err.message)
   }
 
   app.listen(PORT, () => {
-    console.log(`✓ Server running on http://localhost:${PORT}`)
+    console.log(`[OK] Server running on http://localhost:${PORT}`)
     console.log(`  API: http://localhost:${PORT}/api/health`)
   })
 }
@@ -141,7 +141,7 @@ async function seedDefaults() {
     await prisma.admin.create({
       data: { email: 'admin@missivedigital.com', passwordHash: hash, name: 'Admin' },
     })
-    console.log('✓ Default admin created: admin@missivedigital.com / admin123')
+    console.log('[OK] Default admin created: admin@missivedigital.com / admin123')
   }
 
   // Seed default tool configs
@@ -248,7 +248,7 @@ async function seedDefaults() {
       })},
     ]
     await prisma.toolConfig.createMany({ data: tools })
-    console.log('✓ Default tool configs created')
+    console.log('[OK] Default tool configs created')
   } else {
     // Ensure xml-sitemap-generator exists if database was already initialized
     try {
@@ -271,7 +271,7 @@ async function seedDefaults() {
             }),
           },
         })
-        console.log('✓ XML Sitemap Generator tool config seeded')
+        console.log('[OK] XML Sitemap Generator tool config seeded')
       }
     } catch {}
 
@@ -294,7 +294,7 @@ async function seedDefaults() {
             }),
           },
         })
-        console.log('✓ Google Rank Checker tool config seeded')
+        console.log('[OK] Google Rank Checker tool config seeded')
       }
     } catch {}
 
@@ -315,7 +315,7 @@ async function seedDefaults() {
             }),
           },
         })
-        console.log('✓ Website Content Extractor tool config seeded')
+        console.log('[OK] Website Content Extractor tool config seeded')
       }
     } catch {}
 
@@ -335,7 +335,7 @@ async function seedDefaults() {
             }),
           },
         })
-        console.log('✓ Website Image Extractor tool config seeded')
+        console.log('[OK] Website Image Extractor tool config seeded')
       }
     } catch {}
 
@@ -355,7 +355,7 @@ async function seedDefaults() {
             }),
           },
         })
-        console.log('✓ Website Tech & Theme Inspector tool config seeded')
+        console.log('[OK] Website Tech & Theme Inspector tool config seeded')
       }
     } catch {}
 
@@ -380,7 +380,7 @@ async function seedDefaults() {
             }),
           },
         })
-        console.log('✓ AI Content Writer tool config seeded')
+        console.log('[OK] AI Content Writer tool config seeded')
       }
     } catch {}
 
@@ -405,7 +405,7 @@ async function seedDefaults() {
             }),
           },
         })
-        console.log('✓ Blog Introduction Generator tool config seeded')
+        console.log('[OK] Blog Introduction Generator tool config seeded')
       }
     } catch {}
 
@@ -428,7 +428,7 @@ async function seedDefaults() {
             }),
           },
         })
-        console.log('✓ E-E-A-T Analyzer tool config seeded')
+        console.log('[OK] E-E-A-T Analyzer tool config seeded')
       }
     } catch {}
 
@@ -454,7 +454,7 @@ async function seedDefaults() {
             }),
           },
         })
-        console.log('✓ Blog Conclusion Generator tool config seeded')
+        console.log('[OK] Blog Conclusion Generator tool config seeded')
       }
     } catch {}
 
@@ -476,7 +476,7 @@ async function seedDefaults() {
             }),
           },
         })
-        console.log('✓ Business Competitor Analytics tool config seeded')
+        console.log('[OK] Business Competitor Analytics tool config seeded')
       }
     } catch {}
 
@@ -502,7 +502,7 @@ async function seedDefaults() {
             }),
           },
         })
-        console.log('✓ Case Study Generator tool config seeded')
+        console.log('[OK] Case Study Generator tool config seeded')
       }
     } catch {}
   }

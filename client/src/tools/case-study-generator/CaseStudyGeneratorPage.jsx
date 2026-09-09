@@ -18,7 +18,6 @@ import {
   BookOpen,
   Quote,
   TrendingUp,
-  BarChart3,
   Flame,
   Mail,
   Send,
@@ -26,6 +25,8 @@ import {
   Globe,
   ChevronLeft,
   ChevronRight,
+  RefreshCw,
+  ShoppingBag,
 } from 'lucide-react'
 
 import { caseStudySchema, parseCaseStudyForm } from '../../schemas/caseStudy.schema'
@@ -33,7 +34,6 @@ import { useGenerateCaseStudyMutation } from '../../services/apiSlice'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
-import ModelSelector from '../shared/ModelSelector'
 
 function LinkedInIcon({ className = 'w-5 h-5' }) {
   return (
@@ -65,7 +65,7 @@ const TONES = [
 const SAMPLE_PRESETS = [
   {
     id: 'b2b-saas-churn',
-    badgeIcon: '🔄',
+    badgeIcon: RefreshCw,
     shortName: 'SaaS Churn Reduction',
     description: 'Product onboarding & customer retention overhaul',
     clientName: 'Acme Flow',
@@ -81,7 +81,7 @@ const SAMPLE_PRESETS = [
   },
   {
     id: 'fintech-organic-scale',
-    badgeIcon: '📈',
+    badgeIcon: TrendingUp,
     shortName: 'Fintech Organic Growth',
     description: 'High-intent programmatic SEO & topical authority',
     clientName: 'PaySphere',
@@ -97,7 +97,7 @@ const SAMPLE_PRESETS = [
   },
   {
     id: 'ecommerce-cro',
-    badgeIcon: '🛒',
+    badgeIcon: ShoppingBag,
     shortName: 'DTC E-Commerce CRO',
     description: 'Mobile checkout & personalized cart recovery',
     clientName: 'Velvet Luxe',
@@ -122,7 +122,7 @@ const TABS = [
   { id: 'ai-geo', label: 'AI Search & GEO Citations', icon: Globe },
 ]
 
-export default function CaseStudyGeneratorPage() {
+export default function CaseStudyGeneratorPage({ isEmbedded = false }) {
   const [activeTab, setActiveTab] = useState('case-study')
   const [copiedKey, setCopiedKey] = useState(null)
   const [dataResult, setDataResult] = useState(null)
@@ -225,7 +225,6 @@ export default function CaseStudyGeneratorPage() {
       metrics: '',
       targetAudience: '',
       tone: 'authoritative',
-      preferredProvider: 'gemini-3.5-flash-lite',
     },
   })
 
@@ -235,7 +234,6 @@ export default function CaseStudyGeneratorPage() {
     useLeadPopup('case-study-generator')
 
   const [pendingForm, setPendingForm] = useState(null)
-  const preferredProvider = watch('preferredProvider')
   const activeToneValue = watch('tone')
 
   const handleLoadSample = (preset = SAMPLE_PRESETS[0]) => {
@@ -259,7 +257,6 @@ export default function CaseStudyGeneratorPage() {
       metrics: '',
       targetAudience: '',
       tone: 'authoritative',
-      preferredProvider: 'gemini-3.5-flash-lite',
     })
     setActiveSampleId(null)
     setDataResult(null)
@@ -337,7 +334,7 @@ export default function CaseStudyGeneratorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-800 pb-20">
+    <div className={isEmbedded ? 'w-full' : 'min-h-screen bg-slate-50 text-slate-800 pb-20'}>
       {/* Lead Capture Modal */}
       <LeadCaptureModal
         show={showPopup}
@@ -349,6 +346,7 @@ export default function CaseStudyGeneratorPage() {
       />
 
       {/* Hero Header */}
+      {!isEmbedded && (
       <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24 bg-gradient-to-b from-slate-50 to-white border-b border-slate-200">
         <div
           className="absolute inset-0 pointer-events-none"
@@ -404,9 +402,10 @@ export default function CaseStudyGeneratorPage() {
           )}
         </div>
       </section>
+      )}
 
       {/* Main Container */}
-      <div className="max-w-5xl mx-auto px-3 sm:px-6 py-6 sm:py-8">
+      <div className={isEmbedded ? 'w-full' : 'max-w-5xl mx-auto px-3 sm:px-6 py-6 sm:py-8'}>
         {/* Form Container — ONLY SHOWN WHEN NOT LOADING */}
         {!isLoading && (
           <div className="bg-white rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/40 border border-slate-200 p-4 sm:p-6 lg:p-7 mb-8 transition-all">
@@ -439,7 +438,7 @@ export default function CaseStudyGeneratorPage() {
                           : 'bg-white hover:bg-blue-50 text-slate-700 hover:text-[#0C81F3] border border-slate-200 hover:border-blue-200'
                       }`}
                     >
-                      <span>{preset.badgeIcon}</span>
+                      {preset.badgeIcon && <preset.badgeIcon className="w-3.5 h-3.5 shrink-0" />}
                       <span>{preset.shortName}</span>
                     </button>
                   )
@@ -591,14 +590,8 @@ export default function CaseStudyGeneratorPage() {
                 </div>
               </div>
 
-              {/* Model Selector & Action Row */}
+              {/* Action Row */}
               <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3.5">
-                <div className="w-full sm:w-auto">
-                  <ModelSelector
-                    value={preferredProvider}
-                    onChange={(val) => setValue('preferredProvider', val)}
-                  />
-                </div>
 
                 <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
                   <button
@@ -1112,7 +1105,7 @@ export default function CaseStudyGeneratorPage() {
                             dataResult.marketingStrategy?.salesEnablement?.killMetric || ''
                           )
                         }
-                        className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-medium text-white transition-all flex items-center gap-1"
+                        className="px-3 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-medium text-white transition-all flex items-center gap-1 cursor-pointer"
                       >
                         {copiedKey === 'kill-metric' ? (
                           <Check className="w-3.5 h-3.5 text-emerald-400" />
@@ -1469,8 +1462,8 @@ export default function CaseStudyGeneratorPage() {
                     </div>
                     <div className="space-y-3">
                       <div className="p-3 rounded-xl bg-rose-50 border border-rose-200">
-                        <span className="text-xs font-bold text-rose-700 block mb-1">
-                          ⚡ First 3-Second Scroll-Stopping Hook:
+                        <span className="text-xs font-bold text-rose-700 flex items-center gap-1 mb-1">
+                          <Zap className="w-3.5 h-3.5 shrink-0 text-rose-600" /> First 3-Second Scroll-Stopping Hook:
                         </span>
                         <p className="text-sm font-semibold text-slate-900 italic">
                           "{dataResult.marketingStrategy?.videoConcepts?.shortFormVideo?.hook3s}"

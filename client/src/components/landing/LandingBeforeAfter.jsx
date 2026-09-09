@@ -1,4 +1,4 @@
-import { XCircle, CheckCircle } from 'lucide-react'
+import { XCircle, CheckCircle, X, Check } from 'lucide-react'
 import useScrollReveal from './useScrollReveal'
 
 /**
@@ -47,7 +47,7 @@ export default function LandingBeforeAfter({
             <ul className="space-y-2.5 sm:space-y-3">
               {before.items.map((item, i) => (
                 <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-rose-700 font-normal">
-                  <span className="text-rose-400 mt-0.5 shrink-0 font-bold">✗</span>
+                  <X className="w-3.5 h-3.5 text-rose-500 mt-0.5 shrink-0" />
                   <span className="leading-snug">{item}</span>
                 </li>
               ))}
@@ -64,7 +64,7 @@ export default function LandingBeforeAfter({
             <ul className="space-y-2.5 sm:space-y-3">
               {after.items.map((item, i) => (
                 <li key={i} className="flex items-start gap-2.5 text-xs sm:text-sm text-emerald-700 font-normal">
-                  <span className="text-emerald-500 mt-0.5 shrink-0 font-bold">✓</span>
+                  <Check className="w-3.5 h-3.5 text-emerald-500 mt-0.5 shrink-0" />
                   <span className="leading-snug">{item}</span>
                 </li>
               ))}

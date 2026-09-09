@@ -182,39 +182,46 @@ async function callProvider(providerName, messages, options = {}) {
   return content
 }
 
-/* ── High-Level Call with Fallback ─────────────────────────────── */
+/* ── High-Level Call with Auto-Rotation ────────────────────────── */
+
+// Providers ordered by quality (best/latest first). The primary provider rotates
+// for every request so token usage is spread across models while staying on the
+// best available results, falling back down the list if the primary fails.
+const QUALITY_PROVIDER_ORDER = [
+  'gemini-3.5-flash',
+  'zen',
+  'zen-mimo',
+  'gemini-3.5-flash-lite',
+  'groq',
+  'qwen-3.8',
+  'north-mini',
+  'openrouter',
+]
+
+let rotationIndex = -1
+
+function getRotationProviderOrder() {
+  const configured = QUALITY_PROVIDER_ORDER.filter((p) => PROVIDERS[p]?.key)
+  rotationIndex += 1
+  const startIndex = rotationIndex % configured.length
+  return [...configured.slice(startIndex), ...configured.slice(0, startIndex)]
+}
 
 /**
- * Call AI with automatic provider fallback.
- * Tries the primary provider first, then falls back to others.
+ * Call AI with automatic provider rotation and fallback.
+ * The primary provider changes for every request (round-robin across configured
+ * providers, best/latest first). Any preferredProvider sent by the client is
+ * ignored in favor of rotation.
  *
  * @param {Array} messages - Chat messages array
- * @param {Object} options - { temperature, maxTokens, timeout, preferredProvider }
+ * @param {Object} options - { temperature, maxTokens, timeout }
  * @returns {string} AI response text
  */
 export async function callAI(messages, options = {}) {
   const { preferredProvider, ...callOpts } = options
+  const providerOrder = getRotationProviderOrder()
 
-  // Normalize provider alias (redirect failing/deprecated models to fastest working models)
-  let targetProvider = preferredProvider
-  if (targetProvider === 'gemini-3.5' || targetProvider === 'gemini_3_5') targetProvider = 'gemini-3.5-flash'
-  if (targetProvider === 'gemini-3.7' || targetProvider === 'gemini_3_7' || targetProvider === 'gemini-3.7-flash' || targetProvider === 'gemini') targetProvider = 'gemini-3.5-flash-lite'
-  if (targetProvider === 'gemini-lite' || targetProvider === 'gemini-3.5-lite') targetProvider = 'gemini-3.5-flash-lite'
-  if (targetProvider === 'qwen' || targetProvider === 'qwen-3.8' || targetProvider === 'qwen-3.8-27b' || targetProvider === 'qwen3.8') targetProvider = 'qwen-3.8'
-  if (targetProvider === 'zen' || targetProvider === 'zen-free' || targetProvider === 'opencode' || targetProvider === 'opencode-zen') targetProvider = 'zen'
-  if (targetProvider === 'big-pickle' || targetProvider === 'zen-pickle') targetProvider = 'zen-pickle'
-  if (targetProvider === 'mimo' || targetProvider === 'mimo-v2.5' || targetProvider === 'zen-mimo') targetProvider = 'zen-mimo'
-  if (targetProvider === 'north-mini' || targetProvider === 'north-mini-code') targetProvider = 'north-mini'
-  if (targetProvider === 'nemotron' || targetProvider === 'zen-nemotron' || targetProvider === 'ling' || targetProvider === 'zen-ling') targetProvider = 'zen'
-
-  // Determine provider order (prioritize fastest verified providers: gemini-3.5-flash-lite, qwen-3.8, groq, zen-mimo, zen, gemini-3.5-flash, north-mini, openrouter)
-  const allProviders = ['gemini-3.5-flash-lite', 'qwen-3.8', 'groq', 'zen-mimo', 'zen', 'gemini-3.5-flash', 'north-mini', 'openrouter'].filter(p => PROVIDERS[p]?.key)
-  const providerOrder = targetProvider && PROVIDERS[targetProvider]?.key
-    ? [targetProvider, ...allProviders.filter(p => p !== targetProvider)]
-    : allProviders
-
-
-  console.log(`AI provider: ${providerOrder.join(' → ')} (preferred: ${targetProvider || 'default'})`)
+  console.log(`AI provider (auto-rotate): ${providerOrder.join(' → ')}`)
   const errors = []
 
   for (const providerName of providerOrder) {
@@ -222,7 +229,7 @@ export async function callAI(messages, options = {}) {
 
     try {
       const result = await callProvider(providerName, messages, callOpts)
-      console.log(`✓ AI response from ${providerName}`)
+      console.log(`[OK] AI response from ${providerName}`)
       return result
     } catch (err) {
       console.log(`AI ${providerName} failed: ${err.message}`)

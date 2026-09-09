@@ -2,7 +2,6 @@ import { useState, useMemo } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useGenerateFaqsMutation } from '../../services/apiSlice'
-import ModelSelector from '../shared/ModelSelector'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import { faqGeneratorSchema, parseFaqGeneratorForm } from '../../schemas/faqGenerator.schema'
 import {
@@ -12,20 +11,14 @@ import {
   Check,
   Download,
   RefreshCw,
-  MessageSquare,
   ChevronDown,
   ChevronUp,
   Search,
   Code,
-  Globe,
   Smartphone,
   Monitor,
-  List,
   Layers,
   FileText,
-  ExternalLink,
-  Tag,
-  CheckCircle2,
 } from 'lucide-react'
 
 const QUESTION_TYPES = [
@@ -56,7 +49,7 @@ export default function FaqGeneratorPage() {
   } = useForm({
     resolver: zodResolver(faqGeneratorSchema),
     shouldUnregister: false,
-    defaultValues: { topic: '', targetKeywords: '', count: 8, preferredProvider: 'openrouter' },
+    defaultValues: { topic: '', targetKeywords: '', count: 8 },
   })
 
   const topic = watch('topic')
@@ -89,7 +82,6 @@ export default function FaqGeneratorPage() {
       topic: parsed.data.topic,
       targetKeywords: parsed.data.targetKeywords,
       count: Number(parsed.data.count),
-      preferredProvider: parsed.data.preferredProvider,
     })
       .unwrap()
       .then((result) => {
@@ -318,16 +310,6 @@ export default function FaqGeneratorPage() {
 
             {/* Model Selector & Submit */}
             <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-              <div className="w-full sm:w-auto sm:min-w-[190px]">
-                <Controller
-                  control={control}
-                  name="preferredProvider"
-                  render={({ field }) => (
-                    <ModelSelector value={field.value} onChange={field.onChange} compact={true} />
-                  )}
-                />
-              </div>
-
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
                 {faqs.length > 0 && (
                   <button
@@ -394,7 +376,7 @@ export default function FaqGeneratorPage() {
                 </div>
                 <button
                   onClick={handleReset}
-                  className="px-4 py-2 text-sm font-medium text-[#0C81F3] hover:bg-blue-50 rounded-lg"
+                  className="px-4 py-2 text-sm font-medium text-[#0C81F3] hover:bg-blue-50 rounded-lg cursor-pointer"
                 >
                   ← New Research
                 </button>
@@ -413,7 +395,7 @@ export default function FaqGeneratorPage() {
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all ${activeTab === tab.id ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-slate-500 hover:text-slate-900'}`}
+                    className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all ${activeTab === tab.id ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-slate-500 hover:text-slate-900'} cursor-pointer`}
                   >
                     <tab.icon className="w-4 h-4" />
                     <span>{tab.label}</span>
@@ -438,7 +420,7 @@ export default function FaqGeneratorPage() {
                     <button
                       key={f.id}
                       onClick={() => setFilterType(f.id)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${filterType === f.id ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${filterType === f.id ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-sm' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'} cursor-pointer`}
                     >
                       {f.label}
                     </button>
@@ -454,7 +436,7 @@ export default function FaqGeneratorPage() {
                     >
                       <button
                         onClick={() => toggleExpand(i)}
-                        className="w-full flex items-center justify-between p-4 sm:p-5 text-left hover:bg-slate-50 transition-colors"
+                        className="w-full flex items-center justify-between p-4 sm:p-5 text-left hover:bg-slate-50 transition-colors cursor-pointer"
                       >
                         <div className="flex items-start gap-3 flex-1 min-w-0">
                           <div className="w-7 h-7 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white flex items-center justify-center text-xs font-bold shrink-0">
@@ -498,9 +480,17 @@ export default function FaqGeneratorPage() {
                             onClick={() =>
                               triggerCopy(faq.question + '\n\n' + faq.answer, `faq-${i}`)
                             }
-                            className="mt-3 px-3 py-1.5 text-xs font-semibold text-[#0C81F3] bg-blue-50 rounded-lg hover:bg-blue-100"
+                            className="mt-3 px-3 py-1.5 text-xs font-semibold text-[#0C81F3] bg-blue-50 rounded-lg hover:bg-blue-100 inline-flex items-center gap-1.5 cursor-pointer"
                           >
-                            {copiedState === `faq-${i}` ? '✓ Copied' : 'Copy FAQ'}
+                            {copiedState === `faq-${i}` ? (
+                              <>
+                                <Check className="w-3.5 h-3.5 text-emerald-600" /> Copied
+                              </>
+                            ) : (
+                              <>
+                                <Copy className="w-3.5 h-3.5" /> Copy FAQ
+                              </>
+                            )}
                           </button>
                         </div>
                       )}
@@ -518,14 +508,14 @@ export default function FaqGeneratorPage() {
                   <div className="flex items-center gap-2">
                     <button
                       onClick={() => setSerpDevice('desktop')}
-                      className={`px-3 py-1 rounded-lg text-xs font-semibold ${serpDevice === 'desktop' ? 'bg-blue-50 text-blue-700' : 'text-slate-500'}`}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold ${serpDevice === 'desktop' ? 'bg-blue-50 text-blue-700' : 'text-slate-500'} cursor-pointer`}
                     >
                       <Monitor className="w-3.5 h-3.5 inline mr-1" />
                       Desktop
                     </button>
                     <button
                       onClick={() => setSerpDevice('mobile')}
-                      className={`px-3 py-1 rounded-lg text-xs font-semibold ${serpDevice === 'mobile' ? 'bg-blue-50 text-blue-700' : 'text-slate-500'}`}
+                      className={`px-3 py-1 rounded-lg text-xs font-semibold ${serpDevice === 'mobile' ? 'bg-blue-50 text-blue-700' : 'text-slate-500'} cursor-pointer`}
                     >
                       <Smartphone className="w-3.5 h-3.5 inline mr-1" />
                       Mobile
@@ -574,7 +564,7 @@ export default function FaqGeneratorPage() {
                   <h3 className="text-sm font-bold text-slate-900">FAQ Schema.org JSON-LD</h3>
                   <button
                     onClick={() => triggerCopy(jsonLdString, 'schema')}
-                    className="px-3 py-1.5 text-xs font-semibold text-[#0C81F3] bg-blue-50 rounded-lg hover:bg-blue-100 flex items-center gap-1.5"
+                    className="px-3 py-1.5 text-xs font-semibold text-[#0C81F3] bg-blue-50 rounded-lg hover:bg-blue-100 flex items-center gap-1.5 cursor-pointer"
                   >
                     {copiedState === 'schema' ? (
                       <Check className="w-3.5 h-3.5 text-green-600" />
@@ -597,7 +587,7 @@ export default function FaqGeneratorPage() {
                 <div className="grid sm:grid-cols-3 gap-3">
                   <button
                     onClick={() => handleDownloadFile(markdownText, 'faqs.md', 'text/markdown')}
-                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left"
+                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left cursor-pointer"
                   >
                     <FileText className="w-5 h-5 text-[#0C81F3] mb-2" />
                     <div className="text-sm font-bold text-slate-900">Markdown</div>
@@ -605,7 +595,7 @@ export default function FaqGeneratorPage() {
                   </button>
                   <button
                     onClick={() => handleDownloadFile(htmlDetailsText, 'faqs.html', 'text/html')}
-                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left"
+                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left cursor-pointer"
                   >
                     <Code className="w-5 h-5 text-purple-600 mb-2" />
                     <div className="text-sm font-bold text-slate-900">HTML Details</div>
@@ -615,7 +605,7 @@ export default function FaqGeneratorPage() {
                     onClick={() =>
                       handleDownloadFile(jsonLdString, 'faq-schema.json', 'application/json')
                     }
-                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left"
+                    className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left cursor-pointer"
                   >
                     <Layers className="w-5 h-5 text-emerald-600 mb-2" />
                     <div className="text-sm font-bold text-slate-900">JSON-LD Schema</div>

@@ -8,7 +8,7 @@ import {
   Check,
   FileSpreadsheet,
   Target,
-  Sparkles,
+  Zap,
 } from 'lucide-react'
 
 export default function StrategicOverviewCard({
@@ -270,8 +270,8 @@ ${(results.competitorVulnerabilities || []).map((v) => `• ${v}`).join('\n')}
               ))}
             </ul>
           </div>
-          <p className="text-[11px] text-rose-800/70 mt-3 pt-2.5 border-t border-rose-200/60 font-medium">
-            ⚡ Focus your 10x content directly on these areas to outrank them.
+          <p className="text-[11px] text-rose-800/70 mt-3 pt-2.5 border-t border-rose-200/60 font-medium flex items-center gap-1.5">
+            <Zap className="w-3.5 h-3.5 text-rose-600 shrink-0" /> Focus your 10x content directly on these areas to outrank them.
           </p>
         </div>
       </div>

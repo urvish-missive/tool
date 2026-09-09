@@ -12,7 +12,6 @@ export const contentQaSchema = z.object({
     .enum(['website', 'linkedin', 'newsletter', 'landing_page', 'social'])
     .default('website'),
   targetAudience: z.string().trim().max(200).optional().or(z.literal('')),
-  preferredProvider: z.string().optional().default('gemini-3.5-flash-lite'),
 })
 
 export function parseContentQaForm(data) {

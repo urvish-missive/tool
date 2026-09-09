@@ -33,7 +33,7 @@ export async function createAudit(req, res) {
     const cacheKey = apiResultCache.hashKey('audit', { normalizedUrl, preferredProvider })
     const cached = apiResultCache.get(cacheKey)
     if (cached) {
-      console.log(`✓ Returning cached audit report for ${normalizedUrl}`)
+      console.log(`[OK] Returning cached audit report for ${normalizedUrl}`)
       return res.json({ success: true, auditId: cached.auditId, report: cached.report })
     }
 
@@ -251,7 +251,7 @@ export async function createAudit(req, res) {
       console.error('DB save failed (non-fatal):', dbErr.message)
     }
 
-    console.log(`✓ Audit complete for ${normalizedUrl} — score: ${scores.overallScore}/100`)
+    console.log(`[OK] Audit complete for ${normalizedUrl} — score: ${scores.overallScore}/100`)
     apiResultCache.set(cacheKey, { auditId, report }, 10 * 60 * 1000)
     res.json({ success: true, auditId, report })
   } catch (err) {

@@ -3,7 +3,6 @@ import {
   useGenerateBlogTopicsMutation,
   useGenerateMasterBriefMutation,
 } from '../../services/apiSlice'
-import ModelSelector from '../shared/ModelSelector'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import {
   Sparkles,
@@ -88,7 +87,7 @@ const DIFFICULTY_COLORS = {
   hard: 'bg-rose-50 text-rose-700 border-rose-200',
 }
 
-export default function BlogTopicGeneratorPage() {
+export default function BlogTopicGeneratorPage({ isEmbedded = false }) {
   const [niche, setNiche] = useState('')
   const [targetKeywords, setTargetKeywords] = useState('')
   const [audience, setAudience] = useState('')
@@ -96,8 +95,6 @@ export default function BlogTopicGeneratorPage() {
   const [tone, setTone] = useState('authoritative')
   const [contentType, setContentType] = useState(CONTENT_TYPES[0])
   const [count, setCount] = useState(8)
-  const [preferredProvider, setPreferredProvider] = useState('groq')
-
   const [generateBlogTopics, { isLoading, reset: resetMutation }] = useGenerateBlogTopicsMutation()
   const [generateMasterBrief, { isLoading: isMasterBriefLoading }] =
     useGenerateMasterBriefMutation()
@@ -149,7 +146,6 @@ export default function BlogTopicGeneratorPage() {
         contentType,
         tone,
         count: Number(count),
-        preferredProvider,
       }).unwrap()
 
       setResults(res)
@@ -177,7 +173,6 @@ export default function BlogTopicGeneratorPage() {
         niche: niche.trim(),
         audience: audience.trim() || undefined,
         tone,
-        preferredProvider,
       }).unwrap()
 
       if (res.success && res.masterBrief) {
@@ -1292,8 +1287,9 @@ export default function BlogTopicGeneratorPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20">
+    <div className={isEmbedded ? 'w-full' : 'min-h-screen bg-slate-50/50 pb-20'}>
       {/* Hero Header */}
+      {!isEmbedded && (
       <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
         <div
           className="absolute inset-0"
@@ -1318,9 +1314,10 @@ export default function BlogTopicGeneratorPage() {
           </p>
         </div>
       </section>
+      )}
 
       {/* Main Container */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className={isEmbedded ? 'w-full' : 'max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8'}>
         {/* Form Card */}
         {!isLoading && (
           <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10">
@@ -1446,16 +1443,8 @@ export default function BlogTopicGeneratorPage() {
                 </div>
               </div>
 
-              {/* Model Selector & Actions */}
+              {/* Actions */}
               <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-                <div className="w-full sm:w-auto sm:min-w-[190px]">
-                  <ModelSelector
-                    value={preferredProvider || 'groq'}
-                    onChange={setPreferredProvider}
-                    compact={true}
-                  />
-                </div>
-
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
                   {results && (
                     <button

@@ -6,10 +6,8 @@ import {
   PenTool,
   Target,
   Layers,
-  TrendingUp,
   Compass,
   Zap,
-  ArrowRight,
   CheckCircle2,
   Clock,
   BarChart3,
@@ -25,10 +23,10 @@ import {
   LandingDarkImpact,
   LandingFeatures,
   LandingHowItWorks,
-  LandingBeforeAfter,
   LandingStats,
   LandingFAQ,
   LandingCTA,
+  LandingLiveDemo,
 } from '../components/landing'
 import BlogIntroGeneratorPage from '../tools/blog-intro-generator/BlogIntroGeneratorPage'
 
@@ -36,7 +34,7 @@ import BlogIntroGeneratorPage from '../tools/blog-intro-generator/BlogIntroGener
 const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
-  name: 'Blog Introduction Generator — Missive Digital',
+  name: 'Blog Introduction Generator: Missive Digital',
   description:
     'Free AI-powered blog introduction generator by Missive Digital. Create high-converting TOFU, MOFU, and BOFU blog hooks and introductions in seconds.',
   url: 'https://tools.missivedigital.com/blog-intro-generator',
@@ -73,7 +71,7 @@ const faqStructuredData = {
       name: 'What is a blog introduction generator?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'A blog introduction generator is an AI-powered tool that creates compelling opening paragraphs for blog posts. It generates multiple hook types — curiosity gaps, statistics, story-led, PAS frameworks, and ROI verdicts — optimized for different funnel stages (TOFU, MOFU, BOFU) to maximize reader engagement and reduce bounce rate.',
+        text: 'A blog introduction generator is an AI-powered tool that creates compelling opening paragraphs for blog posts. It generates multiple hook types, including curiosity gaps, statistics, story-led, PAS frameworks, and ROI verdicts, each optimized for different funnel stages (TOFU, MOFU, BOFU) to maximize reader engagement and reduce bounce rate.',
       },
     },
     {
@@ -109,7 +107,7 @@ const FEATURES = [
     icon: Target,
     title: 'Funnel-Optimized Hooks',
     description:
-      'Generate introductions tailored to TOFU (Awareness), MOFU (Consideration), and BOFU (Decision) stages — each using a different psychological trigger.',
+      'Generate introductions tailored to TOFU (Awareness), MOFU (Consideration), and BOFU (Decision) stages, each using a different psychological trigger.',
   },
   {
     icon: Layers,
@@ -121,7 +119,7 @@ const FEATURES = [
     icon: MessageSquare,
     title: '8 Tone Options',
     description:
-      'Conversational, Authoritative, Storytelling, Fun, Bold, Empathetic, Witty, or Data-Driven — match your brand voice precisely.',
+      'Conversational, Authoritative, Storytelling, Fun, Bold, Empathetic, Witty, or Data-Driven: match your brand voice precisely.',
   },
   {
     icon: PenTool,
@@ -133,7 +131,7 @@ const FEATURES = [
     icon: Zap,
     title: 'AI-Powered, Not Template-Based',
     description:
-      'Powered by Google Gemini, Groq, or OpenRouter — generating psychologically validated introductions, not generic fill-in-the-blank templates.',
+      'Powered by Google Gemini, Groq, or OpenRouter: generating psychologically validated introductions, not generic fill-in-the-blank templates.',
   },
   {
     icon: BookOpen,
@@ -166,46 +164,23 @@ const STEPS = [
   },
 ]
 
-const BEFORE_AFTER = {
-  before: {
-    title: 'Without This Tool',
-    items: [
-      'Staring at a blank page for 30+ minutes writing an intro',
-      'Using the same "In today\'s digital world…" opening every time',
-      'Intros that don\'t hook readers — 67% bounce rate',
-      'No strategy behind which funnel stage the intro targets',
-      'Generic, forgettable openings that blend with competitors',
-    ],
-  },
-  after: {
-    title: 'With This Tool',
-    items: [
-      '9-15 high-converting intros generated in under 10 seconds',
-      'Psychologically validated hook formulas that stop the scroll',
-      'Intros engineered for TOFU, MOFU, or BOFU conversion goals',
-      'Seamless bridge transitions into your first subheading',
-      'Unique, brand-voice-matched openings that stand out',
-    ],
-  },
-}
-
 const STATS = [
   { value: '67%', label: 'Lower bounce rate with strong intros' },
   { value: '3x', label: 'More engagement vs generic openings' },
   { value: '9', label: 'Psychological hook formulas' },
-  { value: '15s', label: 'Average generation time' },
+  { value: '20-30 sec', label: 'Average generation time' },
 ]
 
 const FAQS = [
   {
     question: 'What is a blog introduction generator?',
     answer:
-      'A blog introduction generator is an AI-powered tool that creates compelling opening paragraphs for blog posts. It generates multiple hook types — curiosity gaps, statistics, story-led, PAS frameworks, and ROI verdicts — optimized for different funnel stages (TOFU, MOFU, BOFU) to maximize reader engagement and reduce bounce rate.',
+      'A blog introduction generator is an AI-powered tool that creates compelling opening paragraphs for blog posts. It generates multiple hook types, including curiosity gaps, statistics, story-led, PAS frameworks, and ROI verdicts, each optimized for different funnel stages (TOFU, MOFU, BOFU) to maximize reader engagement and reduce bounce rate.',
   },
   {
     question: 'How many blog introductions can I generate at once?',
     answer:
-      'You can generate 6, 9, 12, or 15 variations per request. The default is 9 — 3 per funnel stage (TOFU, MOFU, BOFU). Each variation uses a different psychological hook formula and emotional trigger.',
+      'You can generate 6, 9, 12, or 15 variations per request. The default is 9: 3 per funnel stage (TOFU, MOFU, BOFU). Each variation uses a different psychological hook formula and emotional trigger.',
   },
   {
     question: 'What funnel stages does this tool support?',
@@ -225,7 +200,7 @@ const FAQS = [
   {
     question: 'What AI model powers the introductions?',
     answer:
-      'You can choose between Google Gemini, Groq, or OpenRouter models. Each uses advanced language understanding to generate psychologically validated hooks — not generic templates.',
+      'You can choose between Google Gemini, Groq, or OpenRouter models. Each uses advanced language understanding to generate psychologically validated hooks, not generic templates.',
   },
 ]
 
@@ -236,7 +211,7 @@ function TrustSection() {
   const items = [
     { icon: Users, value: '2,000+', label: 'Active users monthly' },
     { icon: BarChart3, value: '50,000+', label: 'Intros generated' },
-    { icon: Clock, value: '10 sec', label: 'Average generation time' },
+    { icon: Clock, value: '20-30 sec', label: 'Average generation time' },
   ]
 
   return (
@@ -277,46 +252,24 @@ function TrustSection() {
   )
 }
 
-/* ─────────────── Tool Section ─────────────── */
-function ToolSection({ toolRef }) {
-  const headerRef = useScrollReveal()
-
-  return (
-    <section
-      ref={toolRef}
-      id="tool"
-      className="py-12 sm:py-16 lg:py-20 bg-slate-50 border-y border-slate-200/70 scroll-mt-20"
-    >
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div ref={headerRef} className="lp-reveal text-center mb-8 sm:mb-10">
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[10px] sm:text-xs font-bold rounded-full mb-3 tracking-wider uppercase shadow-md shadow-[#0C81F3]/20">
-            <Zap className="w-3.5 h-3.5" />
-            Try It Now — It's Free
-          </span>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-2 sm:mb-2.5 leading-tight">
-            Generate Your Blog Introductions
-          </h2>
-          <p className="text-xs sm:text-sm md:text-base text-slate-600 max-w-lg mx-auto leading-relaxed font-normal">
-            Enter your topic below. Choose a funnel stage, tone, and number of variations — the AI handles the rest.
-          </p>
-        </div>
-
-        <div className="tool-embed">
-          <BlogIntroGeneratorPage isEmbedded={true} />
-        </div>
-      </div>
-    </section>
-  )
-}
-
-
-
 /* ─────────────── Landing Page Component ─────────────── */
 export default function BlogIntroLandingPage() {
   const toolRef = useRef(null)
 
   const scrollToTool = useCallback(() => {
-    toolRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const el = toolRef.current || document.getElementById('tool')
+    if (!el) return
+    const navHeight = 90
+    const top = el.getBoundingClientRect().top + window.pageYOffset - navHeight
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+  }, [])
+
+  const scrollToSection = useCallback((sectionId) => {
+    const el = document.getElementById(sectionId)
+    if (!el) return
+    const navHeight = 90
+    const top = el.getBoundingClientRect().top + window.pageYOffset - navHeight
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
   }, [])
 
   /* Scroll to tool section if URL has #tool-hash */
@@ -330,7 +283,7 @@ export default function BlogIntroLandingPage() {
     <>
       {/* ── SEO Meta Tags ── */}
       <Helmet>
-        <title>Blog Introduction Generator — Free AI Tool | Missive Digital</title>
+        <title>Blog Introduction Generator: Free AI Tool | Missive Digital</title>
         <meta
           name="description"
           content="Generate high-converting blog introductions in seconds. AI-powered TOFU, MOFU & BOFU hooks with 9 psychological formulas. Free, no sign-up required."
@@ -340,7 +293,7 @@ export default function BlogIntroLandingPage() {
           content="blog introduction generator, blog hook generator, AI blog intro, TOFU MOFU BOFU intro, blog opening paragraph, content marketing tool, SEO blog intro"
         />
         <link rel="canonical" href="https://tools.missivedigital.com/blog-intro-generator" />
-        <meta property="og:title" content="Blog Introduction Generator — Free AI Tool | Missive Digital" />
+        <meta property="og:title" content="Blog Introduction Generator: Free AI Tool | Missive Digital" />
         <meta
           property="og:description"
           content="Generate high-converting blog introductions in seconds. AI-powered TOFU, MOFU & BOFU hooks with 9 psychological formulas."
@@ -348,7 +301,7 @@ export default function BlogIntroLandingPage() {
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://tools.missivedigital.com/blog-intro-generator" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Blog Introduction Generator — Missive Digital" />
+        <meta name="twitter:title" content="Blog Introduction Generator: Missive Digital" />
         <meta
           name="twitter:description"
           content="Generate high-converting blog introductions in seconds. Free, AI-powered, funnel-optimized."
@@ -367,28 +320,68 @@ export default function BlogIntroLandingPage() {
             { text: 'Blog Introductions', gradient: true },
             { text: ' in Seconds' },
           ]}
-          subtitle="AI-powered blog hooks engineered across the full funnel — TOFU (Awareness), MOFU (Consideration), and BOFU (Decision). 9 psychological formulas, 8 tones, zero writer's block."
+          subtitle="AI-powered blog hooks engineered across the full funnel: TOFU (Awareness), MOFU (Consideration), and BOFU (Decision). 9 psychological formulas, 8 tones, zero writer's block."
           ctaLabel="Start Generating Free →"
           ctaOnClick={scrollToTool}
-          secondaryCta={{ label: 'Explore Funnel Frameworks', onClick: scrollToTool }}
+          secondaryCta={{
+            label: 'See 9 Hook Formulas ↓',
+            onClick: () => scrollToSection('frameworks'),
+          }}
           trustBadges={[
             'No sign-up required',
             '100% free',
             'SEO & E-E-A-T optimized',
             'Unlimited generations',
           ]}
+          toolRef={toolRef}
+          toolLabel="Generate Blog Introductions • Live"
+          toolSlot={<BlogIntroGeneratorPage isEmbedded={true} />}
         />
 
         {/* ═══════════════ 2. INFINITE CMS & PUBLISHING MARQUEE ═══════════════ */}
         <LandingMarquee />
 
-        {/* ═══════════════ 3. INTERACTIVE FUNNEL FLOW VISUALIZER ═══════════════ */}
+        {/* ═══════════════ 3. ANIMATED LIVE DEMO ═══════════════ */}
+        <LandingLiveDemo
+          badge="See It Think"
+          heading="Watch a Blog Intro Get Written Live"
+          subheading="Type a topic, pick a funnel stage, and watch the AI craft a psychologically validated hook in seconds."
+          accentIcon={Target}
+          examples={[
+            {
+              label: 'TOFU · Curiosity Gap',
+              input: 'How to Scale Organic Traffic with Programmatic SEO',
+              outputTitle: 'Curiosity Gap Hook',
+              outputBody:
+                '"93% of SaaS founders are one algorithm update away from losing their entire organic pipeline. Here\'s the programmatic framework that made ours update-proof."',
+              outputMeta: ['TOFU', 'Curiosity Gap', '38 words'],
+            },
+            {
+              label: 'MOFU · PAS Framework',
+              input: 'B2B Content Marketing ROI Measurement',
+              outputTitle: 'Problem-Agitate-Solve Hook',
+              outputBody:
+                '"Most B2B teams track vanity metrics while pipeline attribution stays a mystery. The 3-metric framework below fixes that in one sprint."',
+              outputMeta: ['MOFU', 'PAS Framework', '31 words'],
+            },
+            {
+              label: 'BOFU · ROI Verdict',
+              input: 'Enterprise SEO Tooling Comparison',
+              outputTitle: 'ROI Verdict Hook',
+              outputBody:
+                '"We audited 40 enterprise SEO stacks. Only 3 paid for themselves inside 90 days. Here is the exact criteria that separated them."',
+              outputMeta: ['BOFU', 'ROI Verdict', '29 words'],
+            },
+          ]}
+        />
+
+        {/* ═══════════════ 4. INTERACTIVE FUNNEL FLOW VISUALIZER ═══════════════ */}
         <LandingFunnelFlow onTryTool={scrollToTool} />
 
-        {/* ═══════════════ 4. STATS ROW ═══════════════ */}
+        {/* ═══════════════ 5. STATS ROW ═══════════════ */}
         <LandingStats stats={STATS} />
 
-        {/* ═══════════════ 5. FEATURES GRID (UPGRADED CARDS) ═══════════════ */}
+        {/* ═══════════════ 6. FEATURES GRID (UPGRADED CARDS) ═══════════════ */}
         <LandingFeatures
           sectionLabel="Why This Tool?"
           heading="Blog Introductions That Actually Convert"
@@ -397,10 +390,10 @@ export default function BlogIntroLandingPage() {
           columns={3}
         />
 
-        {/* ═══════════════ 6. SIGNATURE FLOATING PILL CLOUD ═══════════════ */}
+        {/* ═══════════════ 7. SIGNATURE FLOATING PILL CLOUD ═══════════════ */}
         <LandingPillCloud />
 
-        {/* ═══════════════ 7. HOW IT WORKS (STEP CARDS) ═══════════════ */}
+        {/* ═══════════════ 8. HOW IT WORKS (STEP CARDS) ═══════════════ */}
         <LandingHowItWorks
           sectionLabel="How It Works"
           heading="From Topic to High-Converting Intro in 4 Steps"
@@ -408,36 +401,24 @@ export default function BlogIntroLandingPage() {
           steps={STEPS}
         />
 
-        {/* ═══════════════ 8. SIGNATURE DARK IMPACT SECTION (#171720) ═══════════════ */}
+        {/* ═══════════════ 9. SIGNATURE DARK IMPACT SECTION (#171720) ═══════════════ */}
         <LandingDarkImpact onCtaClick={scrollToTool} />
-
-        {/* ═══════════════ 9. BEFORE / AFTER COMPARISON ═══════════════ */}
-        <LandingBeforeAfter
-          sectionLabel="Results"
-          heading="The Difference a Great Intro Makes"
-          subheading="Your blog introduction is the single most important paragraph on the page. Here's what changes when you nail it."
-          before={BEFORE_AFTER.before}
-          after={BEFORE_AFTER.after}
-        />
 
         {/* ═══════════════ 10. TRUST / E-E-A-T SECTION ═══════════════ */}
         <TrustSection />
 
-        {/* ═══════════════ 11. TOOL SECTION (Scroll Anchor) ═══════════════ */}
-        <ToolSection toolRef={toolRef} />
-
-        {/* ═══════════════ 12. FAQ ACCORDION ═══════════════ */}
+        {/* ═══════════════ 11. FAQ ACCORDION ═══════════════ */}
         <LandingFAQ
           sectionLabel="Frequently Asked Questions"
-          heading="Everything You Need to Know"
-          subheading="Got questions? We've answered the most common ones below."
+          heading="Blog Intro Generator FAQs"
+          subheading="Everything you need to know about creating high-converting blog introductions with AI."
           faqs={FAQS}
         />
 
-        {/* ═══════════════ 13. FINAL RADIANT CTA ═══════════════ */}
+        {/* ═══════════════ 12. FINAL RADIANT CTA ═══════════════ */}
         <LandingCTA
           heading="Stop Writing Boring Blog Intros"
-          subheading="Join 2,000+ content marketers who use our AI generator to create high-converting introductions in seconds. No sign-up required."
+          subheading="Try the Blog Intro Generator free. Create psychologically validated openings that reduce bounce rates and boost engagement. No sign-up required."
           ctaLabel="Start Generating Free"
           ctaOnClick={scrollToTool}
         />

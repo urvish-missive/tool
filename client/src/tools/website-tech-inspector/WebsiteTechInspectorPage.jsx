@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import { useInspectWebsiteTechMutation } from '../../services/apiSlice'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
@@ -455,8 +455,12 @@ export default function WebsiteTechInspectorPage() {
                             className="h-9 w-full relative flex items-center justify-center"
                             style={{ backgroundColor: item.hex }}
                           >
-                            <span className="text-[9px] font-mono font-bold px-1 rounded bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity">
-                              {copiedKey === `swatch-${idx}` ? '✓' : 'Copy'}
+                            <span className="text-[9px] font-mono font-bold px-1 rounded bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                              {copiedKey === `swatch-${idx}` ? (
+                                <Check className="w-3 h-3 text-emerald-400" />
+                              ) : (
+                                'Copy'
+                              )}
                             </span>
                           </div>
                           <div className="p-1 text-center">
@@ -567,8 +571,8 @@ export default function WebsiteTechInspectorPage() {
                                 key={idx}
                                 className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-50 border border-slate-200 shadow-2xs hover:border-slate-300 transition-colors"
                               >
-                                <span className="text-base shrink-0 leading-none">
-                                  {techItem.icon || '⚡'}
+                                <span className="text-[#0C81F3] shrink-0 leading-none">
+                                  <Cpu className="w-3.5 h-3.5" />
                                 </span>
                                 <div className="flex items-baseline gap-1.5">
                                   <span className="text-xs font-bold text-slate-900">

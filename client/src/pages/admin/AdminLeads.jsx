@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Download, Users } from 'lucide-react'
 import { useGetAdminLeadsQuery, useDeleteAdminLeadMutation } from '../../services/apiSlice'
 import ConfirmModal from '../../components/ConfirmModal'
 import TablePagination from '../../components/TablePagination'
@@ -84,9 +85,10 @@ export default function AdminLeads() {
         </div>
         <button
           onClick={exportCSV}
-          className="px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors"
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-gray-200 text-gray-700 rounded-xl text-sm font-medium hover:bg-gray-50 transition-colors cursor-pointer"
         >
-          📥 Export CSV
+          <Download className="w-4 h-4 text-gray-500" />
+          <span>Export CSV</span>
         </button>
       </div>
 
@@ -102,7 +104,7 @@ export default function AdminLeads() {
           />
           <button
             type="submit"
-            className="px-4 py-2.5 bg-[#0C81F3] text-white rounded-xl text-sm font-medium hover:bg-[#0a6cd4] transition-colors"
+            className="px-4 py-2.5 bg-[#0C81F3] text-white rounded-xl text-sm font-medium hover:bg-[#0a6cd4] transition-colors cursor-pointer"
           >
             Search
           </button>
@@ -132,7 +134,7 @@ export default function AdminLeads() {
           </div>
         ) : leads.length === 0 ? (
           <div className="py-16 text-center text-gray-400">
-            <span className="text-3xl block mb-2">👥</span>
+            <Users className="w-8 h-8 text-gray-300 mx-auto mb-2" />
             <p className="text-sm">No leads found</p>
           </div>
         ) : (
@@ -179,7 +181,7 @@ export default function AdminLeads() {
                     <td className="px-4 py-3 text-right">
                       <button
                         onClick={() => setLeadToDelete(lead)}
-                        className="text-xs text-gray-400 hover:text-red-500 transition-colors"
+                        className="text-xs text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
                       >
                         Delete
                       </button>

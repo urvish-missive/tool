@@ -68,7 +68,7 @@ export async function createResearch(req, res) {
       console.error('DB save failed (non-fatal):', dbErr.message)
     }
 
-    console.log(`✓ Keyword research complete — ${report.keywords?.length || 0} keywords`)
+    console.log(`[OK] Keyword research complete — ${report.keywords?.length || 0} keywords`)
     res.json({ success: true, researchId, report })
   } catch (err) {
     console.error('Keyword research error:', err.message)

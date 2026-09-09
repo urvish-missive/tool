@@ -16,6 +16,12 @@ import {
   BookOpen,
   PenTool,
   ShieldCheck,
+  Ban,
+  RefreshCw,
+  Lightbulb,
+  ClipboardList,
+  Check,
+  ArrowUpRight,
 } from 'lucide-react'
 import {
   LandingHero,
@@ -25,14 +31,13 @@ import {
   LandingDarkImpact,
   LandingFeatures,
   LandingHowItWorks,
-  LandingBeforeAfter,
   LandingStats,
   LandingFAQ,
   LandingCTA,
-  LandingMissiveQA,
   LandingConclusionAnatomy,
   LandingBannedWordsWall,
   LandingFrameworksGallery,
+  LandingLiveDemo,
 } from '../components/landing'
 import BlogConclusionGeneratorPage from '../tools/blog-conclusion-generator/BlogConclusionGeneratorPage'
 
@@ -190,34 +195,12 @@ const STEPS = [
   },
 ]
 
-const BEFORE_AFTER = {
-  before: {
-    title: 'Without This Tool',
-    items: [
-      'Generic "In Conclusion" or "To Sum Up" H2 headings that signal readers to leave',
-      'Conclusions that ignore the open loops and questions raised in the introduction',
-      'CTA that feels bolted-on with zero urgency: generic "contact us for more info"',
-      'No funnel-stage strategy: every post ends with the same polite, forgettable summary',
-      'Wasted dwell time and lost pipeline right at the moment of highest reader intent',
-    ],
-  },
-  after: {
-    title: 'With This Tool',
-    items: [
-      'Specific, benefit-driven H2 headlines that reinforce the core strategic promise',
-      'Conclusions that explicitly close every open loop and curiosity gap from the intro',
-      'Funnel-matched CTAs: strategy demos, free trials, asset downloads, or related reads',
-      'Strict adherence to Missive QA: zero em dashes and zero robotic clichés',
-      'Drop-in conclusions that convert lingering attention into measurable commercial action',
-    ],
-  },
-}
 
 const STATS = [
   { value: '0', label: 'Generic "In Conclusion" headings' },
   { value: '100%', label: 'Intro open loop resolution rate' },
   { value: '42%', label: 'Higher CTA click-through rate' },
-  { value: '15s', label: 'Average generation time' },
+  { value: '20-30 sec', label: 'Average generation time' },
 ]
 
 const FAQS = [
@@ -336,62 +319,62 @@ const CONCLUSION_PILLS = [
   {
     text: 'Specific H2 Hook Closures',
     color: 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100',
-    icon: '🎯',
+    icon: Target,
   },
   {
     text: 'Zero Robotic Buzzwords',
     color: 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100',
-    icon: '🚫',
+    icon: Ban,
   },
   {
     text: 'Intro Loop Resolution',
     color: 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100',
-    icon: '🔄',
+    icon: RefreshCw,
   },
   {
     text: 'TOFU Mindset Shifts',
     color: 'bg-blue-50 text-[#0C81F3] border-blue-200 hover:bg-blue-100',
-    icon: '💡',
+    icon: Lightbulb,
   },
   {
     text: 'MOFU Blueprint Downloads',
     color: 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100',
-    icon: '📋',
+    icon: ClipboardList,
   },
   {
     text: 'BOFU High-Intent Demos',
     color: 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100',
-    icon: '⚡',
+    icon: Zap,
   },
   {
     text: 'Strictly Zero Em Dashes',
     color: 'bg-slate-100 text-slate-800 border-slate-300 hover:bg-slate-200',
-    icon: '✍️',
+    icon: PenTool,
   },
   {
     text: 'Definitive ROI Verdicts',
     color: 'bg-teal-50 text-teal-800 border-teal-200 hover:bg-teal-100',
-    icon: '📈',
+    icon: TrendingUp,
   },
   {
     text: 'Google E-E-A-T Aligned',
     color: 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100',
-    icon: '✓',
+    icon: Check,
   },
   {
     text: 'Cost of Delay Urgency',
     color: 'bg-fuchsia-50 text-fuchsia-700 border-fuchsia-200 hover:bg-fuchsia-100',
-    icon: '⏳',
+    icon: Clock,
   },
   {
     text: 'Contextual CTA Bridges',
     color: 'bg-lime-50 text-lime-800 border-lime-200 hover:bg-lime-100',
-    icon: '↗',
+    icon: ArrowUpRight,
   },
   {
     text: '12-Pillar Missive QA',
     color: 'bg-orange-50 text-orange-800 border-orange-200 hover:bg-orange-100',
-    icon: '🛡️',
+    icon: ShieldCheck,
   },
 ]
 
@@ -402,7 +385,7 @@ function TrustSection() {
   const items = [
     { icon: Users, value: '2,000+', label: 'Active content strategists monthly' },
     { icon: BarChart3, value: '50,000+', label: 'Conclusions generated and published' },
-    { icon: Clock, value: '15 sec', label: 'Average generation and audit time' },
+    { icon: Clock, value: '20-30 sec', label: 'Average generation and audit time' },
   ]
 
   return (
@@ -442,52 +425,6 @@ function TrustSection() {
               </div>
             )
           })}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ─────────────── Tool Section (Uniform Spacing) ─────────────── */
-function ToolSection({ toolRef }) {
-  const headerRef = useScrollReveal()
-
-  return (
-    <section
-      ref={toolRef}
-      id="tool"
-      className="py-12 sm:py-16 lg:py-20 bg-slate-50 border-y border-slate-200/70 scroll-mt-20"
-    >
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div ref={headerRef} className="lp-reveal text-center mb-8 sm:mb-10">
-          <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[10px] sm:text-xs font-bold rounded-full mb-3 tracking-wider uppercase shadow-md shadow-[#0C81F3]/20">
-            <Zap className="w-3.5 h-3.5" />
-            Try It Now: 100% Free
-          </span>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-2 sm:mb-2.5 leading-tight">
-            <span>Blog Conclusion </span>
-            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
-              Generator
-            </span>
-          </h2>
-          <p className="text-xs sm:text-sm md:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed font-normal">
-            Turn reader attention into measurable action. Craft search-optimized, loop-closing conclusions with custom H2 headlines and high-converting CTAs.
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2.5 mt-3.5">
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-[#0C81F3] border border-blue-200/60 whitespace-nowrap shrink-0">
-              <CheckCircle2 className="w-3 h-3 text-[#0C81F3]" /> Specific H2 Headlines
-            </span>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200/60 whitespace-nowrap shrink-0">
-              <Sparkles className="w-3 h-3 text-purple-600" /> Intro Loop Closure
-            </span>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60 whitespace-nowrap shrink-0">
-              <Target className="w-3 h-3 text-emerald-600" /> Action-Driven CTAs
-            </span>
-          </div>
-        </div>
-
-        <div className="tool-embed">
-          <BlogConclusionGeneratorPage isEmbedded={true} />
         </div>
       </div>
     </section>
@@ -545,7 +482,19 @@ export default function BlogConclusionLandingPage() {
   const toolRef = useRef(null)
 
   const scrollToTool = useCallback(() => {
-    toolRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    const el = toolRef.current || document.getElementById('tool')
+    if (!el) return
+    const navHeight = 90
+    const top = el.getBoundingClientRect().top + window.pageYOffset - navHeight
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+  }, [])
+
+  const scrollToSection = useCallback((sectionId) => {
+    const el = document.getElementById(sectionId)
+    if (!el) return
+    const navHeight = 90
+    const top = el.getBoundingClientRect().top + window.pageYOffset - navHeight
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
   }, [])
 
   useEffect(() => {
@@ -605,54 +554,66 @@ export default function BlogConclusionLandingPage() {
           subtitle="Most blog conclusions waste the trust and attention earned earlier in the post. Our AI writes specific H2 headlines, resolves every open loop from your introduction, and bridges the reader to a measurable next action: demo, trial, download, or related article."
           ctaLabel="Start Generating Free →"
           ctaOnClick={scrollToTool}
-          secondaryCta={{ label: 'See the 12 Frameworks', onClick: scrollToTool }}
+          secondaryCta={{
+            label: 'See Conclusion Anatomy ↓',
+            onClick: () => scrollToSection('anatomy'),
+          }}
           trustBadges={[
             'No sign-up required',
             '100% free forever',
             'Missive 12-Pillar QA Certified',
             'Loop-closing conclusions',
           ]}
-          floatingCards={{
-            topLeft: {
-              icon: Zap,
-              tag: 'BOFU Intent Bridge',
-              title: 'Definitive ROI Verdict & Next Step',
-              stat: '100% Loop Closure',
-              tagColor: 'text-[#0C81F3]',
-              gradient: 'from-[#0C81F3] to-[#67A7FF]',
-            },
-            topRight: {
-              icon: TrendingUp,
-              tag: 'Conversion Lift',
-              title: '+42% CTA Clicks',
-              sub: 'Zero generic summary fluff',
-              tagColor: 'text-emerald-600',
-              gradient: 'from-emerald-500 to-teal-600',
-            },
-            bottomLeft: {
-              tag: '12-Pillar Missive QA',
-              sub: 'Certified Compliant',
-              icon: '✓',
-            },
-            bottomRight: {
-              tag: '15s Multi-Stage AI',
-              sub: 'TOFU • MOFU • BOFU',
-              icon: '⚡',
-            },
-          }}
+          toolRef={toolRef}
+          toolLabel="Generate Blog Conclusions • Live"
+          toolSlot={<BlogConclusionGeneratorPage isEmbedded={true} />}
         />
 
         {/* ═══════════════ 2. INFINITE CMS & PUBLISHING MARQUEE ═══════════════ */}
         <LandingMarquee />
 
-        {/* ═══════════════ 3. INTERACTIVE CONCLUSION FUNNEL FLOW VISUALIZER ═══════════════ */}
+        {/* ═══════════════ 3. ANIMATED LIVE DEMO ═══════════════ */}
+        <LandingLiveDemo
+          badge="See It Close the Loop"
+          heading="Watch a Conclusion Get Engineered Live"
+          subheading="Paste your topic and intro, and watch the AI resolve every open loop into a specific H2 and CTA bridge."
+          accentIcon={ShieldCheck}
+          examples={[
+            {
+              label: 'BOFU · ROI Verdict',
+              input: 'Enterprise Content QA Automation',
+              outputTitle: 'The Bottom Line: Don\'t Let Inaction Delay Your Pipeline',
+              outputBody:
+                'Every month your team delays automating QA, the compounding cost of inaction quietly increases. Start your trial today with zero commitments.',
+              outputMeta: ['BOFU', 'Zero Em Dashes', '100% Loop Closure'],
+            },
+            {
+              label: 'MOFU · Blueprint Recap',
+              input: 'Content Operations Audit Framework',
+              outputTitle: 'Your Implementation Blueprint: Putting the Audit to Work',
+              outputBody:
+                'The concepts above are not theoretical. Download our 12-point checklist to roll this out across your editorial team this quarter.',
+              outputMeta: ['MOFU', 'Lead Magnet CTA', '34% Opt-In Lift'],
+            },
+            {
+              label: 'TOFU · Mindset Shift',
+              input: 'Programmatic SEO Content Architecture',
+              outputTitle: 'The Verdict: Turning Architecture Into Your Moat',
+              outputBody:
+                'Mastering organic reach is not about chasing tactics. It is about the fundamentals that compound quarter over quarter. Benchmark your workflow this week.',
+              outputMeta: ['TOFU', 'Perspective Shift', '3.4x Dwell Time'],
+            },
+          ]}
+        />
+
+        {/* ═══════════════ 4. INTERACTIVE CONCLUSION FUNNEL FLOW VISUALIZER ═══════════════ */}
         <LandingFunnelFlow
           stages={CONCLUSION_FUNNEL_STAGES}
           badge="Conversion Architecture"
           heading={
             <>
               Conclusions Engineered Across the{' '}
-              <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#0C81F3] to-[#EB8988] bg-clip-text text-transparent">
                 Entire Funnel
               </span>
             </>
@@ -664,11 +625,8 @@ export default function BlogConclusionLandingPage() {
           onTryTool={scrollToTool}
         />
 
-        {/* ═══════════════ 4. STATS ROW ═══════════════ */}
+        {/* ═══════════════ 5. STATS ROW ═══════════════ */}
         <LandingStats stats={STATS} />
-
-        {/* ═══════════════ 5. NEW VISUAL SECTION: 12-PILLAR MISSIVE QA AUDIT MATRIX ═══════════════ */}
-        <LandingMissiveQA />
 
         {/* ═══════════════ 6. FEATURES GRID ═══════════════ */}
         <LandingFeatures
@@ -712,7 +670,7 @@ export default function BlogConclusionLandingPage() {
           title={
             <>
               The Final 100 Words Decide{' '}
-              <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
+              <span className="bg-gradient-to-r from-[#0C81F3] to-[#EB8988] bg-clip-text text-transparent">
                 Your Reader's Next Commercial Move
               </span>
             </>
@@ -738,7 +696,7 @@ export default function BlogConclusionLandingPage() {
               gradient: 'from-[#EB8988] to-[#FFB7B2]',
             },
             {
-              value: '15s',
+              value: '20-30s',
               label: 'Multi-Stage Generation',
               sub: 'Instant TOFU, MOFU, and BOFU variations',
               gradient: 'from-[#0C81F3] to-[#EB8988]',
@@ -753,33 +711,21 @@ export default function BlogConclusionLandingPage() {
         {/* ═══════════════ 13. E-E-A-T AUTHORITY BANNER ═══════════════ */}
         <AuthorityBanner />
 
-        {/* ═══════════════ 14. BEFORE / AFTER COMPARISON ═══════════════ */}
-        <LandingBeforeAfter
-          sectionLabel="Results"
-          heading="The Difference a Strong Conclusion Makes"
-          subheading="Your conclusion is the last impression readers take away: and often the deciding factor in whether they convert or bounce. Here is what changes when you finish strong."
-          before={BEFORE_AFTER.before}
-          after={BEFORE_AFTER.after}
-        />
-
-        {/* ═══════════════ 15. TRUST / E-E-A-T SECTION ═══════════════ */}
+        {/* ═══════════════ 14. TRUST / E-E-A-T SECTION ═══════════════ */}
         <TrustSection />
 
-        {/* ═══════════════ 16. EMBEDDED TOOL SECTION (Uniform Container Width) ═══════════════ */}
-        <ToolSection toolRef={toolRef} />
-
-        {/* ═══════════════ 17. FAQ ACCORDION ═══════════════ */}
+        {/* ═══════════════ 15. FAQ ACCORDION ═══════════════ */}
         <LandingFAQ
           sectionLabel="Frequently Asked Questions"
-          heading="Everything You Need to Know"
-          subheading="Got questions about our AI blog conclusion generator? We have answered the most common ones below."
+          heading="Blog Conclusion Generator FAQs"
+          subheading="Learn how AI-powered conclusions close open loops, drive CTA clicks, and follow Missive's QA standards."
           faqs={FAQS}
         />
 
-        {/* ═══════════════ 18. FINAL RADIANT CTA ═══════════════ */}
+        {/* ═══════════════ 16. FINAL RADIANT CTA ═══════════════ */}
         <LandingCTA
           heading="Stop Ending Blog Posts Weakly"
-          subheading="Join 2,000+ content marketers who use our AI conclusion generator to close loops, reinforce value, and drive measurable action. 100% free with no sign-up required."
+          subheading="Generate high-converting blog conclusions that close loops, reinforce value, and drive measurable action. 100% free with no sign-up required."
           ctaLabel="Generate My Conclusions Free"
           ctaOnClick={scrollToTool}
         />

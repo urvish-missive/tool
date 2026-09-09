@@ -6,7 +6,6 @@ export const faqGeneratorSchema = z.object({
   count: z.coerce
     .number()
     .refine((v) => [4, 6, 8, 12].includes(v), 'Count must be 4, 6, 8, or 12.'),
-  preferredProvider: z.string().optional().default('gemini-3.5-flash-lite'),
 })
 
 export function parseFaqGeneratorForm(data) {

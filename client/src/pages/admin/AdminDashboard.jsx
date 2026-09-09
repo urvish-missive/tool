@@ -1,4 +1,17 @@
 import { useGetAdminStatsQuery } from '../../services/apiSlice'
+import {
+  Users,
+  TrendingUp,
+  FileText,
+  Search,
+  Target,
+  Wrench,
+  Lightbulb,
+  Palette,
+  DollarSign,
+  PenTool,
+  Building2,
+} from 'lucide-react'
 
 export default function AdminDashboard() {
   const { data, isLoading, isError, error } = useGetAdminStatsQuery()
@@ -23,12 +36,12 @@ export default function AdminDashboard() {
   const stats = data.stats
 
   const statCards = [
-    { label: 'Total Leads', value: stats.totalLeads, icon: '👥', color: '#0C81F3' },
-    { label: 'Leads Today', value: stats.leadsToday, icon: '📈', color: '#22c55e' },
-    { label: 'Total Analyses', value: stats.totalAnalyses, icon: '📝', color: '#a855f7' },
-    { label: 'Total Audits', value: stats.totalAudits, icon: '🔍', color: '#f97316' },
-    { label: 'Total Keywords', value: stats.totalKeywords, icon: '🎯', color: '#eab308' },
-    { label: 'Total Tools Used', value: stats.totalTools, icon: '🛠️', color: '#EB8988' },
+    { label: 'Total Leads', value: stats.totalLeads, icon: Users, color: '#0C81F3' },
+    { label: 'Leads Today', value: stats.leadsToday, icon: TrendingUp, color: '#22c55e' },
+    { label: 'Total Analyses', value: stats.totalAnalyses, icon: FileText, color: '#a855f7' },
+    { label: 'Total Audits', value: stats.totalAudits, icon: Search, color: '#f97316' },
+    { label: 'Total Keywords', value: stats.totalKeywords, icon: Target, color: '#eab308' },
+    { label: 'Total Tools Used', value: stats.totalTools, icon: Wrench, color: '#EB8988' },
   ]
 
   return (
@@ -41,7 +54,7 @@ export default function AdminDashboard() {
             className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm"
           >
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-lg">{card.icon}</span>
+              <card.icon className="w-5 h-5" style={{ color: card.color }} />
               <span className="text-xs text-gray-500">{card.label}</span>
             </div>
             <p className="text-2xl font-bold text-gray-900">{card.value}</p>
@@ -129,21 +142,22 @@ export default function AdminDashboard() {
                 'Business Competitor Intel': 'bg-teal-100 text-teal-700',
               }
               const toolIcons = {
-                'Content Analyzer': '📝',
-                'SEO Audit': '🔍',
-                'Keyword Research': '🎯',
-                'Blog Topic Generator': '💡',
-                'Logo Maker': '🎨',
-                'ROI Calculator': '💰',
-                'AI Content Writer': '✍️',
-                'Business Competitor Intel': '🏢',
+                'Content Analyzer': FileText,
+                'SEO Audit': Search,
+                'Keyword Research': Target,
+                'Blog Topic Generator': Lightbulb,
+                'Logo Maker': Palette,
+                'ROI Calculator': DollarSign,
+                'AI Content Writer': PenTool,
+                'Business Competitor Intel': Building2,
               }
+              const IconComp = toolIcons[item.tool] || Wrench
               return (
                 <div
                   key={i}
                   className="flex items-center gap-3 py-2.5 border-b border-gray-50 last:border-0"
                 >
-                  <span className="text-base">{toolIcons[item.tool] || '🛠️'}</span>
+                  <IconComp className="w-4 h-4 text-gray-500 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span

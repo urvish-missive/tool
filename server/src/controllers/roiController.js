@@ -75,7 +75,7 @@ export async function calculateROIHandler(req, res) {
       console.error('DB save failed (non-fatal):', dbErr.message)
     }
 
-    console.log(`✓ ROI calculated — moderate: ${results.moderate.summary.roi}%`)
+    console.log(`[OK] ROI calculated — moderate: ${results.moderate.summary.roi}%`)
     res.json({ success: true, calculationId, results, aiInsights })
   } catch (err) {
     console.error('ROI calculation error:', err.message)

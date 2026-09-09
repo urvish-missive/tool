@@ -171,7 +171,7 @@ The team deployed a 3-stage strategic overhaul:
     marketingStrategy: {
       blogWeavingStrategy: {
         placementAdvice: sanitizeEmDashes(`Weave this case study into both Top-of-Funnel (educational) and Middle-of-Funnel (comparative) articles in ${niche}. Position it as concrete proof after introducing the core problem.`),
-        calloutBoxMarkdown: sanitizeEmDashes(`> 💡 **Proven in Practice**: See how ${brand} resolved ${challenge.slice(0, 45)} and achieved ${primaryMetric}. [Read the complete case breakdown →]`),
+        calloutBoxMarkdown: sanitizeEmDashes(`> **Proven in Practice**: See how ${brand} resolved ${challenge.slice(0, 45)} and achieved ${primaryMetric}. [Read the complete case breakdown →]`),
         contextualAnchorTextIdeas: [
           sanitizeEmDashes(`how ${brand} scaled in ${niche}`),
           sanitizeEmDashes(`real-world ${niche} case study`),
@@ -229,7 +229,7 @@ The result?
 
 What is your team's biggest operational bottleneck right now?`),
         twitterThread: [
-          sanitizeEmDashes(`1/ How ${brand} achieved ${primaryMetric} in ${niche} (without adding extra headcount): 🧵`),
+          sanitizeEmDashes(`1/ How ${brand} achieved ${primaryMetric} in ${niche} (without adding extra headcount):`),
           sanitizeEmDashes(`2/ The Problem: They were hitting a hard ceiling with ${challenge.toLowerCase()}. Legacy playbooks were only burning budget.`),
           sanitizeEmDashes(`3/ The Shift: Instead of adding more noise, they executed ${solution}.`),
           sanitizeEmDashes(`4/ The Results: ${metrics} within 90 days. Proof that clean execution beats complex guesswork every time.`),

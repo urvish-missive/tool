@@ -1,5 +1,5 @@
-import React from 'react'
-import { Smartphone, Monitor, ShieldCheck, ExternalLink } from 'lucide-react'
+import 'react'
+import { Smartphone, Monitor, ShieldCheck } from 'lucide-react'
 
 /**
  * Official Google PageSpeed Insights Rating & Color Thresholds

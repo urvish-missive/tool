@@ -1,20 +1,13 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import {
   Sparkles,
   Download,
   RefreshCw,
-  Wand2,
   Check,
-  Lightbulb,
-  Image as ImageIcon,
   Globe,
   Smartphone,
   CreditCard,
-  Layout,
-  Moon,
-  Sun,
 } from 'lucide-react'
-import ModelSelector from '../shared/ModelSelector'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import { useGenerateLogoVariationsMutation } from '../../services/apiSlice'
 
@@ -105,7 +98,7 @@ function LogoVariationCard({ variation, isSelected, onSelect, onDownload }) {
           e.stopPropagation()
           onDownload(variation)
         }}
-        className="absolute bottom-3 right-3 w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center shadow-sm hover:bg-slate-50 opacity-0 group-hover:opacity-100 transition-opacity"
+        className="absolute bottom-3 right-3 w-8 h-8 bg-white border border-slate-200 rounded-full flex items-center justify-center shadow-sm hover:bg-slate-50 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
         title="Download SVG"
       >
         <Download size={14} className="text-slate-600" />
@@ -121,7 +114,6 @@ export default function LogoMakerPage() {
   const [description, setDescription] = useState('')
   const [industry, setIndustry] = useState('tech')
   const [style, setStyle] = useState('modern')
-  const [preferredProvider, setPreferredProvider] = useState('openrouter')
   const [selectedPalette, setSelectedPalette] = useState(0)
   const [validationError, setValidationError] = useState('')
   const [variations, setVariations] = useState(null)
@@ -153,7 +145,6 @@ export default function LogoMakerPage() {
         industry,
         style,
         count: 4,
-        preferredProvider,
       }).unwrap()
 
       setVariations(data.variations)
@@ -206,7 +197,6 @@ export default function LogoMakerPage() {
         industry,
         style,
         count: 4,
-        preferredProvider,
       }).unwrap()
 
       setVariations(data.variations)
@@ -321,13 +311,7 @@ export default function LogoMakerPage() {
               </div>
             </div>
 
-            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <ModelSelector
-                value={preferredProvider}
-                onChange={setPreferredProvider}
-                compact={true}
-              />
-
+            <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-end gap-4">
               <button
                 type="submit"
                 disabled={isGenerating}
@@ -444,7 +428,7 @@ export default function LogoMakerPage() {
                         mockupView === 'web'
                           ? 'bg-white text-slate-900 shadow-xs'
                           : 'text-slate-600'
-                      }`}
+                      } cursor-pointer`}
                     >
                       <Globe className="w-3.5 h-3.5" />
                       <span>Website Header</span>
@@ -455,7 +439,7 @@ export default function LogoMakerPage() {
                         mockupView === 'card'
                           ? 'bg-white text-slate-900 shadow-xs'
                           : 'text-slate-600'
-                      }`}
+                      } cursor-pointer`}
                     >
                       <CreditCard className="w-3.5 h-3.5" />
                       <span>Business Card</span>
@@ -466,7 +450,7 @@ export default function LogoMakerPage() {
                         mockupView === 'avatar'
                           ? 'bg-white text-slate-900 shadow-xs'
                           : 'text-slate-600'
-                      }`}
+                      } cursor-pointer`}
                     >
                       <Smartphone className="w-3.5 h-3.5" />
                       <span>App Icon</span>

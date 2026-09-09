@@ -185,7 +185,7 @@ export default function LandingFrameworksGallery({ onTryTool }) {
   }
 
   return (
-    <section className="py-16 sm:py-20 lg:py-24 bg-white border-b border-slate-200/70 relative overflow-hidden">
+    <section id="frameworks" className="py-16 sm:py-20 lg:py-24 bg-white border-b border-slate-200/70 relative scroll-mt-24">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div ref={headerRef} className="lp-reveal text-center mb-10 sm:mb-14">
@@ -195,7 +195,7 @@ export default function LandingFrameworksGallery({ onTryTool }) {
           </span>
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[42px] font-extrabold text-slate-900 tracking-tight leading-tight mb-3 sm:mb-4">
             12 Validated{' '}
-            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#0C81F3] to-[#EB8988] bg-clip-text text-transparent">
               Conclusion Frameworks
             </span>
           </h2>

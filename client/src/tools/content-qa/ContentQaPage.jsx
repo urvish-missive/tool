@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Sparkles,
@@ -16,29 +16,17 @@ import {
   BookOpen,
   ChevronDown,
   ChevronUp,
-  ChevronRight,
-  SlidersHorizontal,
   Wand2,
-  Share2,
+  Search,
+  Lightbulb,
   Eye,
   Edit3,
-  HelpCircle,
   ExternalLink,
   ShieldCheck,
-  Target,
-  Search,
-  MessageSquare,
-  BarChart3,
-  ArrowRight,
   ClipboardCheck,
   AlertCircle,
   Layers,
-  ArrowUpRight,
   CheckCheck,
-  Maximize2,
-  Minimize2,
-  Quote,
-  Lightbulb,
   Users,
   Award,
   Zap,
@@ -53,8 +41,11 @@ import {
   FileUp,
   FileCheck2,
   RotateCcw,
+  Bot,
+  Scale,
+  Trophy,
+  X,
 } from 'lucide-react'
-import ModelSelector from '../shared/ModelSelector'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
 import SendPdfModal from '../../components/SendPdfModal'
@@ -300,7 +291,6 @@ export default function ContentQaPage({ isEmbedded = false }) {
       targetKeyword: '',
       platform: 'website',
       targetAudience: '',
-      preferredProvider: 'gemini-3.5-flash-lite',
     },
   })
 
@@ -308,7 +298,6 @@ export default function ContentQaPage({ isEmbedded = false }) {
   const title = watch('title')
   const targetKeyword = watch('targetKeyword')
   const platform = watch('platform')
-  const aiModel = watch('preferredProvider')
 
   const [report, setReport] = useState(null)
   const [qaId, setQaId] = useState(null)
@@ -517,7 +506,7 @@ export default function ContentQaPage({ isEmbedded = false }) {
       if (res.content) {
         setValue('content', res.content, { shouldValidate: true })
         if (res.title && !title) setValue('title', res.title)
-        setImportSuccessMsg(`✓ Successfully imported ${res.wordCount || 0} words from Google Doc!`)
+        setImportSuccessMsg(`Successfully imported ${res.wordCount || 0} words from Google Doc!`)
         setInputSourceMode('text')
       }
     } catch (err) {
@@ -542,7 +531,7 @@ export default function ContentQaPage({ isEmbedded = false }) {
       if (res.content) {
         setValue('content', res.content, { shouldValidate: true })
         if (res.title && !title) setValue('title', res.title)
-        setImportSuccessMsg(`✓ Successfully imported ${res.wordCount || 0} words from article!`)
+        setImportSuccessMsg(`Successfully imported ${res.wordCount || 0} words from article!`)
         setInputSourceMode('text')
       }
     } catch (err) {
@@ -573,7 +562,7 @@ export default function ContentQaPage({ isEmbedded = false }) {
         }
         setValue('content', text.trim(), { shouldValidate: true })
         const words = text.trim().split(/\s+/).filter(Boolean).length
-        setImportSuccessMsg(`✓ Successfully loaded "${file.name}" (${words} words)!`)
+        setImportSuccessMsg(`Successfully loaded "${file.name}" (${words} words)!`)
         setInputSourceMode('text')
       }
       reader.readAsText(file)
@@ -591,7 +580,7 @@ export default function ContentQaPage({ isEmbedded = false }) {
             setValue('content', res.content, { shouldValidate: true })
             if (res.title && !title) setValue('title', res.title)
             setImportSuccessMsg(
-              `✓ Successfully extracted ${res.wordCount || 0} words from Word document!`
+              `Successfully extracted ${res.wordCount || 0} words from Word document!`
             )
             setInputSourceMode('text')
           }
@@ -728,7 +717,6 @@ export default function ContentQaPage({ isEmbedded = false }) {
       targetKeyword: '',
       platform: 'website',
       targetAudience: '',
-      preferredProvider: 'gemini-3.5-flash-lite',
     })
     setReport(null)
     setQaId(null)
@@ -811,7 +799,6 @@ export default function ContentQaPage({ isEmbedded = false }) {
         targetKeyword: parsed.data.targetKeyword,
         platform: parsed.data.platform,
         targetAudience: parsed.data.targetAudience,
-        preferredProvider: parsed.data.preferredProvider,
       }).unwrap()
 
       setReport(data.report)
@@ -846,7 +833,6 @@ export default function ContentQaPage({ isEmbedded = false }) {
         title: title.trim() || undefined,
         targetKeyword: targetKeyword.trim() || undefined,
         platform,
-        preferredProvider: aiModel,
       }).unwrap()
 
       setPolishedResult(data.polished)
@@ -1016,7 +1002,7 @@ Audited with Missive Digital Content QA Tool.`
   }, [filterMode, statuses, report])
 
   return (
-    <div className={isEmbedded ? 'w-full text-gray-900' : 'min-h-screen bg-[#FDFDFD] text-gray-900'}>
+    <div className={isEmbedded ? 'w-full text-gray-900 @container' : 'min-h-screen bg-[#FDFDFD] text-gray-900 @container'}>
       <LeadCaptureModal
         show={showPopup}
         onClose={handlePopupClose}
@@ -1071,7 +1057,7 @@ Audited with Missive Digital Content QA Tool.`
                 <button
                   type="button"
                   onClick={handleLoadSample}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold text-[#0C81F3] bg-blue-50/90 hover:bg-blue-100 border border-blue-200/60 transition-all shadow-sm"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold text-[#0C81F3] bg-blue-50/90 hover:bg-blue-100 border border-blue-200/60 transition-all shadow-sm cursor-pointer"
                 >
                   <BookOpen className="w-3.5 h-3.5" />
                   Load Sample Content
@@ -1100,7 +1086,7 @@ Audited with Missive Digital Content QA Tool.`
                     </label>
 
                     {/* Mode Switcher Tabs - Responsive 2x2 Grid on Mobile, Inline on Desktop */}
-                    <div className="w-full sm:w-auto grid grid-cols-2 sm:flex sm:items-center p-1 bg-gray-100/90 rounded-2xl border border-gray-200/80 gap-1 text-xs font-semibold text-gray-600">
+                    <div className="w-full @min-[480px]:w-auto grid grid-cols-2 @min-[480px]:flex @min-[480px]:items-center p-1 bg-gray-100/90 rounded-2xl border border-gray-200/80 gap-1 text-xs font-semibold text-gray-600">
                       <button
                         type="button"
                         onClick={() => {
@@ -1313,8 +1299,9 @@ Audited with Missive Digital Content QA Tool.`
                           </p>
                         </div>
                         {uploadedFileName && (
-                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-semibold">
-                            ✓ {uploadedFileName}
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-purple-100 text-purple-800 text-xs font-semibold">
+                            <Check className="w-3.5 h-3.5 text-purple-700 shrink-0" />
+                            <span>{uploadedFileName}</span>
                           </span>
                         )}
                       </div>
@@ -1333,7 +1320,7 @@ Audited with Missive Digital Content QA Tool.`
                         onClick={() => setImportSuccessMsg(null)}
                         className="text-emerald-700 hover:text-emerald-900 text-xs cursor-pointer"
                       >
-                        ✕
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   )}
@@ -1350,7 +1337,7 @@ Audited with Missive Digital Content QA Tool.`
                         onClick={() => setImportError(null)}
                         className="text-rose-700 hover:text-rose-900 text-xs cursor-pointer"
                       >
-                        ✕
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   )}
@@ -1393,7 +1380,7 @@ Audited with Missive Digital Content QA Tool.`
               )}
 
               {/* Title & Target Keyword */}
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid @min-[460px]:grid-cols-2 gap-4">
                 {isFieldEnabled('title') && (
                   <div>
                     <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
@@ -1424,7 +1411,7 @@ Audited with Missive Digital Content QA Tool.`
               </div>
 
               {/* Platform & Audience */}
-              <div className="grid sm:grid-cols-2 gap-4">
+              <div className="grid @min-[460px]:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
                     Target Platform
@@ -1453,15 +1440,6 @@ Audited with Missive Digital Content QA Tool.`
                   />
                 </div>
               </div>
-
-              {/* AI Model Selector */}
-              <Controller
-                control={control}
-                name="preferredProvider"
-                render={({ field }) => (
-                  <ModelSelector value={field.value} onChange={field.onChange} />
-                )}
-              />
 
               {error && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-3.5 text-sm text-red-700 flex items-center gap-2">
@@ -1513,7 +1491,7 @@ Audited with Missive Digital Content QA Tool.`
                   setError(null)
                   setReport(null)
                 }}
-                className="mt-5 px-6 py-2.5 rounded-full bg-gray-900 text-sm font-semibold text-white hover:bg-black transition-all"
+                className="mt-5 px-6 py-2.5 rounded-full bg-gray-900 text-sm font-semibold text-white hover:bg-black transition-all cursor-pointer"
               >
                 Try Again
               </button>
@@ -1546,7 +1524,7 @@ Audited with Missive Digital Content QA Tool.`
                   </button>
                   <button
                     onClick={handleCopyActionPlan}
-                    className="px-3.5 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center gap-1.5 transition-all"
+                    className="px-3.5 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
                   >
                     {copiedAction ? (
                       <Check className="w-3.5 h-3.5 text-green-600" />
@@ -1557,7 +1535,7 @@ Audited with Missive Digital Content QA Tool.`
                   </button>
                   <button
                     onClick={handleExportPdf}
-                    className="px-3.5 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center gap-1.5 transition-all"
+                    className="px-3.5 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
                   >
                     <Download className="w-3.5 h-3.5" />
                     <span>Export PDF</span>
@@ -1565,19 +1543,19 @@ Audited with Missive Digital Content QA Tool.`
                   <button
                     onClick={runHimaniPolish}
                     disabled={isPolishing}
-                    className="px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:from-[#0D73D1] hover:to-[#E77771] rounded-xl flex items-center gap-1.5 transition-all shadow-sm"
+                    className="px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:from-[#0D73D1] hover:to-[#E77771] rounded-xl flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
                   >
                     <Wand2 className="w-3.5 h-3.5" />
-                    <span>{isPolishing ? 'Polishing...' : '✨ One-Click Himani Polish'}</span>
+                    <span>{isPolishing ? 'Polishing...' : 'One-Click Himani Polish'}</span>
                   </button>
                 </div>
               </div>
 
               {/* ── SCORE HERO CARD ─────────────────────────────────── */}
               <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 shadow-sm">
-                <div className="grid md:grid-cols-12 gap-6 items-center">
+                <div className="grid @min-[560px]:grid-cols-12 gap-6 items-center">
                   {/* Left Column: Overall Himani Score */}
-                  <div className="md:col-span-4 text-center md:text-left md:border-r md:border-gray-100 md:pr-6">
+                  <div className="@min-[560px]:col-span-4 text-center md:text-left md:border-r md:border-gray-100 md:pr-6">
                     <span className="text-xs font-bold uppercase tracking-wider text-[#0C81F3]">
                       Overall Himani Score
                     </span>
@@ -1604,14 +1582,14 @@ Audited with Missive Digital Content QA Tool.`
                   </div>
 
                   {/* Right Column: 4 Signature Quick Alert Cards */}
-                  <div className="md:col-span-8 grid sm:grid-cols-2 gap-3.5">
+                  <div className="@min-[560px]:col-span-8 grid @min-[420px]:grid-cols-2 gap-3.5">
                     {/* Em Dash Sentinel */}
                     <div
                       className={`p-4 rounded-2xl border ${report.quickStats?.emDashesCount === 0 ? 'bg-emerald-50/80 border-emerald-200' : 'bg-red-50/80 border-red-200'}`}
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                          🚫 Em Dashes Detected
+                          <Ban className="w-3.5 h-3.5 text-rose-500 shrink-0" /> Em Dashes Detected
                         </span>
                         <span
                           className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${report.quickStats?.emDashesCount === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}
@@ -1621,7 +1599,7 @@ Audited with Missive Digital Content QA Tool.`
                       </div>
                       <p className="text-[11px] text-gray-600">
                         {report.quickStats?.emDashesCount === 0
-                          ? '✓ Strict Himani rule satisfied: zero em dashes.'
+                          ? 'Strict Himani rule satisfied: zero em dashes.'
                           : `Found ${report.quickStats.emDashesCount} em dash(es). Replace with commas or sentence breaks.`}
                       </p>
                     </div>
@@ -1632,7 +1610,7 @@ Audited with Missive Digital Content QA Tool.`
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                          🤖 Robotic AI Cliches
+                          <Bot className="w-3.5 h-3.5 text-amber-600 shrink-0" /> Robotic AI Clichés
                         </span>
                         <span
                           className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${report.quickStats?.aiPhrasesCount === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'}`}
@@ -1642,7 +1620,7 @@ Audited with Missive Digital Content QA Tool.`
                       </div>
                       <p className="text-[11px] text-gray-600">
                         {report.quickStats?.aiPhrasesCount === 0
-                          ? '✓ Clean human voice without detectable AI buzzwords.'
+                          ? 'Clean human voice without detectable AI buzzwords.'
                           : `Detected ${report.quickStats.aiPhrasesCount} robotic phrase(s) (e.g., "delve", "tapestry").`}
                       </p>
                     </div>
@@ -1651,7 +1629,7 @@ Audited with Missive Digital Content QA Tool.`
                     <div className="p-4 rounded-2xl border bg-purple-50/80 border-purple-200">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-bold text-purple-900 flex items-center gap-1.5">
-                          🗣 Read Aloud Cadence
+                          <Volume2 className="w-3.5 h-3.5 text-purple-600 shrink-0" /> Read Aloud Cadence
                         </span>
                         <span className="text-xs font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
                           ~{Math.ceil((report.quickStats?.estimatedReadAloudTimeSec || 60) / 60)}{' '}
@@ -1670,7 +1648,7 @@ Audited with Missive Digital Content QA Tool.`
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                          ⚡ Insight-First Opening
+                          <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" /> Insight-First Opening
                         </span>
                         <span
                           className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${report.statuses?.['ins-1'] === 'pass' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}`}
@@ -1680,7 +1658,7 @@ Audited with Missive Digital Content QA Tool.`
                       </div>
                       <p className="text-[11px] text-gray-600">
                         {report.statuses?.['ins-1'] === 'pass'
-                          ? '✓ Opens directly with a punchy hook or observation.'
+                          ? 'Opens directly with a punchy hook or observation.'
                           : 'Intro has throat-clearing setup. Start with the core insight.'}
                       </p>
                     </div>
@@ -1689,7 +1667,7 @@ Audited with Missive Digital Content QA Tool.`
 
                 {/* AI Executive Summary & Pro Tips */}
                 {report.ai && (
-                  <div className="mt-6 pt-6 border-t border-gray-100 grid md:grid-cols-2 gap-4">
+                  <div className="mt-6 pt-6 border-t border-gray-100 grid @min-[520px]:grid-cols-2 gap-4">
                     <div className="bg-blue-50/40 rounded-2xl p-4 border border-blue-100/80">
                       <h4 className="text-xs font-bold text-blue-900 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
                         <Sparkles className="w-3.5 h-3.5 text-[#0C81F3]" />
@@ -1736,7 +1714,7 @@ Audited with Missive Digital Content QA Tool.`
                 <div className="flex flex-wrap gap-2 sm:gap-4">
                   <button
                     onClick={() => setActiveTab('grid')}
-                    className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all ${activeTab === 'grid' ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-gray-500 hover:text-gray-900'}`}
+                    className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all ${activeTab === 'grid' ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-gray-500 hover:text-gray-900'} cursor-pointer`}
                   >
                     <ClipboardCheck className="w-4 h-4" />
                     <span>
@@ -1746,7 +1724,7 @@ Audited with Missive Digital Content QA Tool.`
 
                   <button
                     onClick={() => setActiveTab('inspector')}
-                    className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all ${activeTab === 'inspector' ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-gray-500 hover:text-gray-900'}`}
+                    className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all ${activeTab === 'inspector' ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-gray-500 hover:text-gray-900'} cursor-pointer`}
                   >
                     <Eye className="w-4 h-4" />
                     <span>Live Content Inspector ({report.highlights?.length || 0} flags)</span>
@@ -1754,7 +1732,7 @@ Audited with Missive Digital Content QA Tool.`
 
                   <button
                     onClick={() => setActiveTab('read_aloud')}
-                    className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all ${activeTab === 'read_aloud' ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-gray-500 hover:text-gray-900'}`}
+                    className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all ${activeTab === 'read_aloud' ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-gray-500 hover:text-gray-900'} cursor-pointer`}
                   >
                     <Volume2 className="w-4 h-4" />
                     <span>Read Aloud Audio Studio</span>
@@ -1765,10 +1743,10 @@ Audited with Missive Digital Content QA Tool.`
                       if (!polishedResult && !isPolishing) runHimaniPolish()
                       else setActiveTab('polish')
                     }}
-                    className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all ${activeTab === 'polish' ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-gray-500 hover:text-gray-900'}`}
+                    className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all ${activeTab === 'polish' ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-gray-500 hover:text-gray-900'} cursor-pointer`}
                   >
                     <Wand2 className="w-4 h-4 text-[#EB8988]" />
-                    <span>✨ One-Click Himani Polish</span>
+                    <span>One-Click Himani Polish</span>
                   </button>
                 </div>
               </div>
@@ -1796,7 +1774,7 @@ Audited with Missive Digital Content QA Tool.`
                         <button
                           key={f.id}
                           onClick={() => setFilterMode(f.id)}
-                          className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${filterMode === f.id ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                          className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${filterMode === f.id ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'} cursor-pointer`}
                         >
                           {f.label}
                         </button>
@@ -1805,7 +1783,7 @@ Audited with Missive Digital Content QA Tool.`
                   </div>
 
                   {/* 2-Column Responsive Card Grid — all cards visible, equal height */}
-                  <div className="grid md:grid-cols-2 gap-5">
+                  <div className="grid @min-[560px]:grid-cols-2 gap-5">
                     {filteredCategories.map((cat) => {
                       const catScore = scores.cats[cat.id] ?? 100
                       const aiCat = report.ai?.categories?.[cat.id]
@@ -1960,7 +1938,8 @@ Audited with Missive Digital Content QA Tool.`
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-gray-100">
                     <div>
                       <h3 className="text-base font-bold text-gray-900 flex items-center gap-2">
-                        <span>🔍 Live Content Inspector</span>
+                        <Search className="w-4 h-4 text-blue-600" />
+                        <span>Live Content Inspector</span>
                         <span className="text-xs px-2.5 py-0.5 rounded-full font-bold bg-blue-100 text-[#0C81F3]">
                           {report.highlights?.length || 0} Total Flag(s)
                         </span>
@@ -1988,7 +1967,7 @@ Audited with Missive Digital Content QA Tool.`
                           inspectorFilter === 'all'
                             ? 'bg-gray-900 text-white shadow-xs'
                             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                        }`}
+                        } cursor-pointer`}
                       >
                         All Issues ({report.highlights?.length || 0})
                       </button>
@@ -2001,9 +1980,10 @@ Audited with Missive Digital Content QA Tool.`
                             inspectorFilter === 'em-dash'
                               ? 'bg-rose-600 text-white shadow-xs'
                               : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
-                          }`}
+                          } cursor-pointer`}
                         >
-                          <span>🚫 Em Dashes</span>
+                          <Ban className="w-3.5 h-3.5" />
+                          <span>Em Dashes</span>
                           <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/20 font-bold">
                             {highlightCategoryCounts['em-dash']}
                           </span>
@@ -2018,9 +1998,10 @@ Audited with Missive Digital Content QA Tool.`
                             inspectorFilter === 'ai-cliche'
                               ? 'bg-amber-600 text-white shadow-xs'
                               : 'bg-amber-50 text-amber-800 border border-amber-200 hover:bg-amber-100'
-                          }`}
+                          } cursor-pointer`}
                         >
-                          <span>🤖 AI Clichés</span>
+                          <Bot className="w-3.5 h-3.5" />
+                          <span>AI Clichés</span>
                           <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/20 font-bold">
                             {highlightCategoryCounts['ai-cliche']}
                           </span>
@@ -2035,9 +2016,10 @@ Audited with Missive Digital Content QA Tool.`
                             inspectorFilter === 'filler'
                               ? 'bg-indigo-600 text-white shadow-xs'
                               : 'bg-indigo-50 text-indigo-700 border border-indigo-200 hover:bg-indigo-100'
-                          }`}
+                          } cursor-pointer`}
                         >
-                          <span>✂️ Fluff & Fillers</span>
+                          <Scissors className="w-3.5 h-3.5" />
+                          <span>Fluff & Fillers</span>
                           <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/20 font-bold">
                             {highlightCategoryCounts['filler']}
                           </span>
@@ -2052,9 +2034,10 @@ Audited with Missive Digital Content QA Tool.`
                             inspectorFilter === 'superlative'
                               ? 'bg-purple-600 text-white shadow-xs'
                               : 'bg-purple-50 text-purple-700 border border-purple-200 hover:bg-purple-100'
-                          }`}
+                          } cursor-pointer`}
                         >
-                          <span>⚡ Superlatives</span>
+                          <Zap className="w-3.5 h-3.5" />
+                          <span>Superlatives</span>
                           <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/20 font-bold">
                             {highlightCategoryCounts['superlative']}
                           </span>
@@ -2069,9 +2052,10 @@ Audited with Missive Digital Content QA Tool.`
                             inspectorFilter === 'milestone'
                               ? 'bg-blue-600 text-white shadow-xs'
                               : 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100'
-                          }`}
+                          } cursor-pointer`}
                         >
-                          <span>🏆 Milestones</span>
+                          <Trophy className="w-3.5 h-3.5" />
+                          <span>Milestones</span>
                           <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/20 font-bold">
                             {highlightCategoryCounts['milestone']}
                           </span>
@@ -2086,9 +2070,10 @@ Audited with Missive Digital Content QA Tool.`
                             inspectorFilter === 'compliance'
                               ? 'bg-red-700 text-white shadow-xs'
                               : 'bg-red-50 text-red-800 border border-red-200 hover:bg-red-100'
-                          }`}
+                          } cursor-pointer`}
                         >
-                          <span>⚖️ Compliance</span>
+                          <Scale className="w-3.5 h-3.5" />
+                          <span>Compliance</span>
                           <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/20 font-bold">
                             {highlightCategoryCounts['compliance']}
                           </span>
@@ -2117,18 +2102,20 @@ Audited with Missive Digital Content QA Tool.`
                               {/* Card Header */}
                               <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                                 <div className="flex flex-wrap items-center gap-2">
-                                  <span className="text-base">
-                                    {group.type === 'em-dash'
-                                      ? '🚫'
-                                      : group.type === 'ai-cliche'
-                                        ? '🤖'
-                                        : group.type === 'filler'
-                                          ? '✂️'
-                                          : group.type === 'milestone'
-                                            ? '🏆'
-                                            : group.type === 'superlative'
-                                              ? '⚡'
-                                              : '⚠️'}
+                                  <span className="shrink-0">
+                                    {group.type === 'em-dash' ? (
+                                      <Ban className="w-4 h-4 text-rose-600" />
+                                    ) : group.type === 'ai-cliche' ? (
+                                      <Bot className="w-4 h-4 text-amber-600" />
+                                    ) : group.type === 'filler' ? (
+                                      <Scissors className="w-4 h-4 text-indigo-600" />
+                                    ) : group.type === 'milestone' ? (
+                                      <Trophy className="w-4 h-4 text-blue-600" />
+                                    ) : group.type === 'superlative' ? (
+                                      <Zap className="w-4 h-4 text-purple-600" />
+                                    ) : (
+                                      <AlertTriangle className="w-4 h-4 text-amber-600" />
+                                    )}
                                   </span>
                                   <span className="text-sm font-bold tracking-tight text-gray-900">
                                     {group.label}
@@ -2147,7 +2134,7 @@ Audited with Missive Digital Content QA Tool.`
                                         : 'bg-gray-100 text-gray-700 border border-gray-200'
                                     }`}
                                   >
-                                    <span>⚡</span>
+                                    <Zap className="w-3 h-3 text-amber-500 shrink-0" />
                                     <span>
                                       {occCount > 1
                                         ? `Found ${occCount} times in content`
@@ -2174,8 +2161,8 @@ Audited with Missive Digital Content QA Tool.`
                                 </p>
                                 {group.suggestion && (
                                   <p className="text-emerald-900 font-medium flex items-start gap-1.5 pt-1 border-t border-gray-100">
-                                    <span className="text-emerald-700 font-bold shrink-0">
-                                      💡 Himani's Fix:
+                                    <span className="text-emerald-700 font-bold shrink-0 flex items-center gap-1">
+                                      <Lightbulb className="w-3.5 h-3.5 text-amber-500" /> Himani's Fix:
                                     </span>{' '}
                                     <span>{group.suggestion}</span>
                                   </p>
@@ -2193,7 +2180,7 @@ Audited with Missive Digital Content QA Tool.`
                                       <button
                                         type="button"
                                         onClick={() => toggleHighlightExpand(group.id)}
-                                        className="text-xs font-semibold text-[#0C81F3] hover:underline flex items-center gap-1"
+                                        className="text-xs font-semibold text-[#0C81F3] hover:underline flex items-center gap-1 cursor-pointer"
                                       >
                                         <span>
                                           {expandedHighlights[group.id]
@@ -2238,7 +2225,7 @@ Audited with Missive Digital Content QA Tool.`
                                       <button
                                         type="button"
                                         onClick={() => toggleHighlightExpand(group.id)}
-                                        className="w-full py-1.5 text-center text-xs font-semibold text-gray-600 bg-white/60 hover:bg-white rounded-lg border border-dashed border-gray-300 transition-colors"
+                                        className="w-full py-1.5 text-center text-xs font-semibold text-gray-600 bg-white/60 hover:bg-white rounded-lg border border-dashed border-gray-300 transition-colors cursor-pointer"
                                       >
                                         + {occCount - 2} more occurrence(s)... Click to expand all
                                       </button>
@@ -2281,7 +2268,7 @@ Audited with Missive Digital Content QA Tool.`
                   <div className="flex items-center gap-4">
                     <button
                       onClick={handleToggleSpeech}
-                      className="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-sm font-semibold flex items-center gap-2"
+                      className="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-sm font-semibold flex items-center gap-2 cursor-pointer"
                     >
                       {isPlayingAudio ? (
                         <VolumeX className="w-4 h-4" />
@@ -2361,7 +2348,7 @@ Audited with Missive Digital Content QA Tool.`
 
                         return (
                           <div className="space-y-4 mt-6 pt-6 border-t border-white/10">
-                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                            <div className="grid grid-cols-2 @min-[440px]:grid-cols-3 gap-3">
                               <div className="bg-white/10 rounded-2xl p-3.5 text-center">
                                 <span className="text-[11px] font-semibold text-slate-300 uppercase">
                                   Original Score
@@ -2391,18 +2378,18 @@ Audited with Missive Digital Content QA Tool.`
                             {/* Dynamic Metric Comparison Chips */}
                             <div className="flex flex-wrap items-center justify-center gap-2 pt-1 text-[11px] text-slate-300">
                               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10">
-                                🚫 Em Dashes:{' '}
+                                <Ban className="w-3.5 h-3.5 text-rose-400 shrink-0" /> Em Dashes:{' '}
                                 <strong className="text-rose-300">{beforeEmDashes}</strong> →{' '}
                                 <strong className="text-emerald-300">{afterEmDashes}</strong>
                               </span>
                               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10">
-                                🤖 AI Clichés:{' '}
+                                <Bot className="w-3.5 h-3.5 text-amber-400 shrink-0" /> AI Clichés:{' '}
                                 <strong className="text-amber-300">{beforeCliches}</strong> →{' '}
                                 <strong className="text-emerald-300">{afterCliches}</strong>
                               </span>
                               {polishedResult.statsAfter?.fleschScore && (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10">
-                                  📖 Flesch Ease:{' '}
+                                  <BookOpen className="w-3.5 h-3.5 text-purple-400 shrink-0" /> Flesch Ease:{' '}
                                   <strong className="text-purple-300">
                                     {polishedResult.statsBefore?.fleschScore ??
                                       report?.quickStats?.fleschScore ??
@@ -2488,12 +2475,12 @@ Audited with Missive Digital Content QA Tool.`
                           {/* Metric Badges */}
                           {polishMetrics && (
                             <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold">
-                              <span className="px-2.5 py-1 rounded-full bg-emerald-200/70 text-emerald-900 border border-emerald-300">
-                                ✓ {polishMetrics.emDashesRemoved} Em-Dashes Eliminated
+                              <span className="px-2.5 py-1 rounded-full bg-emerald-200/70 text-emerald-900 border border-emerald-300 inline-flex items-center gap-1">
+                                <Check className="w-3 h-3" /> {polishMetrics.emDashesRemoved} Em-Dashes Eliminated
                               </span>
                               {polishMetrics.clichesRemoved > 0 && (
-                                <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-900 border border-blue-200">
-                                  ✓ {polishMetrics.clichesRemoved} AI Clichés Removed
+                                <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-900 border border-blue-200 inline-flex items-center gap-1">
+                                  <Check className="w-3 h-3" /> {polishMetrics.clichesRemoved} AI Clichés Removed
                                 </span>
                               )}
                               <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200">
@@ -2506,7 +2493,7 @@ Audited with Missive Digital Content QA Tool.`
 
                         {Array.isArray(polishedResult.improvementsMade) &&
                           polishedResult.improvementsMade.length > 0 && (
-                            <ul className="grid sm:grid-cols-2 gap-2 text-xs text-emerald-950">
+                            <ul className="grid @min-[440px]:grid-cols-2 gap-2 text-xs text-emerald-950">
                               {polishedResult.improvementsMade.map((imp, idx) => (
                                 <li key={idx} className="flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
@@ -2570,7 +2557,7 @@ Audited with Missive Digital Content QA Tool.`
                         </div>
 
                         {/* Visual Editorial Diffs Legend Bar (Always Side-by-Side) */}
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 text-xs">
+                        <div className="grid grid-cols-1 @min-[420px]:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 text-xs">
                           <div className="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-rose-200/70 shadow-2xs">
                             <del className="bg-rose-100 text-rose-900 line-through rounded px-2 py-0.5 font-bold decoration-rose-600 decoration-2 shrink-0">
                               red strikethrough
@@ -2591,12 +2578,13 @@ Audited with Missive Digital Content QA Tool.`
 
                         {/* VIEW 1: SIDE-BY-SIDE SPLIT WITH HIGHLIGHTS (DEFAULT) */}
                         {polishViewMode === 'split' && (
-                          <div className="grid md:grid-cols-2 gap-5">
+                          <div className="grid @min-[640px]:grid-cols-2 gap-5">
                             {/* Original Draft Column (Left) */}
                             <div className="space-y-2">
                               <div className="flex items-center justify-between p-2.5 bg-rose-50/70 rounded-xl border border-rose-200/80 text-xs font-bold text-rose-950">
                                 <span className="flex items-center gap-1.5">
-                                  <span>📄 Original Draft (Before)</span>
+                                  <FileText className="w-3.5 h-3.5 text-rose-700 shrink-0" />
+                                  <span>Original Draft (Before)</span>
                                 </span>
                                 <span className="text-[11px] text-rose-800 font-semibold">
                                   {content.length} chars
@@ -2627,7 +2615,8 @@ Audited with Missive Digital Content QA Tool.`
                             <div className="space-y-2">
                               <div className="flex items-center justify-between p-2.5 bg-emerald-50/70 rounded-xl border border-emerald-200/80 text-xs font-bold text-emerald-950">
                                 <span className="flex items-center gap-1.5">
-                                  <span>✨ Polished 100% QA Rewrite (After)</span>
+                                  <Sparkles className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
+                                  <span>Polished 100% QA Rewrite (After)</span>
                                 </span>
                                 <span className="text-[11px] text-emerald-800 font-semibold">
                                   {typeof polishedResult === 'string'
@@ -2693,13 +2682,23 @@ Audited with Missive Digital Content QA Tool.`
                                               : 'text-slate-500'
                                       }`}
                                     >
-                                      {isAdded
-                                        ? '✨ New Insight / Section Added'
-                                        : isRemoved
-                                          ? '🚫 Fluff / Redundant Section Removed'
-                                          : isModified
-                                            ? '⚡ Polished & Streamlined Line'
-                                            : '✓ Unchanged Paragraph'}
+                                      {isAdded ? (
+                                        <span className="inline-flex items-center gap-1">
+                                          <Sparkles className="w-3 h-3 text-emerald-600" /> New Insight / Section Added
+                                        </span>
+                                      ) : isRemoved ? (
+                                        <span className="inline-flex items-center gap-1">
+                                          <Ban className="w-3 h-3 text-rose-600" /> Fluff / Redundant Section Removed
+                                        </span>
+                                      ) : isModified ? (
+                                        <span className="inline-flex items-center gap-1">
+                                          <Zap className="w-3 h-3 text-[#0C81F3]" /> Polished & Streamlined Line
+                                        </span>
+                                      ) : (
+                                        <span className="inline-flex items-center gap-1">
+                                          <Check className="w-3 h-3 text-slate-500" /> Unchanged Paragraph
+                                        </span>
+                                      )}
                                     </span>
                                   </div>
 
