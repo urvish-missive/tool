@@ -21,6 +21,7 @@ import {
   Building2,
   Sparkles,
   ArrowUpRight,
+  ArrowDown,
 } from 'lucide-react'
 import { useGetPublicToolsQuery } from '../services/apiSlice'
 
@@ -265,21 +266,36 @@ export default function Home() {
 
   const visibleTools = TOOLS.filter((t) => !disabled.has(TOOL_SLUG_MAP[t.id]))
 
+  const scrollToSection = (id) => {
+    const el = document.getElementById(id)
+    if (el) {
+      const navHeight = 90
+      const targetY = el.getBoundingClientRect().top + window.pageYOffset - navHeight
+      window.scrollTo({
+        top: Math.max(0, targetY),
+        behavior: 'smooth',
+      })
+    }
+  }
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <main className="flex-1">
         {/* Hero */}
-        <section className="relative overflow-hidden !pt-36 sm:!pt-40 py-16 sm:py-20 lg:py-28">
-          <div
-            className="absolute inset-0"
-            style={{
-              background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)',
-              opacity: 0.08,
-            }}
-          />
-          <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
-          <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
+        <section className="relative !pt-36 sm:!pt-40 py-16 sm:py-20 lg:py-28">
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div
+              className="absolute inset-0"
+              style={{
+                background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)',
+                opacity: 0.08,
+              }}
+            />
+            <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+            <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
+          </div>
+
+          <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center z-10">
             <span className="inline-flex items-center gap-2 px-5 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-6 tracking-wider uppercase shadow-lg shadow-[#0C81F3]/25">
               <Sparkles className="w-3.5 h-3.5" />
               <span>Curated by Himani Kankaria • Missive Digital</span>
@@ -295,11 +311,30 @@ export default function Home() {
               <strong>Himani Kankaria</strong> and the <strong>Missive Digital</strong> team. The
               exact battle-tested frameworks we use to rank clients on Google.
             </p>
+
+            {/* Hero CTA Buttons — 2 prominent styled buttons */}
+            <div className="mt-8 sm:mt-10 flex flex-col sm:flex-row items-center justify-center gap-3.5 max-w-md mx-auto">
+              <button
+                type="button"
+                onClick={() => scrollToSection('tools-grid')}
+                className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-7 py-3.5 text-xs sm:text-sm font-bold text-white hover:opacity-95 active:scale-[0.98] transition-all shadow-xl shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Explore 20 Free SEO Tools</span>
+                <ArrowDown className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollToSection('spotlight')}
+                className="w-full sm:w-auto rounded-full border-2 border-slate-300 bg-white/90 backdrop-blur-xs px-6 py-3.5 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all cursor-pointer shadow-xs"
+              >
+                Why We Built Them ↓
+              </button>
+            </div>
           </div>
         </section>
 
         {/* Tools Grid */}
-        <section className="py-12 sm:py-16">
+        <section id="tools-grid" className="py-12 sm:py-16 scroll-mt-24">
           <div className="max-w-5xl mx-auto px-4 sm:px-6">
             <div className="grid sm:grid-cols-2 gap-6 sm:gap-8">
               {visibleTools.map((tool) => (
@@ -335,7 +370,7 @@ export default function Home() {
         </section>
 
         {/* Himani & Missive Digital Spotlight */}
-        <section className="py-16 bg-gradient-to-b from-white to-slate-50 border-t border-slate-200">
+        <section id="spotlight" className="py-16 bg-gradient-to-b from-white to-slate-50 border-t border-slate-200 scroll-mt-24">
           <div className="max-w-5xl mx-auto px-4 sm:px-6">
             <div className="relative bg-gradient-to-br from-slate-900 via-[#101b33] to-[#1a1429] text-white rounded-3xl p-8 sm:p-12 shadow-2xl border border-slate-800 overflow-hidden">
               <div className="absolute top-0 right-0 w-80 h-80 bg-gradient-to-bl from-[#0C81F3]/25 via-[#EB8988]/20 to-transparent rounded-full blur-3xl pointer-events-none" />

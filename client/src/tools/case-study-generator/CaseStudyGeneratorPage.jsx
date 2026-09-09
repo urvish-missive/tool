@@ -262,6 +262,15 @@ export default function CaseStudyGeneratorPage({ isEmbedded = false }) {
     setDataResult(null)
     setErrorMessage('')
     setActiveTab('case-study')
+    if (isEmbedded) {
+      const toolEl = document.getElementById('tool')
+      if (toolEl) {
+        const navHeight = 90
+        const targetY = toolEl.getBoundingClientRect().top + window.pageYOffset - navHeight
+        window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' })
+        return
+      }
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -295,7 +304,12 @@ export default function CaseStudyGeneratorPage({ isEmbedded = false }) {
         setDataResult(response.data)
         setActiveTab('case-study')
         setTimeout(() => {
-          document.getElementById('case-study-results')?.scrollIntoView({ behavior: 'smooth' })
+          const el = document.getElementById('case-study-results')
+          if (el) {
+            const navHeight = 90
+            const targetY = el.getBoundingClientRect().top + window.pageYOffset - navHeight
+            window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' })
+          }
         }, 150)
       } else {
         throw new Error(response?.error || 'Failed to generate case study.')

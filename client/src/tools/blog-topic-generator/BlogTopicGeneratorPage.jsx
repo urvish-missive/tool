@@ -156,9 +156,12 @@ export default function BlogTopicGeneratorPage({ isEmbedded = false }) {
       setDeepeningTopicKey(null)
       setFullScreenTopicData(null)
       setTimeout(() => {
-        document
-          .getElementById('blog-topic-results')
-          ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        const el = document.getElementById('blog-topic-results')
+        if (el) {
+          const navHeight = 90
+          const targetY = el.getBoundingClientRect().top + window.pageYOffset - navHeight
+          window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' })
+        }
       }, 100)
     } catch (err) {
       setError(err?.data?.error || 'Failed to generate topics. Please try again.')
@@ -212,6 +215,15 @@ export default function BlogTopicGeneratorPage({ isEmbedded = false }) {
     setDeepeningTopicKey(null)
     setFullScreenTopicData(null)
     resetMutation()
+    if (isEmbedded) {
+      const toolEl = document.getElementById('tool')
+      if (toolEl) {
+        const navHeight = 90
+        const targetY = toolEl.getBoundingClientRect().top + window.pageYOffset - navHeight
+        window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' })
+        return
+      }
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 

@@ -285,6 +285,15 @@ export default function BlogConclusionGeneratorPage({ isEmbedded = false }) {
     setErrorMessage('')
     setFavorites({})
     setActiveSampleId(null)
+    if (isEmbedded) {
+      const toolEl = document.getElementById('tool')
+      if (toolEl) {
+        const navHeight = 90
+        const targetY = toolEl.getBoundingClientRect().top + window.pageYOffset - navHeight
+        window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' })
+        return
+      }
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -308,7 +317,12 @@ export default function BlogConclusionGeneratorPage({ isEmbedded = false }) {
       if (res && res.conclusions) {
         setDataResult(res)
         setTimeout(() => {
-          document.getElementById('conclusion-results')?.scrollIntoView({ behavior: 'smooth' })
+          const el = document.getElementById('conclusion-results')
+          if (el) {
+            const navHeight = 90
+            const targetY = el.getBoundingClientRect().top + window.pageYOffset - navHeight
+            window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' })
+          }
         }, 150)
       } else {
         setErrorMessage('Failed to generate conclusions. Please try again.')

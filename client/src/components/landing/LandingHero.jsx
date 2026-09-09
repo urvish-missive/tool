@@ -137,9 +137,9 @@ export default function LandingHero({
           className="relative z-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 sm:mt-12 scroll-mt-28"
         >
           <div className="absolute -inset-3 bg-gradient-to-br from-[#0C81F3]/15 to-[#EB8988]/15 rounded-[32px] blur-xl pointer-events-none" />
-          <div className="relative rounded-3xl bg-white border border-slate-200/80 shadow-2xl shadow-slate-300/40 overflow-hidden transition-shadow hover:shadow-[0_35px_60px_-15px_rgba(12,129,243,0.25)]">
-            <div className="h-1 bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] lp-shimmer" />
-            <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-slate-100 bg-slate-50/80">
+          <div className="relative rounded-3xl bg-white border border-slate-200/80 shadow-2xl shadow-slate-300/40 transition-shadow hover:shadow-[0_35px_60px_-15px_rgba(12,129,243,0.25)]">
+            <div className="h-1 bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] lp-shimmer rounded-t-3xl" />
+            <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-slate-100 bg-slate-50/80 rounded-t-3xl">
               <span className="relative flex h-2.5 w-2.5">
                 <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />

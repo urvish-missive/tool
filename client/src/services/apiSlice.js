@@ -15,8 +15,30 @@ const rawBaseQuery = fetchBaseQuery({
   },
 })
 
+const isToolGeneration = (args) => {
+  const url = typeof args === 'string' ? args : args?.url || ''
+  const method = (typeof args === 'object' && args?.method ? args.method : 'GET').toUpperCase()
+  if (method !== 'POST') return false
+  if (url.startsWith('/leads') || url.startsWith('/admin') || url.includes('/health')) return false
+  return true
+}
+
 const baseQueryWithDeviceLimit = async (args, api, extraOptions) => {
+  const isGen = isToolGeneration(args)
+  const startTime = Date.now()
+
   const result = await rawBaseQuery(args, api, extraOptions)
+
+  // Enforce consistent 20-30s generation time across all tools on successful generation
+  if (isGen && !result.error) {
+    const elapsed = Date.now() - startTime
+    // Target 21s - 25s (consistently within the 20-30s window)
+    const targetMs = 21000 + Math.floor(Math.random() * 4000)
+    if (elapsed < targetMs) {
+      await new Promise((resolve) => setTimeout(resolve, targetMs - elapsed))
+    }
+  }
+
   if (result.error?.data && typeof window !== 'undefined') {
     if (result.error.data.deviceBlocked) {
       window.dispatchEvent(

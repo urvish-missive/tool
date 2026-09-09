@@ -21,6 +21,7 @@ const TOOL_SLUG_MAP = {
   '/blog-conclusion-generator': 'blog-conclusion-generator',
   '/eeat-analyzer': 'eeat-analyzer',
   '/business-competitor-analytics': 'business-competitor-analytics',
+  '/case-study-generator': 'case-study-generator',
 }
 
 export default function ToolGuard({ toolPath, children }) {

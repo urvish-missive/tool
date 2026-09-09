@@ -135,7 +135,12 @@ export default function EeatAnalyzerPage({ isEmbedded = false }) {
         setDataResult(res.data)
         setActivePillarTab('experience')
         setTimeout(() => {
-          document.getElementById('eeat-results')?.scrollIntoView({ behavior: 'smooth' })
+          const el = document.getElementById('eeat-results')
+          if (el) {
+            const navHeight = 90
+            const targetY = el.getBoundingClientRect().top + window.pageYOffset - navHeight
+            window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' })
+          }
         }, 150)
       } else {
         throw new Error(res.error || 'Failed to complete E-E-A-T audit.')

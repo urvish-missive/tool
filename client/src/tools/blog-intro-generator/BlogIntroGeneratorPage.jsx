@@ -143,7 +143,12 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
       setActiveFilterTab('all')
 
       setTimeout(() => {
-        document.getElementById('intro-results')?.scrollIntoView({ behavior: 'smooth' })
+        const el = document.getElementById('intro-results')
+        if (el) {
+          const navHeight = 90
+          const targetY = el.getBoundingClientRect().top + window.pageYOffset - navHeight
+          window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' })
+        }
       }, 150)
     } catch (err) {
       setErrorMessage(err?.data?.error || err.message || 'Failed to generate blog introductions')
@@ -173,6 +178,15 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
     setErrorMessage('')
     setFavorites({})
     setActiveFilterTab('all')
+    if (isEmbedded) {
+      const toolEl = document.getElementById('tool')
+      if (toolEl) {
+        const navHeight = 90
+        const targetY = toolEl.getBoundingClientRect().top + window.pageYOffset - navHeight
+        window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' })
+        return
+      }
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
