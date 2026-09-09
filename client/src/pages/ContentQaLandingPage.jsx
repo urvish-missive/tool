@@ -387,8 +387,8 @@ function QaHero({ onCta, toolRef }) {
         </div>
 
         <div ref={toolRef} id="tool" className="relative scroll-mt-24 mt-12 sm:mt-14">
-          <div className="rounded-[36px] bg-white border border-white/80 shadow-[0_33px_44px_rgba(0,0,0,0.04)]">
-            <div className="flex items-center justify-between px-6 sm:px-7 py-4 border-b border-[#EEE9E5] bg-[#F9F7F6] rounded-t-[36px]">
+          <div className="rounded-[36px] bg-white border border-white/80 shadow-[0_33px_44px_rgba(0,0,0,0.04)] overflow-hidden">
+            <div className="flex items-center justify-between px-6 sm:px-7 py-4 border-b border-[#EEE9E5] bg-[#F9F7F6]">
               <span className="flex items-center gap-2 text-[13px] font-semibold text-[#292929]">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 Live QA Terminal
