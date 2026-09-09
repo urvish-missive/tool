@@ -69,21 +69,29 @@ const STAGES = [
   },
 ]
 
-/**
- * LandingFunnelFlow — interactive full-funnel conversion pipeline visualizer.
- */
-export default function LandingFunnelFlow({ onTryTool }) {
+export default function LandingFunnelFlow({
+  stages,
+  badge = 'Conversion Architecture',
+  heading,
+  subheading,
+  sampleLabel1 = 'Opening Hook (Sentence 1-2):',
+  sampleLabel2 = 'Seamless Bridge to First H2:',
+  ctaButtonText,
+  onTryTool,
+}) {
   const [activeStage, setActiveStage] = useState('tofu')
   const [copied, setCopied] = useState(false)
   const headerRef = useScrollReveal()
   const contentRef = useScrollReveal({ threshold: 0.1 })
 
-  const current = STAGES.find((s) => s.id === activeStage) || STAGES[0]
+  const displayStages = stages || STAGES
+  const current = displayStages.find((s) => s.id === activeStage) || displayStages[0]
   const CurrentIcon = current.icon
 
   const handleCopySample = async () => {
     try {
-      await navigator.clipboard.writeText(`"${current.sampleHook}"\n\n${current.sampleBridge}`)
+      const textToCopy = current.sampleFullText || `"${current.sampleHook}"\n\n${current.sampleBridge}`
+      await navigator.clipboard.writeText(textToCopy)
       setCopied(true)
       setTimeout(() => setCopied(false), 2200)
     } catch {}
@@ -99,22 +107,27 @@ export default function LandingFunnelFlow({ onTryTool }) {
         <div ref={headerRef} className="lp-reveal text-center mb-10 sm:mb-14">
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/80 text-[11px] sm:text-xs font-bold uppercase tracking-[.18em] text-[#0C81F3] mb-3">
             <Sparkles className="w-3.5 h-3.5" />
-            Conversion Architecture
+            {badge}
           </span>
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[42px] font-extrabold text-slate-900 tracking-tight leading-tight mb-3 sm:mb-4">
-            Hooks Engineered Across the{' '}
-            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
-              Entire Funnel
-            </span>
+            {heading || (
+              <>
+                Hooks Engineered Across the{' '}
+                <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
+                  Entire Funnel
+                </span>
+              </>
+            )}
           </h2>
           <p className="text-xs sm:text-sm md:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed font-normal">
-            A generic intro treats every visitor the same. Our generator adapts psychological triggers to where your reader is in their buying journey.
+            {subheading ||
+              'A generic intro treats every visitor the same. Our generator adapts psychological triggers to where your reader is in their buying journey.'}
           </p>
         </div>
 
         {/* Funnel Stage Nav Tabs */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-8">
-          {STAGES.map((s, idx) => {
+          {displayStages.map((s, idx) => {
             const Icon = s.icon
             const isSelected = activeStage === s.id
             return (
@@ -204,7 +217,7 @@ export default function LandingFunnelFlow({ onTryTool }) {
                     onClick={onTryTool}
                     className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-slate-900 hover:bg-black text-white text-xs sm:text-sm font-bold shadow-md transition-all cursor-pointer"
                   >
-                    <span>Generate {current.id.toUpperCase()} Hooks Now</span>
+                    <span>{ctaButtonText ? ctaButtonText(current) : `Generate ${current.id.toUpperCase()} Conclusions Now`}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
@@ -231,7 +244,7 @@ export default function LandingFunnelFlow({ onTryTool }) {
 
                 <div>
                   <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide block mb-1">
-                    Opening Hook (Sentence 1-2):
+                    {sampleLabel1}
                   </span>
                   <blockquote className="text-sm sm:text-base font-bold text-slate-900 leading-snug p-3.5 rounded-xl bg-white border border-slate-200 shadow-2xs">
                     "{current.sampleHook}"
@@ -240,7 +253,7 @@ export default function LandingFunnelFlow({ onTryTool }) {
 
                 <div>
                   <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide block mb-1">
-                    Seamless Bridge to First H2:
+                    {sampleLabel2}
                   </span>
                   <p className="text-xs sm:text-sm italic text-slate-700 p-3 rounded-xl bg-blue-50/70 border border-blue-100 font-medium">
                     "{current.sampleBridge}"

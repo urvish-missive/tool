@@ -156,4 +156,103 @@
   -webkit-backdrop-filter: blur(14px);
 }
 
+/* ═══════════ Bespoke Landing Page Animations ═══════════ */
+
+/* Typewriter caret blink */
+@keyframes caret-blink {
+  0%, 49% { opacity: 1; }
+  50%, 100% { opacity: 0; }
+}
+.lp-caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: currentColor;
+  animation: caret-blink 1s step-end infinite;
+}
+
+/* Vertical scanline sweep */
+@keyframes scan-sweep {
+  0% { transform: translateY(-100%); opacity: 0; }
+  10% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(1200%); opacity: 0; }
+}
+.lp-scanline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, rgba(12, 129, 243, 0.55), rgba(235, 137, 136, 0.55), transparent);
+  animation: scan-sweep 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* Score ring fill driven by CSS var --ring-val */
+@keyframes ring-fill {
+  from { stroke-dashoffset: var(--ring-max, 251.2); }
+  to { stroke-dashoffset: var(--ring-val, 0); }
+}
+.lp-ring {
+  stroke-dasharray: var(--ring-max, 251.2);
+  animation: ring-fill 1.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* SVG path draw */
+@keyframes dash-draw {
+  from { stroke-dashoffset: 900; }
+  to { stroke-dashoffset: 0; }
+}
+.lp-draw {
+  stroke-dasharray: 900;
+  animation: dash-draw 2.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Drop in from above */
+@keyframes drop-in {
+  from { opacity: 0; transform: translateY(-18px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.lp-drop {
+  animation: drop-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Soft pop for badges and chips */
+@keyframes pop-in {
+  0% { opacity: 0; transform: scale(0.86); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.lp-pop {
+  animation: pop-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Slow conic spin for identity dials */
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+.lp-spin-slow {
+  animation: spin-slow 14s linear infinite;
+}
+
+/* Gentle hue drift for playful gradient blobs */
+@keyframes hue-drift {
+  0%, 100% { filter: hue-rotate(0deg); }
+  50% { filter: hue-rotate(28deg); }
+}
+.lp-hue-drift {
+  animation: hue-drift 9s ease-in-out infinite;
+}
+
+/* Tick pulse for timeline dots */
+@keyframes tick-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(12, 129, 243, 0.4); }
+  60% { box-shadow: 0 0 0 10px rgba(12, 129, 243, 0); }
+}
+.lp-tick {
+  animation: tick-pulse 2.4s ease-out infinite;
+}
+
 

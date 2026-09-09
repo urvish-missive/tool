@@ -1,4 +1,9 @@
-import { generateBlogTopics, generateTopicClusters, generateContentCalendar } from '../services/blogTopicGenerator.js'
+import {
+  generateBlogTopics,
+  generateTopicClusters,
+  generateContentCalendar,
+  generateMasterArticleBrief,
+} from '../services/blogTopicGenerator.js'
 import prisma from '../utils/prisma.js'
 
 /**
@@ -239,6 +244,55 @@ export async function getTopicsHandler(req, res) {
     res.status(500).json({
       success: false,
       error: 'Failed to retrieve topics.',
+    })
+  }
+}
+
+/**
+ * Handler for generating an in-depth Master Article Brief and Blueprint
+ * POST /api/blog-topics/master-brief
+ */
+export async function generateMasterBriefHandler(req, res) {
+  try {
+    const {
+      topic,
+      niche,
+      audience = '',
+      tone = 'authoritative',
+      preferredProvider,
+    } = req.body
+
+    if (!niche || typeof niche !== 'string' || niche.trim().length < 2) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please provide a valid niche (at least 2 characters).',
+      })
+    }
+
+    if (!topic) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please provide a topic title or topic object to generate a master brief for.',
+      })
+    }
+
+    const masterBrief = await generateMasterArticleBrief({
+      topic,
+      niche: niche.trim(),
+      audience: audience?.trim() || '',
+      tone: tone || 'authoritative',
+      preferredProvider,
+    })
+
+    res.json({
+      success: true,
+      masterBrief,
+    })
+  } catch (err) {
+    console.error('Master brief generation error:', err.message)
+    res.status(500).json({
+      success: false,
+      error: err.message || 'Failed to generate master article brief. Please try again.',
     })
   }
 }

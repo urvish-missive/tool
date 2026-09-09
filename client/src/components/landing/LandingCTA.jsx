@@ -15,7 +15,7 @@ export default function LandingCTA({
 
   return (
     <section className={`py-12 sm:py-16 lg:py-20 ${className}`}>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
         <div ref={ref} className="lp-reveal-scale relative rounded-2xl sm:rounded-3xl overflow-hidden p-6 sm:p-10 lg:p-14 shadow-xl shadow-[#0C81F3]/15">
           {/* Background */}
           <div

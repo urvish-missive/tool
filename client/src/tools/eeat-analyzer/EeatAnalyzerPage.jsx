@@ -79,7 +79,7 @@ const LOADING_STEPS = [
   'Simulating AI Search Engine & GEO citation potential...',
 ]
 
-export default function EeatAnalyzerPage() {
+export default function EeatAnalyzerPage({ isEmbedded = false }) {
   const [activeMode, setActiveMode] = useState('url')
   const [activePillarTab, setActivePillarTab] = useState('experience')
   const [copiedItem, setCopiedItem] = useState(null)
@@ -241,7 +241,7 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
   }
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-24">
+    <div className={isEmbedded ? 'w-full' : 'min-h-screen bg-slate-50/50 pb-24'}>
       {/* Lead Capture Modal */}
       <LeadCaptureModal
         show={showPopup}
@@ -256,38 +256,40 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
         subtitle="Forensically evaluate your content against Google Search Quality guidelines and AI Overview citation algorithms."
       />
 
-      {/* Hero Header */}
-      <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
-        <div
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }}
-        />
-        <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
+      {/* Hero Header — ONLY SHOWN WHEN NOT EMBEDDED */}
+      {!isEmbedded && (
+        <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
+          <div
+            className="absolute inset-0"
+            style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }}
+          />
+          <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
 
-        <div className="relative max-w-4xl mx-auto px-3 sm:px-6 text-center">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[11px] sm:text-xs font-bold rounded-full mb-3 tracking-wide uppercase shadow-2xs whitespace-nowrap shrink-0">
-            <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
-            <span>Himani's SEO Tools • Missive Digital</span>
+          <div className="relative max-w-4xl mx-auto px-3 sm:px-6 text-center">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[11px] sm:text-xs font-bold rounded-full mb-3 tracking-wide uppercase shadow-2xs whitespace-nowrap shrink-0">
+              <Sparkles className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
+              <span>Himani's SEO Tools • Missive Digital</span>
+            </div>
+
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight mb-2.5">
+              <span className="text-slate-900">E-E-A-T & AI Search </span>
+              <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
+                Authority Analyzer
+              </span>
+            </h1>
+
+            <p className="mt-2 text-xs sm:text-sm md:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
+              Audit and elevate your content across Google's{' '}
+              <strong className="text-slate-900">Experience, Expertise, Authoritativeness, and Trustworthiness</strong>{' '}
+              standards while optimizing for <strong className="text-[#0C81F3]">Google AI Overviews & Perplexity</strong> citations.
+            </p>
           </div>
-
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight mb-2.5">
-            <span className="text-slate-900">E-E-A-T & AI Search </span>
-            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
-              Authority Analyzer
-            </span>
-          </h1>
-
-          <p className="mt-2 text-xs sm:text-sm md:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Audit and elevate your content across Google's{' '}
-            <strong className="text-slate-900">Experience, Expertise, Authoritativeness, and Trustworthiness</strong>{' '}
-            standards while optimizing for <strong className="text-[#0C81F3]">Google AI Overviews & Perplexity</strong> citations.
-          </p>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* Main Form Container */}
-      <div className="max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6">
+      <div className={isEmbedded ? 'w-full' : 'max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6'}>
         {!isLoading && (
           <div className="bg-white rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/40 border border-slate-200 p-4 sm:p-6 lg:p-7 mb-8 transition-all">
             <form onSubmit={handleSubmit(onFormValid)} className="space-y-4 sm:space-y-5">

@@ -11,7 +11,7 @@ import BlogTopicGeneratorPage from './tools/blog-topic-generator/BlogTopicGenera
 import LogoMakerPage from './tools/logo-maker/LogoMakerPage'
 import FaqGeneratorPage from './tools/faq-generator/FaqGeneratorPage'
 import CompetitorAnalysisPage from './tools/competitor-analysis/CompetitorAnalysisPage'
-import ContentQaPage from './tools/content-qa/ContentQaPage'
+import ContentQaLandingPage from './pages/ContentQaLandingPage'
 import XmlSitemapGeneratorPage from './tools/xml-sitemap-generator/XmlSitemapGeneratorPage'
 import GoogleRankCheckerPage from './tools/google-rank-checker/GoogleRankCheckerPage'
 import WebsiteContentExtractorPage from './tools/website-content-extractor/WebsiteContentExtractorPage'
@@ -21,7 +21,8 @@ import AiContentWriterPage from './tools/ai-content-writer/AiContentWriterPage'
 import BlogIntroGeneratorPage from './tools/blog-intro-generator/BlogIntroGeneratorPage'
 import BlogIntroLandingPage from './pages/BlogIntroLandingPage'
 import BlogConclusionGeneratorPage from './tools/blog-conclusion-generator/BlogConclusionGeneratorPage'
-import EeatAnalyzerPage from './tools/eeat-analyzer/EeatAnalyzerPage'
+import BlogConclusionLandingPage from './pages/BlogConclusionLandingPage'
+import EeatAuthorityAnalyzerLandingPage from './pages/EeatAuthorityAnalyzerLandingPage'
 import BusinessCompetitorPage from './tools/business-competitor-analytics/BusinessCompetitorPage'
 import CaseStudyGeneratorPage from './tools/case-study-generator/CaseStudyGeneratorPage'
 import AdminLogin from './pages/admin/AdminLogin'
@@ -32,10 +33,12 @@ import AdminDevices from './pages/admin/AdminDevices'
 import AdminLeads from './pages/admin/AdminLeads'
 import AdminActivity from './pages/admin/AdminActivity'
 import GlobalDeviceLimitModal from './components/GlobalDeviceLimitModal'
+import ScrollToTop from './components/ScrollToTop'
 
 export default function App() {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
+      <ScrollToTop />
       <GlobalDeviceLimitModal />
       <Routes>
 
@@ -127,7 +130,7 @@ export default function App() {
                     path="/content-qa"
                     element={
                       <ToolGuard toolPath="/content-qa">
-                        <ContentQaPage />
+                        <ContentQaLandingPage />
                       </ToolGuard>
                     }
                   />
@@ -191,7 +194,7 @@ export default function App() {
                     path="/blog-conclusion-generator"
                     element={
                       <ToolGuard toolPath="/blog-conclusion-generator">
-                        <BlogConclusionGeneratorPage />
+                        <BlogConclusionLandingPage />
                       </ToolGuard>
                     }
                   />
@@ -199,7 +202,7 @@ export default function App() {
                     path="/eeat-analyzer"
                     element={
                       <ToolGuard toolPath="/eeat-analyzer">
-                        <EeatAnalyzerPage />
+                        <EeatAuthorityAnalyzerLandingPage />
                       </ToolGuard>
                     }
                   />

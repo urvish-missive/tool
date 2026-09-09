@@ -120,6 +120,15 @@ export const apiSlice = createApi({
       invalidatesTags: ['TopicCluster'],
     }),
 
+    // POST /api/blog-topics/master-brief
+    generateMasterBrief: builder.mutation({
+      query: (payload) => ({
+        url: '/blog-topics/master-brief',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
     // GET /api/blog-topics/:id
     getBlogTopics: builder.query({
       query: (id) => `/blog-topics/${id}`,
@@ -473,6 +482,7 @@ export const {
   useCalculateROIMutation,
   useGenerateTopicsMutation,
   useGenerateClustersMutation,
+  useGenerateMasterBriefMutation,
   useGetBlogTopicsQuery,
   useGenerateFaqsMutation,
   useAnalyzeCompetitorMutation,

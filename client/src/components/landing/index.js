@@ -9,4 +9,7 @@ export { default as LandingBeforeAfter } from './LandingBeforeAfter'
 export { default as LandingFAQ } from './LandingFAQ'
 export { default as LandingStats } from './LandingStats'
 export { default as LandingCTA } from './LandingCTA'
-
+export { default as LandingMissiveQA } from './LandingMissiveQA'
+export { default as LandingConclusionAnatomy } from './LandingConclusionAnatomy'
+export { default as LandingBannedWordsWall } from './LandingBannedWordsWall'
+export { default as LandingFrameworksGallery } from './LandingFrameworksGallery'

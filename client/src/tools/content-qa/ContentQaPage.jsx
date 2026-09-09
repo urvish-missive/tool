@@ -283,7 +283,7 @@ Here is how you can supercharge your content strategy:
 - Ensure your paragraphs are bite-sized and engaging.
 - Never settle for generic advice.`
 
-export default function ContentQaPage() {
+export default function ContentQaPage({ isEmbedded = false }) {
   const {
     register,
     handleSubmit,
@@ -1016,7 +1016,7 @@ Audited with Missive Digital Content QA Tool.`
   }, [filterMode, statuses, report])
 
   return (
-    <div className="min-h-screen bg-[#FDFDFD] text-gray-900">
+    <div className={isEmbedded ? 'w-full text-gray-900' : 'min-h-screen bg-[#FDFDFD] text-gray-900'}>
       <LeadCaptureModal
         show={showPopup}
         onClose={handlePopupClose}
@@ -1029,59 +1029,61 @@ Audited with Missive Digital Content QA Tool.`
         subtitle="Enter your details to generate your full quality breakdown and AI audit."
       />
 
-      {/* ── HERO BANNER (Site Brand Gradient: #0C81F3 to #EB8988) ──── */}
-      <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
-        <div
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }}
-        />
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
+      {/* ── HERO BANNER (ONLY SHOWN WHEN NOT EMBEDDED) ──── */}
+      {!isEmbedded && (
+        <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
+          <div
+            className="absolute inset-0"
+            style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }}
+          />
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
 
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase shadow-sm">
-            Free QA Tool
-          </span>
-
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-7 h-7 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] flex items-center justify-center text-white font-bold text-xs shadow-sm">
-              HK
-            </div>
-            <span className="text-xs sm:text-sm font-semibold text-gray-700 tracking-wide">
-              Himani Kankaria's Content QA Framework
+          <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
+            <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase shadow-sm">
+              Free QA Tool
             </span>
+
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <div className="w-7 h-7 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] flex items-center justify-center text-white font-bold text-xs shadow-sm">
+                HK
+              </div>
+              <span className="text-xs sm:text-sm font-semibold text-gray-700 tracking-wide">
+                Himani Kankaria's Content QA Framework
+              </span>
+            </div>
+
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 leading-[1.15]">
+              <span className="text-gray-900">Content </span>
+              <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
+                QA Checklist
+              </span>
+            </h1>
+            <p className="mt-4 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+              QA every piece of content written for your brand the way Himani does.
+              <span className="block text-sm text-gray-500 font-medium mt-1">
+                12 Pillars • 34 Precision Checks • Zero AI Fluff & Zero Em Dashes
+              </span>
+            </p>
+
+            {!report && !isAnalyzing && (
+              <div className="mt-5 flex justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleLoadSample}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold text-[#0C81F3] bg-blue-50/90 hover:bg-blue-100 border border-blue-200/60 transition-all shadow-sm"
+                >
+                  <BookOpen className="w-3.5 h-3.5" />
+                  Load Sample Content
+                </button>
+              </div>
+            )}
           </div>
-
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 leading-[1.15]">
-            <span className="text-gray-900">Content </span>
-            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
-              QA Checklist
-            </span>
-          </h1>
-          <p className="mt-4 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            QA every piece of content written for your brand the way Himani does.
-            <span className="block text-sm text-gray-500 font-medium mt-1">
-              12 Pillars • 34 Precision Checks • Zero AI Fluff & Zero Em Dashes
-            </span>
-          </p>
-
-          {!report && !isAnalyzing && (
-            <div className="mt-5 flex justify-center gap-3">
-              <button
-                type="button"
-                onClick={handleLoadSample}
-                className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold text-[#0C81F3] bg-blue-50/90 hover:bg-blue-100 border border-blue-200/60 transition-all shadow-sm"
-              >
-                <BookOpen className="w-3.5 h-3.5" />
-                Load Sample Content
-              </button>
-            </div>
-          )}
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ── MAIN CONTENT CONTAINER ─────────────────────────────────── */}
-      <section className="py-10">
+      <section className={isEmbedded ? 'py-0' : 'py-10'}>
         <div className="max-w-5xl mx-auto px-4 sm:px-6">
           {/* ── INPUT FORM ────────────────────────────────────────── */}
           {!report && !isAnalyzing && (
