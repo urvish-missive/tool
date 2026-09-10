@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -141,7 +141,11 @@ const LOADING_STEPS = [
   'Polishing output into drop-in markdown cards',
 ]
 
-export default function BlogConclusionGeneratorPage({ isEmbedded = false }) {
+export default function BlogConclusionGeneratorPage({
+  isEmbedded = false,
+  onResultStateChange,
+  resetSignal,
+}) {
   const [selectedFunnel, setSelectedFunnel] = useState('all')
   const [selectedCta, setSelectedCta] = useState('demo')
   const [activeFilterTab, setActiveFilterTab] = useState('all')
@@ -153,6 +157,21 @@ export default function BlogConclusionGeneratorPage({ isEmbedded = false }) {
   const [dataResult, setDataResult] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
   const [activeSampleId, setActiveSampleId] = useState(null)
+
+  useEffect(() => {
+    if (dataResult?.conclusions?.length) {
+      onResultStateChange?.(true)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      onResultStateChange?.(false)
+    }
+  }, [dataResult, onResultStateChange])
+
+  useEffect(() => {
+    if (resetSignal > 0) {
+      handleReset()
+    }
+  }, [resetSignal])
 
   const {
     register,
@@ -372,7 +391,13 @@ export default function BlogConclusionGeneratorPage({ isEmbedded = false }) {
   }, [favorites])
 
   return (
-    <div className={isEmbedded ? 'w-full @container' : 'min-h-screen bg-slate-50 text-slate-800 pb-20 @container'}>
+    <div
+      className={
+        isEmbedded
+          ? 'w-full @container'
+          : 'min-h-screen bg-slate-50 text-slate-800 pb-20 @container'
+      }
+    >
       {/* Hero Header: only shown when standalone */}
       {!isEmbedded && (
         <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24 bg-gradient-to-b from-slate-50 to-white border-b border-slate-200">
@@ -427,7 +452,7 @@ export default function BlogConclusionGeneratorPage({ isEmbedded = false }) {
       )}
 
       {/* Main Container */}
-      <div className={isEmbedded ? 'w-full' : 'max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6'}>
+      <div className={isEmbedded ? 'w-full' : 'max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6'}>
         {/* Form Container: only shown when not loading */}
         {!isLoading && (
           <div className="bg-white rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/40 border border-slate-200 p-4 sm:p-6 lg:p-7 mb-8 transition-all">
@@ -782,7 +807,6 @@ export default function BlogConclusionGeneratorPage({ isEmbedded = false }) {
 
               {/* Action Row */}
               <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
                   <button
                     type="button"

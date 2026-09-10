@@ -198,7 +198,7 @@ export async function generateBlogConclusions({
   targetKeywords = [],
   tone = 'authoritative',
   numVariations = 6,
-  preferredProvider = 'gemini-3.5-flash-lite',
+  preferredProvider = 'groq',
 }) {
   if (!topic || typeof topic !== 'string' || topic.trim().length < 3) {
     throw new Error('A valid blog topic or title is required (minimum 3 characters).')
@@ -305,10 +305,10 @@ ${stagePlan.map((s, idx) => `Variation ${idx + 1}: ${CONCLUSION_FUNNEL_STAGES[s]
     ]
 
     const result = await callAIAndParseJSON(messages, {
-      preferredProvider: preferredProvider || 'gemini-3.5-flash-lite',
+      preferredProvider: preferredProvider || 'groq',
       temperature: 0.72,
       maxTokens: Math.min(Math.max(count * 350, 2200), 3600),
-      timeout: 16000,
+      timeout: 14000,
     })
 
     if (result && Array.isArray(result.conclusions) && result.conclusions.length > 0) {

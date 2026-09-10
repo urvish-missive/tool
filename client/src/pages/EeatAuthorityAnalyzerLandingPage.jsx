@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import useScrollReveal from '../components/landing/useScrollReveal'
 import { Helmet } from 'react-helmet-async'
 import {
@@ -15,6 +15,7 @@ import {
   Crown,
   Database,
   Wand2,
+  ArrowLeft,
 } from 'lucide-react'
 import {
   LandingHero,
@@ -24,10 +25,12 @@ import {
   LandingFeatures,
   LandingHowItWorks,
   LandingStats,
+  LandingAnimatedStats,
   LandingFAQ,
   LandingCTA,
-  LandingMissiveQA,
+  LandingEeatAuditMatrix,
   LandingLiveDemo,
+  LandingResultsTopbar,
 } from '../components/landing'
 import EeatAnalyzerPage from '../tools/eeat-analyzer/EeatAnalyzerPage'
 
@@ -194,31 +197,37 @@ const FAQS = [
     question: 'What is E-E-A-T and why does it matter for AI Search?',
     answer:
       "E-E-A-T stands for Expertise, Experience, Authoritativeness and Trustworthiness: Google's core framework for content quality. In the age of AI Search it matters more than ever because AI models need to extract authoritative signals from your content to provide accurate, citable answers.",
+    tag: 'Basics',
   },
   {
     question: 'How does this analyzer differ from regular SEO tools?',
     answer:
       'It analyzes content depth, author credibility, primary source citations, hands-on experience indicators, and E-E-A-T compliance across 15+ quality dimensions. It returns specific, actionable recommendations rather than generic checklists, so you know exactly what to fix.',
+    tag: 'Detection',
   },
   {
     question: 'Can I really rank higher in AI Search with this tool?',
     answer:
       'Yes. Google AI Search strongly weights E-E-A-T signals. Content scoring 90% or higher on the analyzer tends to rank 2-3x higher in AI Search results because it gives the AI clear signals it can confidently extract and cite.',
+    tag: 'Rankings',
   },
   {
     question: 'Do I need a website for the analyzer to work?',
     answer:
       'No. The analyzer works on any URL or on pasted draft text. It analyzes existing content, provides improvement recommendations, and tells you exactly what signals are missing for stronger citations in AI search results.',
+    tag: 'Inputs',
   },
   {
     question: 'Does this tool work for YMYL content?',
     answer:
       'Yes. It is designed for Your Money or Your Life content with enhanced validation for Health, Finance, Legal, and Safety topics, checking credentials, citations, disclaimers, and compliance more rigorously.',
+    tag: 'YMYL',
   },
   {
     question: 'Is the E-E-A-T analyzer free?',
     answer:
       'Yes. The E-E-A-T & AI Search Authority Analyzer by Missive Digital is 100% free with no sign-up or credit card required.',
+    tag: 'Pricing',
   },
 ]
 
@@ -288,8 +297,6 @@ const EEAT_PILLS = [
 
 /* ─────────────── Trust Section ─────────────── */
 function TrustSection() {
-  const headerRef = useScrollReveal()
-  const gridRef = useScrollReveal({ threshold: 0.1 })
   const items = [
     { icon: Users, value: '2,000+', label: 'Active content strategists monthly' },
     { icon: BarChart3, value: '45,000+', label: 'Content pieces audited' },
@@ -297,45 +304,12 @@ function TrustSection() {
   ]
 
   return (
-    <section className="py-12 sm:py-16 lg:py-20 bg-white border-t border-slate-100">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div ref={headerRef} className="lp-reveal text-center mb-8 sm:mb-12">
-          <span className="inline-block text-[11px] sm:text-xs font-bold uppercase tracking-[.18em] text-[#0C81F3] mb-2 sm:mb-2.5">
-            Built by SEO Strategists
-          </span>
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-2.5 sm:mb-3 leading-tight">
-            Trusted by Content Teams Who Care About Authority
-          </h2>
-          <p className="text-xs sm:text-sm md:text-base text-slate-600 max-w-xl mx-auto leading-relaxed font-normal">
-            Built on Himani Kankaria&apos;s frameworks, refined over 10+ years of optimizing
-            enterprise copy for Google&apos;s quality guidelines and AI Search visibility.
-          </p>
-        </div>
-
-        <div
-          ref={gridRef}
-          className="lp-reveal lp-stagger grid grid-cols-1 sm:grid-cols-3 gap-3.5 sm:gap-5"
-        >
-          {items.map((item, i) => {
-            const Icon = item.icon
-            return (
-              <div
-                key={i}
-                className="lp-reveal-child text-center p-5 sm:p-6 rounded-2xl bg-slate-50/80 border border-slate-200 hover:border-[#0C81F3]/40 hover:bg-white hover:shadow-md transition-all"
-              >
-                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[#0C81F3] to-[#EB8988] flex items-center justify-center mx-auto mb-3 shadow-md shadow-[#0C81F3]/15">
-                  <Icon className="w-6 h-6 text-white" />
-                </div>
-                <div className="text-2xl xs:text-3xl sm:text-4xl font-black text-slate-900 leading-none mt-1">
-                  {item.value}
-                </div>
-                <p className="text-xs sm:text-sm text-slate-600 mt-1.5 font-medium">{item.label}</p>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </section>
+    <LandingAnimatedStats
+      sectionLabel="Built by SEO Strategists"
+      heading="Trusted by Content Teams Who Care About Authority"
+      subheading="Built on Himani Kankaria's frameworks, refined over 10+ years of optimizing enterprise copy for Google's quality guidelines and AI Search visibility."
+      stats={items}
+    />
   )
 }
 
@@ -357,8 +331,8 @@ function AuthorityBanner() {
             },
             {
               icon: CheckCircle2,
-              title: 'Missive 12-Pillar QA Certified',
-              text: 'Zero em dashes, zero robotic buzzwords, and verifiable quantitative performance proof metrics.',
+              title: 'Google Quality Rater Aligned',
+              text: 'Forensically evaluated against official Search Quality Evaluator Guidelines and AI Overview citation criteria.',
             },
             {
               icon: CheckCircle2,
@@ -387,7 +361,15 @@ function AuthorityBanner() {
 
 /* ─────────────── Landing Page Component ─────────────── */
 export default function EeatAuthorityAnalyzerLandingPage() {
+  const [hasResults, setHasResults] = useState(false)
+  const [resetSignal, setResetSignal] = useState(0)
   const toolRef = useRef(null)
+
+  const handleNewAudit = () => {
+    setResetSignal((c) => c + 1)
+    setHasResults(false)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const scrollToTool = useCallback(() => {
     const el = toolRef.current || document.getElementById('tool')
@@ -447,9 +429,20 @@ export default function EeatAuthorityAnalyzerLandingPage() {
         <script type="application/ld+json">{JSON.stringify(faqStructuredData)}</script>
       </Helmet>
 
-      <div className="landing-page min-h-screen bg-white">
+      <div className={`landing-page min-h-screen bg-white ${hasResults ? 'pt-20' : ''}`}>
+        {hasResults && (
+          <LandingResultsTopbar
+            onBack={handleNewAudit}
+            backLabel="New E-E-A-T Audit"
+            backHint="Start Over"
+            title="E-E-A-T & AI Search Authority Audit Workspace"
+            badge="Live Audit"
+          />
+        )}
+
         {/* ═══════════════ 1. HERO ═══════════════ */}
         <LandingHero
+          hideHeroCopy={hasResults}
           badge="Himani's SEO Tools • Missive Digital"
           title={[
             { text: 'Rank Higher in Google' },
@@ -470,12 +463,20 @@ export default function EeatAuthorityAnalyzerLandingPage() {
             'AI Search ready',
           ]}
           toolRef={toolRef}
-          toolLabel="Run the E-E-A-T Audit • Live"
-          toolSlot={<EeatAnalyzerPage isEmbedded={true} />}
+          toolLabel={hasResults ? 'Forensic E-E-A-T Audit Results' : 'Run the E-E-A-T Audit • Live'}
+          toolSlot={
+            <EeatAnalyzerPage
+              isEmbedded={true}
+              onResultStateChange={setHasResults}
+              resetSignal={resetSignal}
+            />
+          }
         />
 
-        {/* ═══════════════ 2. INFINITE CMS & PUBLISHING MARQUEE ═══════════════ */}
-        <LandingMarquee />
+        {!hasResults && (
+          <>
+            {/* ═══════════════ 2. INFINITE CMS & PUBLISHING MARQUEE ═══════════════ */}
+            <LandingMarquee />
 
         {/* ═══════════════ 3. ANIMATED LIVE DEMO ═══════════════ */}
         <LandingLiveDemo
@@ -514,8 +515,8 @@ export default function EeatAuthorityAnalyzerLandingPage() {
         {/* ═══════════════ 4. STATS ROW ═══════════════ */}
         <LandingStats stats={STATS} />
 
-        {/* ═══════════════ 5. 12-PILLAR MISSIVE QA AUDIT MATRIX ═══════════════ */}
-        <LandingMissiveQA />
+        {/* ═══════════════ 5. FORENSIC E-E-A-T & AI CITATION MATRIX ═══════════════ */}
+        <LandingEeatAuditMatrix />
 
         {/* ═══════════════ 6. FEATURES GRID ═══════════════ */}
         <LandingFeatures
@@ -609,6 +610,8 @@ export default function EeatAuthorityAnalyzerLandingPage() {
           ctaLabel="Analyze My Content Free"
           ctaOnClick={scrollToTool}
         />
+          </>
+        )}
       </div>
     </>
   )

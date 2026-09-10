@@ -253,7 +253,7 @@ export async function reviewContentQA(content, title, targetKeyword, metaDescrip
       temperature: 0.2,
       maxTokens: 2200,
       jsonMode: true,
-      timeout: 15000,
+      timeout: 13000,
     })
 
     console.log('[OK] Himani AI content QA review complete — overall:', parsed?.overallScore)

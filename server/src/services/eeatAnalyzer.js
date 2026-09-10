@@ -346,7 +346,7 @@ export async function analyzeEeat({
   title = '',
   contentType = 'auto',
   targetKeywords = '',
-  preferredProvider = 'gemini-3.5-flash-lite',
+  preferredProvider = 'groq',
 }) {
   const cacheKey = apiResultCache.hashKey('eeat', { url, content: content ? content.slice(0, 500) : '', title, contentType, targetKeywords, preferredProvider })
   const cached = apiResultCache.get(cacheKey)
@@ -500,7 +500,7 @@ RETURN STRICTLY JSON WITH THIS FORMAT:
     ]
 
     const result = await callAIAndParseJSON(messages, {
-      preferredProvider: preferredProvider || 'gemini-3.5-flash-lite',
+      preferredProvider: preferredProvider || 'groq',
       temperature: 0.4,
       maxTokens: 1800,
       timeout: 10000,

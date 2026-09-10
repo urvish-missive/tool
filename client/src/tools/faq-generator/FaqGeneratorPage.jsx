@@ -235,118 +235,118 @@ export default function FaqGeneratorPage() {
       </section>
 
       {/* Main Container */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Input Form Card */}
         {!isLoading && (
           <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10 backdrop-blur-sm">
-          <form onSubmit={handleSubmit(onFormValid)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Topic Input */}
-              <div className="md:col-span-2">
-                <label htmlFor="topic" className="block text-sm font-bold text-slate-800 mb-2">
-                  Topic, Product, or Page Subject <span className="text-rose-500">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    id="topic"
-                    type="text"
-                    {...register('topic')}
-                    placeholder="e.g., Technical SEO Audit, Organic Coffee Subscription, SaaS Lead Generation"
-                    className={`w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 placeholder:text-slate-400 font-medium transition-all text-base ${errors.topic ? 'border-red-400 ring-1 ring-red-200' : 'border-slate-300'}`}
-                  />
-                  <HelpCircle className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+            <form onSubmit={handleSubmit(onFormValid)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Topic Input */}
+                <div className="md:col-span-2">
+                  <label htmlFor="topic" className="block text-sm font-bold text-slate-800 mb-2">
+                    Topic, Product, or Page Subject <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="topic"
+                      type="text"
+                      {...register('topic')}
+                      placeholder="e.g., Technical SEO Audit, Organic Coffee Subscription, SaaS Lead Generation"
+                      className={`w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 placeholder:text-slate-400 font-medium transition-all text-base ${errors.topic ? 'border-red-400 ring-1 ring-red-200' : 'border-slate-300'}`}
+                    />
+                    <HelpCircle className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+                  </div>
+                  {errors.topic && (
+                    <p className="mt-1 text-xs text-red-600">{errors.topic.message}</p>
+                  )}
                 </div>
-                {errors.topic && (
-                  <p className="mt-1 text-xs text-red-600">{errors.topic.message}</p>
-                )}
+
+                {/* Target Keywords */}
+                <div>
+                  <label htmlFor="keywords" className="block text-sm font-bold text-slate-800 mb-2">
+                    Target Keywords{' '}
+                    <span className="text-xs font-normal text-slate-500">
+                      (Optional, comma separated)
+                    </span>
+                  </label>
+                  <input
+                    id="keywords"
+                    type="text"
+                    {...register('targetKeywords')}
+                    placeholder="e.g., best seo audit, site audit cost, technical seo checklist"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 placeholder:text-slate-400 text-sm transition-all"
+                  />
+                </div>
+
+                {/* Count Selector */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-800 mb-2">
+                    Number of FAQs
+                  </label>
+                  <Controller
+                    control={control}
+                    name="count"
+                    render={({ field }) => (
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                        {[4, 6, 8, 12].map((num) => (
+                          <button
+                            key={num}
+                            type="button"
+                            onClick={() => field.onChange(num)}
+                            className={`py-2.5 px-3 text-xs sm:text-sm font-semibold rounded-xl border transition-all cursor-pointer ${
+                              field.value === num
+                                ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white border-transparent shadow-sm'
+                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                            }`}
+                          >
+                            {num} FAQs
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  />
+                </div>
               </div>
 
-              {/* Target Keywords */}
-              <div>
-                <label htmlFor="keywords" className="block text-sm font-bold text-slate-800 mb-2">
-                  Target Keywords{' '}
-                  <span className="text-xs font-normal text-slate-500">
-                    (Optional, comma separated)
-                  </span>
-                </label>
-                <input
-                  id="keywords"
-                  type="text"
-                  {...register('targetKeywords')}
-                  placeholder="e.g., best seo audit, site audit cost, technical seo checklist"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 placeholder:text-slate-400 text-sm transition-all"
-                />
-              </div>
-
-              {/* Count Selector */}
-              <div>
-                <label className="block text-sm font-bold text-slate-800 mb-2">
-                  Number of FAQs
-                </label>
-                <Controller
-                  control={control}
-                  name="count"
-                  render={({ field }) => (
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {[4, 6, 8, 12].map((num) => (
-                        <button
-                          key={num}
-                          type="button"
-                          onClick={() => field.onChange(num)}
-                          className={`py-2.5 px-3 text-xs sm:text-sm font-semibold rounded-xl border transition-all cursor-pointer ${
-                            field.value === num
-                              ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white border-transparent shadow-sm'
-                              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                          }`}
-                        >
-                          {num} FAQs
-                        </button>
-                      ))}
-                    </div>
+              {/* Model Selector & Submit */}
+              <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+                  {faqs.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleReset}
+                      className="w-full sm:w-auto px-5 py-3 rounded-full border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-sm text-center cursor-pointer order-2 sm:order-1"
+                    >
+                      Reset
+                    </button>
                   )}
-                />
-              </div>
-            </div>
-
-            {/* Model Selector & Submit */}
-            <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
-                {faqs.length > 0 && (
                   <button
-                    type="button"
-                    onClick={handleReset}
-                    className="w-full sm:w-auto px-5 py-3 rounded-full border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-sm text-center cursor-pointer order-2 sm:order-1"
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-6 sm:px-8 py-3.5 text-sm sm:text-base font-bold text-white hover:opacity-95 active:scale-[0.98] disabled:opacity-50 transition-all shadow-md hover:shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
                   >
-                    Reset
+                    {isLoading ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin shrink-0" />
+                        <span>Generating FAQs & Schema...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                        <span>Generate FAQ Content & Schema</span>
+                      </>
+                    )}
                   </button>
-                )}
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-6 sm:px-8 py-3.5 text-sm sm:text-base font-bold text-white hover:opacity-95 active:scale-[0.98] disabled:opacity-50 transition-all shadow-md hover:shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
-                >
-                  {isLoading ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin shrink-0" />
-                      <span>Generating FAQs & Schema...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-                      <span>Generate FAQ Content & Schema</span>
-                    </>
-                  )}
-                </button>
+                </div>
               </div>
-            </div>
 
-            {error && (
-              <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium">
-                {error}
-              </div>
-            )}
-          </form>
-        </div>
+              {error && (
+                <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium">
+                  {error}
+                </div>
+              )}
+            </form>
+          </div>
         )}
 
         {/* Loading State */}

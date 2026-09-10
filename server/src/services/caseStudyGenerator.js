@@ -409,7 +409,7 @@ export async function generateCaseStudy({
   metrics,
   targetAudience = '',
   tone = 'authoritative',
-  preferredProvider = 'gemini-3.5-flash-lite',
+  preferredProvider = 'groq',
 }) {
   const activeTone = (tone || 'authoritative').toLowerCase().trim()
   const toneProfile = TONE_PROFILES[activeTone] || TONE_PROFILES.authoritative
@@ -660,10 +660,10 @@ OUTPUT JSON SCHEMA:
     const tokenBudget = 4800
 
     const aiResponse = await callAIAndParseJSON(messages, {
-      preferredProvider: preferredProvider || 'gemini-3.5-flash-lite',
+      preferredProvider: preferredProvider || 'groq',
       temperature: 0.65,
       maxTokens: tokenBudget,
-      timeout: 35000,
+      timeout: 16000,
     })
 
     if (!aiResponse || !aiResponse.caseStudy) {

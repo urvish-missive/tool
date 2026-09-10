@@ -1,7 +1,5 @@
 import { useState } from 'react'
-import {
-  useExtractWebsiteContentMutation,
-} from '../../services/apiSlice'
+import { useExtractWebsiteContentMutation } from '../../services/apiSlice'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
 import { useLeadPopup } from '../../components/useLeadPopup'
@@ -125,7 +123,9 @@ export default function WebsiteContentExtractorPage() {
       }, 150)
     } catch (err) {
       setError(
-        err?.data?.error || err?.message || 'Failed to extract website content. Please verify the URL.'
+        err?.data?.error ||
+          err?.message ||
+          'Failed to extract website content. Please verify the URL.'
       )
     }
   }
@@ -205,113 +205,118 @@ export default function WebsiteContentExtractorPage() {
           </h1>
 
           <p className="mt-3 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Extract clean article text, metadata, headings, structured schema, and ownership clues from any URL. Ask AI questions grounded strictly in the website content with evidence quotes.
+            Extract clean article text, metadata, headings, structured schema, and ownership clues
+            from any URL. Ask AI questions grounded strictly in the website content with evidence
+            quotes.
           </p>
         </div>
       </section>
 
       {/* Main Container */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Search & Extraction Form Card */}
         {!isExtracting && (
           <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10 transition-all">
-          <form onSubmit={handleExtractSubmit} className="space-y-6">
-            <div className="space-y-2">
-              <label htmlFor="website-url-input" className="block text-sm font-bold text-slate-800">
-                Website or Web Page URL <span className="text-rose-500">*</span>
-              </label>
-              <div className="relative flex items-center">
-                <Globe className="absolute left-4 w-5 h-5 text-slate-400" />
-                <input
-                  id="website-url-input"
-                  type="text"
-                  placeholder="https://example.com or company.com/about"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  className="w-full pl-12 pr-28 py-3.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 focus:border-[#0C81F3] transition-all text-sm sm:text-base font-medium"
-                />
-                {url && (
-                  <button
-                    type="button"
-                    onClick={() => setUrl('')}
-                    className="absolute right-24 text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
-                  >
-                    Clear
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={async () => {
-                    try {
-                      const text = await navigator.clipboard.readText()
-                      if (text) setUrl(text.trim())
-                    } catch {}
-                  }}
-                  className="absolute right-3 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition-colors shadow-2xs cursor-pointer"
+            <form onSubmit={handleExtractSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <label
+                  htmlFor="website-url-input"
+                  className="block text-sm font-bold text-slate-800"
                 >
-                  Paste
-                </button>
-              </div>
-            </div>
-
-            {/* Options & Action Row */}
-            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-5 border-t border-slate-100">
-              <div className="flex flex-wrap items-center gap-4">
-                <label className="flex items-center gap-2 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={extractAIOverview}
-                    onChange={(e) => setExtractAIOverview(e.target.checked)}
-                    className="w-4 h-4 rounded border-slate-300 text-[#0C81F3] focus:ring-[#0C81F3]"
-                  />
-                  <span className="text-xs font-medium text-slate-700">
-                    Deep AI Entity Synthesis & Overview
-                  </span>
+                  Website or Web Page URL <span className="text-rose-500">*</span>
                 </label>
-              </div>
-
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
-                {extractedData && (
+                <div className="relative flex items-center">
+                  <Globe className="absolute left-4 w-5 h-5 text-slate-400" />
+                  <input
+                    id="website-url-input"
+                    type="text"
+                    placeholder="https://example.com or company.com/about"
+                    value={url}
+                    onChange={(e) => setUrl(e.target.value)}
+                    className="w-full pl-12 pr-28 py-3.5 bg-slate-50 border border-slate-300 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#0C81F3]/20 focus:border-[#0C81F3] transition-all text-sm sm:text-base font-medium"
+                  />
+                  {url && (
+                    <button
+                      type="button"
+                      onClick={() => setUrl('')}
+                      className="absolute right-24 text-xs font-semibold text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
+                    >
+                      Clear
+                    </button>
+                  )}
                   <button
                     type="button"
-                    onClick={handleReset}
-                    className="w-full sm:w-auto px-5 py-3 rounded-full border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-sm text-center cursor-pointer order-2 sm:order-1"
+                    onClick={async () => {
+                      try {
+                        const text = await navigator.clipboard.readText()
+                        if (text) setUrl(text.trim())
+                      } catch {}
+                    }}
+                    className="absolute right-3 px-3 py-1.5 bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 rounded-lg text-xs font-semibold transition-colors shadow-2xs cursor-pointer"
                   >
-                    Reset
+                    Paste
                   </button>
-                )}
-                <button
-                  type="submit"
-                  disabled={isExtracting}
-                  className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-6 sm:px-8 py-3.5 text-sm sm:text-base font-bold text-white hover:opacity-95 active:scale-[0.98] disabled:opacity-50 transition-all shadow-md hover:shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
-                >
-                  {isExtracting ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin shrink-0" />
-                      <span>Extracting Content...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-                      <span>Extract & Analyze</span>
-                    </>
-                  )}
-                </button>
+                </div>
               </div>
-            </div>
-          </form>
 
-          {/* Error message */}
-          {error && (
-            <div className="mt-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm flex items-start gap-3 shadow-xs">
-              <AlertCircle className="w-5 h-5 shrink-0 text-rose-600 mt-0.5" />
-              <div>
-                <p className="font-bold">Extraction Error</p>
-                <p>{error}</p>
+              {/* Options & Action Row */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 pt-5 border-t border-slate-100">
+                <div className="flex flex-wrap items-center gap-4">
+                  <label className="flex items-center gap-2 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={extractAIOverview}
+                      onChange={(e) => setExtractAIOverview(e.target.checked)}
+                      className="w-4 h-4 rounded border-slate-300 text-[#0C81F3] focus:ring-[#0C81F3]"
+                    />
+                    <span className="text-xs font-medium text-slate-700">
+                      Deep AI Entity Synthesis & Overview
+                    </span>
+                  </label>
+                </div>
+
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+                  {extractedData && (
+                    <button
+                      type="button"
+                      onClick={handleReset}
+                      className="w-full sm:w-auto px-5 py-3 rounded-full border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-sm text-center cursor-pointer order-2 sm:order-1"
+                    >
+                      Reset
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={isExtracting}
+                    className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-6 sm:px-8 py-3.5 text-sm sm:text-base font-bold text-white hover:opacity-95 active:scale-[0.98] disabled:opacity-50 transition-all shadow-md hover:shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
+                  >
+                    {isExtracting ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin shrink-0" />
+                        <span>Extracting Content...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                        <span>Extract & Analyze</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
+            </form>
+
+            {/* Error message */}
+            {error && (
+              <div className="mt-6 p-4 rounded-2xl bg-rose-50 border border-rose-200 text-rose-700 text-sm flex items-start gap-3 shadow-xs">
+                <AlertCircle className="w-5 h-5 shrink-0 text-rose-600 mt-0.5" />
+                <div>
+                  <p className="font-bold">Extraction Error</p>
+                  <p>{error}</p>
+                </div>
+              </div>
+            )}
+          </div>
         )}
 
         {/* Loader Progress State */}
@@ -371,8 +376,8 @@ export default function WebsiteContentExtractorPage() {
                   {extractedData.content?.wordCount?.toLocaleString() || 0} words
                 </span>
                 <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 text-xs font-bold">
-                  <Clock className="w-3.5 h-3.5 text-slate-500" />
-                  ~{extractedData.content?.readingTimeMinutes || 1} min read
+                  <Clock className="w-3.5 h-3.5 text-slate-500" />~
+                  {extractedData.content?.readingTimeMinutes || 1} min read
                 </span>
                 {extractedData.aiOverview?.detectedOwner?.name && (
                   <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 border border-blue-200 text-[#0C81F3] text-xs font-bold">
@@ -389,7 +394,8 @@ export default function WebsiteContentExtractorPage() {
                   Export JSON
                 </button>
               </div>
-            </div>            {/* Navigation Tabs */}
+            </div>{' '}
+            {/* Navigation Tabs */}
             <div className="flex border-b border-slate-200 bg-white rounded-t-3xl sm:px-6 px-3 pt-1 gap-1 sm:gap-3 overflow-x-auto shadow-2xs">
               <button
                 onClick={() => setActiveTab('overview')}
@@ -397,7 +403,8 @@ export default function WebsiteContentExtractorPage() {
                   activeTab === 'overview'
                     ? 'border-[#0C81F3] text-[#0C81F3]'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}>
+                }`}
+              >
                 <Building className="w-4 h-4" />
                 <span className="hidden sm:inline">Entity & Ownership Clues</span>
                 <span className="sm:hidden">Entity</span>
@@ -409,7 +416,8 @@ export default function WebsiteContentExtractorPage() {
                   activeTab === 'content'
                     ? 'border-[#0C81F3] text-[#0C81F3]'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}>
+                }`}
+              >
                 <FileText className="w-4 h-4" />
                 <span className="hidden sm:inline">Extracted Clean Content</span>
                 <span className="sm:hidden">Content</span>
@@ -421,20 +429,22 @@ export default function WebsiteContentExtractorPage() {
                   activeTab === 'metadata'
                     ? 'border-[#0C81F3] text-[#0C81F3]'
                     : 'border-transparent text-slate-500 hover:text-slate-800'
-                }`}>
+                }`}
+              >
                 <Layers className="w-4 h-4" />
                 <span className="hidden sm:inline">SEO & Schema Markup</span>
                 <span className="sm:hidden">Schema</span>
               </button>
             </div>
-
             {/* TAB 1: OVERVIEW & OWNERSHIP CLUES */}
             {activeTab === 'overview' && (
               <div className="space-y-6">
                 {/* Metric Summary Cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                   <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Word Count</div>
+                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      Word Count
+                    </div>
                     <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
                       {extractedData.content?.wordCount?.toLocaleString() || 0}
                     </div>
@@ -444,7 +454,9 @@ export default function WebsiteContentExtractorPage() {
                   </div>
 
                   <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Reading Time</div>
+                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      Reading Time
+                    </div>
                     <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
                       ~{extractedData.content?.readingTimeMinutes || 1} min
                     </div>
@@ -452,7 +464,9 @@ export default function WebsiteContentExtractorPage() {
                   </div>
 
                   <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Headings</div>
+                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      Headings
+                    </div>
                     <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
                       {extractedData.content?.headingsCount?.total || 0}
                     </div>
@@ -464,7 +478,9 @@ export default function WebsiteContentExtractorPage() {
                   </div>
 
                   <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">Links Found</div>
+                    <div className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      Links Found
+                    </div>
                     <div className="text-2xl sm:text-3xl font-black text-slate-900 mt-1">
                       {extractedData.content?.links?.total || 0}
                     </div>
@@ -503,7 +519,9 @@ export default function WebsiteContentExtractorPage() {
                           'Entity Name Unspecified on Page'}
                       </h3>
                       <p className="text-sm text-indigo-200 font-medium">
-                        Type: {extractedData.aiOverview?.detectedOwner?.entityType || 'Web Organization'} • Business Model:{' '}
+                        Type:{' '}
+                        {extractedData.aiOverview?.detectedOwner?.entityType || 'Web Organization'}{' '}
+                        • Business Model:{' '}
                         {extractedData.aiOverview?.businessModel || 'Digital Service'}
                       </p>
                     </div>
@@ -512,7 +530,9 @@ export default function WebsiteContentExtractorPage() {
                     {extractedData.aiOverview?.detectedOwner?.evidence && (
                       <div className="p-4 rounded-2xl bg-white/10 border border-white/15 text-xs text-slate-200 space-y-1.5 leading-relaxed">
                         <span className="font-bold text-[#A7D2FF]">Detection Evidence:</span>
-                        <p className="italic">"{extractedData.aiOverview.detectedOwner.evidence}"</p>
+                        <p className="italic">
+                          "{extractedData.aiOverview.detectedOwner.evidence}"
+                        </p>
                       </div>
                     )}
 
@@ -546,7 +566,10 @@ export default function WebsiteContentExtractorPage() {
                                 key={idx}
                                 className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono"
                               >
-                                <a href={`mailto:${email}`} className="text-[#0C81F3] font-semibold hover:underline">
+                                <a
+                                  href={`mailto:${email}`}
+                                  className="text-[#0C81F3] font-semibold hover:underline"
+                                >
                                   {email}
                                 </a>
                                 <button
@@ -563,7 +586,9 @@ export default function WebsiteContentExtractorPage() {
                             ))}
                           </div>
                         ) : (
-                          <p className="text-xs text-slate-400 italic">No direct email addresses found in page text.</p>
+                          <p className="text-xs text-slate-400 italic">
+                            No direct email addresses found in page text.
+                          </p>
                         )}
                       </div>
 
@@ -578,7 +603,10 @@ export default function WebsiteContentExtractorPage() {
                                 key={idx}
                                 className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono"
                               >
-                                <a href={`tel:${phone}`} className="text-slate-800 font-semibold hover:underline">
+                                <a
+                                  href={`tel:${phone}`}
+                                  className="text-slate-800 font-semibold hover:underline"
+                                >
                                   {phone}
                                 </a>
                                 <button
@@ -595,7 +623,9 @@ export default function WebsiteContentExtractorPage() {
                             ))}
                           </div>
                         ) : (
-                          <p className="text-xs text-slate-400 italic">No telephone numbers found on this page.</p>
+                          <p className="text-xs text-slate-400 italic">
+                            No telephone numbers found on this page.
+                          </p>
                         )}
                       </div>
                     </div>
@@ -609,39 +639,46 @@ export default function WebsiteContentExtractorPage() {
                     </h4>
 
                     <div className="grid grid-cols-2 gap-2.5">
-                      {Object.entries(extractedData.contacts?.socialLinks || {}).map(([network, link]) => (
-                        <div
-                          key={network}
-                          className={`p-3 rounded-2xl border flex items-center justify-between text-xs capitalize ${
-                            link
-                              ? 'bg-blue-50/50 border-blue-200 text-slate-900 font-bold'
-                              : 'bg-slate-50 border-slate-200 text-slate-400 opacity-60 font-medium'
-                          }`}
-                        >
-                          <span>{network}</span>
-                          {link ? (
-                            <a
-                              href={link}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-[#0C81F3] hover:text-blue-800"
-                            >
-                              <ExternalLink className="w-3.5 h-3.5" />
-                            </a>
-                          ) : (
-                            <span className="text-[10px]">Not found</span>
-                          )}
-                        </div>
-                      ))}
+                      {Object.entries(extractedData.contacts?.socialLinks || {}).map(
+                        ([network, link]) => (
+                          <div
+                            key={network}
+                            className={`p-3 rounded-2xl border flex items-center justify-between text-xs capitalize ${
+                              link
+                                ? 'bg-blue-50/50 border-blue-200 text-slate-900 font-bold'
+                                : 'bg-slate-50 border-slate-200 text-slate-400 opacity-60 font-medium'
+                            }`}
+                          >
+                            <span>{network}</span>
+                            {link ? (
+                              <a
+                                href={link}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-[#0C81F3] hover:text-blue-800"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                              </a>
+                            ) : (
+                              <span className="text-[10px]">Not found</span>
+                            )}
+                          </div>
+                        )
+                      )}
                     </div>
 
                     {/* Trust Signals */}
                     {extractedData.aiOverview?.trustSignals?.length > 0 && (
                       <div className="pt-2 border-t border-slate-100 space-y-2">
-                        <div className="text-xs font-bold text-slate-800">Verified Trust Signals:</div>
+                        <div className="text-xs font-bold text-slate-800">
+                          Verified Trust Signals:
+                        </div>
                         <ul className="space-y-1.5">
                           {extractedData.aiOverview.trustSignals.map((signal, idx) => (
-                            <li key={idx} className="flex items-center gap-2 text-xs text-slate-600">
+                            <li
+                              key={idx}
+                              className="flex items-center gap-2 text-xs text-slate-600"
+                            >
                               <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                               <span>{signal}</span>
                             </li>
@@ -687,16 +724,18 @@ export default function WebsiteContentExtractorPage() {
                 )}
               </div>
             )}
-
             {/* TAB 2: EXTRACTED CLEAN CONTENT & STRUCTURE */}
             {activeTab === 'content' && (
               <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 space-y-6 shadow-sm">
                 {/* Content Toolbar */}
                 <div className="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-slate-200">
                   <div>
-                    <h3 className="text-base font-bold text-slate-900">Clean Extracted Page Content</h3>
+                    <h3 className="text-base font-bold text-slate-900">
+                      Clean Extracted Page Content
+                    </h3>
                     <p className="text-xs text-slate-500 mt-0.5">
-                      Noise stripped (scripts, styles, navigations, ads removed). Ready to copy or download.
+                      Noise stripped (scripts, styles, navigations, ads removed). Ready to copy or
+                      download.
                     </p>
                   </div>
 
@@ -705,14 +744,22 @@ export default function WebsiteContentExtractorPage() {
                       onClick={() => handleCopy(extractedData.content?.markdown, 'copy-md')}
                       className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
                     >
-                      {copiedKey === 'copy-md' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedKey === 'copy-md' ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
                       Copy Markdown
                     </button>
                     <button
                       onClick={() => handleCopy(extractedData.content?.plainText, 'copy-txt')}
                       className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
                     >
-                      {copiedKey === 'copy-txt' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedKey === 'copy-txt' ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
                       Copy Plain Text
                     </button>
                     <button
@@ -737,7 +784,14 @@ export default function WebsiteContentExtractorPage() {
                           key={idx}
                           className="flex items-baseline gap-2 text-xs text-slate-800"
                           style={{
-                            paddingLeft: h.level === 'h1' ? '0' : h.level === 'h2' ? '1rem' : h.level === 'h3' ? '2rem' : '3rem',
+                            paddingLeft:
+                              h.level === 'h1'
+                                ? '0'
+                                : h.level === 'h2'
+                                  ? '1rem'
+                                  : h.level === 'h3'
+                                    ? '2rem'
+                                    : '3rem',
                           }}
                         >
                           <span className="font-mono text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 uppercase">
@@ -757,12 +811,13 @@ export default function WebsiteContentExtractorPage() {
                     <span>{extractedData.content?.plainText?.length || 0} characters</span>
                   </div>
                   <div className="max-h-[600px] overflow-y-auto p-6 bg-slate-50 rounded-2xl border border-slate-200 font-mono text-xs leading-relaxed text-slate-800 whitespace-pre-wrap">
-                    {extractedData.content?.markdown || extractedData.content?.plainText || 'No content found.'}
+                    {extractedData.content?.markdown ||
+                      extractedData.content?.plainText ||
+                      'No content found.'}
                   </div>
                 </div>
               </div>
             )}
-
             {/* TAB 3: SEO & METADATA */}
             {activeTab === 'metadata' && (
               <div className="space-y-6">
@@ -785,27 +840,41 @@ export default function WebsiteContentExtractorPage() {
                       <tbody className="divide-y divide-slate-100 font-mono">
                         <tr>
                           <td className="px-4 py-3.5 font-bold text-slate-800">Page Title</td>
-                          <td className="px-4 py-3.5 text-slate-900 break-words">{extractedData.metadata?.title || 'Not specified'}</td>
-                          <td className="px-4 py-3.5 text-slate-500">{extractedData.metadata?.title?.length || 0} chars</td>
+                          <td className="px-4 py-3.5 text-slate-900 break-words">
+                            {extractedData.metadata?.title || 'Not specified'}
+                          </td>
+                          <td className="px-4 py-3.5 text-slate-500">
+                            {extractedData.metadata?.title?.length || 0} chars
+                          </td>
                         </tr>
                         <tr>
                           <td className="px-4 py-3.5 font-bold text-slate-800">Meta Description</td>
-                          <td className="px-4 py-3.5 text-slate-900 break-words">{extractedData.metadata?.description || 'Not specified'}</td>
-                          <td className="px-4 py-3.5 text-slate-500">{extractedData.metadata?.description?.length || 0} chars</td>
+                          <td className="px-4 py-3.5 text-slate-900 break-words">
+                            {extractedData.metadata?.description || 'Not specified'}
+                          </td>
+                          <td className="px-4 py-3.5 text-slate-500">
+                            {extractedData.metadata?.description?.length || 0} chars
+                          </td>
                         </tr>
                         <tr>
                           <td className="px-4 py-3.5 font-bold text-slate-800">Canonical URL</td>
-                          <td className="px-4 py-3.5 text-slate-900 break-all">{extractedData.metadata?.canonical || 'None'}</td>
+                          <td className="px-4 py-3.5 text-slate-900 break-all">
+                            {extractedData.metadata?.canonical || 'None'}
+                          </td>
                           <td className="px-4 py-3.5 text-slate-500">-</td>
                         </tr>
                         <tr>
                           <td className="px-4 py-3.5 font-bold text-slate-800">Robots Directive</td>
-                          <td className="px-4 py-3.5 text-slate-900">{extractedData.metadata?.robots || 'index, follow'}</td>
+                          <td className="px-4 py-3.5 text-slate-900">
+                            {extractedData.metadata?.robots || 'index, follow'}
+                          </td>
                           <td className="px-4 py-3.5 text-slate-500">-</td>
                         </tr>
                         <tr>
                           <td className="px-4 py-3.5 font-bold text-slate-800">HTML Language</td>
-                          <td className="px-4 py-3.5 text-slate-900">{extractedData.metadata?.language || 'en'}</td>
+                          <td className="px-4 py-3.5 text-slate-900">
+                            {extractedData.metadata?.language || 'en'}
+                          </td>
                           <td className="px-4 py-3.5 text-slate-500">-</td>
                         </tr>
                       </tbody>
@@ -836,12 +905,15 @@ export default function WebsiteContentExtractorPage() {
                       </div>
                     )}
                     <div className="p-4 space-y-1">
-                      <div className="text-[11px] text-slate-400 font-mono uppercase font-bold">{extractedData.hostname}</div>
+                      <div className="text-[11px] text-slate-400 font-mono uppercase font-bold">
+                        {extractedData.hostname}
+                      </div>
                       <h5 className="font-bold text-sm text-slate-900 line-clamp-2">
                         {extractedData.metadata?.og?.title || extractedData.metadata?.title}
                       </h5>
                       <p className="text-xs text-slate-500 line-clamp-2">
-                        {extractedData.metadata?.og?.description || extractedData.metadata?.description}
+                        {extractedData.metadata?.og?.description ||
+                          extractedData.metadata?.description}
                       </p>
                     </div>
                   </div>
@@ -855,10 +927,19 @@ export default function WebsiteContentExtractorPage() {
                       Structured Data (JSON-LD Schemas) ({extractedData.jsonLd?.rawCount || 0})
                     </h3>
                     <button
-                      onClick={() => handleCopy(JSON.stringify(extractedData.jsonLd?.schemas, null, 2), 'schema-json')}
+                      onClick={() =>
+                        handleCopy(
+                          JSON.stringify(extractedData.jsonLd?.schemas, null, 2),
+                          'schema-json'
+                        )
+                      }
                       className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold cursor-pointer"
                     >
-                      {copiedKey === 'schema-json' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedKey === 'schema-json' ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
                       Copy Schemas
                     </button>
                   </div>
@@ -868,7 +949,9 @@ export default function WebsiteContentExtractorPage() {
                       <pre>{JSON.stringify(extractedData.jsonLd.schemas, null, 2)}</pre>
                     </div>
                   ) : (
-                    <p className="text-xs text-slate-400 italic">No JSON-LD structured data detected on this page.</p>
+                    <p className="text-xs text-slate-400 italic">
+                      No JSON-LD structured data detected on this page.
+                    </p>
                   )}
                 </div>
               </div>
@@ -879,7 +962,9 @@ export default function WebsiteContentExtractorPage() {
         {/* FAQ Accordion Section */}
         <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-10 space-y-6 shadow-sm mt-12">
           <div className="text-center space-y-2">
-            <h3 className="text-2xl sm:text-3xl font-bold text-slate-900">Frequently Asked Questions</h3>
+            <h3 className="text-2xl sm:text-3xl font-bold text-slate-900">
+              Frequently Asked Questions
+            </h3>
             <p className="text-sm text-slate-600">
               Everything you need to know about website content extraction and analysis
             </p>

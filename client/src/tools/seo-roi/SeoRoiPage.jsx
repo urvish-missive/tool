@@ -7,15 +7,7 @@ import LeadCaptureModal from '../../components/LeadCaptureModal'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import { seoRoiSchema, parseSeoRoiForm } from '../../schemas/seoRoi.schema'
-import {
-  Calculator,
-  TrendingUp,
-  Download,
-  RefreshCw,
-  Award,
-  Lightbulb,
-  Clock,
-} from 'lucide-react'
+import { Calculator, TrendingUp, Download, RefreshCw, Award, Lightbulb, Clock } from 'lucide-react'
 
 const CURRENCIES = [
   { code: 'USD', symbol: '$', name: 'US Dollar' },
@@ -395,153 +387,153 @@ export default function SeoRoiPage() {
       </section>
 
       {/* Main Container */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Form Card */}
         {!isLoading && (
           <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10">
-          <form onSubmit={handleSubmit(onFormValid)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Currency */}
-              <div>
-                <label className="block text-sm font-bold text-slate-800 mb-2">Currency</label>
-                <select
-                  {...register('currency')}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm bg-white font-medium"
-                >
-                  {CURRENCIES.map((c) => (
-                    <option key={c.code} value={c.code}>
-                      {c.name} ({c.symbol})
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Monthly Traffic */}
-              <div>
-                <label className="block text-sm font-bold text-slate-800 mb-2">
-                  Monthly Organic Visitors
-                </label>
-                <input
-                  type="number"
-                  {...register('traffic')}
-                  className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium ${errors.traffic ? 'border-red-400 ring-1 ring-red-200' : 'border-slate-300'}`}
-                />
-                {errors.traffic && (
-                  <p className="mt-1 text-xs text-red-600">{errors.traffic.message}</p>
-                )}
-              </div>
-
-              {/* Baseline Leads */}
-              <div>
-                <label className="block text-sm font-bold text-slate-800 mb-2">
-                  Current Monthly Leads
-                </label>
-                <input
-                  type="number"
-                  {...register('leads')}
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium"
-                />
-              </div>
-
-              {/* Average Customer Value (LTV) */}
-              <div>
-                <label className="block text-sm font-bold text-slate-800 mb-2">
-                  Average Customer Value (LTV)
-                </label>
-                <input
-                  type="number"
-                  {...register('customerValue')}
-                  className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium ${errors.customerValue ? 'border-red-400 ring-1 ring-red-200' : 'border-slate-300'}`}
-                />
-                {errors.customerValue && (
-                  <p className="mt-1 text-xs text-red-600">{errors.customerValue.message}</p>
-                )}
-              </div>
-
-              {/* Monthly Investment */}
-              <div>
-                <label className="block text-sm font-bold text-slate-800 mb-2">
-                  Planned Monthly SEO Spend
-                </label>
-                <input
-                  type="number"
-                  {...register('investment')}
-                  className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium ${errors.investment ? 'border-red-400 ring-1 ring-red-200' : 'border-slate-300'}`}
-                />
-                {errors.investment && (
-                  <p className="mt-1 text-xs text-red-600">{errors.investment.message}</p>
-                )}
-              </div>
-
-              {/* Horizon Duration */}
-              <div>
-                <label className="block text-sm font-bold text-slate-800 mb-2">
-                  Campaign Duration
-                </label>
-                <Controller
-                  control={control}
-                  name="duration"
-                  render={({ field }) => (
-                    <div className="grid grid-cols-4 gap-2">
-                      {DURATIONS.map((m) => (
-                        <button
-                          key={m}
-                          type="button"
-                          onClick={() => field.onChange(m)}
-                          className={`py-3 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
-                            field.value === m
-                              ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white border-transparent shadow-sm'
-                              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                          }`}
-                        >
-                          {m} Mo
-                        </button>
-                      ))}
-                    </div>
-                  )}
-                />
-              </div>
-            </div>
-
-            {/* Model Selector & Actions */}
-            <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
-                {results && (
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="w-full sm:w-auto px-5 py-3 rounded-full border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-sm text-center cursor-pointer order-2 sm:order-1"
+            <form onSubmit={handleSubmit(onFormValid)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Currency */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-800 mb-2">Currency</label>
+                  <select
+                    {...register('currency')}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm bg-white font-medium"
                   >
-                    Reset
-                  </button>
-                )}
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-6 sm:px-8 py-3.5 text-sm sm:text-base font-bold text-white hover:opacity-95 active:scale-[0.98] disabled:opacity-50 transition-all shadow-md hover:shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
-                >
-                  {isLoading ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin shrink-0" />
-                      <span>Modeling Financial Returns...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Calculator className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-                      <span>Calculate SEO ROI & Business Case</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
+                    {CURRENCIES.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.name} ({c.symbol})
+                      </option>
+                    ))}
+                  </select>
+                </div>
 
-            {error && (
-              <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium">
-                {error}
+                {/* Monthly Traffic */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-800 mb-2">
+                    Monthly Organic Visitors
+                  </label>
+                  <input
+                    type="number"
+                    {...register('traffic')}
+                    className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium ${errors.traffic ? 'border-red-400 ring-1 ring-red-200' : 'border-slate-300'}`}
+                  />
+                  {errors.traffic && (
+                    <p className="mt-1 text-xs text-red-600">{errors.traffic.message}</p>
+                  )}
+                </div>
+
+                {/* Baseline Leads */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-800 mb-2">
+                    Current Monthly Leads
+                  </label>
+                  <input
+                    type="number"
+                    {...register('leads')}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium"
+                  />
+                </div>
+
+                {/* Average Customer Value (LTV) */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-800 mb-2">
+                    Average Customer Value (LTV)
+                  </label>
+                  <input
+                    type="number"
+                    {...register('customerValue')}
+                    className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium ${errors.customerValue ? 'border-red-400 ring-1 ring-red-200' : 'border-slate-300'}`}
+                  />
+                  {errors.customerValue && (
+                    <p className="mt-1 text-xs text-red-600">{errors.customerValue.message}</p>
+                  )}
+                </div>
+
+                {/* Monthly Investment */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-800 mb-2">
+                    Planned Monthly SEO Spend
+                  </label>
+                  <input
+                    type="number"
+                    {...register('investment')}
+                    className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm font-medium ${errors.investment ? 'border-red-400 ring-1 ring-red-200' : 'border-slate-300'}`}
+                  />
+                  {errors.investment && (
+                    <p className="mt-1 text-xs text-red-600">{errors.investment.message}</p>
+                  )}
+                </div>
+
+                {/* Horizon Duration */}
+                <div>
+                  <label className="block text-sm font-bold text-slate-800 mb-2">
+                    Campaign Duration
+                  </label>
+                  <Controller
+                    control={control}
+                    name="duration"
+                    render={({ field }) => (
+                      <div className="grid grid-cols-4 gap-2">
+                        {DURATIONS.map((m) => (
+                          <button
+                            key={m}
+                            type="button"
+                            onClick={() => field.onChange(m)}
+                            className={`py-3 text-xs font-bold rounded-xl border transition-all cursor-pointer ${
+                              field.value === m
+                                ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white border-transparent shadow-sm'
+                                : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                            }`}
+                          >
+                            {m} Mo
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  />
+                </div>
               </div>
-            )}
-          </form>
-        </div>
+
+              {/* Model Selector & Actions */}
+              <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+                  {results && (
+                    <button
+                      type="button"
+                      onClick={handleReset}
+                      className="w-full sm:w-auto px-5 py-3 rounded-full border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-sm text-center cursor-pointer order-2 sm:order-1"
+                    >
+                      Reset
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-6 sm:px-8 py-3.5 text-sm sm:text-base font-bold text-white hover:opacity-95 active:scale-[0.98] disabled:opacity-50 transition-all shadow-md hover:shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
+                  >
+                    {isLoading ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin shrink-0" />
+                        <span>Modeling Financial Returns...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Calculator className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                        <span>Calculate SEO ROI & Business Case</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {error && (
+                <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium">
+                  {error}
+                </div>
+              )}
+            </form>
+          </div>
         )}
 
         {/* Loading State */}

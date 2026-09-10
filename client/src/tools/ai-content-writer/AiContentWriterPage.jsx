@@ -3,7 +3,10 @@ import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useGenerateContentMutation } from '../../services/apiSlice'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
-import { aiContentWriterSchema, parseAiContentWriterForm } from '../../schemas/aiContentWriter.schema'
+import {
+  aiContentWriterSchema,
+  parseAiContentWriterForm,
+} from '../../schemas/aiContentWriter.schema'
 import {
   PenTool,
   Sparkles,
@@ -62,8 +65,7 @@ function ScoreRing({ score, size = 64, strokeWidth = 5, label }) {
   const radius = (size - strokeWidth) / 2
   const circumference = radius * 2 * Math.PI
   const offset = circumference - (score / 100) * circumference
-  const color =
-    score >= 80 ? '#22c55e' : score >= 60 ? '#f59e0b' : '#ef4444'
+  const color = score >= 80 ? '#22c55e' : score >= 60 ? '#f59e0b' : '#ef4444'
 
   return (
     <div className="flex flex-col items-center gap-1">
@@ -132,10 +134,12 @@ export default function AiContentWriterPage() {
 
   const headings = dataResult?.headings || []
   const faqs = dataResult?.faqSection || []
-  const meta = dataResult ? {
-    titleTag: dataResult.title,
-    metaDescription: dataResult.metaDescription,
-  } : null
+  const meta = dataResult
+    ? {
+        titleTag: dataResult.title,
+        metaDescription: dataResult.metaDescription,
+      }
+    : null
   const seoScore = dataResult?.seoScore || null
 
   const onFormValid = (formData) => {
@@ -160,7 +164,9 @@ export default function AiContentWriterPage() {
         setDataResult(result)
         setFaqExpanded({})
         setTimeout(() => {
-          document.getElementById('cw-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+          document
+            .getElementById('cw-results')
+            ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }, 100)
       })
       .catch((err) => {
@@ -215,7 +221,7 @@ export default function AiContentWriterPage() {
     md += `## Conclusion\n\n${dataResult.conclusion || ''}\n\n`
     if (dataResult.keyTakeaways?.length) {
       md += `## Key Takeaways\n\n`
-      md += dataResult.keyTakeaways.map(t => `- ${t}`).join('\n') + '\n\n'
+      md += dataResult.keyTakeaways.map((t) => `- ${t}`).join('\n') + '\n\n'
     }
     if (faqs.length) {
       md += `## FAQ\n\n`
@@ -278,184 +284,199 @@ export default function AiContentWriterPage() {
             </span>
           </h1>
           <p className="mt-3 text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Generate publication-ready, SEO-optimized blog posts, articles, product pages, and landing pages
-            with AI. Includes meta tags, schema markup, and content scoring.
+            Generate publication-ready, SEO-optimized blog posts, articles, product pages, and
+            landing pages with AI. Includes meta tags, schema markup, and content scoring.
           </p>
         </div>
       </section>
 
       {/* Main Container */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* Input Form Card */}
         {!isLoading && (
           <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10 backdrop-blur-sm">
-          <form onSubmit={handleSubmit(onFormValid)} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Topic / Primary Keyword */}
-              <div className="md:col-span-2">
-                <label htmlFor="keyword" className="block text-sm font-bold text-slate-800 mb-2">
-                  Topic / Primary Keyword <span className="text-rose-500">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    id="keyword"
-                    type="text"
-                    {...register('keyword')}
-                    placeholder="e.g., How to improve website loading speed, Best project management tools"
-                    className={`w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 placeholder:text-slate-400 font-medium transition-all text-base ${errors.keyword ? 'border-red-400 ring-1 ring-red-200' : 'border-slate-300'}`}
-                  />
-                  <PenTool className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
-                </div>
-                {errors.keyword && (
-                  <p className="mt-1 text-xs text-red-600">{errors.keyword.message}</p>
-                )}
-              </div>
-
-              {/* Content Type */}
-              <div>
-                <label className="block text-sm font-bold text-slate-800 mb-2">Content Type</label>
-                <Controller
-                  control={control}
-                  name="contentType"
-                  render={({ field }) => (
-                    <div className="grid grid-cols-2 gap-2">
-                      {CONTENT_TYPES.map((ct) => (
-                        <button
-                          key={ct.value}
-                          type="button"
-                          onClick={() => field.onChange(ct.value)}
-                          className={`py-2 px-3 text-xs font-semibold rounded-xl border transition-all cursor-pointer text-left flex items-center gap-1.5 ${
-                            field.value === ct.value
-                              ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white border-transparent shadow-sm'
-                              : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
-                          }`}
-                        >
-                          {ct.icon && <ct.icon className="w-4 h-4 shrink-0" />}
-                          {ct.label}
-                        </button>
-                      ))}
-                    </div>
+            <form onSubmit={handleSubmit(onFormValid)} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Topic / Primary Keyword */}
+                <div className="md:col-span-2">
+                  <label htmlFor="keyword" className="block text-sm font-bold text-slate-800 mb-2">
+                    Topic / Primary Keyword <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="keyword"
+                      type="text"
+                      {...register('keyword')}
+                      placeholder="e.g., How to improve website loading speed, Best project management tools"
+                      className={`w-full px-4 py-3.5 rounded-xl border focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 placeholder:text-slate-400 font-medium transition-all text-base ${errors.keyword ? 'border-red-400 ring-1 ring-red-200' : 'border-slate-300'}`}
+                    />
+                    <PenTool className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 pointer-events-none" />
+                  </div>
+                  {errors.keyword && (
+                    <p className="mt-1 text-xs text-red-600">{errors.keyword.message}</p>
                   )}
-                />
-              </div>
-
-              {/* Tone + Word Count */}
-              <div className="space-y-5">
-                <div>
-                  <label className="block text-sm font-bold text-slate-800 mb-2">Tone of Voice</label>
-                  <Controller
-                    control={control}
-                    name="tone"
-                    render={({ field }) => (
-                      <select
-                        value={field.value}
-                        onChange={(e) => field.onChange(e.target.value)}
-                        className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm bg-white"
-                      >
-                        {TONES.map((t) => (
-                          <option key={t.value} value={t.value}>{t.label}</option>
-                        ))}
-                      </select>
-                    )}
-                  />
                 </div>
 
+                {/* Content Type */}
                 <div>
-                  <label className="block text-sm font-bold text-slate-800 mb-2">Target Word Count</label>
+                  <label className="block text-sm font-bold text-slate-800 mb-2">
+                    Content Type
+                  </label>
                   <Controller
                     control={control}
-                    name="wordCount"
+                    name="contentType"
                     render={({ field }) => (
-                      <div className="grid grid-cols-3 gap-2">
-                        {WORD_COUNTS.map((wc) => (
+                      <div className="grid grid-cols-2 gap-2">
+                        {CONTENT_TYPES.map((ct) => (
                           <button
-                            key={wc}
+                            key={ct.value}
                             type="button"
-                            onClick={() => field.onChange(wc)}
-                            className={`py-2 px-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
-                              field.value === wc
+                            onClick={() => field.onChange(ct.value)}
+                            className={`py-2 px-3 text-xs font-semibold rounded-xl border transition-all cursor-pointer text-left flex items-center gap-1.5 ${
+                              field.value === ct.value
                                 ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white border-transparent shadow-sm'
                                 : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
                             }`}
                           >
-                            {wc.toLocaleString()}
+                            {ct.icon && <ct.icon className="w-4 h-4 shrink-0" />}
+                            {ct.label}
                           </button>
                         ))}
                       </div>
                     )}
                   />
                 </div>
-              </div>
 
-              {/* Target Audience */}
-              <div>
-                <label htmlFor="audience" className="block text-sm font-bold text-slate-800 mb-2">
-                  Target Audience <span className="text-xs font-normal text-slate-500">(Optional)</span>
-                </label>
-                <input
-                  id="audience"
-                  type="text"
-                  {...register('targetAudience')}
-                  placeholder="e.g., Small business owners, SaaS founders, Marketing managers"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 placeholder:text-slate-400 text-sm transition-all"
-                />
-              </div>
+                {/* Tone + Word Count */}
+                <div className="space-y-5">
+                  <div>
+                    <label className="block text-sm font-bold text-slate-800 mb-2">
+                      Tone of Voice
+                    </label>
+                    <Controller
+                      control={control}
+                      name="tone"
+                      render={({ field }) => (
+                        <select
+                          value={field.value}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 text-sm bg-white"
+                        >
+                          {TONES.map((t) => (
+                            <option key={t.value} value={t.value}>
+                              {t.label}
+                            </option>
+                          ))}
+                        </select>
+                      )}
+                    />
+                  </div>
 
-              {/* Secondary Keywords */}
-              <div>
-                <label htmlFor="secKeywords" className="block text-sm font-bold text-slate-800 mb-2">
-                  Secondary Keywords <span className="text-xs font-normal text-slate-500">(Optional, comma separated)</span>
-                </label>
-                <input
-                  id="secKeywords"
-                  type="text"
-                  {...register('secondaryKeywords')}
-                  placeholder="e.g., page speed optimization, website performance, core web vitals"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 placeholder:text-slate-400 text-sm transition-all"
-                />
-              </div>
-            </div>
+                  <div>
+                    <label className="block text-sm font-bold text-slate-800 mb-2">
+                      Target Word Count
+                    </label>
+                    <Controller
+                      control={control}
+                      name="wordCount"
+                      render={({ field }) => (
+                        <div className="grid grid-cols-3 gap-2">
+                          {WORD_COUNTS.map((wc) => (
+                            <button
+                              key={wc}
+                              type="button"
+                              onClick={() => field.onChange(wc)}
+                              className={`py-2 px-2 text-xs font-semibold rounded-xl border transition-all cursor-pointer ${
+                                field.value === wc
+                                  ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white border-transparent shadow-sm'
+                                  : 'bg-white text-slate-700 border-slate-200 hover:bg-slate-50'
+                              }`}
+                            >
+                              {wc.toLocaleString()}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    />
+                  </div>
+                </div>
 
-            {/* Submit */}
-            <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
-                {dataResult && (
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="w-full sm:w-auto px-5 py-3 rounded-full border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-sm text-center cursor-pointer order-2 sm:order-1"
+                {/* Target Audience */}
+                <div>
+                  <label htmlFor="audience" className="block text-sm font-bold text-slate-800 mb-2">
+                    Target Audience{' '}
+                    <span className="text-xs font-normal text-slate-500">(Optional)</span>
+                  </label>
+                  <input
+                    id="audience"
+                    type="text"
+                    {...register('targetAudience')}
+                    placeholder="e.g., Small business owners, SaaS founders, Marketing managers"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 placeholder:text-slate-400 text-sm transition-all"
+                  />
+                </div>
+
+                {/* Secondary Keywords */}
+                <div>
+                  <label
+                    htmlFor="secKeywords"
+                    className="block text-sm font-bold text-slate-800 mb-2"
                   >
-                    Reset
-                  </button>
-                )}
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-6 sm:px-8 py-3.5 text-sm sm:text-base font-bold text-white hover:opacity-95 active:scale-[0.98] disabled:opacity-50 transition-all shadow-md hover:shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
-                >
-                  {isLoading ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin shrink-0" />
-                      <span>Writing Content...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-                      <span>Generate Content</span>
-                    </>
-                  )}
-                </button>
+                    Secondary Keywords{' '}
+                    <span className="text-xs font-normal text-slate-500">
+                      (Optional, comma separated)
+                    </span>
+                  </label>
+                  <input
+                    id="secKeywords"
+                    type="text"
+                    {...register('secondaryKeywords')}
+                    placeholder="e.g., page speed optimization, website performance, core web vitals"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 placeholder:text-slate-400 text-sm transition-all"
+                  />
+                </div>
               </div>
-            </div>
 
-            {error && (
-              <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium flex items-start gap-2">
-                <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
-                {error}
+              {/* Submit */}
+              <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+                  {dataResult && (
+                    <button
+                      type="button"
+                      onClick={handleReset}
+                      className="w-full sm:w-auto px-5 py-3 rounded-full border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-sm text-center cursor-pointer order-2 sm:order-1"
+                    >
+                      Reset
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-6 sm:px-8 py-3.5 text-sm sm:text-base font-bold text-white hover:opacity-95 active:scale-[0.98] disabled:opacity-50 transition-all shadow-md hover:shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
+                  >
+                    {isLoading ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin shrink-0" />
+                        <span>Writing Content...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                        <span>Generate Content</span>
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
-            )}
-          </form>
-        </div>
+
+              {error && (
+                <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
+                  {error}
+                </div>
+              )}
+            </form>
+          </div>
         )}
 
         {/* Loading State */}
@@ -480,7 +501,9 @@ export default function AiContentWriterPage() {
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-base font-bold text-slate-900">Content Generated Successfully</h3>
+                  <h3 className="text-base font-bold text-slate-900">
+                    Content Generated Successfully
+                  </h3>
                   <div className="flex flex-wrap items-center gap-3 mt-2 text-sm text-slate-500">
                     <span className="flex items-center gap-1">
                       <Hash className="w-3.5 h-3.5" />
@@ -534,22 +557,34 @@ export default function AiContentWriterPage() {
                 {/* Title */}
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">Article Title</h3>
+                    <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                      Article Title
+                    </h3>
                     <button
                       onClick={() => triggerCopy(dataResult.title, 'title')}
                       className="px-3 py-1.5 text-xs font-semibold text-[#0C81F3] bg-blue-50 rounded-lg hover:bg-blue-100 flex items-center gap-1.5 cursor-pointer"
                     >
-                      {copiedState === 'title' ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                      {copiedState === 'title' ? (
+                        <Check className="w-3.5 h-3.5 text-green-600" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
                       {copiedState === 'title' ? 'Copied!' : 'Copy'}
                     </button>
                   </div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-slate-900">{dataResult.title}</h2>
+                  <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+                    {dataResult.title}
+                  </h2>
                 </div>
 
                 {/* Introduction */}
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Introduction</h3>
-                  <p className="text-slate-700 leading-relaxed whitespace-pre-line">{dataResult.introduction}</p>
+                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+                    Introduction
+                  </h3>
+                  <p className="text-slate-700 leading-relaxed whitespace-pre-line">
+                    {dataResult.introduction}
+                  </p>
                 </div>
 
                 {/* Headings & Content */}
@@ -561,20 +596,30 @@ export default function AiContentWriterPage() {
                     <h3 className="text-sm font-bold text-slate-900">
                       Article Body ({headings.length} sections)
                     </h3>
-                    {headingsExpanded ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+                    {headingsExpanded ? (
+                      <ChevronUp className="w-4 h-4 text-slate-400" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-slate-400" />
+                    )}
                   </button>
                   {headingsExpanded && (
                     <div className="px-6 pb-6 space-y-6 border-t border-slate-100 pt-5">
                       {headings.map((h, i) => (
                         <div key={i}>
                           <h3 className="text-lg font-bold text-slate-900 mb-2">{h.text}</h3>
-                          <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">{h.content}</p>
+                          <p className="text-sm text-slate-700 leading-relaxed whitespace-pre-line">
+                            {h.content}
+                          </p>
                           {(h.subheadings || []).length > 0 && (
                             <div className="ml-4 mt-4 space-y-4">
                               {h.subheadings.map((sub, j) => (
                                 <div key={j}>
-                                  <h4 className="text-base font-semibold text-slate-800 mb-1">{sub.text}</h4>
-                                  <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">{sub.content}</p>
+                                  <h4 className="text-base font-semibold text-slate-800 mb-1">
+                                    {sub.text}
+                                  </h4>
+                                  <p className="text-sm text-slate-600 leading-relaxed whitespace-pre-line">
+                                    {sub.content}
+                                  </p>
                                 </div>
                               ))}
                             </div>
@@ -587,8 +632,12 @@ export default function AiContentWriterPage() {
 
                 {/* Conclusion */}
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">Conclusion</h3>
-                  <p className="text-slate-700 leading-relaxed whitespace-pre-line">{dataResult.conclusion}</p>
+                  <h3 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3">
+                    Conclusion
+                  </h3>
+                  <p className="text-slate-700 leading-relaxed whitespace-pre-line">
+                    {dataResult.conclusion}
+                  </p>
                 </div>
 
                 {/* Key Takeaways */}
@@ -618,9 +667,14 @@ export default function AiContentWriterPage() {
                     </h3>
                     <div className="space-y-2">
                       {dataResult.internalLinkSuggestions.map((link, i) => (
-                        <div key={i} className="flex items-start gap-3 text-sm bg-slate-50 rounded-lg p-3">
-                          <span className="font-semibold text-[#0C81F3] shrink-0">"{link.anchorText}"</span>
-                          <span className="text-slate-600">— {link.context}</span>
+                        <div
+                          key={i}
+                          className="flex items-start gap-3 text-sm bg-slate-50 rounded-lg p-3"
+                        >
+                          <span className="font-semibold text-[#0C81F3] shrink-0">
+                            "{link.anchorText}"
+                          </span>
+                          <span className="text-slate-600">- {link.context}</span>
                         </div>
                       ))}
                     </div>
@@ -636,7 +690,9 @@ export default function AiContentWriterPage() {
                 <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
                   <h3 className="text-sm font-bold text-slate-900 mb-4">Google SERP Preview</h3>
                   <div className="bg-white rounded-xl border border-slate-200 p-5 max-w-2xl">
-                    <div className="text-xs text-green-700 mb-1">https://example.com/{dataResult.slug || 'article-slug'}</div>
+                    <div className="text-xs text-green-700 mb-1">
+                      https://example.com/{dataResult.slug || 'article-slug'}
+                    </div>
                     <h3 className="text-blue-700 text-base font-medium hover:underline cursor-pointer line-clamp-1">
                       {dataResult.title}
                     </h3>
@@ -652,16 +708,25 @@ export default function AiContentWriterPage() {
 
                   {[
                     { label: 'Title Tag', value: dataResult.title, charLimit: 60, key: 'titleTag' },
-                    { label: 'Meta Description', value: dataResult.metaDescription, charLimit: 160, key: 'metaDesc' },
+                    {
+                      label: 'Meta Description',
+                      value: dataResult.metaDescription,
+                      charLimit: 160,
+                      key: 'metaDesc',
+                    },
                     { label: 'URL Slug', value: dataResult.slug, key: 'slug' },
                     { label: 'Focus Keyword', value: dataResult.focusKeyword, key: 'focusKw' },
                   ].map((item) => (
                     <div key={item.key}>
                       <div className="flex items-center justify-between mb-1">
-                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">{item.label}</span>
+                        <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+                          {item.label}
+                        </span>
                         <div className="flex items-center gap-2">
                           {item.charLimit && (
-                            <span className={`text-xs ${(item.value || '').length > item.charLimit ? 'text-red-500' : 'text-green-600'}`}>
+                            <span
+                              className={`text-xs ${(item.value || '').length > item.charLimit ? 'text-red-500' : 'text-green-600'}`}
+                            >
                               {(item.value || '').length}/{item.charLimit}
                             </span>
                           )}
@@ -695,7 +760,11 @@ export default function AiContentWriterPage() {
                     onClick={() => triggerCopy(schemaJson, 'schema')}
                     className="px-3 py-1.5 text-xs font-semibold text-[#0C81F3] bg-blue-50 rounded-lg hover:bg-blue-100 flex items-center gap-1.5 cursor-pointer"
                   >
-                    {copiedState === 'schema' ? <Check className="w-3.5 h-3.5 text-green-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedState === 'schema' ? (
+                      <Check className="w-3.5 h-3.5 text-green-600" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
                     {copiedState === 'schema' ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
@@ -723,15 +792,40 @@ export default function AiContentWriterPage() {
 
                 <div className="grid sm:grid-cols-2 gap-4 mt-6">
                   {[
-                    { label: 'Title Optimization', score: seoScore.title_optimization, desc: 'Keyword in title, compelling, under 60 chars' },
-                    { label: 'Keyword Usage', score: seoScore.keyword_usage, desc: 'Primary & secondary keyword placement' },
-                    { label: 'Readability', score: seoScore.readability, desc: 'Flesch score, sentence length, paragraph structure' },
-                    { label: 'Content Depth', score: seoScore.content_depth, desc: 'Comprehensive coverage, examples, sub-sections' },
+                    {
+                      label: 'Title Optimization',
+                      score: seoScore.title_optimization,
+                      desc: 'Keyword in title, compelling, under 60 chars',
+                    },
+                    {
+                      label: 'Keyword Usage',
+                      score: seoScore.keyword_usage,
+                      desc: 'Primary & secondary keyword placement',
+                    },
+                    {
+                      label: 'Readability',
+                      score: seoScore.readability,
+                      desc: 'Flesch score, sentence length, paragraph structure',
+                    },
+                    {
+                      label: 'Content Depth',
+                      score: seoScore.content_depth,
+                      desc: 'Comprehensive coverage, examples, sub-sections',
+                    },
                   ].map((item) => (
-                    <div key={item.label} className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
-                        item.score >= 80 ? 'bg-green-100 text-green-700' : item.score >= 60 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'
-                      }`}>
+                    <div
+                      key={item.label}
+                      className="flex items-center gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200"
+                    >
+                      <div
+                        className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0 ${
+                          item.score >= 80
+                            ? 'bg-green-100 text-green-700'
+                            : item.score >= 60
+                              ? 'bg-amber-100 text-amber-700'
+                              : 'bg-red-100 text-red-700'
+                        }`}
+                      >
                         {item.score}
                       </div>
                       <div>
@@ -754,7 +848,10 @@ export default function AiContentWriterPage() {
                   </div>
                 ) : (
                   faqs.map((faq, i) => (
-                    <div key={i} className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                    <div
+                      key={i}
+                      className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden"
+                    >
                       <button
                         onClick={() => toggleFaq(i)}
                         className="w-full flex items-center justify-between p-4 sm:p-5 text-left hover:bg-slate-50 transition-colors cursor-pointer"
@@ -765,13 +862,19 @@ export default function AiContentWriterPage() {
                           </div>
                           <h4 className="text-sm font-bold text-slate-900">{faq.question}</h4>
                         </div>
-                        {faqExpanded[i] ? <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />}
+                        {faqExpanded[i] ? (
+                          <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />
+                        )}
                       </button>
                       {faqExpanded[i] && (
                         <div className="px-5 pb-5 border-t border-slate-100 pt-4">
                           <p className="text-sm text-slate-700 leading-relaxed">{faq.answer}</p>
                           <button
-                            onClick={() => triggerCopy(faq.question + '\n\n' + faq.answer, `faq-${i}`)}
+                            onClick={() =>
+                              triggerCopy(faq.question + '\n\n' + faq.answer, `faq-${i}`)
+                            }
                             className="mt-3 px-3 py-1.5 text-xs font-semibold text-[#0C81F3] bg-blue-50 rounded-lg hover:bg-blue-100 cursor-pointer"
                           >
                             {copiedState === `faq-${i}` ? (
@@ -796,7 +899,13 @@ export default function AiContentWriterPage() {
                 <h3 className="text-sm font-bold text-slate-900">Export Options</h3>
                 <div className="grid sm:grid-cols-3 gap-3">
                   <button
-                    onClick={() => handleDownloadFile(fullMarkdownContent, `${dataResult.slug || 'article'}.md`, 'text/markdown')}
+                    onClick={() =>
+                      handleDownloadFile(
+                        fullMarkdownContent,
+                        `${dataResult.slug || 'article'}.md`,
+                        'text/markdown'
+                      )
+                    }
                     className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left cursor-pointer"
                   >
                     <FileText className="w-5 h-5 text-[#0C81F3] mb-2" />
@@ -804,7 +913,13 @@ export default function AiContentWriterPage() {
                     <div className="text-xs text-slate-500">.md file for docs / CMS</div>
                   </button>
                   <button
-                    onClick={() => handleDownloadFile(fullHtmlContent, `${dataResult.slug || 'article'}.html`, 'text/html')}
+                    onClick={() =>
+                      handleDownloadFile(
+                        fullHtmlContent,
+                        `${dataResult.slug || 'article'}.html`,
+                        'text/html'
+                      )
+                    }
                     className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left cursor-pointer"
                   >
                     <Code className="w-5 h-5 text-purple-600 mb-2" />
@@ -812,7 +927,13 @@ export default function AiContentWriterPage() {
                     <div className="text-xs text-slate-500">Formatted HTML article</div>
                   </button>
                   <button
-                    onClick={() => handleDownloadFile(plainTextContent, `${dataResult.slug || 'article'}.txt`, 'text/plain')}
+                    onClick={() =>
+                      handleDownloadFile(
+                        plainTextContent,
+                        `${dataResult.slug || 'article'}.txt`,
+                        'text/plain'
+                      )
+                    }
                     className="p-4 rounded-xl border border-slate-200 hover:border-[#0C81F3] hover:bg-blue-50/30 transition-all text-left cursor-pointer"
                   >
                     <AlignLeft className="w-5 h-5 text-emerald-600 mb-2" />

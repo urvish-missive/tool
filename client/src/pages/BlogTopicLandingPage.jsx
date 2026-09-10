@@ -1,5 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react'
-import useScrollReveal from '../components/landing/useScrollReveal'
+import { useEffect, useRef, useCallback, useState } from 'react'
 import { Helmet } from 'react-helmet-async'
 import {
   Sparkles,
@@ -11,17 +10,21 @@ import {
   Link2,
   TrendingUp,
   Lightbulb,
+  ArrowLeft,
 } from 'lucide-react'
 import {
   LandingHero,
   LandingFeatures,
   LandingHowItWorks,
   LandingStats,
+  LandingAnimatedStats,
   LandingFAQ,
-  LandingCTA,
+  LandingTopicBlueprintCTA,
   LandingSiloArchitecture,
   LandingTopicCloud,
   LandingContentPillars,
+  LandingResultsTopbar,
+  LandingLiveDemo,
 } from '../components/landing'
 import BlogTopicGeneratorPage from '../tools/blog-topic-generator/BlogTopicGeneratorPage'
 
@@ -29,7 +32,7 @@ import BlogTopicGeneratorPage from '../tools/blog-topic-generator/BlogTopicGener
 const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
-  name: 'AI Blog Topic & Silo Generator — Missive Digital',
+  name: 'AI Blog Topic & Silo Generator - Missive Digital',
   description:
     'Free AI-powered blog topic generator and topical silo architect by Missive Digital. Generate pillar pages, cluster topics, interlinking blueprints, and editorial calendars for any niche.',
   url: 'https://tools.missivedigital.com/blog-topic-generator',
@@ -82,7 +85,7 @@ const faqStructuredData = {
       name: 'Can I use this for any niche or industry?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes. The tool works for any niche — SaaS, e-commerce, healthcare, finance, education, local businesses, and more. Enter your niche and optional target keywords, and the AI generates a tailored content strategy.',
+        text: 'Yes. The tool works for any niche, including SaaS, e-commerce, healthcare, finance, education, local businesses, and more. Enter your niche and optional target keywords, and the AI generates a tailored content strategy.',
       },
     },
     {
@@ -108,39 +111,39 @@ const faqStructuredData = {
 const FEATURES = [
   {
     icon: Target,
-    title: 'Pillar + Cluster Silo Mapping',
+    title: 'Multi-Keyword Niche Targeting',
     description:
-      'The AI organizes every topic into a hub-and-spoke model — pillar pages anchor authority, cluster pages capture long-tail queries, and internal links distribute ranking power.',
+      'Enter up to 20 target keywords and the AI weaves them into a cohesive topical authority map with pillar and cluster relationships.',
   },
   {
     icon: TrendingUp,
-    title: 'Funnel-Stage Tagging',
+    title: 'Tone-of-Voice Customization',
     description:
-      'Every topic is tagged with TOFU (Awareness), MOFU (Consideration), or BOFU (Decision) so you write the right content for the right stage of the buyer journey.',
+      'Choose from 8 distinct tone profiles. Authoritative, conversational, bold, empathetic, storytelling, data-driven, witty, or fun. And every headline matches.',
   },
   {
     icon: Lightbulb,
-    title: 'Search Intent Scoring',
+    title: 'Difficulty & Priority Scoring',
     description:
-      'Topics are scored by intent type — informational, commercial, or transactional — and by difficulty level, so you prioritize what to write first for maximum ROI.',
+      'Topics are ranked by competitive difficulty so you know which articles to publish first for maximum organic impact.',
   },
   {
     icon: Link2,
-    title: 'Interlinking Blueprint',
+    title: 'Internal Linking Strategy',
     description:
-      'The AI generates a complete internal linking strategy showing which pages link to which, how authority flows through your silo, and what anchors to use.',
+      'Every topic includes suggested anchor text and cross-linking directives that pass authority from pillar pages to cluster nodes.',
   },
   {
     icon: Layers,
-    title: 'Master Briefs On Demand',
+    title: 'One-Click Master Briefs',
     description:
-      'Click any topic to generate a full brief — H2/H3 outline, target keywords, content angle, word count, and strategic rationale. Ready to hand off to a writer.',
+      'Expand any topic to generate a full editorial brief with H2/H3 structure, talking points, visual asset suggestions, and competitor gap analysis.',
   },
   {
     icon: Compass,
-    title: 'Editorial Calendar Priority',
+    title: 'Publishing Priority Queue',
     description:
-      'The AI prioritizes your publishing order — pillar pages first, supporting clusters second — so you build topical authority systematically from day one.',
+      'The AI sequences your editorial calendar. Cornerstone pillar first, supporting clusters next, so you build authority from day one.',
   },
 ]
 
@@ -172,7 +175,7 @@ const STEPS = [
 ]
 
 const STATS = [
-  { value: '8–15', label: 'Topics per generation' },
+  { value: '8-15', label: 'Topics per generation' },
   { value: '3', label: 'Funnel stages mapped' },
   { value: '20-30 sec', label: 'Average generation time' },
   { value: '100%', label: 'E-E-A-T aligned' },
@@ -202,7 +205,7 @@ const FAQS = [
   {
     question: 'Can I use this for any niche or industry?',
     answer:
-      'Yes. The tool works for any niche — SaaS, e-commerce, healthcare, finance, education, local businesses, and more. Enter your niche and optional target keywords, and the AI generates a tailored content strategy.',
+      'Yes. The tool works for any niche, including SaaS, e-commerce, healthcare, finance, education, local businesses, and more. Enter your niche and optional target keywords, and the AI generates a tailored content strategy.',
   },
   {
     question: 'What is the difference between pillar and cluster content?',
@@ -218,38 +221,26 @@ const FAQS = [
 
 /* ─────────────── Trust Section ─────────────── */
 function TrustSection() {
-  const ref = useScrollReveal()
   const items = [
     { icon: Users, value: '3,000+', label: 'Content strategists using this tool' },
     { icon: Layers, value: '75,000+', label: 'Topic silos generated' },
-    { icon: Clock, value: '20-30 sec', label: 'Average generation time' },
+    { icon: Sparkles, value: '6', label: 'Tone profiles available' },
   ]
 
-  return (
-    <section className="py-12 sm:py-16 lg:py-20 bg-white border-t border-slate-100">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div ref={ref} className="lp-reveal grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
-          {items.map((item) => {
-            const Icon = item.icon
-            return (
-              <div key={item.label} className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white mb-3 shadow-lg">
-                  <Icon className="w-5 h-5" />
-                </div>
-                <div className="text-2xl sm:text-3xl font-black text-slate-900">{item.value}</div>
-                <div className="text-xs sm:text-sm text-slate-500 mt-1">{item.label}</div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </section>
-  )
+  return <LandingAnimatedStats stats={items} />
 }
 
 /* ─────────────── Landing Page Component ─────────────── */
 export default function BlogTopicLandingPage() {
+  const [hasResults, setHasResults] = useState(false)
+  const [resetSignal, setResetSignal] = useState(0)
   const toolRef = useRef(null)
+
+  const handleNewSearch = () => {
+    setResetSignal((c) => c + 1)
+    setHasResults(false)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const scrollToTool = useCallback(() => {
     const el = toolRef.current || document.getElementById('tool')
@@ -276,7 +267,7 @@ export default function BlogTopicLandingPage() {
   return (
     <>
       <Helmet>
-        <title>AI Blog Topic & Silo Generator — Free Tool | Missive Digital</title>
+        <title>AI Blog Topic &amp; Silo Generator - Free Tool | Missive Digital</title>
         <meta
           name="description"
           content="Generate blog topic ideas, topical silo architectures, pillar-cluster strategies, master briefs, and editorial calendars with AI. Free, no sign-up required."
@@ -286,7 +277,7 @@ export default function BlogTopicLandingPage() {
           content="blog topic generator, topical silo, content strategy, pillar cluster, SEO content planning, editorial calendar, AI blog topics, Missive Digital"
         />
         <link rel="canonical" href="https://tools.missivedigital.com/blog-topic-generator" />
-        <meta property="og:title" content="AI Blog Topic & Silo Generator — Free Tool | Missive Digital" />
+        <meta property="og:title" content="AI Blog Topic & Silo Generator - Free Tool | Missive Digital" />
         <meta
           property="og:description"
           content="Generate blog topic ideas, topical silo architectures, pillar-cluster strategies, and editorial calendars with AI. Free, no sign-up."
@@ -295,7 +286,7 @@ export default function BlogTopicLandingPage() {
         <meta property="og:url" content="https://tools.missivedigital.com/blog-topic-generator" />
         <meta property="og:site_name" content="Missive Digital: Himani's SEO Tools" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="AI Blog Topic & Silo Generator — Missive Digital" />
+        <meta name="twitter:title" content="AI Blog Topic & Silo Generator - Missive Digital" />
         <meta
           name="twitter:description"
           content="Generate blog topic ideas, silo architectures, and editorial calendars with AI. Free, no sign-up."
@@ -304,16 +295,26 @@ export default function BlogTopicLandingPage() {
         <script type="application/ld+json">{JSON.stringify(faqStructuredData)}</script>
       </Helmet>
 
-      <div className="landing-page min-h-screen bg-white font-sans">
+      <div className={`landing-page min-h-screen bg-white font-sans ${hasResults ? 'pt-20' : ''}`}>
+        {hasResults && (
+          <LandingResultsTopbar
+            onBack={handleNewSearch}
+            backLabel="New Topic Search"
+            backHint="Start Over"
+            title="Topic Silo & Editorial Blueprint"
+            badge="Live Blueprint"
+          />
+        )}
         {/* 1. Hero with embedded tool */}
         <LandingHero
+          hideHeroCopy={hasResults}
           badge="Himani's SEO Tools • Missive Digital"
           title={[
             { text: 'Architect Your ' },
             { text: 'Content Moat', gradient: true },
             { text: ' With AI' },
           ]}
-          subtitle="Generate pillar pages, cluster topics, silo architectures, interlinking blueprints, and editorial calendars — all scored by funnel stage, search intent, and difficulty."
+          subtitle="Generate pillar pages, cluster topics, silo architectures, interlinking blueprints, and editorial calendars. All scored by funnel stage, search intent, and difficulty."
           ctaLabel="Generate Topics Free →"
           ctaOnClick={scrollToTool}
           secondaryCta={{
@@ -327,57 +328,96 @@ export default function BlogTopicLandingPage() {
             'Master briefs included',
           ]}
           toolRef={toolRef}
-          toolLabel="Generate Blog Topics & Silos — Live"
-          toolSlot={<BlogTopicGeneratorPage isEmbedded={true} />}
+          toolLabel={hasResults ? 'Active Topic Silo & Master Briefs' : 'Generate Blog Topics & Silos - Live'}
+          toolSlot={
+            <BlogTopicGeneratorPage
+              isEmbedded={true}
+              onResultStateChange={setHasResults}
+              resetSignal={resetSignal}
+            />
+          }
         />
 
-        {/* 2. Stats */}
-        <LandingStats stats={STATS} />
+        {!hasResults && (
+          <>
+            {/* 2. Stats */}
+            <LandingStats stats={STATS} />
 
-        {/* 3. Topic Cloud — sample generated topics */}
-        <LandingTopicCloud />
+            {/* 2.5 Animated Live Demo */}
+            <LandingLiveDemo
+              badge="See It Architect"
+              heading="Watch a Topical Silo Get Mapped Live"
+              subheading="Enter an industry niche and watch the AI architect pillar pages, cluster nodes, and master briefs in seconds."
+              accentIcon={Compass}
+              examples={[
+                {
+                  label: 'B2B SaaS · Topical Authority',
+                  input: 'Cloud Cost Optimization & FinOps Platforms',
+                  outputTitle: 'Cornerstone Pillar: Enterprise FinOps Governance Architecture',
+                  outputBody:
+                    '"Anchored by 4 semantic cluster silos: Cloud Waste Auditing, Multi-Cloud Billing Ingestion, Kubernetes Pod Cost Allocation, and CFO Unit Economics. 1 cornerstone pillar and 12 cluster nodes mapped."',
+                  outputMeta: ['Pillar + 12 Clusters', 'Zero Em Dashes', 'Topical Moat'],
+                },
+                {
+                  label: 'BOFU · Commercial Intent Queue',
+                  input: 'Healthcare EHR Interoperability Software',
+                  outputTitle: 'High-Intent BOFU Queue: FHIR API Migration Roadmap',
+                  outputBody:
+                    '"Prioritized #1 in publishing sequence. Targets technical buyers and compliance directors with a 2,600-word implementation teardown, internal link directives, and HIPAA risk mitigation steps."',
+                  outputMeta: ['BOFU Commercial', 'Priority Queue #1', 'High Information Gain'],
+                },
+                {
+                  label: 'Competitor Gap · Master Brief',
+                  input: 'AI Document Processing for Logistics',
+                  outputTitle: 'Master Brief: Custom Bill of Lading Optical Recognition Outlines',
+                  outputBody:
+                    '"Competitor articles offer generic high-level summaries. This master brief injects 5 latency benchmarks, 3 visual architecture diagrams, and custom H2/H3 writing directives to capture the featured snippet."',
+                  outputMeta: ['Master Brief', 'Competitor Gap', 'E-E-A-T Anchors'],
+                },
+              ]}
+            />
 
-        {/* 4. Silo Architecture visual */}
-        <LandingSiloArchitecture />
+            {/* 3. Topic Cloud — sample generated topics */}
+            <LandingTopicCloud />
 
-        {/* 5. Features grid */}
-        <LandingFeatures
-          sectionLabel="Why This Tool?"
-          heading="From Niche to Full Editorial Blueprint"
-          subheading="Not just topic ideas — a complete content architecture with silo mapping, interlinking strategy, and prioritized publishing order."
-          features={FEATURES}
-          columns={3}
-        />
+            {/* 4. Silo Architecture visual */}
+            <LandingSiloArchitecture />
 
-        {/* 6. Content Pillars — what you get */}
-        <LandingContentPillars />
+            {/* 5. Features grid */}
+            <LandingFeatures
+              sectionLabel="Why This Tool?"
+              heading="From Niche to Full Editorial Blueprint"
+              subheading="Not just topic ideas. A complete content architecture with silo mapping, interlinking strategy, and prioritized publishing order."
+              features={FEATURES}
+              columns={3}
+            />
 
-        {/* 7. How it works */}
-        <LandingHowItWorks
-          sectionLabel="How It Works"
-          heading="From Niche to Content Moat in 4 Steps"
-          subheading="Enter your niche, set your goals, and let the AI build your complete editorial strategy."
-          steps={STEPS}
-        />
+            {/* 6. Content Pillars — what you get */}
+            <LandingContentPillars />
 
-        {/* 8. Trust section */}
-        <TrustSection />
+            {/* 7. How it works */}
+            <LandingHowItWorks
+              sectionLabel="How It Works"
+              heading="From Niche to Content Moat in 4 Steps"
+              subheading="Enter your niche, set your goals, and let the AI build your complete editorial strategy."
+              steps={STEPS}
+            />
 
-        {/* 9. FAQ */}
-        <LandingFAQ
-          sectionLabel="Frequently Asked Questions"
-          heading="Blog Topic & Silo FAQs"
-          subheading="Everything you need to know about building topical authority with AI-powered topic planning."
-          faqs={FAQS}
-        />
+            {/* 8. Trust section */}
+            <TrustSection />
 
-        {/* 10. Final CTA */}
-        <LandingCTA
-          heading="Stop Guessing What to Write Next"
-          subheading="Generate a complete editorial strategy — pillar topics, cluster ideas, silo architecture, and master briefs. Free, no sign-up required."
-          ctaLabel="Start Generating Free"
-          ctaOnClick={scrollToTool}
-        />
+            {/* 9. FAQ */}
+            <LandingFAQ
+              sectionLabel="Frequently Asked Questions"
+              heading="Blog Topic & Silo FAQs"
+              subheading="Everything you need to know about building topical authority with AI-powered topic planning."
+              faqs={FAQS}
+            />
+
+            {/* 10. Bespoke Topic Blueprint Final CTA */}
+            <LandingTopicBlueprintCTA onCta={scrollToTool} />
+          </>
+        )}
       </div>
     </>
   )

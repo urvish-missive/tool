@@ -122,12 +122,31 @@ const TABS = [
   { id: 'ai-geo', label: 'AI Search & GEO Citations', icon: Globe },
 ]
 
-export default function CaseStudyGeneratorPage({ isEmbedded = false }) {
+export default function CaseStudyGeneratorPage({
+  isEmbedded = false,
+  onResultStateChange,
+  resetSignal,
+}) {
   const [activeTab, setActiveTab] = useState('case-study')
   const [copiedKey, setCopiedKey] = useState(null)
   const [dataResult, setDataResult] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
   const [activeSampleId, setActiveSampleId] = useState(null)
+
+  useEffect(() => {
+    if (dataResult?.caseStudy) {
+      onResultStateChange?.(true)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      onResultStateChange?.(false)
+    }
+  }, [dataResult, onResultStateChange])
+
+  useEffect(() => {
+    if (resetSignal > 0) {
+      handleReset()
+    }
+  }, [resetSignal])
 
   // Tab navigation scroll management
   const tabsContainerRef = useRef(null)
@@ -361,65 +380,68 @@ export default function CaseStudyGeneratorPage({ isEmbedded = false }) {
 
       {/* Hero Header */}
       {!isEmbedded && (
-      <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24 bg-gradient-to-b from-slate-50 to-white border-b border-slate-200">
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }}
-        />
-        <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-gradient-to-bl from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-gradient-to-tr from-[#A7D2FF]/20 to-[#F7B7B3]/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
+        <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24 bg-gradient-to-b from-slate-50 to-white border-b border-slate-200">
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)',
+              opacity: 0.08,
+            }}
+          />
+          <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-gradient-to-bl from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-gradient-to-tr from-[#A7D2FF]/20 to-[#F7B7B3]/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
 
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[11px] sm:text-xs font-bold rounded-full mb-3 tracking-wide uppercase shadow-2xs whitespace-nowrap shrink-0">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Himani's SEO Tools • Missive Digital</span>
-          </div>
-
-          <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight">
-            <span>Case Study </span>
-            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
-              Generator
-            </span>
-          </h1>
-
-          <p className="mt-2.5 text-xs sm:text-sm md:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Turn real client transformations into high-converting revenue engines. Generate
-            evidence-backed B2B case studies paired with full commercial distribution playbooks:
-            sales enablement battlecards, objection-handling scripts, cold outreach, paid ads,
-            founder newsletter teardowns, and AI Search citation readiness.
-          </p>
-
-          <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2.5 mt-3">
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-[#0C81F3] border border-blue-200/60 whitespace-nowrap shrink-0">
-              <CheckCircle2 className="w-3 h-3 text-[#0C81F3]" /> Sales Battlecards & Objection
-              Handlers
-            </span>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200/60 whitespace-nowrap shrink-0">
-              <Sparkles className="w-3 h-3 text-purple-600" /> Paid Ads & Carousel Slides
-            </span>
-            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60 whitespace-nowrap shrink-0">
-              <Target className="w-3 h-3 text-emerald-600" /> GEO & AI Search Citations
-            </span>
-          </div>
-
-          {!dataResult && !isLoading && (
-            <div className="mt-4 flex items-center justify-center gap-2">
-              <button
-                type="button"
-                onClick={() => handleLoadSample(SAMPLE_PRESETS[0])}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#0C81F3] bg-blue-50/90 hover:bg-blue-100 border border-blue-200/80 transition-all shadow-2xs cursor-pointer active:scale-95"
-              >
-                <Sparkles className="w-3.5 h-3.5 text-[#0C81F3]" />
-                <span>Load Sample Scenario</span>
-              </button>
+          <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[11px] sm:text-xs font-bold rounded-full mb-3 tracking-wide uppercase shadow-2xs whitespace-nowrap shrink-0">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Himani's SEO Tools • Missive Digital</span>
             </div>
-          )}
-        </div>
-      </section>
+
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight">
+              <span>Case Study </span>
+              <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
+                Generator
+              </span>
+            </h1>
+
+            <p className="mt-2.5 text-xs sm:text-sm md:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
+              Turn real client transformations into high-converting revenue engines. Generate
+              evidence-backed B2B case studies paired with full commercial distribution playbooks:
+              sales enablement battlecards, objection-handling scripts, cold outreach, paid ads,
+              founder newsletter teardowns, and AI Search citation readiness.
+            </p>
+
+            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2.5 mt-3">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-[#0C81F3] border border-blue-200/60 whitespace-nowrap shrink-0">
+                <CheckCircle2 className="w-3 h-3 text-[#0C81F3]" /> Sales Battlecards & Objection
+                Handlers
+              </span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200/60 whitespace-nowrap shrink-0">
+                <Sparkles className="w-3 h-3 text-purple-600" /> Paid Ads & Carousel Slides
+              </span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60 whitespace-nowrap shrink-0">
+                <Target className="w-3 h-3 text-emerald-600" /> GEO & AI Search Citations
+              </span>
+            </div>
+
+            {!dataResult && !isLoading && (
+              <div className="mt-4 flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleLoadSample(SAMPLE_PRESETS[0])}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#0C81F3] bg-blue-50/90 hover:bg-blue-100 border border-blue-200/80 transition-all shadow-2xs cursor-pointer active:scale-95"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-[#0C81F3]" />
+                  <span>Load Sample Scenario</span>
+                </button>
+              </div>
+            )}
+          </div>
+        </section>
       )}
 
       {/* Main Container */}
-      <div className={isEmbedded ? 'w-full' : 'max-w-5xl mx-auto px-3 sm:px-6 py-6 sm:py-8'}>
+      <div className={isEmbedded ? 'w-full' : 'max-w-6xl mx-auto px-3 sm:px-6 py-6 sm:py-8'}>
         {/* Form Container — ONLY SHOWN WHEN NOT LOADING */}
         {!isLoading && (
           <div className="bg-white rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/40 border border-slate-200 p-4 sm:p-6 lg:p-7 mb-8 transition-all">
@@ -606,7 +628,6 @@ export default function CaseStudyGeneratorPage({ isEmbedded = false }) {
 
               {/* Action Row */}
               <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3.5">
-
                 <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
                   <button
                     type="button"
@@ -1477,7 +1498,8 @@ export default function CaseStudyGeneratorPage({ isEmbedded = false }) {
                     <div className="space-y-3">
                       <div className="p-3 rounded-xl bg-rose-50 border border-rose-200">
                         <span className="text-xs font-bold text-rose-700 flex items-center gap-1 mb-1">
-                          <Zap className="w-3.5 h-3.5 shrink-0 text-rose-600" /> First 3-Second Scroll-Stopping Hook:
+                          <Zap className="w-3.5 h-3.5 shrink-0 text-rose-600" /> First 3-Second
+                          Scroll-Stopping Hook:
                         </span>
                         <p className="text-sm font-semibold text-slate-900 italic">
                           "{dataResult.marketingStrategy?.videoConcepts?.shortFormVideo?.hook3s}"

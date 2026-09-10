@@ -90,6 +90,7 @@
   transition: opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1),
               transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
 }
+.lp-stagger.revealed .lp-reveal-child,
 .lp-stagger.revealed .lp-reveal-child.revealed {
   opacity: 1;
   transform: translateY(0);
@@ -258,6 +259,110 @@
 }
 .lp-tick {
   animation: tick-pulse 2.4s ease-out infinite;
+}
+
+/* Traveling signal along a workflow connector rail */
+@keyframes flow-travel {
+  0% { left: 0%; opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+  8% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  92% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+  100% { left: 100%; opacity: 0; transform: translate(-50%, -50%) scale(0.6); }
+}
+.lp-flow-travel {
+  position: absolute;
+  top: 50%;
+  animation: flow-travel 3.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* Pulse animation for timeline dots */
+@keyframes dot-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(12, 129, 243, 0.45);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(12, 129, 243, 0);
+  }
+}
+.lp-dot-glow {
+  animation: dot-glow 2.5s ease-in-out infinite;
+}
+
+/* Flowing gradient beam for timeline connector line */
+@keyframes timeline-beam {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 0% 200%;
+  }
+}
+.lp-timeline-line {
+  background: linear-gradient(180deg, #0C81F3 0%, #EB8988 50%, #0C81F3 100%);
+  background-size: 100% 200%;
+  animation: timeline-beam 3.5s linear infinite;
+}
+
+/* ═══════════ Funnel Flow Stage Switch Animations ═══════════ */
+@keyframes funnel-tab-in {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes funnel-sample-pop {
+  0% {
+    opacity: 0;
+    transform: translateX(12px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes funnel-glow-flash {
+  0% {
+    box-shadow: 0 0 0 0 rgba(12, 129, 243, 0.45);
+  }
+  60% {
+    box-shadow: 0 0 0 10px rgba(12, 129, 243, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(12, 129, 243, 0);
+  }
+}
+
+.lp-funnel-tab {
+  animation: funnel-tab-in 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.lp-funnel-sample {
+  animation: funnel-sample-pop 0.42s cubic-bezier(0.16, 1, 0.3, 1) 0.06s both;
+}
+
+.lp-funnel-glow {
+  animation: funnel-glow-flash 0.65s ease-out;
+}
+
+/* Blinking terminal typing caret */
+@keyframes caret-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.lp-caret {
+  display: inline-block;
+  width: 2.5px;
+  height: 1.15em;
+  background-color: #0C81F3;
+  margin-left: 3px;
+  vertical-align: -0.15em;
+  border-radius: 1px;
+  animation: caret-blink 0.75s ease-in-out infinite;
 }
 
 

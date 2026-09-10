@@ -16,7 +16,7 @@ import {
   CircleDot,
   ArrowRight,
 } from 'lucide-react'
-import { LandingLiveDemo } from '../components/landing'
+import { LandingLiveDemo, LandingFAQ, LandingResultsTopbar } from '../components/landing'
 import ContentQaPage from '../tools/content-qa/ContentQaPage'
 
 /* ─────────────── SEO Structured Data (JSON-LD) ─────────────── */
@@ -225,24 +225,28 @@ const FEATURES = [
 
 const STEPS = [
   {
-    k: 'STEP 1',
+    k: 'STEP 01',
     t: 'Feed the scanner',
-    d: 'Paste text, a Google Doc link, a URL, or upload a file.',
+    d: 'Paste text, a Google Doc link, a live URL, or upload any file.',
+    tag: 'Any Source',
   },
   {
-    k: 'STEP 2',
+    k: 'STEP 02',
     t: 'Set the context',
-    d: 'Add title, target keyword, platform, and reader this draft is for.',
+    d: 'Add title, target keyword, publication platform, and ideal reader persona.',
+    tag: 'Context',
   },
   {
-    k: 'STEP 3',
+    k: 'STEP 03',
     t: 'Run the audit',
-    d: 'Get a scored sheet across 12 pillars with PASS and FAIL flags.',
+    d: 'Get an instant scored sheet across 12 pillars with clear PASS and FAIL flags.',
+    tag: '12 Pillars',
   },
   {
-    k: 'STEP 4',
+    k: 'STEP 04',
     t: 'Polish and ship',
-    d: 'Fix weak copy with one click, review the diff, export the PDF.',
+    d: 'Fix weak copy with one click, review the diff side by side, and export the PDF report.',
+    tag: '1-Click Polish',
   },
 ]
 
@@ -281,11 +285,11 @@ const FAQS = [
 
 /* ─────────────── Shared Primitives ─────────────── */
 
-function Eyebrow({ children }) {
+function Eyebrow({ children, icon: Icon = Sparkles }) {
   return (
-    <span className="inline-flex items-center gap-2 text-xs sm:text-[13px] font-semibold uppercase tracking-[0.18em] text-[#0C81F3]">
-      <span className="w-8 h-px bg-gradient-to-r from-[#0C81F3] to-[#EB8988]" />
-      {children}
+    <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[11px] sm:text-xs font-bold uppercase tracking-wider shadow-sm mb-3.5">
+      {Icon && <Icon className="w-3.5 h-3.5 shrink-0" />}
+      <span>{children}</span>
     </span>
   )
 }
@@ -327,10 +331,10 @@ function BannedTicker() {
 }
 
 /* ─────────────── Hero ─────────────── */
-function QaHero({ onCta, toolRef }) {
+function QaHero({ onCta, toolRef, onResultStateChange, hideHeroCopy, resetSignal }) {
   const ref = useScrollReveal()
   return (
-    <section className="relative bg-[#F9F7F6]">
+    <section className={`relative bg-[#F9F7F6] ${hideHeroCopy ? 'py-4 sm:py-6' : 'py-20 sm:py-28'}`}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-24 -right-24 w-[480px] h-[480px] bg-[#DAD0FF]/50 rounded-full blur-3xl lp-float-slow" />
         <div className="absolute -bottom-28 -left-24 w-[420px] h-[420px] bg-[#D8FFD8]/60 rounded-full blur-3xl lp-float-reverse" />
@@ -338,67 +342,69 @@ function QaHero({ onCta, toolRef }) {
       </div>
       <div className="lp-scanline" />
 
-      <div className="relative max-w-[1280px] mx-auto px-6 sm:px-8 py-20 sm:py-28">
-        <div ref={ref} className="lp-reveal max-w-2xl mx-auto text-center">
-          <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white px-5 py-2 text-[13px] font-semibold tracking-[-0.01em] shadow-[0_18px_40px_rgba(12,129,243,0.25)] mb-7">
-            <ShieldCheck className="w-4 h-4" />
-            Missive Digital
-          </span>
-          <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-display font-semibold tracking-[-0.03em] text-[#292929] leading-[1.05]">
-            Publish Copy That{' '}
-            <span className="bg-gradient-to-r from-[#0C81F3] to-[#EB8988] bg-clip-text text-transparent">
-              Passes Inspection
-            </span>{' '}
-            On The First Run
-          </h1>
-          <p className="mt-7 max-w-xl mx-auto text-[17px] leading-relaxed text-[#54595F]">
-            Run every draft through an automated 12-pillar quality gate. Catch em dashes, kill
-            robotic buzzwords, score the whole piece, and ship clean copy with confidence.
-          </p>
-          <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
-            <GradientButton onClick={onCta}>
-              Run The QA Scan
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </GradientButton>
-            <button
-              type="button"
-              onClick={() => {
-                const el = document.getElementById('checksheet')
-                if (el) {
-                  const top = el.getBoundingClientRect().top + window.pageYOffset - 90
-                  window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
-                }
-              }}
-              className="w-full sm:w-auto rounded-full border-2 border-slate-300 bg-white/90 backdrop-blur-xs px-6 py-3 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all cursor-pointer shadow-xs"
-            >
-              See 12 Quality Pillars ↓
-            </button>
-          </div>
-          <div className="mt-9 flex flex-wrap justify-center gap-2.5">
-            {['Zero em dashes', 'Zero buzzwords', 'Score + diff', 'PDF report'].map((t) => (
-              <span
-                key={t}
-                className="inline-flex items-center gap-1.5 rounded-full bg-white border border-[#DEDEDE] text-[#292929] px-3.5 py-1.5 text-[13px] font-medium"
+      <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+        {!hideHeroCopy && (
+          <div ref={ref} className="lp-reveal max-w-2xl mx-auto text-center mb-10 sm:mb-12">
+            <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white px-5 py-2 text-[13px] font-semibold tracking-[-0.01em] shadow-[0_18px_40px_rgba(12,129,243,0.25)] mb-7">
+              <ShieldCheck className="w-4 h-4" />
+              Missive Digital
+            </span>
+            <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-display font-semibold tracking-[-0.03em] text-[#292929] leading-[1.05]">
+              Publish Copy That{' '}
+              <span className="bg-gradient-to-r from-[#0C81F3] to-[#EB8988] bg-clip-text text-transparent">
+                Passes Inspection
+              </span>{' '}
+              On The First Run
+            </h1>
+            <p className="mt-7 max-w-xl mx-auto text-[17px] leading-relaxed text-[#54595F]">
+              Run every draft through an automated 12-pillar quality gate. Catch em dashes, kill
+              robotic buzzwords, score the whole piece, and ship clean copy with confidence.
+            </p>
+            <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
+              <GradientButton onClick={onCta}>
+                Run The QA Scan
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </GradientButton>
+              <button
+                type="button"
+                onClick={() => {
+                  const el = document.getElementById('checksheet')
+                  if (el) {
+                    const top = el.getBoundingClientRect().top + window.pageYOffset - 90
+                    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+                  }
+                }}
+                className="w-full sm:w-auto rounded-full border-2 border-slate-300 bg-white/90 backdrop-blur-xs px-6 py-3 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all cursor-pointer shadow-xs"
               >
-                <CheckCircle2 className="w-3.5 h-3.5 text-[#0C81F3]" /> {t}
-              </span>
-            ))}
+                See 12 Quality Pillars ↓
+              </button>
+            </div>
+            <div className="mt-9 flex flex-wrap justify-center gap-2.5">
+              {['Zero em dashes', 'Zero buzzwords', 'Score + diff', 'PDF report'].map((t) => (
+                <span
+                  key={t}
+                  className="inline-flex items-center gap-1.5 rounded-full bg-white border border-[#DEDEDE] text-[#292929] px-3.5 py-1.5 text-[13px] font-medium"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 text-[#0C81F3]" /> {t}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
-        <div ref={toolRef} id="tool" className="relative scroll-mt-24 mt-12 sm:mt-14">
+        <div ref={toolRef} id="tool" className="relative scroll-mt-24">
           <div className="rounded-[36px] bg-white border border-white/80 shadow-[0_33px_44px_rgba(0,0,0,0.04)] overflow-hidden">
             <div className="flex items-center justify-between px-6 sm:px-7 py-4 border-b border-[#EEE9E5] bg-[#F9F7F6]">
               <span className="flex items-center gap-2 text-[13px] font-semibold text-[#292929]">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                Live QA Terminal
+                {hideHeroCopy ? 'Content QA Inspection Workspace & Results' : 'Live QA Terminal'}
               </span>
               <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#292929] bg-white border border-[#DEDEDE] rounded-full px-3 py-1.5">
                 <BadgeCheck className="w-3.5 h-3.5 text-[#0C81F3]" /> No Sign-Up
               </span>
             </div>
             <div className="p-5 sm:p-7">
-              <ContentQaPage isEmbedded={true} />
+              <ContentQaPage isEmbedded={true} onResultStateChange={onResultStateChange} resetSignal={resetSignal} />
             </div>
           </div>
         </div>
@@ -416,7 +422,7 @@ function CheckSheet() {
     <section id="checksheet" className="py-20 sm:py-24 lg:py-28 bg-white scroll-mt-24">
       <div className="max-w-[1140px] mx-auto px-6 sm:px-8">
         <div ref={ref} className="lp-reveal max-w-2xl">
-          <Eyebrow>The Check Sheet</Eyebrow>
+          <Eyebrow icon={ShieldCheck}>The Check Sheet</Eyebrow>
           <h2 className="mt-4 text-3xl sm:text-5xl font-display font-semibold tracking-[-0.02em] text-[#292929] leading-[0.98]">
             12 Pillars. Scored Line By Line.
           </h2>
@@ -483,7 +489,9 @@ function ScrubComparison() {
       <div className="absolute top-0 left-0 w-[300px] h-[300px] bg-[#DAD0FF]/40 rounded-full blur-3xl lp-float-slow" />
       <div className="relative max-w-[1140px] mx-auto px-6 sm:px-8">
         <div ref={ref} className="lp-reveal text-center max-w-2xl mx-auto mb-12">
-          <Eyebrow>Raw Output vs Polished</Eyebrow>
+          <div className="flex justify-center mb-1">
+            <Eyebrow icon={Sparkles}>Raw Output vs Polished</Eyebrow>
+          </div>
           <h2 className="mt-4 text-3xl sm:text-5xl font-display font-semibold tracking-[-0.02em] text-[#292929] leading-[0.98]">
             The Same Sentence, Before The Scan
           </h2>
@@ -562,7 +570,7 @@ function Workbench() {
     <section className="py-20 sm:py-24 lg:py-28 bg-white">
       <div className="max-w-[1140px] mx-auto px-6 sm:px-8">
         <div ref={ref} className="lp-reveal max-w-2xl">
-          <Eyebrow>The Workbench</Eyebrow>
+          <Eyebrow icon={Wand2}>The Workbench</Eyebrow>
           <h2 className="mt-4 text-3xl sm:text-5xl font-display font-semibold tracking-[-0.02em] text-[#292929] leading-[0.98]">
             Inspector-Grade Tooling For Content
           </h2>
@@ -606,7 +614,7 @@ function Runbook() {
       <div className="max-w-[1140px] mx-auto px-6 sm:px-8 grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
         <div className="lg:col-span-5">
           <div ref={ref} className="lp-reveal lg:sticky lg:top-28">
-            <Eyebrow>The Runbook</Eyebrow>
+            <Eyebrow icon={FileText}>The Runbook</Eyebrow>
             <h2 className="mt-4 text-3xl sm:text-5xl font-display font-semibold tracking-[-0.02em] text-[#292929] leading-[0.98]">
               From Draft To Approval in 4 Steps
             </h2>
@@ -616,18 +624,35 @@ function Runbook() {
           </div>
         </div>
         <div className="lg:col-span-7">
-          <div ref={listRef} className="lp-reveal lp-stagger relative pl-10">
-            <div className="absolute left-[27px] top-1 bottom-1 w-px bg-gradient-to-b from-[#0C81F3]/40 via-[#0C81F3]/20 to-transparent" />
+          <div ref={listRef} className="lp-reveal relative space-y-5 sm:space-y-6">
+            {/* Connected vertical animated beam */}
+            <div className="absolute left-[23px] sm:left-[27px] top-6 bottom-6 w-[2px] lp-timeline-line rounded-full" />
             {STEPS.map((s, i) => (
-              <div key={s.k} className="lp-reveal-child relative mb-6 last:mb-0">
-                <span
-                  className={`absolute -left-10 w-[22px] h-[22px] rounded-full border-2 border-white shadow-[0_0_0_3px_rgba(12,129,243,0.15)] flex items-center justify-center lp-tick ${i === 3 ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988]' : 'bg-[#0C81F3]'}`}
-                />
-                <div className="rounded-[24px] border border-[#EEE9E5] bg-white p-6 hover:shadow-[0_33px_44px_rgba(0,0,0,0.04)] transition-all">
-                  <span className="font-display text-[12px] font-semibold tracking-[0.18em] text-[#0C81F3] uppercase">
-                    {s.k}
-                  </span>
-                  <h3 className="text-[17px] font-semibold text-[#292929] font-display mt-1.5">
+              <div key={s.k} className="relative flex items-start gap-4 sm:gap-6 group">
+                {/* Node / Dot */}
+                <div className="relative z-10 shrink-0 w-12 sm:w-14 flex items-center justify-center">
+                  <div
+                    className={`w-10 h-10 sm:w-11 sm:h-11 rounded-2xl flex items-center justify-center font-display font-bold text-xs sm:text-sm text-white shadow-lg transition-all duration-300 group-hover:scale-110 group-hover:rotate-3 ${
+                      i === 3
+                        ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] shadow-[#EB8988]/30 ring-4 ring-white'
+                        : 'bg-gradient-to-br from-[#0C81F3] to-[#2B95FF] shadow-[#0C81F3]/30 ring-4 ring-white'
+                    } lp-dot-glow`}
+                  >
+                    0{i + 1}
+                  </div>
+                </div>
+
+                {/* Card */}
+                <div className="flex-1 rounded-[24px] border border-[#EEE9E5] bg-white p-5 sm:p-6 shadow-xs hover:border-[#0C81F3]/40 hover:shadow-[0_24px_48px_rgba(12,129,243,0.08)] hover:-translate-y-0.5 transition-all duration-300">
+                  <div className="flex items-center justify-between gap-2 mb-2">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-[11px] font-bold font-mono tracking-wider bg-blue-50 text-[#0C81F3] border border-blue-100/80">
+                      {s.k}
+                    </span>
+                    <span className="text-[11px] font-semibold text-[#54595F]/70 uppercase tracking-wider">
+                      {s.tag}
+                    </span>
+                  </div>
+                  <h3 className="text-base sm:text-[18px] font-semibold text-[#292929] font-display group-hover:text-[#0C81F3] transition-colors">
                     {s.t}
                   </h3>
                   <p className="text-[14px] text-[#54595F] mt-1.5 leading-relaxed">{s.d}</p>
@@ -635,60 +660,6 @@ function Runbook() {
               </div>
             ))}
           </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-/* ─────────────── Ticket FAQ ─────────────── */
-function TicketFaq() {
-  const ref = useScrollReveal()
-  const listRef = useScrollReveal()
-  const [open, setOpen] = useState(0)
-  return (
-    <section className="py-20 sm:py-24 lg:py-28 bg-white">
-      <div className="max-w-[820px] mx-auto px-6 sm:px-8">
-        <div ref={ref} className="lp-reveal text-center mb-12">
-          <div className="flex justify-center">
-            <Eyebrow>Support Tickets</Eyebrow>
-          </div>
-          <h2 className="mt-4 text-3xl sm:text-5xl font-display font-semibold tracking-[-0.02em] text-[#292929] leading-[0.98]">
-            Frequently Asked Questions
-          </h2>
-        </div>
-        <div ref={listRef} className="lp-reveal lp-stagger space-y-3">
-          {FAQS.map((f, i) => {
-            const isOpen = open === i
-            return (
-              <div
-                key={f.q}
-                className={`lp-reveal-child rounded-3xl border transition-all ${
-                  isOpen ? 'border-[#0C81F3]/40 bg-[#F9F7F6]' : 'border-[#E5E1DE] bg-white'
-                }`}
-              >
-                <button
-                  onClick={() => setOpen(isOpen ? -1 : i)}
-                  className="w-full flex items-center gap-4 px-6 py-5 text-left cursor-pointer"
-                >
-                  <span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full bg-[#F9F7F6] text-[#54595F] text-[12px] font-semibold uppercase tracking-wider border border-[#E5E1DE]">
-                    {f.sev}
-                  </span>
-                  <span className="flex-1 text-[15px] font-semibold text-[#292929] font-display">
-                    {f.q}
-                  </span>
-                  <ChevronDown
-                    className={`w-4 h-4 text-[#54595F] transition-transform ${isOpen ? 'rotate-180' : ''}`}
-                  />
-                </button>
-                {isOpen && (
-                  <div className="px-6 pb-6">
-                    <p className="text-[14px] text-[#54595F] leading-relaxed">{f.a}</p>
-                  </div>
-                )}
-              </div>
-            )
-          })}
         </div>
       </div>
     </section>
@@ -727,7 +698,15 @@ function StampCta({ onCta }) {
 
 /* ─────────────── Landing Page Component ─────────────── */
 export default function ContentQaLandingPage() {
+  const [hasResults, setHasResults] = useState(false)
+  const [resetSignal, setResetSignal] = useState(0)
   const toolRef = useRef(null)
+
+  const handleNewAudit = () => {
+    setResetSignal((c) => c + 1)
+    setHasResults(false)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const scrollToTool = useCallback(() => {
     const el = toolRef.current || document.getElementById('tool')
@@ -774,47 +753,68 @@ export default function ContentQaLandingPage() {
         <script type="application/ld+json">{JSON.stringify(faqStructuredData)}</script>
       </Helmet>
 
-      <div className="landing-page min-h-screen bg-[#F9F7F6] font-sans">
-        <QaHero onCta={scrollToTool} toolRef={toolRef} />
-        <BannedTicker />
-        <LandingLiveDemo
-          badge="See It Scan"
-          heading="Watch a Draft Get Audited Live"
-          subheading="Paste a paragraph and watch the scanner catch em dashes, cliches, and weak structure in real time."
-          accentIcon={ShieldCheck}
-          examples={[
-            {
-              label: 'Tone, Style & AI Check',
-              input: 'In today\'s fast-paced world, our game-changing solution will revolutionize your workflow.',
-              outputTitle: '2 Violations Caught',
-              outputBody:
-                'Flagged: throat-clearing preamble ("In today\'s fast-paced world") and banned buzzword ("game-changing"). Replace with a direct, metric-led opening.',
-              outputMeta: ['Tone & Style', '2 Cliches', 'Zero Em Dashes'],
-            },
-            {
-              label: 'E-E-A-T & Practical Proof',
-              input: 'We help teams write better content faster with AI.',
-              outputTitle: 'Missing Quantifiable Proof',
-              outputBody:
-                'No concrete metric or lived experience detected. Add a specific number: "Teams cut draft time from 3 hours to 40 minutes."',
-              outputMeta: ['E-E-A-T', '0 Metrics Found', 'Insight First'],
-            },
-            {
-              label: 'Overall Score',
-              input: 'Final pass: polished draft ready for review.',
-              outputTitle: 'Score: 92 / 100',
-              outputBody:
-                '12/12 pillars passed. Zero em dashes, zero robotic cliches, 5 metric anchors, 100% scannable paragraphs. Ready to publish.',
-              outputMeta: ['12/12 Pillars', 'Ready to Publish', 'PDF Export Ready'],
-            },
-          ]}
+      <div className={`landing-page min-h-screen bg-[#F9F7F6] font-sans ${hasResults ? 'pt-20' : ''}`}>
+        {hasResults && (
+          <LandingResultsTopbar
+            onBack={handleNewAudit}
+            backLabel="New Audit / Edit Draft"
+            backHint="Reset"
+            title="Content QA Inspection Workspace"
+            badge="Live Audit"
+            maxWidth="max-w-[1400px]"
+          />
+        )}
+
+        <QaHero
+          onCta={scrollToTool}
+          toolRef={toolRef}
+          onResultStateChange={setHasResults}
+          hideHeroCopy={hasResults}
+          resetSignal={resetSignal}
         />
-        <CheckSheet />
-        <ScrubComparison />
-        <Workbench />
-        <Runbook />
-        <TicketFaq />
-        <StampCta onCta={scrollToTool} />
+        {!hasResults && (
+          <>
+            <BannedTicker />
+            <LandingLiveDemo
+              badge="See It Scan"
+              heading="Watch a Draft Get Audited Live"
+              subheading="Paste a paragraph and watch the scanner catch em dashes, cliches, and weak structure in real time."
+              accentIcon={ShieldCheck}
+              examples={[
+                {
+                  label: 'Tone, Style & AI Check',
+                  input: 'In today\'s fast-paced world, our game-changing solution will revolutionize your workflow.',
+                  outputTitle: '2 Violations Caught',
+                  outputBody:
+                    'Flagged: throat-clearing preamble ("In today\'s fast-paced world") and banned buzzword ("game-changing"). Replace with a direct, metric-led opening.',
+                  outputMeta: ['Tone & Style', '2 Cliches', 'Zero Em Dashes'],
+                },
+                {
+                  label: 'E-E-A-T & Practical Proof',
+                  input: 'We help teams write better content faster with AI.',
+                  outputTitle: 'Missing Quantifiable Proof',
+                  outputBody:
+                    'No concrete metric or lived experience detected. Add a specific number: "Teams cut draft time from 3 hours to 40 minutes."',
+                  outputMeta: ['E-E-A-T', '0 Metrics Found', 'Insight First'],
+                },
+                {
+                  label: 'Overall Score',
+                  input: 'Final pass: polished draft ready for review.',
+                  outputTitle: 'Score: 92 / 100',
+                  outputBody:
+                    '12/12 pillars passed. Zero em dashes, zero robotic cliches, 5 metric anchors, 100% scannable paragraphs. Ready to publish.',
+                  outputMeta: ['12/12 Pillars', 'Ready to Publish', 'PDF Export Ready'],
+                },
+              ]}
+            />
+            <CheckSheet />
+            <ScrubComparison />
+            <Workbench />
+            <Runbook />
+            <LandingFAQ faqs={FAQS} />
+            <StampCta onCta={scrollToTool} />
+          </>
+        )}
       </div>
     </>
   )

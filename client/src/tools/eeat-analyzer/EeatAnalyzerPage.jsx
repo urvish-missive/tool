@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -75,12 +75,27 @@ const LOADING_STEPS = [
   'Simulating AI Search Engine & GEO citation potential...',
 ]
 
-export default function EeatAnalyzerPage({ isEmbedded = false }) {
+export default function EeatAnalyzerPage({ isEmbedded = false, onResultStateChange, resetSignal }) {
   const [activeMode, setActiveMode] = useState('url')
   const [activePillarTab, setActivePillarTab] = useState('experience')
   const [copiedItem, setCopiedItem] = useState(null)
   const [dataResult, setDataResult] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    if (dataResult) {
+      onResultStateChange?.(true)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      onResultStateChange?.(false)
+    }
+  }, [dataResult, onResultStateChange])
+
+  useEffect(() => {
+    if (resetSignal > 0) {
+      handleReset()
+    }
+  }, [resetSignal])
 
   const {
     register,
@@ -108,13 +123,8 @@ export default function EeatAnalyzerPage({ isEmbedded = false }) {
 
   const [analyzeEeat, { isLoading }] = useAnalyzeEeatMutation()
 
-  const {
-    showPopup,
-    handlePopupSubmit,
-    handlePopupClose,
-    triggerPopup,
-    popupEnabled,
-  } = useLeadPopup('eeat-analyzer')
+  const { showPopup, handlePopupSubmit, handlePopupClose, triggerPopup, popupEnabled } =
+    useLeadPopup('eeat-analyzer')
 
   const [pendingForm, setPendingForm] = useState(null)
 
@@ -146,7 +156,11 @@ export default function EeatAnalyzerPage({ isEmbedded = false }) {
         throw new Error(res.error || 'Failed to complete E-E-A-T audit.')
       }
     } catch (err) {
-      setErrorMessage(err?.data?.error || err.message || 'Failed to analyze content. Please verify your input and try again.')
+      setErrorMessage(
+        err?.data?.error ||
+          err.message ||
+          'Failed to analyze content. Please verify your input and try again.'
+      )
     }
   }
 
@@ -239,7 +253,9 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
   }
 
   return (
-    <div className={isEmbedded ? 'w-full @container' : 'min-h-screen bg-slate-50/50 pb-24 @container'}>
+    <div
+      className={isEmbedded ? 'w-full @container' : 'min-h-screen bg-slate-50/50 pb-24 @container'}
+    >
       {/* Lead Capture Modal */}
       <LeadCaptureModal
         show={showPopup}
@@ -259,7 +275,10 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
         <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
           <div
             className="absolute inset-0"
-            style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }}
+            style={{
+              background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)',
+              opacity: 0.08,
+            }}
           />
           <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
@@ -279,15 +298,19 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
 
             <p className="mt-2 text-xs sm:text-sm md:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
               Audit and elevate your content across Google's{' '}
-              <strong className="text-slate-900">Experience, Expertise, Authoritativeness, and Trustworthiness</strong>{' '}
-              standards while optimizing for <strong className="text-[#0C81F3]">Google AI Overviews & Perplexity</strong> citations.
+              <strong className="text-slate-900">
+                Experience, Expertise, Authoritativeness, and Trustworthiness
+              </strong>{' '}
+              standards while optimizing for{' '}
+              <strong className="text-[#0C81F3]">Google AI Overviews & Perplexity</strong>{' '}
+              citations.
             </p>
           </div>
         </section>
       )}
 
       {/* Main Form Container */}
-      <div className={isEmbedded ? 'w-full' : 'max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6'}>
+      <div className={isEmbedded ? 'w-full' : 'max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6'}>
         {!isLoading && (
           <div className="bg-white rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/40 border border-slate-200 p-4 sm:p-6 lg:p-7 mb-8 transition-all">
             <form onSubmit={handleSubmit(onFormValid)} className="space-y-4 sm:space-y-5">
@@ -332,7 +355,10 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
               {activeMode === 'url' && (
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
-                    <label htmlFor="eeat-url-input" className="block text-xs sm:text-sm font-bold text-slate-800">
+                    <label
+                      htmlFor="eeat-url-input"
+                      className="block text-xs sm:text-sm font-bold text-slate-800"
+                    >
                       Published Article or Webpage URL <span className="text-rose-500">*</span>
                     </label>
                     <span className="text-[11px] font-medium text-slate-400">
@@ -372,8 +398,12 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
               {activeMode === 'text' && (
                 <div className="space-y-3">
                   <div>
-                    <label htmlFor="eeat-title-input" className="block text-xs sm:text-sm font-bold text-slate-800 mb-1">
-                      Article Title / Topic <span className="text-xs font-normal text-slate-400">(Optional)</span>
+                    <label
+                      htmlFor="eeat-title-input"
+                      className="block text-xs sm:text-sm font-bold text-slate-800 mb-1"
+                    >
+                      Article Title / Topic{' '}
+                      <span className="text-xs font-normal text-slate-400">(Optional)</span>
                     </label>
                     <input
                       id="eeat-title-input"
@@ -386,11 +416,16 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
 
                   <div>
                     <div className="flex items-center justify-between mb-1">
-                      <label htmlFor="eeat-content-input" className="block text-xs sm:text-sm font-bold text-slate-800">
+                      <label
+                        htmlFor="eeat-content-input"
+                        className="block text-xs sm:text-sm font-bold text-slate-800"
+                      >
                         Paste Article / Draft Text <span className="text-rose-500">*</span>
                       </label>
                       <span className="text-[11px] font-medium text-slate-400">
-                        {contentText ? `${contentText.trim().split(/\s+/).filter(Boolean).length} words` : 'Min 50 chars'}
+                        {contentText
+                          ? `${contentText.trim().split(/\s+/).filter(Boolean).length} words`
+                          : 'Min 50 chars'}
                       </span>
                     </div>
                     <textarea
@@ -403,7 +438,9 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                       }`}
                     />
                     {errors.content && (
-                      <p className="mt-1 text-xs font-semibold text-rose-600">{errors.content.message}</p>
+                      <p className="mt-1 text-xs font-semibold text-rose-600">
+                        {errors.content.message}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -437,15 +474,21 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                         <div className="flex items-center justify-between mb-1">
                           <div
                             className={`w-6 h-6 rounded-lg flex items-center justify-center ${
-                              isSelected ? 'bg-[#0C81F3] text-white' : 'bg-white text-slate-500 border border-slate-200'
+                              isSelected
+                                ? 'bg-[#0C81F3] text-white'
+                                : 'bg-white text-slate-500 border border-slate-200'
                             }`}
                           >
                             <Icon className="w-3.5 h-3.5" />
                           </div>
                         </div>
                         <div>
-                          <p className="text-xs font-bold text-slate-900 leading-tight">{type.label}</p>
-                          <p className="text-[9px] sm:text-[10px] text-slate-500 mt-0.5 leading-tight line-clamp-2">{type.sub}</p>
+                          <p className="text-xs font-bold text-slate-900 leading-tight">
+                            {type.label}
+                          </p>
+                          <p className="text-[9px] sm:text-[10px] text-slate-500 mt-0.5 leading-tight line-clamp-2">
+                            {type.sub}
+                          </p>
                         </div>
                       </button>
                     )
@@ -456,8 +499,12 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
               {/* Target Keywords Row */}
               <div className="grid grid-cols-1 @min-[420px]:grid-cols-2 gap-3 pt-1">
                 <div>
-                  <label htmlFor="eeat-keywords" className="block text-xs sm:text-sm font-bold text-slate-800 mb-1">
-                    Primary Keywords / Target Search Intent <span className="text-xs font-normal text-slate-400">(Optional)</span>
+                  <label
+                    htmlFor="eeat-keywords"
+                    className="block text-xs sm:text-sm font-bold text-slate-800 mb-1"
+                  >
+                    Primary Keywords / Target Search Intent{' '}
+                    <span className="text-xs font-normal text-slate-400">(Optional)</span>
                   </label>
                   <input
                     id="eeat-keywords"
@@ -701,13 +748,18 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
             <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-6 border border-slate-200 shadow-xs space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">Pillar Drilldown:</span>
+                  <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+                    Pillar Drilldown:
+                  </span>
                   <span className="text-sm font-bold text-slate-900 capitalize">
-                    {activePillarTab === 'aiGeoReadiness' ? 'AI Search & GEO Readiness' : activePillarTab}
+                    {activePillarTab === 'aiGeoReadiness'
+                      ? 'AI Search & GEO Readiness'
+                      : activePillarTab}
                   </span>
                 </div>
                 <div className="text-xs font-bold text-[#0C81F3]">
-                  Score: {dataResult.pillars[activePillarTab]?.score} / 20 ({dataResult.pillars[activePillarTab]?.status})
+                  Score: {dataResult.pillars[activePillarTab]?.score} / 20 (
+                  {dataResult.pillars[activePillarTab]?.status})
                 </div>
               </div>
 
@@ -719,7 +771,10 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                   </div>
                   <ul className="space-y-1.5">
                     {dataResult.pillars[activePillarTab]?.strengths?.map((s, idx) => (
-                      <li key={idx} className="text-xs text-slate-700 leading-relaxed flex items-start gap-1.5">
+                      <li
+                        key={idx}
+                        className="text-xs text-slate-700 leading-relaxed flex items-start gap-1.5"
+                      >
                         <span className="text-emerald-500 font-bold">•</span>
                         <span>{s}</span>
                       </li>
@@ -734,7 +789,10 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                   </div>
                   <ul className="space-y-1.5">
                     {dataResult.pillars[activePillarTab]?.gaps?.map((g, idx) => (
-                      <li key={idx} className="text-xs text-slate-700 leading-relaxed flex items-start gap-1.5">
+                      <li
+                        key={idx}
+                        className="text-xs text-slate-700 leading-relaxed flex items-start gap-1.5"
+                      >
                         <span className="text-amber-500 font-bold">•</span>
                         <span>{g}</span>
                       </li>
@@ -753,7 +811,8 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                     <span>Instant E-E-A-T Boosters (Ready-to-Paste)</span>
                   </h4>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Engineered snippets to immediately plug E-E-A-T gaps in your content before publishing.
+                    Engineered snippets to immediately plug E-E-A-T gaps in your content before
+                    publishing.
                   </p>
                 </div>
               </div>
@@ -767,10 +826,16 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                     </span>
                     <button
                       type="button"
-                      onClick={() => handleCopyText('experience', dataResult.boosters.experienceSnippet)}
+                      onClick={() =>
+                        handleCopyText('experience', dataResult.boosters.experienceSnippet)
+                      }
                       className="text-xs font-semibold text-[#0C81F3] hover:underline flex items-center gap-1 cursor-pointer"
                     >
-                      {copiedItem === 'experience' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                      {copiedItem === 'experience' ? (
+                        <Check className="w-3 h-3 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-3 h-3" />
+                      )}
                       <span>{copiedItem === 'experience' ? 'Copied!' : 'Copy Snippet'}</span>
                     </button>
                   </div>
@@ -783,14 +848,19 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                 <div className="p-4 rounded-xl border border-purple-200 bg-purple-50/40 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-purple-800 flex items-center gap-1.5">
-                      <UserCheck className="w-3.5 h-3.5 text-purple-600" /> Author Verification & Credential Anchor
+                      <UserCheck className="w-3.5 h-3.5 text-purple-600" /> Author Verification &
+                      Credential Anchor
                     </span>
                     <button
                       type="button"
                       onClick={() => handleCopyText('author', dataResult.boosters.authorBioSnippet)}
                       className="text-xs font-semibold text-[#0C81F3] hover:underline flex items-center gap-1 cursor-pointer"
                     >
-                      {copiedItem === 'author' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                      {copiedItem === 'author' ? (
+                        <Check className="w-3 h-3 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-3 h-3" />
+                      )}
                       <span>{copiedItem === 'author' ? 'Copied!' : 'Copy Snippet'}</span>
                     </button>
                   </div>
@@ -802,11 +872,15 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                 {/* 3. Primary Sources */}
                 <div className="p-4 rounded-xl border border-amber-200 bg-amber-50/40 space-y-2">
                   <span className="text-xs font-bold text-amber-800 flex items-center gap-1.5">
-                    <TrendingUp className="w-3.5 h-3.5 text-amber-600" /> Recommended Primary Research Citations
+                    <TrendingUp className="w-3.5 h-3.5 text-amber-600" /> Recommended Primary
+                    Research Citations
                   </span>
                   <ul className="space-y-1.5 bg-white p-3 rounded-lg border border-amber-100">
                     {dataResult.boosters.citableSources?.map((source, idx) => (
-                      <li key={idx} className="text-xs text-slate-700 flex items-start gap-1.5 leading-relaxed">
+                      <li
+                        key={idx}
+                        className="text-xs text-slate-700 flex items-start gap-1.5 leading-relaxed"
+                      >
                         <span className="text-amber-500 font-bold">•</span>
                         <span>{source}</span>
                       </li>
@@ -818,14 +892,21 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                 <div className="p-4 rounded-xl border border-emerald-200 bg-emerald-50/40 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-emerald-800 flex items-center gap-1.5">
-                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Testing Transparency & Disclosure
+                      <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Testing Transparency
+                      & Disclosure
                     </span>
                     <button
                       type="button"
-                      onClick={() => handleCopyText('trust', dataResult.boosters.trustPolicySnippet)}
+                      onClick={() =>
+                        handleCopyText('trust', dataResult.boosters.trustPolicySnippet)
+                      }
                       className="text-xs font-semibold text-[#0C81F3] hover:underline flex items-center gap-1 cursor-pointer"
                     >
-                      {copiedItem === 'trust' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                      {copiedItem === 'trust' ? (
+                        <Check className="w-3 h-3 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-3 h-3" />
+                      )}
                       <span>{copiedItem === 'trust' ? 'Copied!' : 'Copy Snippet'}</span>
                     </button>
                   </div>
@@ -840,20 +921,33 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                 <div className="p-4 rounded-xl border border-blue-200 bg-blue-50/40 space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold text-blue-900 flex items-center gap-1.5">
-                      <Bot className="w-3.5 h-3.5 text-[#0C81F3]" /> AI Search Overview & Perplexity Citation Blocks
+                      <Bot className="w-3.5 h-3.5 text-[#0C81F3]" /> AI Search Overview & Perplexity
+                      Citation Blocks
                     </span>
                     <button
                       type="button"
-                      onClick={() => handleCopyText('aiDef', dataResult.boosters.aiOverviewDefinitions.join('\n\n'))}
+                      onClick={() =>
+                        handleCopyText(
+                          'aiDef',
+                          dataResult.boosters.aiOverviewDefinitions.join('\n\n')
+                        )
+                      }
                       className="text-xs font-semibold text-[#0C81F3] hover:underline flex items-center gap-1 cursor-pointer"
                     >
-                      {copiedItem === 'aiDef' ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                      {copiedItem === 'aiDef' ? (
+                        <Check className="w-3 h-3 text-emerald-600" />
+                      ) : (
+                        <Copy className="w-3 h-3" />
+                      )}
                       <span>{copiedItem === 'aiDef' ? 'Copied All!' : 'Copy AI Blocks'}</span>
                     </button>
                   </div>
                   <div className="grid grid-cols-1 @min-[520px]:grid-cols-2 gap-2.5">
                     {dataResult.boosters.aiOverviewDefinitions.map((def, i) => (
-                      <div key={i} className="bg-white p-3 rounded-lg border border-blue-100 text-xs text-slate-800 leading-relaxed font-mono">
+                      <div
+                        key={i}
+                        className="bg-white p-3 rounded-lg border border-blue-100 text-xs text-slate-800 leading-relaxed font-mono"
+                      >
                         {def}
                       </div>
                     ))}
@@ -876,7 +970,11 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
                   onClick={() => handleCopyText('schema', dataResult.jsonLdSchema)}
                   className="text-xs font-semibold text-[#0C81F3] hover:underline flex items-center gap-1 cursor-pointer"
                 >
-                  {copiedItem === 'schema' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                  {copiedItem === 'schema' ? (
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
                   <span>{copiedItem === 'schema' ? 'Copied Schema!' : 'Copy JSON-LD'}</span>
                 </button>
               </div>
@@ -888,9 +986,12 @@ ${JSON.stringify(d.jsonLdSchema, null, 2)}
             {/* Bottom Reset Bar */}
             <div className="p-4 sm:p-5 bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
               <div>
-                <h4 className="text-sm sm:text-base font-bold text-slate-900">Want to audit another URL or draft?</h4>
+                <h4 className="text-sm sm:text-base font-bold text-slate-900">
+                  Want to audit another URL or draft?
+                </h4>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Test draft articles before publishing to maximize day-one rankings and AI citations.
+                  Test draft articles before publishing to maximize day-one rankings and AI
+                  citations.
                 </p>
               </div>
 

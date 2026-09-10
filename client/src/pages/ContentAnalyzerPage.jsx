@@ -207,7 +207,7 @@ export default function ContentAnalyzerPage() {
       {/* Analyzer Form / Results */}
       <section ref={formRef} className="py-8 sm:py-12">
         <div
-          className={`${status === 'success' ? 'max-w-5xl' : 'max-w-3xl'} mx-auto px-4 sm:px-6 transition-all duration-300`}
+          className={`${status === 'success' ? 'max-w-6xl' : 'max-w-3xl'} mx-auto px-4 sm:px-6 transition-all duration-300`}
         >
           {status === 'idle' && (
             <form

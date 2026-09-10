@@ -40,7 +40,7 @@ const CHANNELS = [
   {
     icon: Globe,
     title: 'AI Search & GEO',
-    desc: 'Optimized for AI search citations — structured data, entity signals, and citable excerpts.',
+    desc: 'Optimized for AI search citations. Structured data, entity signals, and citable excerpts.',
     color: 'from-violet-500 to-purple-600',
     tag: 'AI Search',
   },
@@ -51,7 +51,7 @@ export default function LandingDistributionChannels() {
   const gridRef = useScrollReveal({ threshold: 0.1 })
 
   return (
-    <section id="channels" className="py-16 sm:py-20 lg:py-24 bg-white relative scroll-mt-24">
+    <section id="channels" className="py-16 sm:py-20 lg:py-24 bg-white border-b border-slate-200/70 relative scroll-mt-24">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[350px] bg-gradient-to-r from-[#A7D2FF]/15 via-[#F7B7B3]/15 to-[#A7D2FF]/15 rounded-full blur-3xl" />
       </div>

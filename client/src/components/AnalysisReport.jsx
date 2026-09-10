@@ -202,7 +202,7 @@ export default function AnalysisReport({ report }) {
             disabled
             className="mt-4 px-4 py-2 text-sm font-medium text-gray-400 bg-gray-100 rounded-lg cursor-not-allowed"
           >
-            Generate FAQ Schema — Coming Soon
+            Generate FAQ Schema - Coming Soon
           </button>
         </Section>
       )}

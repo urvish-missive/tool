@@ -3,70 +3,87 @@ import { ChevronDown, HelpCircle } from 'lucide-react'
 import useScrollReveal from './useScrollReveal'
 
 /**
- * LandingFAQ — accordion FAQ section.
+ * LandingFAQ — "support ticket" style FAQ accordion, shared across every
+ * tool page and the home page. Visual reference: /content-qa's FAQ section.
+ * Accepts either {question, answer, tag} or {q, a, sev} per item.
  */
 export default function LandingFAQ({
-  sectionLabel = 'FAQ',
-  heading = '',
+  sectionLabel = 'Support Tickets',
+  sectionIcon: SectionIcon = HelpCircle,
+  heading = 'Frequently Asked Questions',
   subheading = '',
   faqs = [],
-  className = 'bg-white border-b border-slate-200/70',
 }) {
-  const [openIdx, setOpenIdx] = useState(null)
+  const [openIdx, setOpenIdx] = useState(0)
   const headerRef = useScrollReveal()
   const listRef = useScrollReveal({ threshold: 0.08 })
 
   return (
-    <section className={`py-12 sm:py-16 lg:py-20 ${className}`}>
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div ref={headerRef} className="lp-reveal text-center mb-8 sm:mb-12">
+    <section className="py-20 sm:py-24 lg:py-28 bg-white">
+      <div className="max-w-[820px] mx-auto px-6 sm:px-8">
+        <div ref={headerRef} className="lp-reveal text-center mb-12">
           {sectionLabel && (
-            <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-[.18em] text-[#0C81F3] mb-2 sm:mb-2.5">
-              <HelpCircle className="w-3.5 h-3.5" />
-              {sectionLabel}
-            </span>
+            <div className="flex justify-center mb-3">
+              <span className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[11px] sm:text-xs font-bold uppercase tracking-wider shadow-sm">
+                {SectionIcon && <SectionIcon className="w-3.5 h-3.5 shrink-0" />}
+                <span>{sectionLabel}</span>
+              </span>
+            </div>
           )}
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-2.5 sm:mb-3 leading-tight">
+          <h2 className="mt-2 text-3xl sm:text-5xl font-display font-semibold tracking-[-0.02em] text-[#292929] leading-[0.98]">
             {heading}
           </h2>
           {subheading && (
-            <p className="text-xs sm:text-sm md:text-base text-slate-600 max-w-lg mx-auto leading-relaxed font-normal">
+            <p className="mt-4 text-sm sm:text-base text-[#54595F] max-w-lg mx-auto leading-relaxed">
               {subheading}
             </p>
           )}
         </div>
 
-        {/* Accordion */}
-        <div ref={listRef} className="lp-reveal max-w-3xl mx-auto space-y-2.5 sm:space-y-3">
+        <div ref={listRef} className="lp-reveal space-y-3">
           {faqs.map((faq, i) => {
+            const question = faq.q ?? faq.question
+            const answer = faq.a ?? faq.answer
+            const tag = faq.sev ?? faq.tag
             const isOpen = openIdx === i
             return (
               <div
-                key={i}
-                className={`rounded-xl border transition-all duration-200 ${
+                key={question}
+                className={`rounded-3xl border transition-all duration-200 ${
                   isOpen
-                    ? 'border-[#0C81F3]/40 bg-white shadow-md shadow-[#0C81F3]/5 ring-1 ring-[#0C81F3]/15'
-                    : 'border-slate-200 bg-slate-50/70 hover:bg-slate-100/80 hover:border-slate-300'
+                    ? 'border-[#0C81F3]/40 bg-gradient-to-r from-blue-50/40 via-white to-rose-50/20 shadow-md shadow-[#0C81F3]/5 ring-1 ring-[#0C81F3]/20'
+                    : 'border-[#E5E1DE] bg-white hover:border-[#0C81F3]/30 hover:bg-[#F9F7F6]'
                 }`}
               >
                 <button
+                  type="button"
                   onClick={() => setOpenIdx(isOpen ? null : i)}
-                  className="w-full flex items-center justify-between gap-3 p-3.5 sm:p-5 text-left cursor-pointer"
+                  className="w-full flex items-center gap-4 px-6 py-5 text-left cursor-pointer"
                   aria-expanded={isOpen}
                 >
-                  <span className="text-xs sm:text-sm md:text-base font-bold text-slate-800 leading-snug">
-                    {faq.question}
+                  {tag && (
+                    <span
+                      className={`hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-[12px] font-semibold uppercase tracking-wider border transition-colors ${
+                        isOpen
+                          ? 'bg-[#0C81F3]/10 text-[#0C81F3] border-[#0C81F3]/20 font-bold'
+                          : 'bg-[#F9F7F6] text-[#54595F] border-[#E5E1DE]'
+                      }`}
+                    >
+                      {tag}
+                    </span>
+                  )}
+                  <span className="flex-1 text-[15px] sm:text-[16px] font-semibold text-[#292929] font-display">
+                    {question}
                   </span>
                   <ChevronDown
-                    className={`w-4 h-4 shrink-0 text-slate-400 transition-transform duration-200 ${
+                    className={`w-4 h-4 shrink-0 text-[#54595F] transition-transform duration-200 ${
                       isOpen ? 'rotate-180 text-[#0C81F3]' : ''
                     }`}
                   />
                 </button>
                 {isOpen && (
-                  <div className="px-3.5 sm:px-5 pb-3.5 sm:pb-5 text-xs sm:text-sm text-slate-600 leading-relaxed border-t border-slate-100 pt-2.5 sm:pt-3 font-normal">
-                    {faq.answer}
+                  <div className="px-6 pb-6 pt-1 text-[14px] sm:text-[15px] text-[#54595F] leading-relaxed border-t border-[#EEE9E5]/60 mt-1">
+                    <p>{answer}</p>
                   </div>
                 )}
               </div>
@@ -76,5 +93,4 @@ export default function LandingFAQ({
       </div>
     </section>
   )
-
 }

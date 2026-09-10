@@ -51,7 +51,8 @@ const INTENT_COLORS = {
 }
 
 const SOURCE_BADGES = {
-  'Google & Bing': 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-sm',
+  'Google & Bing':
+    'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-sm',
   Google: 'bg-blue-100 text-blue-800 border border-blue-200 font-medium',
   Bing: 'bg-teal-100 text-teal-800 border border-teal-200 font-medium',
 }
@@ -103,7 +104,13 @@ function SearchEngineKeywordsSection({ searchEngineKeywords }) {
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               } cursor-pointer`}
             >
-              {f === 'Both' ? `Google & Bing (${bothCount})` : f === 'Google' ? `Google (${googleCount})` : f === 'Bing' ? `Bing (${bingCount})` : `All (${searchEngineKeywords.length})`}
+              {f === 'Both'
+                ? `Google & Bing (${bothCount})`
+                : f === 'Google'
+                  ? `Google (${googleCount})`
+                  : f === 'Bing'
+                    ? `Bing (${bingCount})`
+                    : `All (${searchEngineKeywords.length})`}
             </button>
           ))}
         </div>
@@ -133,7 +140,9 @@ function SearchEngineKeywordsSection({ searchEngineKeywords }) {
                       SOURCE_BADGES[k.source] || 'bg-gray-100 text-gray-700'
                     }`}
                   >
-                    {k.source === 'Google & Bing' && <Star className="w-3 h-3 text-amber-300 fill-amber-300 shrink-0" />}
+                    {k.source === 'Google & Bing' && (
+                      <Star className="w-3 h-3 text-amber-300 fill-amber-300 shrink-0" />
+                    )}
                     {k.source}
                   </span>
                 </td>
@@ -196,7 +205,8 @@ function CompetitorIntelligenceSection({ competitorInsights }) {
           </h3>
         </div>
         <p className="text-xs text-gray-500 mt-1">
-          Analyzed top-ranking organic competitor pages on search engines to extract the exact keywords and topics they target.
+          Analyzed top-ranking organic competitor pages on search engines to extract the exact
+          keywords and topics they target.
         </p>
       </div>
 
@@ -205,14 +215,17 @@ function CompetitorIntelligenceSection({ competitorInsights }) {
         <div className="bg-gradient-to-br from-amber-50/60 to-orange-50/40 rounded-xl border border-amber-200/80 p-5 space-y-3">
           <div className="flex items-center justify-between">
             <h4 className="text-sm font-bold text-amber-950 flex items-center gap-1.5">
-              <Target className="w-4 h-4 text-amber-600 shrink-0" /> High-Impact Keywords Used by Top-Ranking Competitors
+              <Target className="w-4 h-4 text-amber-600 shrink-0" /> High-Impact Keywords Used by
+              Top-Ranking Competitors
             </h4>
             <span className="text-xs bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full font-semibold">
               Actionable Gap
             </span>
           </div>
           <p className="text-xs text-amber-900/80 leading-relaxed">
-            Your top search competitors frequently use these terms across their headings, titles, and body content. Add these keywords to your page copy and H2 tags to close the search visibility gap:
+            Your top search competitors frequently use these terms across their headings, titles,
+            and body content. Add these keywords to your page copy and H2 tags to close the search
+            visibility gap:
           </p>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
@@ -246,7 +259,8 @@ function CompetitorIntelligenceSection({ competitorInsights }) {
       {competitors.length > 0 && (
         <div className="space-y-3">
           <h4 className="text-sm font-bold text-gray-900 flex items-center gap-1.5">
-            <Globe className="w-4 h-4 text-blue-500 shrink-0" /> Top-Ranking Competitor URLs in Search Results
+            <Globe className="w-4 h-4 text-blue-500 shrink-0" /> Top-Ranking Competitor URLs in
+            Search Results
           </h4>
           <div className="grid sm:grid-cols-2 gap-3">
             {competitors.map((comp, idx) => (
@@ -403,7 +417,9 @@ function KeywordTable({ keywords }) {
               <th className="text-left py-2.5 pr-4 font-bold text-gray-500 text-xs uppercase">
                 Context / Reason
               </th>
-              <th className="text-right py-2.5 font-bold text-gray-500 text-xs uppercase">Action</th>
+              <th className="text-right py-2.5 font-bold text-gray-500 text-xs uppercase">
+                Action
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -439,7 +455,10 @@ function KeywordTable({ keywords }) {
                 <td className="py-2.5 pr-4">
                   <span className="text-xs font-bold text-gray-700">{k.businessRelevance}</span>
                 </td>
-                <td className="py-2.5 pr-4 text-xs text-gray-500 max-w-xs truncate" title={k.reason}>
+                <td
+                  className="py-2.5 pr-4 text-xs text-gray-500 max-w-xs truncate"
+                  title={k.reason}
+                >
                   {k.reason || '-'}
                 </td>
                 <td className="py-2.5 text-right">
@@ -516,7 +535,10 @@ function QuestionKeywords({ questions }) {
     <div>
       <div className="flex items-center justify-between mb-3">
         <span className="text-xs text-gray-400">{questions.length} questions</span>
-        <button onClick={copyAll} className="text-xs text-blue-600 hover:text-blue-800 font-medium cursor-pointer">
+        <button
+          onClick={copyAll}
+          className="text-xs text-blue-600 hover:text-blue-800 font-medium cursor-pointer"
+        >
           {copied ? (
             <span className="inline-flex items-center gap-1 text-emerald-600">
               <Check className="w-3.5 h-3.5" /> Copied All
@@ -588,13 +610,8 @@ export default function KeywordResearchPage() {
 
   const [researchKeywords, { isLoading, isError, error, data, reset: resetMutation }] =
     useResearchKeywordsMutation()
-  const {
-    popupEnabled,
-    showPopup,
-    handlePopupSubmit,
-    handlePopupClose,
-    triggerPopup,
-  } = useLeadPopup('keyword-research')
+  const { popupEnabled, showPopup, handlePopupSubmit, handlePopupClose, triggerPopup } =
+    useLeadPopup('keyword-research')
   const [pendingForm, setPendingForm] = useState(null)
   const { isFieldEnabled } = useToolFields('keyword-research')
 
@@ -678,7 +695,8 @@ export default function KeywordResearchPage() {
             </span>
           </h1>
           <p className="mt-5 text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Discover real-time Google & Bing autocomplete queries, competitor focus keywords, search intent, topic clusters, and content roadmaps in any language.
+            Discover real-time Google & Bing autocomplete queries, competitor focus keywords, search
+            intent, topic clusters, and content roadmaps in any language.
           </p>
           <p className="mt-3 text-sm text-gray-400">No credit card required.</p>
         </div>
@@ -686,7 +704,7 @@ export default function KeywordResearchPage() {
 
       {/* Form / Loading / Report */}
       <section className="py-8 sm:py-12">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
           {!report && !isLoading && (
             <form
               onSubmit={handleSubmit(onFormValid)}
@@ -801,11 +819,13 @@ export default function KeywordResearchPage() {
                       Keyword Report for "{report.seedKeyword}"
                     </h2>
                     <span className="px-3 py-1 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 inline-flex items-center gap-1.5">
-                      <Globe className="w-3.5 h-3.5 text-blue-500 shrink-0" /> {report.detectedLanguage || 'English'} ({report.detectedRegion || 'Global'})
+                      <Globe className="w-3.5 h-3.5 text-blue-500 shrink-0" />{' '}
+                      {report.detectedLanguage || 'English'} ({report.detectedRegion || 'Global'})
                     </span>
                   </div>
                   <p className="text-xs text-gray-500 mt-1">
-                    Generated with real-time Google & Bing live search scraping and competitor page intelligence.
+                    Generated with real-time Google & Bing live search scraping and competitor page
+                    intelligence.
                   </p>
                 </div>
                 <button
@@ -828,24 +848,30 @@ export default function KeywordResearchPage() {
                 {[
                   ['Total Keywords', report.keywords?.length || 0, Hash],
                   ['Live Google/Bing', report.searchEngineKeywords?.length || 0, Zap],
-                  ['Competitor Terms', report.competitorInsights?.competitorKeywords?.length || 0, Swords],
+                  [
+                    'Competitor Terms',
+                    report.competitorInsights?.competitorKeywords?.length || 0,
+                    Swords,
+                  ],
                   ...Object.entries(intentCounts).map(([intent, count]) => [
                     intent,
                     count,
                     INTENT_COLORS[intent] ? Target : BarChart3,
                   ]),
-                ].slice(0, 6).map(([label, count, IconComp]) => (
-                  <div
-                    key={label}
-                    className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 text-center flex flex-col items-center justify-center"
-                  >
-                    <span className="text-blue-600 mb-1">
-                      <IconComp className="w-5 h-5 mx-auto" />
-                    </span>
-                    <div className="text-lg font-bold text-gray-900">{count}</div>
-                    <div className="text-xs text-gray-500 truncate">{label}</div>
-                  </div>
-                ))}
+                ]
+                  .slice(0, 6)
+                  .map(([label, count, IconComp]) => (
+                    <div
+                      key={label}
+                      className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 text-center flex flex-col items-center justify-center"
+                    >
+                      <span className="text-blue-600 mb-1">
+                        <IconComp className="w-5 h-5 mx-auto" />
+                      </span>
+                      <div className="text-lg font-bold text-gray-900">{count}</div>
+                      <div className="text-xs text-gray-500 truncate">{label}</div>
+                    </div>
+                  ))}
               </div>
 
               {/* 1. Live Google & Bing Search Section */}
@@ -886,7 +912,8 @@ export default function KeywordResearchPage() {
               {report.contentOpportunities?.length > 0 && (
                 <div className="bg-white rounded-2xl border border-gray-200 shadow-sm p-6 sm:p-8">
                   <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                    <FileText className="w-5 h-5 text-emerald-600" /> High-Intent Content Opportunities
+                    <FileText className="w-5 h-5 text-emerald-600" /> High-Intent Content
+                    Opportunities
                   </h3>
                   <ContentOpportunities opportunities={report.contentOpportunities} />
                 </div>
@@ -938,7 +965,8 @@ export default function KeywordResearchPage() {
                     Ready to Outrank Competitors on Google & Bing?
                   </h3>
                   <p className="mt-3 text-white/90 max-w-lg mx-auto text-sm">
-                    Our organic search specialists build full-funnel keyword strategies, content roadmaps, and topical authority to dominate your industry rankings.
+                    Our organic search specialists build full-funnel keyword strategies, content
+                    roadmaps, and topical authority to dominate your industry rankings.
                   </p>
                 </div>
               </div>

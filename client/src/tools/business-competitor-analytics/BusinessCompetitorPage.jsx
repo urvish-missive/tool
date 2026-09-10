@@ -49,7 +49,13 @@ export default function BusinessCompetitorPage() {
   const [showLeadForm, setShowLeadForm] = useState(false)
   const [pendingResult, setPendingResult] = useState(null)
 
-  const { register, handleSubmit, formState: { errors }, watch, setValue } = useForm({
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    watch,
+    setValue,
+  } = useForm({
     resolver: zodResolver(businessCompetitorSchema),
     defaultValues: {
       competitorUrl: '',
@@ -69,10 +75,14 @@ export default function BusinessCompetitorPage() {
       }).unwrap()
       setResults(result)
       setTimeout(() => {
-        document.getElementById('biz-results')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+        document
+          .getElementById('biz-results')
+          ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
       }, 100)
     } catch (err) {
-      setError(err?.data?.error || 'Failed to analyze competitor. Please check the URL and try again.')
+      setError(
+        err?.data?.error || 'Failed to analyze competitor. Please check the URL and try again.'
+      )
     }
   }
 
@@ -107,7 +117,10 @@ export default function BusinessCompetitorPage() {
     <div className="min-h-screen bg-slate-50/50 pb-20">
       {/* Hero Header */}
       <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }} />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }}
+        />
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase shadow-sm">
@@ -120,13 +133,14 @@ export default function BusinessCompetitorPage() {
             </span>
           </h1>
           <p className="mt-3 text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Deep-dive into any competitor — business history, mergers & acquisitions, product lines, market position, marketing & sales strategies.
+            Deep-dive into any competitor. Business history, mergers & acquisitions, product lines,
+            market position, marketing & sales strategies.
           </p>
         </div>
       </section>
 
       {/* Main Form */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {!isLoading && !results && (
           <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10">
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -146,14 +160,17 @@ export default function BusinessCompetitorPage() {
                     <Globe className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                   </div>
                   {errors.competitorUrl && (
-                    <p className="mt-1.5 text-xs text-rose-600 font-medium">{errors.competitorUrl.message}</p>
+                    <p className="mt-1.5 text-xs text-rose-600 font-medium">
+                      {errors.competitorUrl.message}
+                    </p>
                   )}
                 </div>
 
                 {/* Company Name */}
                 <div>
                   <label className="block text-sm font-bold text-slate-800 mb-2">
-                    Company Name <span className="text-xs font-normal text-slate-500">(Optional)</span>
+                    Company Name{' '}
+                    <span className="text-xs font-normal text-slate-500">(Optional)</span>
                   </label>
                   <div className="relative">
                     <input
@@ -169,7 +186,8 @@ export default function BusinessCompetitorPage() {
                 {/* Industry */}
                 <div>
                   <label className="block text-sm font-bold text-slate-800 mb-2">
-                    Industry / Sector <span className="text-xs font-normal text-slate-500">(Optional)</span>
+                    Industry / Sector{' '}
+                    <span className="text-xs font-normal text-slate-500">(Optional)</span>
                   </label>
                   <div className="relative">
                     <input
@@ -181,7 +199,6 @@ export default function BusinessCompetitorPage() {
                     <Briefcase className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
                   </div>
                 </div>
-
               </div>
 
               {/* Actions */}
@@ -231,7 +248,9 @@ export default function BusinessCompetitorPage() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap mb-1">
-                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{profile.name || r.companyName}</h2>
+                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+                      {profile.name || r.companyName}
+                    </h2>
                     <span className="px-2.5 py-0.5 bg-blue-50 text-blue-700 text-xs font-semibold rounded-full border border-blue-200">
                       {profile.companyType || profile.industry || r.industry || 'Company'}
                     </span>
@@ -247,12 +266,11 @@ export default function BusinessCompetitorPage() {
                   ← New Analysis
                 </button>
               </div>
-
               <p className="text-sm text-gray-700 leading-relaxed bg-slate-50 rounded-xl p-4 border border-slate-100">
                 {r.executiveSummary}
               </p>
-
-              {/* Quick Profile Badges */}                  <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-4">
+              {/* Quick Profile Badges */}{' '}
+              <div className="flex flex-wrap gap-1.5 sm:gap-2 mt-4">
                 {profile.founded && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
                     <Calendar className="w-3 h-3" /> Founded {profile.founded}
@@ -288,7 +306,10 @@ export default function BusinessCompetitorPage() {
 
             {/* Tab Navigation — responsive scroll on mobile */}
             <div className="border-b border-gray-200">
-              <div className="flex gap-0.5 sm:gap-2 overflow-x-auto scrollbar-hide pb-0" style={{ WebkitOverflowScrolling: 'touch' }}>
+              <div
+                className="flex gap-0.5 sm:gap-2 overflow-x-auto scrollbar-hide pb-0"
+                style={{ WebkitOverflowScrolling: 'touch' }}
+              >
                 {TABS.map((tab) => {
                   const Icon = tab.icon
                   return (
@@ -360,7 +381,9 @@ export default function BusinessCompetitorPage() {
                           </li>
                         ))}
                         {(!r.opportunities || r.opportunities.length === 0) && (
-                          <li className="text-sm text-gray-400 italic">No opportunities identified</li>
+                          <li className="text-sm text-gray-400 italic">
+                            No opportunities identified
+                          </li>
                         )}
                       </ul>
                     </div>
@@ -370,24 +393,37 @@ export default function BusinessCompetitorPage() {
                   {r.similarBusinesses?.length > 0 && (
                     <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
                       <h3 className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-4">
-                        <Trophy className="w-4 h-4 text-amber-500" /> Similar Businesses / Competitors
+                        <Trophy className="w-4 h-4 text-amber-500" /> Similar Businesses /
+                        Competitors
                       </h3>
                       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3">
                         {r.similarBusinesses.map((biz, i) => (
-                          <div key={i} className="p-3 bg-slate-50 rounded-xl border border-slate-100">
+                          <div
+                            key={i}
+                            className="p-3 bg-slate-50 rounded-xl border border-slate-100"
+                          >
                             <div className="flex items-center gap-2 mb-1">
                               <span className="text-sm font-bold text-gray-900">{biz.name}</span>
                               {biz.website && (
-                                <a href={biz.website} target="_blank" rel="noopener noreferrer" className="text-blue-500 hover:text-blue-700">
+                                <a
+                                  href={biz.website}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-blue-500 hover:text-blue-700"
+                                >
                                   <ArrowUpRight className="w-3 h-3" />
                                 </a>
                               )}
                             </div>
-                            <span className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold mb-1 ${
-                              biz.relationship === 'Direct competitor' ? 'bg-rose-50 text-rose-700 border border-rose-200' :
-                              biz.relationship === 'Adjacent' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                              'bg-blue-50 text-blue-700 border border-blue-200'
-                            }`}>
+                            <span
+                              className={`inline-block px-2 py-0.5 rounded-full text-[10px] font-semibold mb-1 ${
+                                biz.relationship === 'Direct competitor'
+                                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                  : biz.relationship === 'Adjacent'
+                                    ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                    : 'bg-blue-50 text-blue-700 border border-blue-200'
+                              }`}
+                            >
                               {biz.relationship}
                             </span>
                             {biz.differentiation && (
@@ -407,7 +443,10 @@ export default function BusinessCompetitorPage() {
                       </h3>
                       <div className="flex flex-wrap gap-2">
                         {r.signals.socialLinks.map((link, i) => (
-                          <span key={i} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-full">
+                          <span
+                            key={i}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 text-gray-700 text-xs font-medium rounded-full"
+                          >
                             {link.platform}: <span className="font-semibold">{link.handle}</span>
                           </span>
                         ))}
@@ -426,7 +465,9 @@ export default function BusinessCompetitorPage() {
                       <h3 className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-3">
                         <Calendar className="w-4 h-4 text-blue-500" /> Founding Story
                       </h3>
-                      <p className="text-sm text-gray-700 leading-relaxed">{history.foundingStory}</p>
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        {history.foundingStory}
+                      </p>
                     </div>
                   )}
 
@@ -441,7 +482,9 @@ export default function BusinessCompetitorPage() {
                           <div key={i} className="relative">
                             <div className="absolute -left-[25px] w-3 h-3 bg-blue-500 rounded-full border-2 border-white" />
                             <div className="flex items-center gap-2 mb-0.5">
-                              <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">{m.year}</span>
+                              <span className="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-full">
+                                {m.year}
+                              </span>
                             </div>
                             <p className="text-sm text-gray-700">{m.event}</p>
                           </div>
@@ -458,7 +501,10 @@ export default function BusinessCompetitorPage() {
                       </h3>
                       <div className="space-y-3">
                         {history.recentNews.map((n, i) => (
-                          <div key={i} className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                          <div
+                            key={i}
+                            className="p-4 bg-slate-50 rounded-xl border border-slate-100"
+                          >
                             <div className="flex items-start justify-between gap-3">
                               <div>
                                 <p className="text-sm font-semibold text-gray-900">{n.headline}</p>
@@ -485,9 +531,14 @@ export default function BusinessCompetitorPage() {
                       </h3>
                       <div className="space-y-3">
                         {r.mergersAcquisitions.map((deal, i) => (
-                          <div key={i} className="p-4 bg-rose-50/50 rounded-xl border border-rose-100">
+                          <div
+                            key={i}
+                            className="p-4 bg-rose-50/50 rounded-xl border border-rose-100"
+                          >
                             <div className="flex items-center gap-2 mb-1">
-                              <span className="text-xs font-bold text-rose-600 bg-rose-100 px-2 py-0.5 rounded-full">{deal.year}</span>
+                              <span className="text-xs font-bold text-rose-600 bg-rose-100 px-2 py-0.5 rounded-full">
+                                {deal.year}
+                              </span>
                             </div>
                             <p className="text-sm font-medium text-gray-900">{deal.deal}</p>
                             {deal.impact && (
@@ -499,12 +550,18 @@ export default function BusinessCompetitorPage() {
                     </div>
                   )}
 
-                  {(!history.foundingStory && (!history.keyMilestones || history.keyMilestones.length === 0) && (!history.recentNews || history.recentNews.length === 0) && (!r.mergersAcquisitions || r.mergersAcquisitions.length === 0)) && (
-                    <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
-                      <Calendar className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                      <p className="text-sm text-gray-500">No historical data available. Try adding the company name for more accurate results.</p>
-                    </div>
-                  )}
+                  {!history.foundingStory &&
+                    (!history.keyMilestones || history.keyMilestones.length === 0) &&
+                    (!history.recentNews || history.recentNews.length === 0) &&
+                    (!r.mergersAcquisitions || r.mergersAcquisitions.length === 0) && (
+                      <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
+                        <Calendar className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                        <p className="text-sm text-gray-500">
+                          No historical data available. Try adding the company name for more
+                          accurate results.
+                        </p>
+                      </div>
+                    )}
                 </div>
               )}
 
@@ -523,12 +580,18 @@ export default function BusinessCompetitorPage() {
                   {products.categories?.length > 0 && (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                       {products.categories.map((cat, i) => (
-                        <div key={i} className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+                        <div
+                          key={i}
+                          className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm"
+                        >
                           <h4 className="text-sm font-bold text-gray-900 mb-2">{cat.name}</h4>
                           {cat.items?.length > 0 && (
                             <div className="flex flex-wrap gap-1.5 mb-3">
                               {cat.items.map((item, j) => (
-                                <span key={j} className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-100">
+                                <span
+                                  key={j}
+                                  className="px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-100"
+                                >
                                   {item}
                                 </span>
                               ))}
@@ -554,41 +617,51 @@ export default function BusinessCompetitorPage() {
                   )}
 
                   {/* Products detected from signals */}
-                  {r.signals?.products?.length > 0 && (!products.categories || products.categories.length === 0) && (
-                    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-                      <h3 className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-3">
-                        <Package className="w-4 h-4 text-blue-500" /> Detected Products / Services
-                      </h3>
-                      <div className="flex flex-wrap gap-2">
-                        {r.signals.products.map((p, i) => (
-                          <span key={i} className="px-3 py-1.5 bg-blue-50 text-blue-700 text-sm font-medium rounded-full border border-blue-100">
-                            {p}
-                          </span>
-                        ))}
+                  {r.signals?.products?.length > 0 &&
+                    (!products.categories || products.categories.length === 0) && (
+                      <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
+                        <h3 className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-3">
+                          <Package className="w-4 h-4 text-blue-500" /> Detected Products / Services
+                        </h3>
+                        <div className="flex flex-wrap gap-2">
+                          {r.signals.products.map((p, i) => (
+                            <span
+                              key={i}
+                              className="px-3 py-1.5 bg-blue-50 text-blue-700 text-sm font-medium rounded-full border border-blue-100"
+                            >
+                              {p}
+                            </span>
+                          ))}
+                        </div>
                       </div>
-                    </div>
-                  )}
+                    )}
 
-                  {(!products.overview && (!products.categories || products.categories.length === 0)) && (
-                    <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
-                      <Package className="w-10 h-10 text-gray-300 mx-auto mb-3" />
-                      <p className="text-sm text-gray-500">No product/service information could be extracted.</p>
-                    </div>
-                  )}
+                  {!products.overview &&
+                    (!products.categories || products.categories.length === 0) && (
+                      <div className="bg-white rounded-2xl border border-slate-200 p-12 text-center shadow-sm">
+                        <Package className="w-10 h-10 text-gray-300 mx-auto mb-3" />
+                        <p className="text-sm text-gray-500">
+                          No product/service information could be extracted.
+                        </p>
+                      </div>
+                    )}
                 </div>
               )}
 
               {/* ═══ MARKET POSITION TAB ═══ */}
               {activeTab === 'market' && (
                 <div className="space-y-6">
-                  {/* Market Position Grid */}                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                    {market.marketCap && market.marketCap !== 'Private company — revenue data not publicly available' && (
-                      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm text-center">
-                        <BarChart3 className="w-8 h-8 text-blue-500 mx-auto mb-2" />
-                        <p className="text-xs text-gray-500 mb-1">Market Cap / Revenue</p>
-                        <p className="text-sm font-bold text-gray-900">{market.marketCap}</p>
-                      </div>
-                    )}
+                  {/* Market Position Grid */}{' '}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                    {market.marketCap &&
+                      market.marketCap !==
+                        'Private company - revenue data not publicly available' && (
+                        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm text-center">
+                          <BarChart3 className="w-8 h-8 text-blue-500 mx-auto mb-2" />
+                          <p className="text-xs text-gray-500 mb-1">Market Cap / Revenue</p>
+                          <p className="text-sm font-bold text-gray-900">{market.marketCap}</p>
+                        </div>
+                      )}
                     {market.marketShare && market.marketShare !== 'Unknown' && (
                       <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm text-center">
                         <TrendingUp className="w-8 h-8 text-emerald-500 mx-auto mb-2" />
@@ -600,20 +673,26 @@ export default function BusinessCompetitorPage() {
                       <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm text-center">
                         <Shield className="w-8 h-8 text-purple-500 mx-auto mb-2" />
                         <p className="text-xs text-gray-500 mb-1">Competitive Moat</p>
-                        <p className="text-sm font-bold text-gray-900">{market.competitiveAdvantage}</p>
+                        <p className="text-sm font-bold text-gray-900">
+                          {market.competitiveAdvantage}
+                        </p>
                       </div>
                     )}
-                    {market.positioning && market.positioning !== 'Unknown' && market.positioning !== 'Not determined' && (
-                      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm text-center">
-                        <Target className="w-8 h-8 text-amber-500 mx-auto mb-2" />
-                        <p className="text-xs text-gray-500 mb-1">Positioning</p>
-                        <p className="text-sm font-bold text-gray-900">{market.positioning}</p>
-                      </div>
-                    )}
+                    {market.positioning &&
+                      market.positioning !== 'Unknown' &&
+                      market.positioning !== 'Not determined' && (
+                        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm text-center">
+                          <Target className="w-8 h-8 text-amber-500 mx-auto mb-2" />
+                          <p className="text-xs text-gray-500 mb-1">Positioning</p>
+                          <p className="text-sm font-bold text-gray-900">{market.positioning}</p>
+                        </div>
+                      )}
                   </div>
-
                   {/* Full Market Details */}
-                  {(market.marketCap || market.marketShare || market.competitiveAdvantage || market.positioning) && (
+                  {(market.marketCap ||
+                    market.marketShare ||
+                    market.competitiveAdvantage ||
+                    market.positioning) && (
                     <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
                       <h3 className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-4">
                         <BarChart3 className="w-4 h-4 text-blue-500" /> Market Positioning Details
@@ -621,25 +700,33 @@ export default function BusinessCompetitorPage() {
                       <div className="space-y-3">
                         {market.marketCap && (
                           <div className="p-3 bg-slate-50 rounded-xl">
-                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Revenue / Market Cap</p>
+                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+                              Revenue / Market Cap
+                            </p>
                             <p className="text-sm text-gray-800">{market.marketCap}</p>
                           </div>
                         )}
                         {market.marketShare && (
                           <div className="p-3 bg-slate-50 rounded-xl">
-                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Market Share</p>
+                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+                              Market Share
+                            </p>
                             <p className="text-sm text-gray-800">{market.marketShare}</p>
                           </div>
                         )}
                         {market.competitiveAdvantage && (
                           <div className="p-3 bg-slate-50 rounded-xl">
-                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Competitive Advantage</p>
+                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+                              Competitive Advantage
+                            </p>
                             <p className="text-sm text-gray-800">{market.competitiveAdvantage}</p>
                           </div>
                         )}
                         {market.positioning && (
                           <div className="p-3 bg-slate-50 rounded-xl">
-                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Positioning Statement</p>
+                            <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">
+                              Positioning Statement
+                            </p>
                             <p className="text-sm text-gray-800">{market.positioning}</p>
                           </div>
                         )}
@@ -660,7 +747,10 @@ export default function BusinessCompetitorPage() {
                       </h3>
                       <div className="flex flex-wrap gap-2">
                         {marketing.channels.map((ch, i) => (
-                          <span key={i} className="px-3 py-1.5 bg-purple-50 text-purple-700 text-sm font-medium rounded-full border border-purple-100">
+                          <span
+                            key={i}
+                            className="px-3 py-1.5 bg-purple-50 text-purple-700 text-sm font-medium rounded-full border border-purple-100"
+                          >
                             {ch}
                           </span>
                         ))}
@@ -675,7 +765,9 @@ export default function BusinessCompetitorPage() {
                         <h4 className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-2">
                           <Newspaper className="w-4 h-4 text-blue-500" /> Content Strategy
                         </h4>
-                        <p className="text-sm text-gray-700 leading-relaxed">{marketing.contentStrategy}</p>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {marketing.contentStrategy}
+                        </p>
                       </div>
                     )}
                     {marketing.brandVoice && (
@@ -683,7 +775,9 @@ export default function BusinessCompetitorPage() {
                         <h4 className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-2">
                           <Users className="w-4 h-4 text-amber-500" /> Brand Voice
                         </h4>
-                        <p className="text-sm text-gray-700 leading-relaxed">{marketing.brandVoice}</p>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {marketing.brandVoice}
+                        </p>
                       </div>
                     )}
                     {marketing.leadGeneration && (
@@ -691,7 +785,9 @@ export default function BusinessCompetitorPage() {
                         <h4 className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-2">
                           <Target className="w-4 h-4 text-emerald-500" /> Lead Generation
                         </h4>
-                        <p className="text-sm text-gray-700 leading-relaxed">{marketing.leadGeneration}</p>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {marketing.leadGeneration}
+                        </p>
                       </div>
                     )}
                     {marketing.socialPresence && (
@@ -699,7 +795,9 @@ export default function BusinessCompetitorPage() {
                         <h4 className="flex items-center gap-2 text-sm font-bold text-gray-900 mb-2">
                           <Share2 className="w-4 h-4 text-pink-500" /> Social Presence
                         </h4>
-                        <p className="text-sm text-gray-700 leading-relaxed">{marketing.socialPresence}</p>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {marketing.socialPresence}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -731,7 +829,9 @@ export default function BusinessCompetitorPage() {
                     {sales.model && (
                       <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm text-center">
                         <DollarSign className="w-7 h-7 text-blue-500 mx-auto mb-1.5" />
-                        <p className="text-[10px] text-gray-500 uppercase font-semibold">Sales Model</p>
+                        <p className="text-[10px] text-gray-500 uppercase font-semibold">
+                          Sales Model
+                        </p>
                         <p className="text-xs font-bold text-gray-900 mt-0.5">{sales.model}</p>
                       </div>
                     )}
@@ -739,28 +839,40 @@ export default function BusinessCompetitorPage() {
                       <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm text-center">
                         <BarChart3 className="w-7 h-7 text-emerald-500 mx-auto mb-1.5" />
                         <p className="text-[10px] text-gray-500 uppercase font-semibold">Pricing</p>
-                        <p className="text-xs font-bold text-gray-900 mt-0.5">{sales.pricingStrategy}</p>
+                        <p className="text-xs font-bold text-gray-900 mt-0.5">
+                          {sales.pricingStrategy}
+                        </p>
                       </div>
                     )}
                     {sales.salesCycle && (
                       <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm text-center">
                         <Calendar className="w-7 h-7 text-purple-500 mx-auto mb-1.5" />
-                        <p className="text-[10px] text-gray-500 uppercase font-semibold">Sales Cycle</p>
+                        <p className="text-[10px] text-gray-500 uppercase font-semibold">
+                          Sales Cycle
+                        </p>
                         <p className="text-xs font-bold text-gray-900 mt-0.5">{sales.salesCycle}</p>
                       </div>
                     )}
                     {sales.targetBuyer && (
                       <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm text-center">
                         <Users className="w-7 h-7 text-amber-500 mx-auto mb-1.5" />
-                        <p className="text-[10px] text-gray-500 uppercase font-semibold">Target Buyer</p>
-                        <p className="text-xs font-bold text-gray-900 mt-0.5">{sales.targetBuyer}</p>
+                        <p className="text-[10px] text-gray-500 uppercase font-semibold">
+                          Target Buyer
+                        </p>
+                        <p className="text-xs font-bold text-gray-900 mt-0.5">
+                          {sales.targetBuyer}
+                        </p>
                       </div>
                     )}
                     {sales.competitivePositioning && (
                       <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm text-center">
                         <Shield className="w-7 h-7 text-rose-500 mx-auto mb-1.5" />
-                        <p className="text-[10px] text-gray-500 uppercase font-semibold">vs Competitors</p>
-                        <p className="text-xs font-bold text-gray-900 mt-0.5">{sales.competitivePositioning}</p>
+                        <p className="text-[10px] text-gray-500 uppercase font-semibold">
+                          vs Competitors
+                        </p>
+                        <p className="text-xs font-bold text-gray-900 mt-0.5">
+                          {sales.competitivePositioning}
+                        </p>
                       </div>
                     )}
                   </div>
@@ -773,7 +885,10 @@ export default function BusinessCompetitorPage() {
                       </h3>
                       <ul className="space-y-2">
                         {sales.objections.map((obj, i) => (
-                          <li key={i} className="flex items-start gap-2 text-sm text-gray-700 bg-amber-50/50 p-3 rounded-xl border border-amber-100">
+                          <li
+                            key={i}
+                            className="flex items-start gap-2 text-sm text-gray-700 bg-amber-50/50 p-3 rounded-xl border border-amber-100"
+                          >
                             <span className="text-amber-500 font-bold shrink-0">#{i + 1}</span>
                             <span>{obj}</span>
                           </li>
@@ -789,7 +904,9 @@ export default function BusinessCompetitorPage() {
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
               <div className="text-center mb-4">
                 <h3 className="text-lg font-bold text-gray-900">Get the Full Report</h3>
-                <p className="text-sm text-gray-500">Enter your details to receive the complete business intelligence report via email.</p>
+                <p className="text-sm text-gray-500">
+                  Enter your details to receive the complete business intelligence report via email.
+                </p>
               </div>
               <DynamicLeadForm
                 source="business-competitor-analytics"

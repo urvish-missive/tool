@@ -34,7 +34,7 @@ export async function analyzeEeatHandler(req, res) {
       title: title?.trim() || '',
       contentType: safeType,
       targetKeywords: targetKeywords?.trim() || '',
-      preferredProvider: preferredProvider || 'gemini-3.5-flash-lite',
+      preferredProvider: preferredProvider || 'gemini-3.5-flash',
     })
 
     return res.json({

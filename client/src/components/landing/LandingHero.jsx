@@ -16,6 +16,7 @@ export default function LandingHero({
   toolSlot,
   toolLabel = 'Try It Live • No Sign-Up',
   toolRef,
+  hideHeroCopy = false,
 }) {
   const heroRef = useScrollReveal({ threshold: 0.1 })
 
@@ -41,7 +42,13 @@ export default function LandingHero({
 
   if (toolSlot) {
     return (
-      <section className="relative pt-28 xs:pt-32 sm:pt-36 lg:pt-40 pb-14 sm:pb-20 lg:pb-24 border-b border-slate-200/60 bg-gradient-to-b from-white via-slate-50/40 to-white">
+      <section
+        className={`relative border-b border-slate-200/60 bg-gradient-to-b from-white via-slate-50/40 to-white transition-all ${
+          hideHeroCopy
+            ? 'pt-4 sm:pt-6 pb-12'
+            : 'pt-28 xs:pt-32 sm:pt-36 lg:pt-40 pb-14 sm:pb-20 lg:pb-24'
+        }`}
+      >
         {/* Background ambient lighting isolated in overflow-hidden container */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div
@@ -55,90 +62,94 @@ export default function LandingHero({
           <div className="absolute bottom-0 left-0 w-[450px] h-[450px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 lp-float-delay" />
         </div>
 
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-20">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-[#0C81F3]/10 via-[#67A7FF]/10 to-[#EB8988]/10 text-[#0C81F3] border border-[#0C81F3]/20 mb-4 sm:mb-6">
-            <Sparkles className="w-3.5 h-3.5 text-[#0C81F3]" />
-            {badge}
-          </div>
+        {!hideHeroCopy && (
+          <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-20">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-gradient-to-r from-[#0C81F3]/10 via-[#67A7FF]/10 to-[#EB8988]/10 text-[#0C81F3] border border-[#0C81F3]/20 mb-4 sm:mb-6">
+              <Sparkles className="w-3.5 h-3.5 text-[#0C81F3]" />
+              {badge}
+            </div>
 
-          <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-[42px] font-black text-slate-900 tracking-tight leading-[1.15] mb-4 sm:mb-6">
-            {title.map((seg, i) =>
-              seg.gradient ? (
-                <span
-                  key={i}
-                  className={
-                    seg.className ||
-                    'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] bg-clip-text text-transparent'
-                  }
-                >
-                  {seg.text}
-                </span>
-              ) : (
-                <span key={i} className="text-slate-900">
-                  {seg.text}
-                </span>
-              )
+            <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-[42px] font-black text-slate-900 tracking-tight leading-[1.15] mb-4 sm:mb-6">
+              {title.map((seg, i) =>
+                seg.gradient ? (
+                  <span
+                    key={i}
+                    className={
+                      seg.className ||
+                      'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] bg-clip-text text-transparent'
+                    }
+                  >
+                    {seg.text}
+                  </span>
+                ) : (
+                  <span key={i} className="text-slate-900">
+                    {seg.text}
+                  </span>
+                )
+              )}
+            </h1>
+
+            {subtitle && (
+              <p className="text-sm sm:text-base md:text-lg text-slate-600 max-w-2xl mx-auto mb-6 sm:mb-8 leading-relaxed font-normal">
+                {subtitle}
+              </p>
             )}
-          </h1>
 
-          {subtitle && (
-            <p className="text-sm sm:text-base md:text-lg text-slate-600 max-w-2xl mx-auto mb-6 sm:mb-8 leading-relaxed font-normal">
-              {subtitle}
-            </p>
-          )}
-
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6 sm:mb-8 w-full max-w-xs xs:max-w-sm sm:max-w-none mx-auto">
-            <button
-              type="button"
-              onClick={ctaOnClick}
-              className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-7 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-white hover:opacity-95 active:scale-[0.98] transition-all shadow-xl shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>{ctaLabel}</span>
-              <svg
-                className="w-4 h-4"
-                fill="none"
-                viewBox="0 0 24 24"
-                strokeWidth={2.5}
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"
-                />
-              </svg>
-            </button>
-            {effectiveSecondaryCta && (
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-6 sm:mb-8 w-full max-w-xs xs:max-w-sm sm:max-w-none mx-auto">
               <button
                 type="button"
-                onClick={effectiveSecondaryCta.onClick}
-                className="w-full sm:w-auto rounded-full border-2 border-slate-300 bg-white/90 backdrop-blur-xs px-6 py-3 sm:py-3.5 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all cursor-pointer shadow-xs"
+                onClick={ctaOnClick}
+                className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-7 py-3 sm:py-3.5 text-xs sm:text-sm font-bold text-white hover:opacity-95 active:scale-[0.98] transition-all shadow-xl shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer"
               >
-                {effectiveSecondaryCta.label}
+                <span>{ctaLabel}</span>
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={2.5}
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19.5 13.5L12 21m0 0l-7.5-7.5M12 21V3"
+                  />
+                </svg>
               </button>
+              {effectiveSecondaryCta && (
+                <button
+                  type="button"
+                  onClick={effectiveSecondaryCta.onClick}
+                  className="w-full sm:w-auto rounded-full border-2 border-slate-300 bg-white/90 backdrop-blur-xs px-6 py-3 sm:py-3.5 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all cursor-pointer shadow-xs"
+                >
+                  {effectiveSecondaryCta.label}
+                </button>
+              )}
+            </div>
+
+            {trustBadges.length > 0 && (
+              <div className="flex flex-wrap items-center justify-center gap-2 text-[10px] sm:text-[11px] text-slate-500 font-medium">
+                {trustBadges.map((b, i) => (
+                  <span
+                    key={i}
+                    className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/90 backdrop-blur-xs border border-slate-200 rounded-full shadow-2xs"
+                  >
+                    <Check className="w-3 h-3 text-emerald-500 shrink-0" />
+                    {b}
+                  </span>
+                ))}
+              </div>
             )}
           </div>
-
-          {trustBadges.length > 0 && (
-            <div className="flex flex-wrap items-center justify-center gap-2 text-[10px] sm:text-[11px] text-slate-500 font-medium">
-              {trustBadges.map((b, i) => (
-                <span
-                  key={i}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white/90 backdrop-blur-xs border border-slate-200 rounded-full shadow-2xs"
-                >
-                  <Check className="w-3 h-3 text-emerald-500 shrink-0" />
-                  {b}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
+        )}
 
         {/* ── Full-width live tool ── */}
         <div
           ref={toolRef}
           id="tool"
-          className="relative z-20 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-10 sm:mt-12 scroll-mt-28"
+          className={`relative z-20 mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-28 transition-all ${
+            hideHeroCopy ? 'max-w-[1400px] mt-2' : 'max-w-6xl mt-10 sm:mt-12'
+          }`}
         >
           <div className="absolute -inset-3 bg-gradient-to-br from-[#0C81F3]/15 to-[#EB8988]/15 rounded-[32px] blur-xl pointer-events-none" />
           <div className="relative rounded-3xl bg-white border border-slate-200/80 shadow-2xl shadow-slate-300/40 overflow-hidden transition-shadow hover:shadow-[0_35px_60px_-15px_rgba(12,129,243,0.25)]">

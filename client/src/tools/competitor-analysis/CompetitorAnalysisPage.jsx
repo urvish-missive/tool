@@ -7,16 +7,7 @@ import OutrankPlaybookTab from './components/OutrankPlaybookTab'
 import ContentGapsTab from './components/ContentGapsTab'
 import BacklinkAnglesTab from './components/BacklinkAnglesTab'
 import SnippetSnatchTab from './components/SnippetSnatchTab'
-import {
-  Globe,
-  Shield,
-  Zap,
-  BarChart3,
-  Target,
-  Crown,
-  Link2,
-  RefreshCw,
-} from 'lucide-react'
+import { Globe, Shield, Zap, BarChart3, Target, Crown, Link2, RefreshCw } from 'lucide-react'
 
 export default function CompetitorAnalysisPage() {
   const [competitorUrl, setCompetitorUrl] = useState('')
@@ -104,115 +95,115 @@ export default function CompetitorAnalysisPage() {
       </section>
 
       {/* Main Form */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {!isLoading && (
           <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10">
-          <form onSubmit={handleAnalyze} className="space-y-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Competitor URL */}
-              <div>
-                <label
-                  htmlFor="competitorUrl"
-                  className="block text-sm font-bold text-slate-800 mb-2"
-                >
-                  Competitor URL to Analyze <span className="text-rose-500">*</span>
-                </label>
-                <div className="relative">
-                  <input
-                    id="competitorUrl"
-                    type="text"
-                    value={competitorUrl}
-                    onChange={(e) => setCompetitorUrl(e.target.value)}
-                    placeholder="https://competitor.com/blog/best-product"
-                    className="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 placeholder:text-slate-400 font-medium text-sm transition-all"
-                    required
-                  />
-                  <Globe className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                </div>
-              </div>
-
-              {/* Your URL (Optional) */}
-              <div>
-                <label htmlFor="yourUrl" className="block text-sm font-bold text-slate-800 mb-2">
-                  Your URL{' '}
-                  <span className="text-xs font-normal text-slate-500">
-                    (Optional for Head-to-Head)
-                  </span>
-                </label>
-                <div className="relative">
-                  <input
-                    id="yourUrl"
-                    type="text"
-                    value={yourUrl}
-                    onChange={(e) => setYourUrl(e.target.value)}
-                    placeholder="https://yourdomain.com/your-article"
-                    className="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 placeholder:text-slate-400 font-medium text-sm transition-all"
-                  />
-                  <Shield className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
-                </div>
-              </div>
-
-              {/* Target Keywords */}
-              <div className="md:col-span-2">
-                <label
-                  htmlFor="targetKeywords"
-                  className="block text-sm font-bold text-slate-800 mb-2"
-                >
-                  Target Search Queries{' '}
-                  <span className="text-xs font-normal text-slate-500">
-                    (Optional, comma separated)
-                  </span>
-                </label>
-                <input
-                  id="targetKeywords"
-                  type="text"
-                  value={targetKeywords}
-                  onChange={(e) => setTargetKeywords(e.target.value)}
-                  placeholder="e.g. content marketing audit, b2b saas seo strategy"
-                  className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 placeholder:text-slate-400 text-sm transition-all"
-                />
-              </div>
-            </div>
-
-            {/* Actions */}
-            <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-4">
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
-                {results && (
-                  <button
-                    type="button"
-                    onClick={handleReset}
-                    className="w-full sm:w-auto px-5 py-3 rounded-full border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-sm text-center cursor-pointer order-2 sm:order-1"
+            <form onSubmit={handleAnalyze} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Competitor URL */}
+                <div>
+                  <label
+                    htmlFor="competitorUrl"
+                    className="block text-sm font-bold text-slate-800 mb-2"
                   >
-                    Reset
-                  </button>
-                )}
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-6 sm:px-8 py-3.5 text-sm sm:text-base font-bold text-white hover:opacity-95 active:scale-[0.98] disabled:opacity-50 transition-all shadow-md hover:shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
-                >
-                  {isLoading ? (
-                    <>
-                      <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin shrink-0" />
-                      <span>Crawling & Analyzing Competitor...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Zap className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
-                      <span>Reverse-Engineer Competitor</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
+                    Competitor URL to Analyze <span className="text-rose-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="competitorUrl"
+                      type="text"
+                      value={competitorUrl}
+                      onChange={(e) => setCompetitorUrl(e.target.value)}
+                      placeholder="https://competitor.com/blog/best-product"
+                      className="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 placeholder:text-slate-400 font-medium text-sm transition-all"
+                      required
+                    />
+                    <Globe className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
 
-            {error && (
-              <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium">
-                {error}
+                {/* Your URL (Optional) */}
+                <div>
+                  <label htmlFor="yourUrl" className="block text-sm font-bold text-slate-800 mb-2">
+                    Your URL{' '}
+                    <span className="text-xs font-normal text-slate-500">
+                      (Optional for Head-to-Head)
+                    </span>
+                  </label>
+                  <div className="relative">
+                    <input
+                      id="yourUrl"
+                      type="text"
+                      value={yourUrl}
+                      onChange={(e) => setYourUrl(e.target.value)}
+                      placeholder="https://yourdomain.com/your-article"
+                      className="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 placeholder:text-slate-400 font-medium text-sm transition-all"
+                    />
+                    <Shield className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  </div>
+                </div>
+
+                {/* Target Keywords */}
+                <div className="md:col-span-2">
+                  <label
+                    htmlFor="targetKeywords"
+                    className="block text-sm font-bold text-slate-800 mb-2"
+                  >
+                    Target Search Queries{' '}
+                    <span className="text-xs font-normal text-slate-500">
+                      (Optional, comma separated)
+                    </span>
+                  </label>
+                  <input
+                    id="targetKeywords"
+                    type="text"
+                    value={targetKeywords}
+                    onChange={(e) => setTargetKeywords(e.target.value)}
+                    placeholder="e.g. content marketing audit, b2b saas seo strategy"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none text-slate-900 placeholder:text-slate-400 text-sm transition-all"
+                  />
+                </div>
               </div>
-            )}
-          </form>
-        </div>
+
+              {/* Actions */}
+              <div className="pt-5 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-4">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+                  {results && (
+                    <button
+                      type="button"
+                      onClick={handleReset}
+                      className="w-full sm:w-auto px-5 py-3 rounded-full border border-slate-300 text-slate-700 font-semibold hover:bg-slate-50 transition-colors text-sm text-center cursor-pointer order-2 sm:order-1"
+                    >
+                      Reset
+                    </button>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full sm:w-auto rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] px-6 sm:px-8 py-3.5 text-sm sm:text-base font-bold text-white hover:opacity-95 active:scale-[0.98] disabled:opacity-50 transition-all shadow-md hover:shadow-lg shadow-[#0C81F3]/25 flex items-center justify-center gap-2 cursor-pointer order-1 sm:order-2"
+                  >
+                    {isLoading ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 sm:w-5 sm:h-5 animate-spin shrink-0" />
+                        <span>Crawling & Analyzing Competitor...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="w-4 h-4 sm:w-5 sm:h-5 shrink-0" />
+                        <span>Reverse-Engineer Competitor</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {error && (
+                <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-sm font-medium">
+                  {error}
+                </div>
+              )}
+            </form>
+          </div>
         )}
 
         {/* Loading State */}
@@ -320,10 +311,7 @@ export default function CompetitorAnalysisPage() {
 
             {/* TAB 2: CONTENT GAPS & KEYWORDS */}
             {activeTab === 'gaps' && (
-              <ContentGapsTab
-                contentGaps={contentGaps}
-                keywordOpportunities={keywordOpps}
-              />
+              <ContentGapsTab contentGaps={contentGaps} keywordOpportunities={keywordOpps} />
             )}
 
             {/* TAB 3: TECHNICAL BENCHMARKS */}
@@ -337,9 +325,7 @@ export default function CompetitorAnalysisPage() {
             )}
 
             {/* TAB 4: BACKLINK ANGLES */}
-            {activeTab === 'backlinks' && (
-              <BacklinkAnglesTab backlinkAngles={backlinkAngles} />
-            )}
+            {activeTab === 'backlinks' && <BacklinkAnglesTab backlinkAngles={backlinkAngles} />}
 
             {/* TAB 5: FEATURED SNIPPET SNATCH */}
             {activeTab === 'snippets' && snippetSnatch && (

@@ -300,37 +300,23 @@ Return a JSON object with this EXACT structure:
   let result = null
   let lastError = null
 
-  // Provider cascade: prioritize high-speed Groq and working providers
-  const providersToTry = [
-    preferredProvider,
-    'groq',
-    'qwen-3.8',
-    'gemini-3.5-flash-lite',
-    'zen-mimo',
-    'zen',
-    'openrouter',
-  ].filter((p, i, self) => p && self.indexOf(p) === i)
+  try {
+    result = await callAIAndParseJSON([
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ], {
+      preferredProvider: preferredProvider || 'groq',
+      temperature: 0.65,
+      maxTokens: Math.min(Math.max(targetCount * 350, 2000), 3200),
+      jsonMode: true,
+    })
 
-  for (const prov of providersToTry) {
-    try {
-      result = await callAIAndParseJSON([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ], {
-        preferredProvider: prov,
-        temperature: 0.65,
-        maxTokens: Math.min(Math.max(targetCount * 380, 2200), 3400),
-        jsonMode: true,
-      })
-
-      if (result && Array.isArray(result.topics) && result.topics.length > 0) {
-        console.log(`[OK] Generated ${result.topics.length} custom AI topics using ${prov}`)
-        break
-      }
-    } catch (err) {
-      console.warn(`Provider ${prov} failed: ${err.message}. Cascading to next provider...`)
-      lastError = err
+    if (result && Array.isArray(result.topics) && result.topics.length > 0) {
+      console.log(`[OK] Generated ${result.topics.length} custom AI topics`)
     }
+  } catch (err) {
+    console.warn(`AI topic generation failed: ${err.message}`)
+    lastError = err
   }
 
   // If AI generation succeeded
@@ -679,33 +665,17 @@ Return a JSON object with this EXACT structure:
   }
 }`
 
-  const providersToTry = [
-    preferredProvider,
-    'groq',
-    'qwen-3.8',
-    'gemini-3.5-flash-lite',
-    'zen-mimo',
-    'zen',
-    'openrouter',
-  ].filter((p, i, self) => p && self.indexOf(p) === i)
-
-  for (const prov of providersToTry) {
-    try {
-      const res = await callAIAndParseJSON([
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ], {
-        preferredProvider: prov,
-        temperature: 0.65,
-        maxTokens: 3200,
-        jsonMode: true,
-      })
-      if (res && Array.isArray(res.detailedSections) && res.detailedSections.length > 0) {
-        return recursiveSanitizeMissive(res)
-      }
-    } catch (err) {
-      console.warn(`Master brief generation failed with ${prov}: ${err.message}. Trying next...`)
-    }
+  const res = await callAIAndParseJSON([
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: userPrompt },
+  ], {
+    preferredProvider: preferredProvider || 'groq',
+    temperature: 0.65,
+    maxTokens: 3200,
+    jsonMode: true,
+  })
+  if (res && Array.isArray(res.detailedSections) && res.detailedSections.length > 0) {
+    return recursiveSanitizeMissive(res)
   }
 
   throw new Error(`Failed to generate master brief with all AI providers.`)

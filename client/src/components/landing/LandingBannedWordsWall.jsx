@@ -104,7 +104,7 @@ const BANNED_ITEMS = [
     category: 'Throat-Clearing Preamble',
     severity: 'Medium Penalty',
     whyBanned:
-      'Overused colloquial filler that dilutes executive confidence in conclusion paragraphs.',
+      'Overused colloquial filler that dilutes executive confidence in closing paragraphs.',
     replacement: '"The bottom line is simple:", "Ultimately,", or state the core insight directly.',
     exampleFail: 'At the end of the day, quality matters most.',
     examplePass: 'The bottom line is simple: search rankings follow reader retention.',

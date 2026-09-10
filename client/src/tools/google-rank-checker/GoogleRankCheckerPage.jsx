@@ -66,7 +66,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'What is a good organic CTR for ranking positions on Google?',
-    a: 'Position #1 typically captures 25%–35% of all clicks. Positions #2 and #3 capture roughly 15% and 10% respectively. By page 2 (positions 11+), total organic CTR drops to less than 1%.',
+    a: 'Position #1 typically captures 25%-35% of all clicks. Positions #2 and #3 capture roughly 15% and 10% respectively. By page 2 (positions 11+), total organic CTR drops to less than 1%.',
   },
   {
     q: 'How often should I monitor Google keyword rankings?',
@@ -274,7 +274,7 @@ export default function GoogleRankCheckerPage() {
       </section>
 
       {/* Main Search Form */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
         {errorMessage && (
           <div className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5 text-rose-500" />
@@ -463,13 +463,14 @@ export default function GoogleRankCheckerPage() {
                   </div>
                   <div className="space-y-1.5">
                     <h4 className="font-bold text-amber-900 text-sm flex items-center gap-1.5">
-                      <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" /> AI Estimate — Not a Verified Ranking
+                      <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" /> AI Estimate -
+                      Not a Verified Ranking
                     </h4>
                     <p className="text-xs sm:text-sm text-amber-800 leading-relaxed">
                       {rankData.estimateReason}
                     </p>
                     <p className="text-xs text-amber-700">
-                      <strong>Confidence Level:</strong> {rankData.confidence}% — For accurate
+                      <strong>Confidence Level:</strong> {rankData.confidence}% - For accurate
                       rankings, use{' '}
                       <a
                         href="https://search.google.com/search-console"
@@ -511,7 +512,8 @@ export default function GoogleRankCheckerPage() {
                       </span>
                     ) : (
                       <span className="px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-semibold inline-flex items-center gap-1">
-                        <AlertTriangle className="w-3.5 h-3.5 text-amber-400" /> AI Estimate ({rankData.confidence || 30}% confidence)
+                        <AlertTriangle className="w-3.5 h-3.5 text-amber-400" /> AI Estimate (
+                        {rankData.confidence || 30}% confidence)
                       </span>
                     )}
                   </div>
@@ -556,15 +558,18 @@ export default function GoogleRankCheckerPage() {
                         </>
                       ) : rankData.position <= 3 ? (
                         <>
-                          <Award className="w-4 h-4 text-slate-300 shrink-0" /> Top 3 (Above the Fold)
+                          <Award className="w-4 h-4 text-slate-300 shrink-0" /> Top 3 (Above the
+                          Fold)
                         </>
                       ) : rankData.position <= 10 ? (
                         <>
-                          <TrendingUp className="w-4 h-4 text-emerald-400 shrink-0" /> First Page of Google
+                          <TrendingUp className="w-4 h-4 text-emerald-400 shrink-0" /> First Page of
+                          Google
                         </>
                       ) : rankData.position <= 20 ? (
                         <>
-                          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" /> Striking Distance (Page 2)
+                          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" /> Striking
+                          Distance (Page 2)
                         </>
                       ) : (
                         <>
@@ -1029,7 +1034,7 @@ export default function GoogleRankCheckerPage() {
                 <Compass className="w-4 h-4 text-[#0C81F3]" />
                 <span>
                   Rank check for <strong>{rankData.domain}</strong> on Google {rankData.countryName}{' '}
-                  —{' '}
+                  -{' '}
                   {rankData.scrapedLive ? (
                     <span className="text-emerald-600 font-semibold">Live verified</span>
                   ) : (

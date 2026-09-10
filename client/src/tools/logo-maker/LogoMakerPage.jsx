@@ -304,7 +304,7 @@ export default function LogoMakerPage() {
                 >
                   {STYLES.map((s) => (
                     <option key={s.value} value={s.value}>
-                      {s.label} — {s.desc}
+                      {s.label} - {s.desc}
                     </option>
                   ))}
                 </select>
@@ -533,7 +533,7 @@ export default function LogoMakerPage() {
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="font-bold text-slate-800 text-sm">
-                  All Variations — Click to Choose
+                  All Variations - Click to Choose
                 </h4>
                 <button
                   onClick={handleRegenerateWithColors}

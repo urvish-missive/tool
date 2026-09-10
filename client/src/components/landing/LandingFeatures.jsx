@@ -27,9 +27,11 @@ export default function LandingFeatures({
         {/* Header */}
         <div ref={headerRef} className="lp-reveal text-center mb-8 sm:mb-12">
           {sectionLabel && (
-            <span className="inline-block text-[11px] sm:text-xs font-bold uppercase tracking-[.18em] text-[#0C81F3] mb-2 sm:mb-2.5">
-              {sectionLabel}
-            </span>
+            <div className="flex justify-center mb-3">
+              <span className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[11px] sm:text-xs font-bold uppercase tracking-wider shadow-sm">
+                {sectionLabel}
+              </span>
+            </div>
           )}
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight mb-2.5 sm:mb-3 leading-tight">
             {heading}

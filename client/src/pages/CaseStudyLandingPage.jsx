@@ -1,5 +1,4 @@
-import { useEffect, useRef, useCallback } from 'react'
-import useScrollReveal from '../components/landing/useScrollReveal'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Helmet } from 'react-helmet-async'
 import {
   Sparkles,
@@ -12,16 +11,20 @@ import {
   Share2,
   ShieldCheck,
   Globe,
+  ArrowLeft,
 } from 'lucide-react'
 import {
   LandingHero,
   LandingFeatures,
   LandingHowItWorks,
   LandingStats,
+  LandingAnimatedStats,
   LandingFAQ,
   LandingCTA,
   LandingCaseStudyShowcase,
   LandingDistributionChannels,
+  LandingResultsTopbar,
+  LandingLiveDemo,
 } from '../components/landing'
 import CaseStudyGeneratorPage from '../tools/case-study-generator/CaseStudyGeneratorPage'
 
@@ -29,7 +32,7 @@ import CaseStudyGeneratorPage from '../tools/case-study-generator/CaseStudyGener
 const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
-  name: 'AI Case Study Generator — Missive Digital',
+  name: 'AI Case Study Generator - Missive Digital',
   description:
     'Free AI-powered case study generator by Missive Digital. Turn client transformations into evidence-backed B2B case studies with sales battlecards, social repurposing, and AI search citations.',
   url: 'https://tools.missivedigital.com/case-study-generator',
@@ -82,7 +85,7 @@ const faqStructuredData = {
       name: 'Can I use sample presets to test the tool?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes. The tool includes 3 sample presets — SaaS Churn Reduction, Fintech Organic Growth, and DTC E-Commerce CRO — so you can see a full generated output before entering your own data.',
+        text: 'Yes. The tool includes 3 sample presets: SaaS Churn Reduction, Fintech Organic Growth, and DTC E-Commerce CRO, so you can see a full generated output before entering your own data.',
       },
     },
     {
@@ -90,7 +93,7 @@ const faqStructuredData = {
       name: 'What industries work with this tool?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Any B2B or B2C industry — SaaS, fintech, e-commerce, healthcare, agencies, professional services, and more. The AI adapts the narrative, metrics, and distribution channels to your niche.',
+        text: 'Any B2B or B2C industry. SaaS, fintech, e-commerce, healthcare, agencies, professional services, and more. The AI adapts the narrative, metrics, and distribution channels to your niche.',
       },
     },
   ],
@@ -114,7 +117,7 @@ const FEATURES = [
     icon: Share2,
     title: 'Multi-Channel Distribution',
     description:
-      'LinkedIn carousels, Twitter threads, paid ad copy, video scripts, and newsletter content — all from one case study.',
+      'LinkedIn carousels, Twitter threads, paid ad copy, video scripts, and newsletter content. All from one case study.',
   },
   {
     icon: Globe,
@@ -132,7 +135,7 @@ const FEATURES = [
     icon: Zap,
     title: '8 Tone Profiles',
     description:
-      'Authoritative, Conversational, Storytelling, Fun, Bold, Empathetic, Witty, or Data-Driven — match your brand voice.',
+      'Authoritative, Conversational, Storytelling, Fun, Bold, Empathetic, Witty, or Data-Driven. Match your brand voice.',
   },
 ]
 
@@ -194,49 +197,37 @@ const FAQS = [
   {
     question: 'Can I use sample presets to test the tool?',
     answer:
-      'Yes. The tool includes 3 sample presets — SaaS Churn Reduction, Fintech Organic Growth, and DTC E-Commerce CRO — so you can see a full generated output before entering your own data.',
+      'Yes. The tool includes 3 sample presets. SaaS Churn Reduction, Fintech Organic Growth, and DTC E-Commerce CRO, so you can see a full generated output before entering your own data.',
   },
   {
     question: 'What industries work with this tool?',
     answer:
-      'Any B2B or B2C industry — SaaS, fintech, e-commerce, healthcare, agencies, professional services, and more. The AI adapts the narrative, metrics, and distribution channels to your niche.',
+      'Any B2B or B2C industry. SaaS, fintech, e-commerce, healthcare, agencies, professional services, and more. The AI adapts the narrative, metrics, and distribution channels to your niche.',
   },
 ]
 
 /* ─────────────── Trust Section ─────────────── */
 function TrustSection() {
-  const ref = useScrollReveal()
   const items = [
     { icon: Users, value: '2,500+', label: 'Sales & marketing teams' },
     { icon: FileText, value: '40,000+', label: 'Case studies generated' },
     { icon: Clock, value: '20-30 sec', label: 'Average generation time' },
   ]
 
-  return (
-    <section className="py-12 sm:py-16 lg:py-20 bg-white border-t border-slate-100">
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div ref={ref} className="lp-reveal grid grid-cols-1 sm:grid-cols-3 gap-6 sm:gap-8">
-          {items.map((item) => {
-            const Icon = item.icon
-            return (
-              <div key={item.label} className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white mb-3 shadow-lg">
-                  <Icon className="w-5 h-5" />
-                </div>
-                <div className="text-2xl sm:text-3xl font-black text-slate-900">{item.value}</div>
-                <div className="text-xs sm:text-sm text-slate-500 mt-1">{item.label}</div>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-    </section>
-  )
+  return <LandingAnimatedStats stats={items} />
 }
 
 /* ─────────────── Landing Page Component ─────────────── */
 export default function CaseStudyLandingPage() {
+  const [hasResults, setHasResults] = useState(false)
+  const [resetSignal, setResetSignal] = useState(0)
   const toolRef = useRef(null)
+
+  const handleNewCaseStudy = () => {
+    setResetSignal((c) => c + 1)
+    setHasResults(false)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
 
   const scrollToTool = useCallback(() => {
     const el = toolRef.current || document.getElementById('tool')
@@ -263,7 +254,7 @@ export default function CaseStudyLandingPage() {
   return (
     <>
       <Helmet>
-        <title>AI Case Study Generator — Free Tool | Missive Digital</title>
+        <title>AI Case Study Generator - Free Tool | Missive Digital</title>
         <meta
           name="description"
           content="Turn client transformations into evidence-backed B2B case studies with sales battlecards, social repurposing, video scripts, and AI search citations. Free, no sign-up."
@@ -273,7 +264,7 @@ export default function CaseStudyLandingPage() {
           content="case study generator, B2B case study, sales battlecard, client success story, AI case study, content repurposing, Missive Digital"
         />
         <link rel="canonical" href="https://tools.missivedigital.com/case-study-generator" />
-        <meta property="og:title" content="AI Case Study Generator — Free Tool | Missive Digital" />
+        <meta property="og:title" content="AI Case Study Generator - Free Tool | Missive Digital" />
         <meta
           property="og:description"
           content="Turn client transformations into evidence-backed B2B case studies with 6 distribution channels. Free, no sign-up."
@@ -282,7 +273,7 @@ export default function CaseStudyLandingPage() {
         <meta property="og:url" content="https://tools.missivedigital.com/case-study-generator" />
         <meta property="og:site_name" content="Missive Digital: Himani's SEO Tools" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="AI Case Study Generator — Missive Digital" />
+        <meta name="twitter:title" content="AI Case Study Generator - Missive Digital" />
         <meta
           name="twitter:description"
           content="Generate evidence-backed B2B case studies with sales battlecards, social content, and AI search citations. Free."
@@ -291,15 +282,26 @@ export default function CaseStudyLandingPage() {
         <script type="application/ld+json">{JSON.stringify(faqStructuredData)}</script>
       </Helmet>
 
-      <div className="landing-page min-h-screen bg-white font-sans">
+      <div className={`landing-page min-h-screen bg-white font-sans ${hasResults ? 'pt-20' : ''}`}>
+        {hasResults && (
+          <LandingResultsTopbar
+            onBack={handleNewCaseStudy}
+            backLabel="New Case Study"
+            backHint="Start Over"
+            title="Case Study & 6-Channel Distribution Blueprint"
+            badge="Live Case Study"
+          />
+        )}
+
         {/* 1. Hero with embedded tool */}
         <LandingHero
+          hideHeroCopy={hasResults}
           badge="Himani's SEO Tools • Missive Digital"
           title={[
             { text: 'Turn Client Wins Into ' },
             { text: 'Revenue Engines', gradient: true },
           ]}
-          subtitle="Generate evidence-backed B2B case studies with sales battlecards, social repurposing, video scripts, and AI search citations — all from one form."
+          subtitle="Generate evidence-backed B2B case studies with sales battlecards, social repurposing, video scripts, and AI search citations. All from one form."
           ctaLabel="Generate Case Study Free →"
           ctaOnClick={scrollToTool}
           secondaryCta={{
@@ -313,54 +315,98 @@ export default function CaseStudyLandingPage() {
             'Sales battlecards included',
           ]}
           toolRef={toolRef}
-          toolLabel="Generate Case Study — Live"
-          toolSlot={<CaseStudyGeneratorPage isEmbedded={true} />}
+          toolLabel={hasResults ? 'Generated Case Study Playbook' : 'Generate Case Study - Live'}
+          toolSlot={
+            <CaseStudyGeneratorPage
+              isEmbedded={true}
+              onResultStateChange={setHasResults}
+              resetSignal={resetSignal}
+            />
+          }
         />
 
-        {/* 2. Stats */}
-        <LandingStats stats={STATS} />
+        {!hasResults && (
+          <>
+            {/* 2. Stats */}
+            <LandingStats stats={STATS} />
 
-        {/* 3. Case study showcase */}
-        <LandingCaseStudyShowcase />
+            {/* 2.5 Animated Live Demo */}
+            <LandingLiveDemo
+              badge="See It Transform"
+              heading="Watch a Client Win Turn Into a Commercial Playbook"
+              subheading="Type in raw client metrics and watch the AI generate executive summaries, sales battlecards, and multi-channel distribution assets."
+              accentIcon={TrendingUp}
+              examples={[
+                {
+                  label: 'Enterprise ROI Transformation',
+                  input: 'FinTech SaaS · 312% Pipeline Growth in 90 Days',
+                  outputTitle: 'Executive Snapshot: Accelerating Enterprise Deal Cycles',
+                  outputBody:
+                    '"How a leading merchant payments provider eliminated $420,000 in operational friction by replacing manual spreadsheet underwriting with automated compliance workflows."',
+                  outputMeta: ['Quantified ROI', '312% Growth', 'Zero Em Dashes'],
+                },
+                {
+                  label: 'Sales Enablement Battlecard',
+                  input: 'Displacing Legacy ERP with Modern Modular Tech',
+                  outputTitle: 'Sales Battlecard: 3 Counter-Objections & Implementation Speed',
+                  outputBody:
+                    '"Arms sales reps with proven answers to \'Why change now?\', a side-by-side migration timeline comparison, and empirical data proving a 45-day go-live milestone."',
+                  outputMeta: ['Sales Battlecard', '3 Objections Handled', 'CFO-Ready Proof'],
+                },
+                {
+                  label: '6-Channel Repurposing Engine',
+                  input: 'Omnichannel B2B Campaign Repurposing',
+                  outputTitle: 'Repurposing Suite: 1 Case Study into 6 Distribution Assets',
+                  outputBody:
+                    '"Synthesizes 1 long-form pillar case study, 1 LinkedIn narrative carousel, 1 outbound cold email cadence, 1 executive PDF brief, and 3 slide deck benchmark visuals."',
+                  outputMeta: ['6 Channels', 'Omnichannel ROI', 'Instant Repurposing'],
+                },
+              ]}
+            />
 
-        {/* 4. Distribution channels */}
-        <LandingDistributionChannels />
+            {/* 3. Case study showcase */}
+            <LandingCaseStudyShowcase />
 
-        {/* 5. Features grid */}
-        <LandingFeatures
-          sectionLabel="Why This Tool?"
-          heading="One Case Study. Complete Commercial Playbook."
-          subheading="Not just a narrative — a full distribution engine that feeds your sales team, content calendar, social feeds, and AI search presence."
-          features={FEATURES}
-          columns={3}
-        />
+            {/* 4. Distribution channels */}
+            <LandingDistributionChannels />
 
-        {/* 6. How it works */}
-        <LandingHowItWorks
-          sectionLabel="How It Works"
-          heading="From Client Win to Multi-Channel Playbook in 4 Steps"
-          subheading="Enter your client details, pick a tone, and let the AI generate the full case study and distribution package."
-          steps={STEPS}
-        />
+            {/* 5. Features grid */}
+            <LandingFeatures
+              sectionLabel="Why This Tool?"
+              heading="One Case Study. Complete Commercial Playbook."
+              subheading="Not just a narrative. A full distribution engine that feeds your sales team, content calendar, social feeds, and AI search presence."
+              features={FEATURES}
+              columns={3}
+            />
 
-        {/* 7. Trust section */}
-        <TrustSection />
+            {/* 6. How it works */}
+            <LandingHowItWorks
+              sectionLabel="How It Works"
+              heading="From Client Win to Multi-Channel Playbook in 4 Steps"
+              subheading="Enter your client details, pick a tone, and let the AI generate the full case study and distribution package."
+              steps={STEPS}
+            />
 
-        {/* 8. FAQ */}
-        <LandingFAQ
-          sectionLabel="Frequently Asked Questions"
-          heading="Case Study Generator FAQs"
-          subheading="Everything you need to know about generating evidence-backed case studies with AI."
-          faqs={FAQS}
-        />
+            {/* 7. Trust section */}
+            <TrustSection />
 
-        {/* 9. Final CTA */}
-        <LandingCTA
-          heading="Stop Letting Client Wins Collect Dust"
-          subheading="Generate a full commercial playbook from your best client results. Case study, battlecard, social content, and AI citations — free, no sign-up."
-          ctaLabel="Start Generating Free"
-          ctaOnClick={scrollToTool}
-        />
+            {/* 8. FAQ */}
+            <LandingFAQ
+              sectionLabel="Frequently Asked Questions"
+              heading="Case Study Generator FAQs"
+              subheading="Everything you need to know about generating evidence-backed case studies with AI."
+              faqs={FAQS}
+            />
+
+            {/* 9. Final CTA */}
+            <LandingCTA
+              heading="Stop Letting Client Wins Collect Dust"
+              subheading="Generate a full commercial playbook from your best client results. Case study, battlecard, social content, and AI citations. Free, no sign-up."
+              ctaLabel="Start Generating Free"
+              ctaOnClick={scrollToTool}
+            />
+          </>
+        )}
       </div>
     </>
   )

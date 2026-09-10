@@ -274,7 +274,7 @@ Here is how you can supercharge your content strategy:
 - Ensure your paragraphs are bite-sized and engaging.
 - Never settle for generic advice.`
 
-export default function ContentQaPage({ isEmbedded = false }) {
+export default function ContentQaPage({ isEmbedded = false, onResultStateChange, resetSignal }) {
   const {
     register,
     handleSubmit,
@@ -745,19 +745,32 @@ export default function ContentQaPage({ isEmbedded = false }) {
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
-  // Scroll to report on complete
+  // Notify result state change and scroll on complete
   useEffect(() => {
     if (report) {
-      setTimeout(() => {
-        const el = document.getElementById('himani-qa-results')
-        if (el) {
-          const navHeight = 90
-          const targetY = el.getBoundingClientRect().top + window.pageYOffset - navHeight
-          window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' })
-        }
-      }, 100)
+      onResultStateChange?.(true)
+      if (isEmbedded) {
+        window.scrollTo({ top: 0, behavior: 'smooth' })
+      } else {
+        setTimeout(() => {
+          const el = document.getElementById('himani-qa-results')
+          if (el) {
+            const navHeight = 90
+            const targetY = el.getBoundingClientRect().top + window.pageYOffset - navHeight
+            window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' })
+          }
+        }, 100)
+      }
+    } else {
+      onResultStateChange?.(false)
     }
-  }, [report])
+  }, [report, onResultStateChange, isEmbedded])
+
+  useEffect(() => {
+    if (resetSignal > 0) {
+      handleReset()
+    }
+  }, [resetSignal])
 
   // Cleanup speech synthesis on unmount
   useEffect(() => {
@@ -820,8 +833,6 @@ export default function ContentQaPage({ isEmbedded = false }) {
       if (data.report?.statuses) {
         setStatuses(data.report.statuses)
       }
-
-
     } catch (err) {
       setError(
         err?.data?.error ||
@@ -872,8 +883,6 @@ export default function ContentQaPage({ isEmbedded = false }) {
       return { ...prev, [itemId]: next }
     })
   }
-
-
 
   function getStatus(item) {
     if (statuses[item.id]) return statuses[item.id]
@@ -1016,7 +1025,13 @@ Audited with Missive Digital Content QA Tool.`
   }, [filterMode, statuses, report])
 
   return (
-    <div className={isEmbedded ? 'w-full text-gray-900 @container' : 'min-h-screen bg-[#FDFDFD] text-gray-900 @container'}>
+    <div
+      className={
+        isEmbedded
+          ? 'w-full text-gray-900 @container'
+          : 'min-h-screen bg-[#FDFDFD] text-gray-900 @container'
+      }
+    >
       <LeadCaptureModal
         show={showPopup}
         onClose={handlePopupClose}
@@ -1034,7 +1049,10 @@ Audited with Missive Digital Content QA Tool.`
         <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
           <div
             className="absolute inset-0"
-            style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }}
+            style={{
+              background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)',
+              opacity: 0.08,
+            }}
           />
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
@@ -1084,7 +1102,7 @@ Audited with Missive Digital Content QA Tool.`
 
       {/* ── MAIN CONTENT CONTAINER ─────────────────────────────────── */}
       <section className={isEmbedded ? 'py-0' : 'py-10'}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
           {/* ── INPUT FORM ────────────────────────────────────────── */}
           {!report && !isAnalyzing && (
             <form
@@ -1643,7 +1661,8 @@ Audited with Missive Digital Content QA Tool.`
                     <div className="p-4 rounded-2xl border bg-purple-50/80 border-purple-200">
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-bold text-purple-900 flex items-center gap-1.5">
-                          <Volume2 className="w-3.5 h-3.5 text-purple-600 shrink-0" /> Read Aloud Cadence
+                          <Volume2 className="w-3.5 h-3.5 text-purple-600 shrink-0" /> Read Aloud
+                          Cadence
                         </span>
                         <span className="text-xs font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
                           ~{Math.ceil((report.quickStats?.estimatedReadAloudTimeSec || 60) / 60)}{' '}
@@ -1662,7 +1681,8 @@ Audited with Missive Digital Content QA Tool.`
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                          <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" /> Insight-First Opening
+                          <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" /> Insight-First
+                          Opening
                         </span>
                         <span
                           className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${report.statuses?.['ins-1'] === 'pass' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}`}
@@ -1687,7 +1707,10 @@ Audited with Missive Digital Content QA Tool.`
                         <Sparkles className="w-3.5 h-3.5 text-[#0C81F3]" />
                         Himani's Executive Assessment
                       </h4>
-                      <p className="text-xs text-gray-700 leading-relaxed">{report.ai?.summary || 'Analysis complete against Himani Kankaria\'s 12-Pillar Content QA framework.'}</p>
+                      <p className="text-xs text-gray-700 leading-relaxed">
+                        {report.ai?.summary ||
+                          "Analysis complete against Himani Kankaria's 12-Pillar Content QA framework."}
+                      </p>
                     </div>
 
                     <div className="bg-rose-50/40 rounded-2xl p-4 border border-rose-100/80">
@@ -1698,25 +1721,46 @@ Audited with Missive Digital Content QA Tool.`
                       <ul className="space-y-1.5">
                         {report.ai?.topFixes?.length > 0
                           ? report.ai.topFixes.slice(0, 3).map((fix, idx) => (
-                              <li key={idx} className="text-xs text-gray-700 flex items-start gap-1.5">
-                                <span className="text-[#EB8988] font-bold shrink-0">{idx + 1}.</span>
+                              <li
+                                key={idx}
+                                className="text-xs text-gray-700 flex items-start gap-1.5"
+                              >
+                                <span className="text-[#EB8988] font-bold shrink-0">
+                                  {idx + 1}.
+                                </span>
                                 <span>{fix}</span>
                               </li>
                             ))
                           : (() => {
                               const fallbackFixes = []
-                              if (report.quickStats?.emDashesCount > 0) fallbackFixes.push(`Remove all ${report.quickStats.emDashesCount} em dash(es) — replace with commas or sentence breaks.`)
-                              if (report.quickStats?.aiPhrasesCount > 0) fallbackFixes.push(`Replace ${report.quickStats.aiPhrasesCount} robotic AI cliché(s) with natural conversational phrasing.`)
-                              if (scores.failed > 0) fallbackFixes.push(`Address ${scores.failed} failed check(s) and ${scores.warnings} warning(s) in the 12-Pillar Checklist.`)
-                              if (fallbackFixes.length === 0) fallbackFixes.push('Review MANUAL items below — AI cannot evaluate brand voice and audience fit automatically.')
+                              if (report.quickStats?.emDashesCount > 0)
+                                fallbackFixes.push(
+                                  `Remove all ${report.quickStats.emDashesCount} em dash(es) — replace with commas or sentence breaks.`
+                                )
+                              if (report.quickStats?.aiPhrasesCount > 0)
+                                fallbackFixes.push(
+                                  `Replace ${report.quickStats.aiPhrasesCount} robotic AI cliché(s) with natural conversational phrasing.`
+                                )
+                              if (scores.failed > 0)
+                                fallbackFixes.push(
+                                  `Address ${scores.failed} failed check(s) and ${scores.warnings} warning(s) in the 12-Pillar Checklist.`
+                                )
+                              if (fallbackFixes.length === 0)
+                                fallbackFixes.push(
+                                  'Review MANUAL items below — AI cannot evaluate brand voice and audience fit automatically.'
+                                )
                               return fallbackFixes.slice(0, 3).map((fix, idx) => (
-                                <li key={idx} className="text-xs text-gray-700 flex items-start gap-1.5">
-                                  <span className="text-[#EB8988] font-bold shrink-0">{idx + 1}.</span>
+                                <li
+                                  key={idx}
+                                  className="text-xs text-gray-700 flex items-start gap-1.5"
+                                >
+                                  <span className="text-[#EB8988] font-bold shrink-0">
+                                    {idx + 1}.
+                                  </span>
                                   <span>{fix}</span>
                                 </li>
                               ))
-                            })()
-                        }
+                            })()}
                       </ul>
                     </div>
                   </div>
@@ -1892,14 +1936,22 @@ Audited with Missive Digital Content QA Tool.`
                             const allIssues = [
                               ...(aiCat?.issues || []),
                               ...cat.items
-                                .filter(i => ['fail', 'warning'].includes(getStatus(i)) && report.evidence?.[i.id])
-                                .map(i => `${i.label}: ${report.evidence[i.id]}`),
+                                .filter(
+                                  (i) =>
+                                    ['fail', 'warning'].includes(getStatus(i)) &&
+                                    report.evidence?.[i.id]
+                                )
+                                .map((i) => `${i.label}: ${report.evidence[i.id]}`),
                             ]
                             const allSuggestions = [
                               ...(aiCat?.suggestions || []),
                               ...cat.items
-                                .filter(i => ['fail', 'warning'].includes(getStatus(i)) && report.suggestions?.[i.id])
-                                .map(i => report.suggestions[i.id]),
+                                .filter(
+                                  (i) =>
+                                    ['fail', 'warning'].includes(getStatus(i)) &&
+                                    report.suggestions?.[i.id]
+                                )
+                                .map((i) => report.suggestions[i.id]),
                             ]
                             const hasIssues = allIssues.length > 0
                             const hasSuggestions = allSuggestions.length > 0
@@ -1908,9 +1960,14 @@ Audited with Missive Digital Content QA Tool.`
                               <div className="bg-blue-50/40 p-4 border-t border-blue-100 text-xs space-y-2">
                                 {hasIssues && (
                                   <div>
-                                    <span className="font-bold text-rose-700 block mb-1">Detected Issues:</span>
+                                    <span className="font-bold text-rose-700 block mb-1">
+                                      Detected Issues:
+                                    </span>
                                     {allIssues.map((issue, idx) => (
-                                      <p key={idx} className="text-gray-700 text-[11px] mb-0.5 flex items-start gap-1">
+                                      <p
+                                        key={idx}
+                                        className="text-gray-700 text-[11px] mb-0.5 flex items-start gap-1"
+                                      >
                                         <span className="text-rose-500">•</span>
                                         <span>{issue}</span>
                                       </p>
@@ -1919,9 +1976,14 @@ Audited with Missive Digital Content QA Tool.`
                                 )}
                                 {hasSuggestions && (
                                   <div>
-                                    <span className="font-bold text-[#0C81F3] block mb-1">Himani's Suggestions:</span>
+                                    <span className="font-bold text-[#0C81F3] block mb-1">
+                                      Himani's Suggestions:
+                                    </span>
                                     {[...new Set(allSuggestions)].map((s, idx) => (
-                                      <p key={idx} className="text-gray-700 text-[11px] mb-0.5 flex items-start gap-1">
+                                      <p
+                                        key={idx}
+                                        className="text-gray-700 text-[11px] mb-0.5 flex items-start gap-1"
+                                      >
                                         <span className="text-[#0C81F3]">→</span>
                                         <span>{s}</span>
                                       </p>
@@ -2176,7 +2238,8 @@ Audited with Missive Digital Content QA Tool.`
                                 {group.suggestion && (
                                   <p className="text-emerald-900 font-medium flex items-start gap-1.5 pt-1 border-t border-gray-100">
                                     <span className="text-emerald-700 font-bold shrink-0 flex items-center gap-1">
-                                      <Lightbulb className="w-3.5 h-3.5 text-amber-500" /> Himani's Fix:
+                                      <Lightbulb className="w-3.5 h-3.5 text-amber-500" /> Himani's
+                                      Fix:
                                     </span>{' '}
                                     <span>{group.suggestion}</span>
                                   </p>
@@ -2403,7 +2466,8 @@ Audited with Missive Digital Content QA Tool.`
                               </span>
                               {polishedResult.statsAfter?.fleschScore && (
                                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10">
-                                  <BookOpen className="w-3.5 h-3.5 text-purple-400 shrink-0" /> Flesch Ease:{' '}
+                                  <BookOpen className="w-3.5 h-3.5 text-purple-400 shrink-0" />{' '}
+                                  Flesch Ease:{' '}
                                   <strong className="text-purple-300">
                                     {polishedResult.statsBefore?.fleschScore ??
                                       report?.quickStats?.fleschScore ??
@@ -2490,11 +2554,13 @@ Audited with Missive Digital Content QA Tool.`
                           {polishMetrics && (
                             <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold">
                               <span className="px-2.5 py-1 rounded-full bg-emerald-200/70 text-emerald-900 border border-emerald-300 inline-flex items-center gap-1">
-                                <Check className="w-3 h-3" /> {polishMetrics.emDashesRemoved} Em-Dashes Eliminated
+                                <Check className="w-3 h-3" /> {polishMetrics.emDashesRemoved}{' '}
+                                Em-Dashes Eliminated
                               </span>
                               {polishMetrics.clichesRemoved > 0 && (
                                 <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-900 border border-blue-200 inline-flex items-center gap-1">
-                                  <Check className="w-3 h-3" /> {polishMetrics.clichesRemoved} AI Clichés Removed
+                                  <Check className="w-3 h-3" /> {polishMetrics.clichesRemoved} AI
+                                  Clichés Removed
                                 </span>
                               )}
                               <span className="px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200">
@@ -2698,19 +2764,23 @@ Audited with Missive Digital Content QA Tool.`
                                     >
                                       {isAdded ? (
                                         <span className="inline-flex items-center gap-1">
-                                          <Sparkles className="w-3 h-3 text-emerald-600" /> New Insight / Section Added
+                                          <Sparkles className="w-3 h-3 text-emerald-600" /> New
+                                          Insight / Section Added
                                         </span>
                                       ) : isRemoved ? (
                                         <span className="inline-flex items-center gap-1">
-                                          <Ban className="w-3 h-3 text-rose-600" /> Fluff / Redundant Section Removed
+                                          <Ban className="w-3 h-3 text-rose-600" /> Fluff /
+                                          Redundant Section Removed
                                         </span>
                                       ) : isModified ? (
                                         <span className="inline-flex items-center gap-1">
-                                          <Zap className="w-3 h-3 text-[#0C81F3]" /> Polished & Streamlined Line
+                                          <Zap className="w-3 h-3 text-[#0C81F3]" /> Polished &
+                                          Streamlined Line
                                         </span>
                                       ) : (
                                         <span className="inline-flex items-center gap-1">
-                                          <Check className="w-3 h-3 text-slate-500" /> Unchanged Paragraph
+                                          <Check className="w-3 h-3 text-slate-500" /> Unchanged
+                                          Paragraph
                                         </span>
                                       )}
                                     </span>
@@ -2916,7 +2986,9 @@ Audited with Missive Digital Content QA Tool.`
               <SendPdfModal
                 isOpen={showSendPdfModal}
                 onClose={() => setShowSendPdfModal(false)}
-                reportTitle={title ? `Content QA Report for "${title}"` : 'Content QA Checklist Report'}
+                reportTitle={
+                  title ? `Content QA Report for "${title}"` : 'Content QA Checklist Report'
+                }
                 filename={`himani-content-qa-${(title || 'content').toLowerCase().replace(/[^a-z0-9]/g, '-')}-${Date.now()}.pdf`}
                 getPdfDoc={async () => {
                   const { generateQaPdf } = await import('../../utils/generateQaPdf')

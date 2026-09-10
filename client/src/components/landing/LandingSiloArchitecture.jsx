@@ -52,7 +52,7 @@ export default function LandingSiloArchitecture() {
             </span>
           </h2>
           <p className="text-xs sm:text-sm md:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            The AI maps every topic into a hub-and-spoke model — pillar pages anchor topical authority, cluster pages capture long-tail intent, and internal links distribute ranking power across your entire content ecosystem.
+            The AI maps every topic into a hub-and-spoke model. Pillar pages anchor topical authority, cluster pages capture long-tail intent, and internal links distribute ranking power across your entire content ecosystem.
           </p>
         </div>
 

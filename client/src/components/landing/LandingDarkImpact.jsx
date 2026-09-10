@@ -20,20 +20,20 @@ export default function LandingDarkImpact({
 
   const displayStats = stats || [
     {
-      value: '67%',
-      label: 'Lower Bounce Rate',
-      sub: 'When using curiosity gaps & stats vs generic intros',
+      value: '82%',
+      label: 'First-Scroll Retention',
+      sub: 'Readers continue past the opening hook into H2',
       gradient: 'from-[#0C81F3] to-[#67A7FF]',
     },
     {
-      value: '3.4x',
-      label: 'Higher Dwell Time',
-      sub: 'Readers stay 3x longer on the page',
+      value: '4.2m',
+      label: 'Average Time on Page',
+      sub: 'Driven by curiosity gaps and narrative tension',
       gradient: 'from-[#67A7FF] to-[#EB8988]',
     },
     {
-      value: '20-30s',
-      label: 'Deep AI Generation',
+      value: '< 10s',
+      label: 'Instant AI Synthesis',
       sub: 'Save 30-45 minutes of blank-page staring',
       gradient: 'from-[#EB8988] to-[#FFB7B2]',
     },

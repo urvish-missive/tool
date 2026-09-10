@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   useGenerateBlogTopicsMutation,
   useGenerateMasterBriefMutation,
@@ -87,7 +87,11 @@ const DIFFICULTY_COLORS = {
   hard: 'bg-rose-50 text-rose-700 border-rose-200',
 }
 
-export default function BlogTopicGeneratorPage({ isEmbedded = false }) {
+export default function BlogTopicGeneratorPage({
+  isEmbedded = false,
+  onResultStateChange,
+  resetSignal,
+}) {
   const [niche, setNiche] = useState('')
   const [targetKeywords, setTargetKeywords] = useState('')
   const [audience, setAudience] = useState('')
@@ -117,6 +121,15 @@ export default function BlogTopicGeneratorPage({ isEmbedded = false }) {
   const strategy = results?.strategy || ''
   const activeToneLabel =
     TONES.find((t) => t.id === (results?.tone || tone))?.label || results?.tone || tone
+
+  useEffect(() => {
+    if (results) {
+      onResultStateChange?.(true)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      onResultStateChange?.(false)
+    }
+  }, [results, onResultStateChange])
 
   const getTopicKey = (topic, idx) => {
     if (topic.id !== undefined && topic.id !== null) return String(topic.id)
@@ -207,6 +220,9 @@ export default function BlogTopicGeneratorPage({ isEmbedded = false }) {
     setAudience('')
     setTone('authoritative')
     setContentGoal(CONTENT_GOALS[0])
+    setContentType(CONTENT_TYPES[0])
+    setCount(8)
+    setActiveCluster('all')
     setResults(null)
     setError('')
     setExpandedBriefs({})
@@ -215,6 +231,7 @@ export default function BlogTopicGeneratorPage({ isEmbedded = false }) {
     setDeepeningTopicKey(null)
     setFullScreenTopicData(null)
     resetMutation()
+    onResultStateChange?.(false)
     if (isEmbedded) {
       const toolEl = document.getElementById('tool')
       if (toolEl) {
@@ -226,6 +243,12 @@ export default function BlogTopicGeneratorPage({ isEmbedded = false }) {
     }
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
+
+  useEffect(() => {
+    if (resetSignal > 0) {
+      handleReset()
+    }
+  }, [resetSignal])
 
   const triggerCopy = (text, key) => {
     navigator.clipboard.writeText(text)
@@ -1302,34 +1325,37 @@ export default function BlogTopicGeneratorPage({ isEmbedded = false }) {
     <div className={isEmbedded ? 'w-full' : 'min-h-screen bg-slate-50/50 pb-20'}>
       {/* Hero Header */}
       {!isEmbedded && (
-      <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
-        <div
-          className="absolute inset-0"
-          style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }}
-        />
-        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
-        <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase shadow-sm">
-            Pillar & Cluster Silo Architecture
-          </span>
-
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight mb-4">
-            <span className="text-gray-900">AI Blog Topic & Silo </span>
-            <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
-              Architect
+        <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
+          <div
+            className="absolute inset-0"
+            style={{
+              background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)',
+              opacity: 0.08,
+            }}
+          />
+          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
+          <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
+            <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase shadow-sm">
+              Pillar & Cluster Silo Architecture
             </span>
-          </h1>
-          <p className="mt-3 text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Generate high-CTR headlines, complete article outlines, psychological hooks, and
-            structured topic clusters designed for topical authority.
-          </p>
-        </div>
-      </section>
+
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight mb-4">
+              <span className="text-gray-900">AI Blog Topic & Silo </span>
+              <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
+                Architect
+              </span>
+            </h1>
+            <p className="mt-3 text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
+              Generate high-CTR headlines, complete article outlines, psychological hooks, and
+              structured topic clusters designed for topical authority.
+            </p>
+          </div>
+        </section>
       )}
 
       {/* Main Container */}
-      <div className={isEmbedded ? 'w-full' : 'max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8'}>
+      <div className={isEmbedded ? 'w-full' : 'max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8'}>
         {/* Form Card */}
         {!isLoading && (
           <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-10">
@@ -1806,7 +1832,7 @@ export default function BlogTopicGeneratorPage({ isEmbedded = false }) {
       {/* Full-Screen Master Document Modal */}
       {fullScreenTopicData && (
         <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-fade-in">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-5xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden text-slate-100">
+          <div className="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-6xl max-h-[92vh] flex flex-col shadow-2xl overflow-hidden text-slate-100">
             {/* Modal Header */}
             <div className="p-5 sm:p-6 border-b border-slate-800 flex items-center justify-between gap-4 bg-slate-950/70">
               <div className="min-w-0">

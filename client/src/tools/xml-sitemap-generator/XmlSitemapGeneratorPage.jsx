@@ -346,7 +346,7 @@ export default function XmlSitemapGeneratorPage() {
       </section>
 
       {/* Main Form & Work Area */}
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
         {/* Error message */}
         {errorMessage && (
           <div className="mb-6 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-sm flex items-start gap-3">
@@ -1305,7 +1305,9 @@ export default function XmlSitemapGeneratorPage() {
                       {issue.recommendation && (
                         <p className="text-xs font-semibold text-slate-800 pt-0.5 flex items-start gap-1">
                           <Lightbulb className="w-3.5 h-3.5 text-amber-500 shrink-0 mt-0.5" />
-                          <span><strong>Fix:</strong> {issue.recommendation}</span>
+                          <span>
+                            <strong>Fix:</strong> {issue.recommendation}
+                          </span>
                         </p>
                       )}
                     </div>

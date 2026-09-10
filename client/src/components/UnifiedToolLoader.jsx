@@ -22,7 +22,7 @@ export default function UnifiedToolLoader({
     'Assembling executive report & deliverables',
   ],
   currentStepIdx,
-  stepIntervalMs = 4500,
+  stepIntervalMs = 1600,
 }) {
   const [internalIdx, setInternalIdx] = useState(0)
   const [elapsedMs, setElapsedMs] = useState(0)
@@ -50,11 +50,11 @@ export default function UnifiedToolLoader({
 
   const activeIdx = typeof currentStepIdx === 'number' ? currentStepIdx : internalIdx
 
-  // Calculate smooth continuous progress over 20-30 seconds:
-  const totalTargetMs = Math.max(22000, steps.length * stepIntervalMs)
-  const stepTargetPercent = ((activeIdx + 1) / steps.length) * 92
-  const timeProgress = Math.min(94, (elapsedMs / totalTargetMs) * 94)
-  const fluidPercent = Math.min(98, Math.max(8, Math.round(Math.max(stepTargetPercent, timeProgress))))
+  // Calculate smooth continuous progress calibrated for ~9-10 seconds:
+  const totalTargetMs = Math.max(9000, steps.length * stepIntervalMs)
+  const stepTargetPercent = ((activeIdx + 1) / steps.length) * 94
+  const timeProgress = Math.min(95, (elapsedMs / totalTargetMs) * 95)
+  const fluidPercent = Math.min(98, Math.max(10, Math.round(Math.max(stepTargetPercent, timeProgress))))
   const elapsedSeconds = (elapsedMs / 1000).toFixed(1)
 
   return (

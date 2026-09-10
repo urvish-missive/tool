@@ -161,7 +161,7 @@ export default function LandingConclusionAnatomy() {
   }
 
   return (
-    <section id="anatomy" className="py-16 sm:py-20 lg:py-24 bg-white border-b border-slate-200/70 relative scroll-mt-24">
+    <section id="anatomy" className="py-16 sm:py-20 lg:py-24 bg-white border-t border-b border-slate-200/70 relative scroll-mt-24">
       {/* Background radial highlight isolated in overflow-hidden container */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[450px] bg-gradient-to-r from-blue-100/30 via-indigo-100/20 to-pink-100/30 rounded-full blur-3xl" />

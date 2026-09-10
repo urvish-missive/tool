@@ -300,7 +300,7 @@ export async function generateBlogIntroductions({
   funnelStage = 'all',
   tone = 'conversational',
   count = 6,
-  preferredProvider = 'gemini-3.5-flash-lite',
+  preferredProvider = 'groq',
 }) {
   const activeTone = (tone || 'conversational').toLowerCase().trim()
   const toneProfile = TONE_PROFILES[activeTone] || TONE_PROFILES.conversational
@@ -413,10 +413,10 @@ OUTPUT FORMAT (strictly JSON):
     const tokenBudget = Math.max(requestedCount * 280, 2500)
 
     const result = await callAIAndParseJSON(messages, {
-      preferredProvider: preferredProvider || 'gemini-3.5-flash-lite',
+      preferredProvider: preferredProvider || 'groq',
       temperature: 0.65,
       maxTokens: tokenBudget,
-      timeout: 22000,
+      timeout: 14000,
     })
 
     const rawList = Array.isArray(result?.intros)

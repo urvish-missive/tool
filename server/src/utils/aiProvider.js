@@ -2,7 +2,7 @@ import { fetchWithTimeout, extractAndCleanJSON } from './helpers.js'
 
 /* ── Configuration ─────────────────────────────────────────────── */
 
-const AI_TIMEOUT = 12000
+const AI_TIMEOUT = 7000
 
 const PROVIDERS = {
   'gemini-3.5-flash-lite': {
@@ -89,7 +89,7 @@ async function callProvider(providerName, messages, options = {}) {
   const {
     temperature = 0.4,
     maxTokens = 4000,
-    timeout = (providerName.startsWith('zen') ? 25000 : AI_TIMEOUT),
+    timeout = (providerName.startsWith('zen') ? 12000 : AI_TIMEOUT),
     jsonMode = false
   } = options
 
@@ -187,24 +187,36 @@ async function callProvider(providerName, messages, options = {}) {
 // Providers ordered by quality (best/latest first). The primary provider rotates
 // for every request so token usage is spread across models while staying on the
 // best available results, falling back down the list if the primary fails.
+// Providers ordered by speed and quality (fastest & most reliable first).
 const QUALITY_PROVIDER_ORDER = [
-  'gemini-3.5-flash',
-  'zen',
-  'zen-mimo',
-  'gemini-3.5-flash-lite',
   'groq',
   'qwen-3.8',
+  'gemini-3.5-flash-lite',
+  'gemini-3.5-flash',
+  'gemini',
+  'zen-mimo',
+  'zen',
   'north-mini',
   'openrouter',
 ]
+
+// Only these are fast enough to hit the 10s result target. Rotation for load
+// spreading happens only within this pool; everything else in QUALITY_PROVIDER_ORDER
+// stays fallback-only so a slow provider never becomes the first attempt.
+const FAST_PROVIDER_POOL = ['groq', 'qwen-3.8']
 
 let rotationIndex = -1
 
 function getRotationProviderOrder() {
   const configured = QUALITY_PROVIDER_ORDER.filter((p) => PROVIDERS[p]?.key)
+  const fastPool = FAST_PROVIDER_POOL.filter((p) => configured.includes(p))
+  const pool = fastPool.length > 0 ? fastPool : configured
+
   rotationIndex += 1
-  const startIndex = rotationIndex % configured.length
-  return [...configured.slice(startIndex), ...configured.slice(0, startIndex)]
+  const startIndex = rotationIndex % pool.length
+  const rotatedFast = [...pool.slice(startIndex), ...pool.slice(0, startIndex)]
+  const rest = configured.filter((p) => !rotatedFast.includes(p))
+  return [...rotatedFast, ...rest]
 }
 
 /**
@@ -219,9 +231,17 @@ function getRotationProviderOrder() {
  */
 export async function callAI(messages, options = {}) {
   const { preferredProvider, ...callOpts } = options
-  const providerOrder = getRotationProviderOrder()
+  let providerOrder
+  if (preferredProvider && PROVIDERS[preferredProvider]?.key) {
+    const remaining = QUALITY_PROVIDER_ORDER.filter(
+      (p) => p !== preferredProvider && PROVIDERS[p]?.key
+    )
+    providerOrder = [preferredProvider, ...remaining]
+  } else {
+    providerOrder = getRotationProviderOrder()
+  }
 
-  console.log(`AI provider (auto-rotate): ${providerOrder.join(' → ')}`)
+  console.log(`AI provider order: ${providerOrder.join(' → ')}`)
   const errors = []
 
   for (const providerName of providerOrder) {

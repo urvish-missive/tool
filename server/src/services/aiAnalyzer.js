@@ -119,7 +119,7 @@ export async function analyzeWithAI(content, targetKeyword, secondaryKeywords, c
     const parsed = await callAIAndParseJSON([
       { role: 'system', content: SYSTEM_PROMPT },
       { role: 'user', content: buildUserPrompt(content, targetKeyword, secondaryKeywords, contentType, searchIntent, programmaticMetrics) },
-    ], { temperature: 0.3, maxTokens: 8000, jsonMode: true, preferredProvider: options.preferredProvider })
+    ], { temperature: 0.3, maxTokens: 8000, jsonMode: true, timeout: 14000, preferredProvider: options.preferredProvider })
 
     console.log('[OK] AI analysis complete — scores:', { overall: parsed.overall_score, seo: parsed.seo_score })
     return validateReport(parsed, programmaticMetrics)

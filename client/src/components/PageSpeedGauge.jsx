@@ -84,15 +84,15 @@ export function PageSpeedLegend({ className = '' }) {
     <div className={`flex items-center gap-3.5 text-[11px] font-bold text-gray-600 flex-wrap ${className}`}>
       <span className="flex items-center gap-1.5 text-rose-600">
         <PageSpeedShape shape="triangle" />
-        <span>0–49 Poor</span>
+        <span>0-49 Poor</span>
       </span>
       <span className="flex items-center gap-1.5 text-amber-600">
         <PageSpeedShape shape="square" />
-        <span>50–89 Needs Improvement</span>
+        <span>50-89 Needs Improvement</span>
       </span>
       <span className="flex items-center gap-1.5 text-emerald-600">
         <PageSpeedShape shape="circle" />
-        <span>90–100 Good</span>
+        <span>90-100 Good</span>
       </span>
     </div>
   )

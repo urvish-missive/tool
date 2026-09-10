@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -69,7 +69,6 @@ const TONES = [
   { id: 'data-driven', label: 'Analytical & Data-Driven' },
 ]
 
-
 const LOADING_STEPS = [
   'Analyzing blog topic & audience search intent',
   'Synthesizing TOFU Awareness curiosity hooks & myth-busters',
@@ -78,7 +77,11 @@ const LOADING_STEPS = [
   'Polishing seamless transition bridges into first H2',
 ]
 
-export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
+export default function BlogIntroGeneratorPage({
+  isEmbedded = false,
+  onResultStateChange,
+  resetSignal,
+}) {
   const [selectedFunnel, setSelectedFunnel] = useState('all')
   const [activeFilterTab, setActiveFilterTab] = useState('all')
   const [favorites, setFavorites] = useState({})
@@ -87,6 +90,21 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
   const [copiedAll, setCopiedAll] = useState(false)
   const [dataResult, setDataResult] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
+
+  useEffect(() => {
+    if (dataResult?.introductions?.length) {
+      onResultStateChange?.(true)
+      window.scrollTo({ top: 0, behavior: 'smooth' })
+    } else {
+      onResultStateChange?.(false)
+    }
+  }, [dataResult, onResultStateChange])
+
+  useEffect(() => {
+    if (resetSignal > 0) {
+      handleReset()
+    }
+  }, [resetSignal])
 
   const {
     register,
@@ -114,13 +132,8 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
 
   const [generateBlogIntros, { isLoading }] = useGenerateBlogIntrosMutation()
 
-  const {
-    showPopup,
-    handlePopupSubmit,
-    handlePopupClose,
-    triggerPopup,
-    popupEnabled,
-  } = useLeadPopup('blog-intro-generator')
+  const { showPopup, handlePopupSubmit, handlePopupClose, triggerPopup, popupEnabled } =
+    useLeadPopup('blog-intro-generator')
 
   const [pendingForm, setPendingForm] = useState(null)
 
@@ -237,9 +250,9 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
       dataResult.summary.targetAudience
         ? `*Target Audience: ${dataResult.summary.targetAudience} | Tone: ${TONES.find((t) => t.id === dataResult.summary.tone)?.label || dataResult.summary.tone}*`
         : `*Tone: ${TONES.find((t) => t.id === dataResult.summary.tone)?.label || dataResult.summary.tone}*`,
-      ((dataResult.summary?.targetAudiences?.length || dataResult.targetAudiences?.length)
+      dataResult.summary?.targetAudiences?.length || dataResult.targetAudiences?.length
         ? `*Target Audiences: ${(dataResult.summary?.targetAudiences || dataResult.targetAudiences).join(', ')}*`
-        : ''),
+        : '',
       '',
       '---',
       '',
@@ -313,7 +326,13 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
   const favCount = Object.values(favorites).filter(Boolean).length
 
   return (
-    <div className={isEmbedded ? 'w-full @container' : 'min-h-screen bg-slate-50 text-slate-800 pb-20 @container'}>
+    <div
+      className={
+        isEmbedded
+          ? 'w-full @container'
+          : 'min-h-screen bg-slate-50 text-slate-800 pb-20 @container'
+      }
+    >
       {/* Lead Capture Modal */}
       <LeadCaptureModal
         show={showPopup}
@@ -333,7 +352,10 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
         <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24 bg-gradient-to-b from-slate-50 to-white border-b border-slate-200">
           <div
             className="absolute inset-0 pointer-events-none"
-            style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.05 }}
+            style={{
+              background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)',
+              opacity: 0.05,
+            }}
           />
           <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-gradient-to-bl from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-gradient-to-tr from-[#A7D2FF]/20 to-[#F7B7B3]/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
@@ -352,8 +374,8 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
             </h1>
 
             <p className="mt-2 text-xs sm:text-sm md:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
-              Generate high-converting, scroll-stopping blog post hooks engineered across the funnel:{' '}
-              <strong className="text-sky-700 font-semibold">TOFU (Awareness)</strong>,{' '}
+              Generate high-converting, scroll-stopping blog post hooks engineered across the
+              funnel: <strong className="text-sky-700 font-semibold">TOFU (Awareness)</strong>,{' '}
               <strong className="text-amber-700 font-semibold">MOFU (Consideration)</strong>, and{' '}
               <strong className="text-emerald-700 font-semibold">BOFU (Decision)</strong>.
             </p>
@@ -362,7 +384,7 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
       )}
 
       {/* Main Container */}
-      <div className={isEmbedded ? 'w-full' : 'max-w-5xl mx-auto px-3 sm:px-6 py-4 sm:py-6'}>
+      <div className={isEmbedded ? 'w-full' : 'max-w-6xl mx-auto px-3 sm:px-6 py-4 sm:py-6'}>
         {/* Input Form Card — ONLY SHOWN WHEN NOT LOADING */}
         {!isLoading && (
           <div className="bg-white rounded-2xl sm:rounded-3xl shadow-lg shadow-slate-200/40 border border-slate-200 p-4 sm:p-6 lg:p-7 mb-8 transition-all">
@@ -370,7 +392,10 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
               {/* Topic / Title Input */}
               <div>
                 <div className="flex items-center justify-between mb-1.5">
-                  <label htmlFor="blog-topic-input" className="block text-xs sm:text-sm font-bold text-slate-800">
+                  <label
+                    htmlFor="blog-topic-input"
+                    className="block text-xs sm:text-sm font-bold text-slate-800"
+                  >
                     Blog Post Title or Topic <span className="text-rose-500">*</span>
                   </label>
                   <span className="text-[11px] font-medium text-slate-400 hidden xs:inline">
@@ -412,7 +437,6 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                 {errors.topic && (
                   <p className="mt-1 text-xs font-semibold text-rose-600">{errors.topic.message}</p>
                 )}
-
               </div>
 
               {/* Funnel Stage Selector */}
@@ -455,8 +479,12 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                           )}
                         </div>
                         <div>
-                          <p className="text-xs sm:text-sm font-bold text-slate-900 leading-tight">{opt.label}</p>
-                          <p className="text-[10px] sm:text-[11px] text-slate-500 mt-1 leading-snug">{opt.sub}</p>
+                          <p className="text-xs sm:text-sm font-bold text-slate-900 leading-tight">
+                            {opt.label}
+                          </p>
+                          <p className="text-[10px] sm:text-[11px] text-slate-500 mt-1 leading-snug">
+                            {opt.sub}
+                          </p>
                         </div>
                       </button>
                     )
@@ -471,7 +499,8 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                     htmlFor="keywords-input"
                     className="block text-xs sm:text-sm font-bold text-slate-800 mb-1"
                   >
-                    Target Keywords <span className="text-xs font-normal text-slate-400">(Optional)</span>
+                    Target Keywords{' '}
+                    <span className="text-xs font-normal text-slate-400">(Optional)</span>
                   </label>
                   <input
                     id="keywords-input"
@@ -487,7 +516,8 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                     htmlFor="audience-input"
                     className="block text-xs sm:text-sm font-bold text-slate-800 mb-1"
                   >
-                    Target Audience <span className="text-xs font-normal text-slate-400">(Optional)</span>
+                    Target Audience{' '}
+                    <span className="text-xs font-normal text-slate-400">(Optional)</span>
                   </label>
                   <input
                     id="audience-input"
@@ -502,7 +532,10 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
               {/* Tone of Voice & Count Row */}
               <div className="grid grid-cols-1 @min-[420px]:grid-cols-2 gap-3 sm:gap-4 pt-1">
                 <div>
-                  <label htmlFor="tone-select" className="block text-xs sm:text-sm font-bold text-slate-800 mb-1">
+                  <label
+                    htmlFor="tone-select"
+                    className="block text-xs sm:text-sm font-bold text-slate-800 mb-1"
+                  >
                     Tone of Voice
                   </label>
                   <select
@@ -552,7 +585,9 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                           </span>
                         )}
                         <div className="text-xs sm:text-sm font-bold leading-none">{n}</div>
-                        <div className={`text-[9px] sm:text-[10px] mt-0.5 leading-none ${countValue === n ? 'text-white/80' : 'text-slate-400'}`}>
+                        <div
+                          className={`text-[9px] sm:text-[10px] mt-0.5 leading-none ${countValue === n ? 'text-white/80' : 'text-slate-400'}`}
+                        >
                           {sub}
                         </div>
                       </button>
@@ -563,7 +598,6 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
 
               {/* Action Row */}
               <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-
                 <div className="flex items-center gap-2.5 w-full sm:w-auto">
                   {dataResult && (
                     <button
@@ -628,33 +662,44 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                   <p className="text-xs text-slate-500 mt-0.5">
                     {dataResult.summary.targetAudience && (
                       <>
-                        Audience: <strong className="text-slate-700">{dataResult.summary.targetAudience}</strong> •{' '}
+                        Audience:{' '}
+                        <strong className="text-slate-700">
+                          {dataResult.summary.targetAudience}
+                        </strong>{' '}
+                        •{' '}
                       </>
                     )}
-                    Tone: <strong className="text-slate-700">{TONES.find((t) => t.id === dataResult.summary.tone)?.label || dataResult.summary.tone}</strong>
+                    Tone:{' '}
+                    <strong className="text-slate-700">
+                      {TONES.find((t) => t.id === dataResult.summary.tone)?.label ||
+                        dataResult.summary.tone}
+                    </strong>
                   </p>
 
                   {/* Target Audience List */}
-                  {((dataResult.summary?.targetAudiences && dataResult.summary.targetAudiences.length > 0) ||
+                  {((dataResult.summary?.targetAudiences &&
+                    dataResult.summary.targetAudiences.length > 0) ||
                     (dataResult.targetAudiences && dataResult.targetAudiences.length > 0)) && (
                     <div className="pt-2.5 flex flex-wrap items-center gap-1.5">
                       <span className="text-[11px] font-bold text-slate-600 flex items-center gap-1">
                         <Users className="w-3.5 h-3.5 text-[#0C81F3]" /> Target Audiences:
                       </span>
-                      {(dataResult.summary?.targetAudiences || dataResult.targetAudiences).map((aud, i) => (
-                        <button
-                          key={i}
-                          type="button"
-                          onClick={() => {
-                            setValue('targetAudience', aud)
-                            navigator.clipboard.writeText(aud)
-                          }}
-                          title="Click to apply to Target Audience input"
-                          className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-50/80 text-[#0C81F3] border border-blue-200/80 hover:bg-blue-100 hover:border-blue-300 transition-colors shadow-2xs cursor-pointer"
-                        >
-                          {aud}
-                        </button>
-                      ))}
+                      {(dataResult.summary?.targetAudiences || dataResult.targetAudiences).map(
+                        (aud, i) => (
+                          <button
+                            key={i}
+                            type="button"
+                            onClick={() => {
+                              setValue('targetAudience', aud)
+                              navigator.clipboard.writeText(aud)
+                            }}
+                            title="Click to apply to Target Audience input"
+                            className="px-2.5 py-0.5 rounded-full text-[11px] font-medium bg-blue-50/80 text-[#0C81F3] border border-blue-200/80 hover:bg-blue-100 hover:border-blue-300 transition-colors shadow-2xs cursor-pointer"
+                          >
+                            {aud}
+                          </button>
+                        )
+                      )}
                     </div>
                   )}
                 </div>
@@ -666,7 +711,11 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                     onClick={handleCopyAll}
                     className="flex-1 lg:flex-none px-3 py-1.5 sm:px-3.5 sm:py-2 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-all flex items-center justify-center gap-1.5 shadow-2xs cursor-pointer"
                   >
-                    {copiedAll ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+                    {copiedAll ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
                     <span>{copiedAll ? 'Copied!' : 'Copy All'}</span>
                   </button>
 
@@ -687,7 +736,9 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                   <div className="text-[10px] sm:text-[11px] font-bold text-sky-700 uppercase tracking-wider">
                     TOFU Awareness
                   </div>
-                  <div className="text-xl sm:text-2xl font-black text-sky-900 mt-0.5">{tofuCount}</div>
+                  <div className="text-xl sm:text-2xl font-black text-sky-900 mt-0.5">
+                    {tofuCount}
+                  </div>
                   <div className="text-[10px] text-sky-600">Curiosity & Stats</div>
                 </div>
 
@@ -695,7 +746,9 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                   <div className="text-[10px] sm:text-[11px] font-bold text-amber-700 uppercase tracking-wider">
                     MOFU Consideration
                   </div>
-                  <div className="text-xl sm:text-2xl font-black text-amber-900 mt-0.5">{mofuCount}</div>
+                  <div className="text-xl sm:text-2xl font-black text-amber-900 mt-0.5">
+                    {mofuCount}
+                  </div>
                   <div className="text-[10px] text-amber-600">PAS & Frameworks</div>
                 </div>
 
@@ -703,7 +756,9 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                   <div className="text-[10px] sm:text-[11px] font-bold text-emerald-700 uppercase tracking-wider">
                     BOFU Decision
                   </div>
-                  <div className="text-xl sm:text-2xl font-black text-emerald-900 mt-0.5">{bofuCount}</div>
+                  <div className="text-xl sm:text-2xl font-black text-emerald-900 mt-0.5">
+                    {bofuCount}
+                  </div>
                   <div className="text-[10px] text-emerald-600">ROI & Verdicts</div>
                 </div>
 
@@ -712,7 +767,9 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                     <Star className="w-3.5 h-3.5 fill-purple-700" />
                     <span>Pinned</span>
                   </div>
-                  <div className="text-xl sm:text-2xl font-black text-purple-900 mt-0.5">{favCount}</div>
+                  <div className="text-xl sm:text-2xl font-black text-purple-900 mt-0.5">
+                    {favCount}
+                  </div>
                   <div className="text-[10px] text-purple-600">Saved Favorites</div>
                 </div>
               </div>
@@ -850,7 +907,9 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                       {/* Card Header & Badges */}
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <div className="flex flex-wrap items-center gap-1.5">
-                          <span className={`inline-flex items-center whitespace-nowrap shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider ${stageStyles.badge}`}>
+                          <span
+                            className={`inline-flex items-center whitespace-nowrap shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-extrabold uppercase tracking-wider ${stageStyles.badge}`}
+                          >
                             {intro.funnelLabel}
                           </span>
                           <span className="inline-flex items-center whitespace-nowrap shrink-0 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 text-slate-700 border border-slate-200">
@@ -893,7 +952,11 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                             onClick={() => handleCopyHook(intro.id, intro.hookLine)}
                             className="text-xs font-semibold text-[#0C81F3] hover:underline flex items-center gap-1 cursor-pointer"
                           >
-                            {isCopiedHook ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
+                            {isCopiedHook ? (
+                              <Check className="w-3 h-3 text-emerald-600" />
+                            ) : (
+                              <Copy className="w-3 h-3" />
+                            )}
                             <span>{isCopiedHook ? 'Copied!' : 'Copy Hook'}</span>
                           </button>
                         </div>
@@ -928,7 +991,8 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
                         <div className="text-xs text-slate-500 flex items-start sm:items-center gap-1.5">
                           <HelpCircle className="w-3.5 h-3.5 text-slate-400 shrink-0 mt-0.5 sm:mt-0" />
                           <span>
-                            <strong className="text-slate-700 font-semibold">Why it works:</strong> {intro.whyItWorks}
+                            <strong className="text-slate-700 font-semibold">Why it works:</strong>{' '}
+                            {intro.whyItWorks}
                           </span>
                         </div>
 
@@ -963,7 +1027,9 @@ export default function BlogIntroGeneratorPage({ isEmbedded = false }) {
             {/* Bottom Floating Reset / New Search Bar */}
             <div className="p-4 sm:p-5 bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3">
               <div>
-                <h4 className="text-sm sm:text-base font-bold text-slate-900">Want to try another angle or topic?</h4>
+                <h4 className="text-sm sm:text-base font-bold text-slate-900">
+                  Want to try another angle or topic?
+                </h4>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Refine the tone or test specific TOFU, MOFU, or BOFU formulas.
                 </p>

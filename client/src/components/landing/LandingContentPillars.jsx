@@ -6,21 +6,21 @@ const PILLARS = [
     icon: Target,
     title: 'Pillar Page Topics',
     desc: 'High-authority, broad topics that anchor your topical cluster and capture maximum search volume.',
-    stat: '2–4 per strategy',
+    stat: '2-4 per strategy',
     color: 'from-[#0C81F3] to-[#67A7FF]',
   },
   {
     icon: Link2,
     title: 'Cluster Subtopics',
     desc: 'Long-tail, intent-specific articles that link back to pillar pages and capture niche queries.',
-    stat: '6–12 per pillar',
+    stat: '6-12 per pillar',
     color: 'from-[#67A7FF] to-[#EB8988]',
   },
   {
     icon: BarChart3,
     title: 'Funnel-Mapped Intent',
     desc: 'Every topic tagged with TOFU, MOFU, or BOFU so you write the right content for the right reader at the right time.',
-    stat: '3 funnel stages',
+    stat: 'Buyer journey aligned',
     color: 'from-[#EB8988] to-[#FFB7B2]',
   },
   {
@@ -33,15 +33,15 @@ const PILLARS = [
   {
     icon: Calendar,
     title: 'Editorial Calendar',
-    desc: 'Prioritized publishing sequence that builds topical authority systematically — pillar first, clusters second.',
+    desc: 'Prioritized publishing sequence that builds topical authority systematically. Pillar first, clusters second.',
     stat: 'Auto-prioritized',
     color: 'from-[#67A7FF] to-[#0C81F3]',
   },
   {
     icon: Sparkles,
     title: 'SEO & E-E-A-T Aligned',
-    desc: 'Every suggestion follows Google quality rater guidelines. Zero fluff, zero generic advice — only actionable, expert-level topic strategy.',
-    stat: 'Missive QA certified',
+    desc: 'Every suggestion follows Google quality rater guidelines. Zero fluff, zero generic advice. Only actionable, expert-level topic strategy.',
+    stat: 'Intent-Aligned',
     color: 'from-[#EB8988] to-[#0C81F3]',
   },
 ]
@@ -51,7 +51,7 @@ export default function LandingContentPillars() {
   const gridRef = useScrollReveal({ threshold: 0.1 })
 
   return (
-    <section className="py-16 sm:py-20 lg:py-24 bg-white">
+    <section className="py-16 sm:py-20 lg:py-24 bg-white border-t border-slate-200/70">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
         <div ref={headerRef} className="lp-reveal text-center mb-10 sm:mb-12">
           <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white px-4 py-1.5 text-[11px] sm:text-xs font-bold uppercase tracking-wider mb-4 shadow-sm">
@@ -65,7 +65,7 @@ export default function LandingContentPillars() {
             </span>
           </h2>
           <p className="text-xs sm:text-sm md:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            Not just topic ideas — a complete editorial blueprint with silo architecture, interlinking strategy, and prioritized publishing order.
+            Not just topic ideas. A complete editorial blueprint with silo architecture, interlinking strategy, and prioritized publishing order.
           </p>
         </div>
 
