@@ -194,7 +194,7 @@ export default function WebsiteContentExtractorPage() {
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase shadow-sm">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Himani's SEO Tools • Missive Digital</span>
+            <span>Missive's SEO Tools • Missive Digital</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight mb-4">

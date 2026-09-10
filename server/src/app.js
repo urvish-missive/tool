@@ -416,19 +416,19 @@ async function seedDefaults() {
         await prisma.toolConfig.create({
           data: {
             slug: 'eeat-analyzer',
-            name: 'E-E-A-T & AI Search Authority Analyzer',
-            description: 'Evaluate, score, and improve Google E-E-A-T and AI Overview / Perplexity citation readiness',
+            name: 'E‑E‑A‑T & AI Search Authority Analyzer',
+            description: 'Evaluate, score, and improve Google E‑E‑A‑T and AI Overview / Perplexity citation readiness',
             dailyLimit: 50,
             hourlyLimit: 10,
             formFields: JSON.stringify({
               url: { enabled: true, label: 'Website URL', required: false },
               content: { enabled: true, label: 'Article / Draft Text', required: false },
-              contentType: { enabled: true, label: 'E-E-A-T Content Type', required: false },
+              contentType: { enabled: true, label: 'E‑E‑A‑T Content Type', required: false },
               targetKeywords: { enabled: true, label: 'Target Keywords', required: false },
             }),
           },
         })
-        console.log('[OK] E-E-A-T Analyzer tool config seeded')
+        console.log('[OK] E‑E‑A‑T Analyzer tool config seeded')
       }
     } catch {}
 

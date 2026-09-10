@@ -408,7 +408,7 @@ export default function BlogConclusionGeneratorPage({
           <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[11px] sm:text-xs font-bold rounded-full mb-3 tracking-wide uppercase shadow-2xs whitespace-nowrap shrink-0">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Himani's SEO Tools • Missive Digital</span>
+              <span>Missive's SEO Tools • Missive Digital</span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight">
@@ -481,7 +481,7 @@ export default function BlogConclusionGeneratorPage({
                       onClick={() => handleLoadSample(preset)}
                       className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95 ${
                         isActive
-                          ? 'bg-[#0C81F3] text-white border border-[#0C81F3] shadow-xs ring-2 ring-[#0C81F3]/20'
+                          ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white border-transparent shadow-xs ring-2 ring-[#0C81F3]/20'
                           : 'bg-white hover:bg-blue-50 text-slate-700 hover:text-[#0C81F3] border border-slate-200 hover:border-blue-200'
                       }`}
                     >

@@ -38,8 +38,8 @@ export default function LandingDarkImpact({
       gradient: 'from-[#EB8988] to-[#FFB7B2]',
     },
     {
-      value: '100%',
-      label: 'E-E-A-T Aligned',
+      value: 'Full',
+      label: 'E‑E‑A‑T Aligned',
       sub: 'Follows Google quality rater guidelines',
       gradient: 'from-[#0C81F3] to-[#EB8988]',
     },
@@ -51,7 +51,7 @@ export default function LandingDarkImpact({
 
   const displayAuthor = author || 'Joseph Sugarman, Legendary Copywriter'
 
-  const displayCtaLabel = ctaLabel || 'Stop the Bounce: Generate High-Converting Intros'
+  const displayCtaLabel = ctaLabel || 'Generate High-Converting Intros'
 
   return (
     <section className="relative py-20 sm:py-28 lg:py-32 bg-[#171720] text-white overflow-hidden">
@@ -74,7 +74,7 @@ export default function LandingDarkImpact({
             {badge}
           </div>
 
-          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-[54px] font-black tracking-tight leading-[1.12] mb-5">
+          <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight leading-[1.12] mb-5">
             {title || (
               <>
                 The First 3 Sentences Decide{' '}
@@ -102,7 +102,7 @@ export default function LandingDarkImpact({
               className="lp-reveal-child p-6 sm:p-7 rounded-3xl bg-white/[0.04] border border-white/10 hover:border-white/25 hover:bg-white/[0.07] transition-all duration-300 backdrop-blur-md group text-center"
             >
               <div
-                className={`text-4xl sm:text-5xl font-black tracking-tight leading-none bg-gradient-to-r ${item.gradient} bg-clip-text text-transparent mb-2 group-hover:scale-105 transition-transform`}
+                className={`text-3xl sm:text-4xl font-black tracking-tight leading-none bg-gradient-to-r ${item.gradient} bg-clip-text text-transparent mb-2 group-hover:scale-105 transition-transform`}
               >
                 {item.value}
               </div>

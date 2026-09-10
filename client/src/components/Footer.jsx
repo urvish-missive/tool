@@ -15,14 +15,34 @@ const FOOTER_TOOLS = [
   { label: 'ROI Calculator', href: '/seo-roi-calculator', slug: 'seo-roi' },
   { label: 'XML Sitemap Generator', href: '/xml-sitemap-generator', slug: 'xml-sitemap-generator' },
   { label: 'Google Rank Checker', href: '/google-rank-checker', slug: 'google-rank-checker' },
-  { label: 'Website Content Extractor', href: '/website-content-extractor', slug: 'website-content-extractor' },
-  { label: 'Website Image Extractor', href: '/website-image-extractor', slug: 'website-image-extractor' },
-  { label: 'Tech & Theme Inspector', href: '/website-tech-inspector', slug: 'website-tech-inspector' },
+  {
+    label: 'Website Content Extractor',
+    href: '/website-content-extractor',
+    slug: 'website-content-extractor',
+  },
+  {
+    label: 'Website Image Extractor',
+    href: '/website-image-extractor',
+    slug: 'website-image-extractor',
+  },
+  {
+    label: 'Tech & Theme Inspector',
+    href: '/website-tech-inspector',
+    slug: 'website-tech-inspector',
+  },
   { label: 'AI Content Writer', href: '/ai-content-writer', slug: 'ai-content-writer' },
   { label: 'Blog Intro Generator', href: '/blog-intro-generator', slug: 'blog-intro-generator' },
-  { label: 'Blog Conclusion Generator', href: '/blog-conclusion-generator', slug: 'blog-conclusion-generator' },
-  { label: 'E-E-A-T & AI Authority Analyzer', href: '/eeat-analyzer', slug: 'eeat-analyzer' },
-  { label: 'Business Competitor Intel', href: '/business-competitor-analytics', slug: 'business-competitor-analytics' },
+  {
+    label: 'Blog Conclusion Generator',
+    href: '/blog-conclusion-generator',
+    slug: 'blog-conclusion-generator',
+  },
+  { label: 'E‑E‑A‑T & AI Authority Analyzer', href: '/eeat-analyzer', slug: 'eeat-analyzer' },
+  {
+    label: 'Business Competitor Intel',
+    href: '/business-competitor-analytics',
+    slug: 'business-competitor-analytics',
+  },
 ]
 
 export default function Footer() {
@@ -56,9 +76,6 @@ export default function Footer() {
                   className="hover:text-white transition-colors flex items-center justify-between"
                 >
                   <span>AI SEO</span>
-                  <span className="text-[10px] bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white px-1.5 py-0.5 rounded-full font-bold">
-                    HOT
-                  </span>
                 </a>
               </li>
               <li>
@@ -120,9 +137,9 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Himani's SEO Tools — Dynamic & Filtered by Admin Status */}
+          {/* Missive's SEO Tools — Dynamic & Filtered by Admin Status */}
           <div>
-            <h3 className="text-white font-semibold text-base mb-5">Himani's SEO Tools</h3>
+            <h3 className="text-white font-semibold text-base mb-5">Missive's SEO Tools</h3>
             <ul className="space-y-3 text-sm">
               {visibleTools.map((tool) => (
                 <li key={tool.slug}>
@@ -196,7 +213,10 @@ export default function Footer() {
                   Email Us
                 </span>
                 <p className="text-white font-semibold text-sm mt-0.5">
-                  <a href="mailto:hello@missivedigital.com" className="hover:text-[#67A7FF] transition-colors">
+                  <a
+                    href="mailto:hello@missivedigital.com"
+                    className="hover:text-[#67A7FF] transition-colors"
+                  >
                     hello@missivedigital.com
                   </a>
                 </p>

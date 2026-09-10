@@ -161,7 +161,7 @@ export default function TablePagination({
                 onClick={() => onPageChange(p)}
                 className={`min-w-[32px] h-8 px-2 text-xs font-medium rounded-lg transition-all ${
                   isActive
-                    ? 'bg-[#0C81F3] text-white shadow-sm font-bold'
+                    ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-sm font-bold'
                     : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                 } cursor-pointer`}
               >

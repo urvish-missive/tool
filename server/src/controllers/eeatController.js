@@ -1,7 +1,7 @@
 import { analyzeEeat, EEAT_CONTENT_TYPES } from '../services/eeatAnalyzer.js'
 
 /**
- * Handler for E-E-A-T and AI Search Authority Audit
+ * Handler for E‑E‑A‑T and AI Search Authority Audit
  * POST /api/eeat/analyze
  */
 export async function analyzeEeatHandler(req, res) {
@@ -45,13 +45,13 @@ export async function analyzeEeatHandler(req, res) {
     console.error('[EeatController] Analysis error:', err.message)
     return res.status(500).json({
       success: false,
-      error: err.message || 'Failed to complete E-E-A-T analysis. Please check the URL or content and try again.',
+      error: err.message || 'Failed to complete E‑E‑A‑T analysis. Please check the URL or content and try again.',
     })
   }
 }
 
 /**
- * Handler for retrieving supported E-E-A-T content types
+ * Handler for retrieving supported E‑E‑A‑T content types
  * GET /api/eeat/types
  */
 export async function getEeatTypesHandler(req, res) {

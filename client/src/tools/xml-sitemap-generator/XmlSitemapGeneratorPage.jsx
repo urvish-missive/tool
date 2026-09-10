@@ -65,7 +65,7 @@ const FAQ_ITEMS = [
     a: 'According to Sitemaps.org standards, a single sitemap file can contain a maximum of 50,000 URLs and must not exceed 50 MB uncompressed. Websites with more than 50,000 URLs or larger file sizes should split their URLs across multiple sitemaps and bundle them in a Sitemap Index file (<sitemapindex>).',
   },
   {
-    q: 'Does having an XML sitemap guarantee 100% indexing by Google?',
+    q: 'Does having an XML sitemap ensure complete indexing by Google?',
     a: 'No. An XML sitemap helps search engines discover your pages quickly, but indexing decisions depend on your content quality, on-page SEO, technical health, search intent match, and internal link structure.',
   },
   {
@@ -280,7 +280,7 @@ export default function XmlSitemapGeneratorPage() {
         <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase shadow-sm">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Himani's SEO Tools • Missive Digital</span>
+            <span>Missive's SEO Tools • Missive Digital</span>
           </div>
 
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight mb-4">
@@ -741,7 +741,7 @@ export default function XmlSitemapGeneratorPage() {
                   {sitemapData.status200Count}
                 </p>
                 <span className="text-[11px] text-emerald-600 font-semibold mt-0.5 inline-block">
-                  100% Reachable
+                  Fully Reachable
                 </span>
               </div>
 
@@ -1073,7 +1073,7 @@ export default function XmlSitemapGeneratorPage() {
                         </button>
                         <button
                           onClick={() => downloadFile(sitemapIndexXml, 'sitemap-index.xml')}
-                          className="px-2.5 py-1 bg-[#0C81F3] hover:bg-blue-600 text-white rounded text-xs flex items-center gap-1 cursor-pointer"
+                          className="px-2.5 py-1 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:opacity-90 text-white rounded text-xs flex items-center gap-1 cursor-pointer"
                         >
                           <Download className="w-3 h-3" />
                           <span>Download Index</span>
@@ -1270,7 +1270,7 @@ export default function XmlSitemapGeneratorPage() {
                     <div>
                       <p className="font-bold">No Issues Detected!</p>
                       <p className="text-xs text-emerald-700 mt-0.5">
-                        Your sitemap conforms 100% to Sitemaps.org guidelines and is ready for
+                        Your sitemap conforms to Sitemaps.org guidelines and is ready for
                         submission to Google Search Console.
                       </p>
                     </div>

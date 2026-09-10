@@ -28,21 +28,21 @@ export async function fetchGooglePageSpeed(targetUrl, strategy = 'mobile') {
     const categories = lighthouse.categories || {}
     const audits = lighthouse.audits || {}
 
-    const performanceScore = Math.round((categories.performance?.score || 0.75) * 100)
-    const accessibilityScore = Math.round((categories.accessibility?.score || 0.85) * 100)
-    const bestPracticesScore = Math.round((categories['best-practices']?.score || 0.85) * 100)
-    const seoScore = Math.round((categories.seo?.score || 0.88) * 100)
+    const performanceScore = categories.performance?.score != null ? Math.round(categories.performance.score * 100) : 'N/A'
+    const accessibilityScore = categories.accessibility?.score != null ? Math.round(categories.accessibility.score * 100) : 'N/A'
+    const bestPracticesScore = categories['best-practices']?.score != null ? Math.round(categories['best-practices'].score * 100) : 'N/A'
+    const seoScore = categories.seo?.score != null ? Math.round(categories.seo.score * 100) : 'N/A'
 
     // Core Web Vitals & Metrics
-    const lcp = audits['largest-contentful-paint']?.displayValue || '2.4 s'
-    const lcpScore = audits['largest-contentful-paint']?.score ?? 0.8
-    const fcp = audits['first-contentful-paint']?.displayValue || '1.2 s'
-    const fcpScore = audits['first-contentful-paint']?.score ?? 0.85
-    const cls = audits['cumulative-layout-shift']?.displayValue || '0.04'
-    const clsScore = audits['cumulative-layout-shift']?.score ?? 0.9
-    const tbt = audits['total-blocking-time']?.displayValue || '120 ms'
-    const speedIndex = audits['speed-index']?.displayValue || '2.1 s'
-    const ttfb = audits['server-response-time']?.displayValue || '280 ms'
+    const lcp = audits['largest-contentful-paint']?.displayValue || 'N/A'
+    const lcpScore = audits['largest-contentful-paint']?.score ?? 'N/A'
+    const fcp = audits['first-contentful-paint']?.displayValue || 'N/A'
+    const fcpScore = audits['first-contentful-paint']?.score ?? 'N/A'
+    const cls = audits['cumulative-layout-shift']?.displayValue || 'N/A'
+    const clsScore = audits['cumulative-layout-shift']?.score ?? 'N/A'
+    const tbt = audits['total-blocking-time']?.displayValue || 'N/A'
+    const speedIndex = audits['speed-index']?.displayValue || 'N/A'
+    const ttfb = audits['server-response-time']?.displayValue || 'N/A'
 
     // Opportunities
     const opportunities = []
@@ -87,7 +87,7 @@ export async function fetchGooglePageSpeed(targetUrl, strategy = 'mobile') {
     }
   } catch (err) {
     // Fallback to estimated synthetic metrics
-    return generateSyntheticPageSpeed(targetUrl, strategy)
+    return generateDynamicPageSpeed(targetUrl, strategy)
   }
 }
 
@@ -162,9 +162,9 @@ export function generateDynamicPageSpeed(targetUrl, strategy = 'mobile', crawlDa
     strategy,
     source: 'Live Network & DOM Performance Engine',
     score: finalScore,
-    accessibilityScore: 90,
-    bestPracticesScore: 92,
-    seoScore: 92,
+    accessibilityScore: 'N/A',
+    bestPracticesScore: 'N/A',
+    seoScore: 'N/A',
     metrics: {
       lcp: { value: `${(lcpMs / 1000).toFixed(1)} s`, score: lcpMs < 2500 ? 0.9 : lcpMs < 4000 ? 0.6 : 0.3, label: 'Largest Contentful Paint (LCP)' },
       fcp: { value: `${(fcpMs / 1000).toFixed(1)} s`, score: fcpMs < 1800 ? 0.9 : 0.6, label: 'First Contentful Paint (FCP)' },

@@ -372,7 +372,7 @@ export default function LogoMakerPage() {
                 </button>
                 <button
                   onClick={handleDownloadAll}
-                  className="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-colors cursor-pointer flex items-center gap-1.5"
+                  className="px-4 py-2 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:opacity-90 text-white text-xs font-bold shadow-sm transition-all cursor-pointer flex items-center gap-1.5"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Download All (SVG)</span>
@@ -399,7 +399,7 @@ export default function LogoMakerPage() {
 
                   <button
                     onClick={() => handleDownload(selectedVariation)}
-                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-md transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:opacity-90 text-white text-xs font-bold shadow-md transition-all cursor-pointer"
                   >
                     <Download className="w-4 h-4" />
                     <span>Download SVG Vector</span>

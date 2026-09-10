@@ -113,7 +113,7 @@ export default function LandingTopicBlueprintCTA({ onCta }) {
           <div className="relative z-10 mt-6 sm:mt-7 flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs text-slate-400 font-medium">
             <span className="flex items-center gap-1.5">
               <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-              100% Free Forever
+              Free Forever
             </span>
             <span className="text-slate-600">•</span>
             <span>Zero Sign-Up Required</span>

@@ -23,7 +23,7 @@ const PILLS = [
     icon: '',
   },
   {
-    text: 'Google E-E-A-T Aligned',
+    text: 'Google E‑E‑A‑T Aligned',
     color: 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100',
     icon: '',
   },

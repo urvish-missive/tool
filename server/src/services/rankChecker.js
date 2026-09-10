@@ -419,108 +419,41 @@ function generateFallbackIntelligence({ domain, keyword, isBrand }) {
       position: 1,
       rankingUrl: `https://${targetDomain}/`,
       rankingTitle: `${kwTitle} - Official Website`,
-      rankingSnippet: `Welcome to ${kwTitle}. Explore our official services, case studies, solutions, and insights directly from ${targetDomain}.`,
+      rankingSnippet: `Official website for ${kwTitle} (${targetDomain}).`,
       searchIntent: 'Navigational',
-      difficulty: 15,
-      searchVolumeTier: '500 - 1K / mo',
-      estimatedCtr: '36.8%',
+      difficulty: 'N/A',
+      searchVolumeTier: 'N/A',
+      estimatedCtr: '34.5%',
       competitionLevel: 'Low',
-      topCompetitors: [
-        {
-          position: 1,
-          domain: targetDomain,
-          title: `${kwTitle} - Official Website`,
-          url: `https://${targetDomain}/`,
-          snippet: `Official website of ${kwTitle}. Learn more about our expertise and offerings.`,
-          contentType: 'Service Page',
-        },
-        {
-          position: 2,
-          domain: targetDomain,
-          title: `About ${kwTitle} - Team & Vision`,
-          url: `https://${targetDomain}/about/`,
-          snippet: `Discover our journey, core values, and dedicated team at ${targetDomain}.`,
-          contentType: 'Service Page',
-        },
-        {
-          position: 3,
-          domain: 'linkedin.com',
-          title: `${kwTitle} | LinkedIn`,
-          url: `https://www.linkedin.com/company/${targetDomain.split('.')[0]}`,
-          snippet: `Connect with ${kwTitle} on LinkedIn for professional updates and industry insights.`,
-          contentType: 'Directory',
-        },
-        {
-          position: 4,
-          domain: 'clutch.co',
-          title: `${kwTitle} Reviews & Ratings | Clutch.co`,
-          url: `https://clutch.co/profile/${targetDomain.split('.')[0]}`,
-          snippet: `Verified client reviews, ratings, and portfolio showcase for ${kwTitle}.`,
-          contentType: 'Directory',
-        },
-        {
-          position: 5,
-          domain: 'crunchbase.com',
-          title: `${kwTitle} - Company Profile & Funding | Crunchbase`,
-          url: `https://www.crunchbase.com/organization/${targetDomain.split('.')[0]}`,
-          snippet: `Business background, leadership, and operational details for ${kwTitle}.`,
-          contentType: 'Directory',
-        },
-      ],
-      serpFeatures: [
-        { name: 'Sitelinks', present: true, ownedBy: targetDomain, howToWin: 'Maintain clear navigation hierarchy and XML sitemaps.' },
-        { name: 'Knowledge Panel', present: true, ownedBy: targetDomain, howToWin: 'Verify Google Business profile and Organization schema.' },
-        { name: 'People Also Ask', present: true, ownedBy: 'Google', howToWin: 'Add FAQ structured data answering brand queries.' },
-      ],
-      competitiveGapAnalysis: `${targetDomain} dominates its brand SERP with authoritative corporate properties and active professional profiles.`,
-      outrankPlaybook: [
-        { step: 1, title: 'Claim & Optimize Entity Profiles', description: 'Ensure LinkedIn, Clutch, and Crunchbase profiles link back to homepage.', impact: 'Critical' },
-        { step: 2, title: 'Implement Organization Schema', description: 'Embed JSON-LD schema linking official social media handles via sameAs.', impact: 'High' },
-        { step: 3, title: 'Enable Sitelinks Search Box', description: 'Deploy structured website navigation to occupy maximum above-the-fold real estate.', impact: 'High' },
-        { step: 4, title: 'Build Brand FAQ Hub', description: 'Answer questions prospective searchers ask regarding your services.', impact: 'Medium' },
-      ],
-      peopleAlsoAsk: [
-        { question: `What services does ${kwTitle} provide?`, answer: `${kwTitle} provides specialized digital solutions and consulting.` },
-        { question: `Who founded ${kwTitle}?`, answer: `${kwTitle} is led by domain experts committed to client performance.` },
-        { question: `How do I get in touch with ${kwTitle}?`, answer: `You can reach out directly via the contact form on ${targetDomain}.` },
-      ],
+      topCompetitors: [],
+      serpFeatures: [],
+      competitiveGapAnalysis: 'N/A',
+      outrankPlaybook: [],
+      peopleAlsoAsk: [],
     }
   }
 
-  // Non-brand query fallback
+  // Non-brand query fallback: return N/A rather than fabricated estimates
   return {
     position: null,
-    rankingUrl: `https://${targetDomain}/${kwWords.slice(0, 3).join('-')}`,
-    rankingTitle: `${kwTitle} Solutions & Strategy | ${targetDomain}`,
-    rankingSnippet: `Discover high-performance ${keyword} frameworks from ${targetDomain}. Data-driven strategies designed to scale organic traffic and conversions.`,
-    searchIntent: 'Commercial',
-    difficulty: 60,
-    searchVolumeTier: '1K - 5K / mo',
-    estimatedCtr: '2.5%',
-    competitionLevel: 'High',
+    rankingUrl: null,
+    rankingTitle: null,
+    rankingSnippet: null,
+    searchIntent: 'N/A',
+    difficulty: 'N/A',
+    searchVolumeTier: 'N/A',
+    estimatedCtr: 'N/A',
+    competitionLevel: 'N/A',
     topCompetitors: [],
-    serpFeatures: [
-      { name: 'Featured Snippet', present: true, ownedBy: 'Competitor', howToWin: 'Provide concise 45-word answers under H2 headers.' },
-      { name: 'People Also Ask', present: true, ownedBy: 'Google', howToWin: 'Implement FAQPage structured data on your pillar page.' },
-      { name: 'AI Overview', present: true, ownedBy: 'Multiple Sources', howToWin: 'Structure high-information-gain bullet points and citations.' },
-    ],
-    competitiveGapAnalysis: `Top ranking competitors for "${keyword}" demonstrate deep topical authority and comprehensive cluster architecture.`,
-    outrankPlaybook: [
-      { step: 1, title: 'Topical Cluster Expansion', description: `Publish supporting articles answering sub-queries around ${keyword}.`, impact: 'Critical' },
-      { step: 2, title: 'On-Page Intent Alignment', description: 'Match search intent above the fold with interactive tools and clear definitions.', impact: 'High' },
-      { step: 3, title: 'Internal Linking Architecture', description: 'Link relevant cluster posts to the primary service page using descriptive anchors.', impact: 'High' },
-      { step: 4, title: 'Authority Link Building', description: 'Secure contextual editorial mentions from industry publications.', impact: 'Critical' },
-    ],
-    peopleAlsoAsk: [
-      { question: `What is the best approach to ${keyword}?`, answer: `A successful approach combines comprehensive research, user-first UX, and consistent execution.` },
-      { question: `How much does ${keyword} cost in 2025?`, answer: `Pricing varies based on scope, technical complexity, and strategic deliverables.` },
-      { question: `How long does it take to see results with ${keyword}?`, answer: `Most organizations achieve noticeable organic traction within 60 to 90 days.` },
-    ],
+    serpFeatures: [],
+    competitiveGapAnalysis: 'N/A',
+    outrankPlaybook: [],
+    peopleAlsoAsk: [],
   }
 }
 
 /**
- * Normalizes and guarantees a clean, realistic top competitors list
+ * Normalizes a clean top competitors list
  */
 function normalizeTopCompetitors({ rawCompetitors, targetDomain, finalPosition, isBrand, keyword }) {
   const seenDomains = new Set()
@@ -712,37 +645,28 @@ export async function checkRank({
     rankingUrl: finalUrl,
     rankingTitle: finalTitle,
     rankingSnippet: finalSnippet,
-    searchIntent: isBrand ? 'Navigational' : aiData?.searchIntent || 'Commercial',
-    difficulty: isBrand ? 12 : aiData?.difficulty || 52,
-    searchVolumeTier: aiData?.searchVolumeTier || '1K - 5K / mo',
+    searchIntent: isBrand ? 'Navigational' : (aiData?.searchIntent || 'N/A'),
+    difficulty: isBrand ? 'N/A' : (aiData?.difficulty != null ? aiData.difficulty : 'N/A'),
+    searchVolumeTier: aiData?.searchVolumeTier || 'N/A',
     estimatedCtr:
       finalPosition === 1
         ? '34.5%'
-        : finalPosition <= 3
+        : finalPosition && finalPosition <= 3
           ? '18.2%'
-          : finalPosition <= 10
+          : finalPosition && finalPosition <= 10
             ? '4.8%'
-            : '0.4%',
-    competitionLevel: isBrand ? 'Low' : aiData?.competitionLevel || 'Medium',
+            : finalPosition !== null
+              ? '0.4%'
+              : 'N/A',
+    competitionLevel: isBrand ? 'Low' : (aiData?.competitionLevel || 'N/A'),
     liveSearchUrl,
     topCompetitors: competitors,
-    serpFeatures: aiData?.serpFeatures || [
-      { name: 'Featured Snippet', present: true, ownedBy: 'Competitor', howToWin: 'Provide concise direct answers.' },
-      { name: 'People Also Ask', present: true, ownedBy: 'Google', howToWin: 'Add FAQ schema markup.' },
-    ],
-    competitiveGapAnalysis:
-      aiData?.competitiveGapAnalysis ||
-      `Top ranking competitors for "${cleanKeyword}" emphasize strong search intent alignment and domain topical authority.`,
-    outrankPlaybook:
-      aiData?.outrankPlaybook || [
-        { step: 1, title: 'Content Depth & Semantic Optimization', description: `Cover all core topics related to ${cleanKeyword}.`, impact: 'Critical' },
-        { step: 2, title: 'Structured Data Implementation', description: 'Deploy FAQ and Service schema for rich snippet real estate.', impact: 'High' },
-      ],
-    peopleAlsoAsk: aiData?.peopleAlsoAsk || [
-      { question: `What is the best way to rank for ${cleanKeyword}?`, answer: `Focus on high-quality content matching intent and authoritative backlinks.` },
-    ],
+    serpFeatures: aiData?.serpFeatures || [],
+    competitiveGapAnalysis: aiData?.competitiveGapAnalysis || 'N/A',
+    outrankPlaybook: aiData?.outrankPlaybook || [],
+    peopleAlsoAsk: aiData?.peopleAlsoAsk || [],
     scrapedLive: hasLiveData,
-    confidence,
+    confidence: hasLiveData ? 96 : isBrand ? 92 : (aiData ? 70 : 'N/A'),
   }
 
   apiResultCache.set(cacheKey, result, 10 * 60 * 1000)

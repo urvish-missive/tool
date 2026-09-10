@@ -363,7 +363,7 @@ export default function BlogIntroGeneratorPage({
           <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[11px] sm:text-xs font-bold rounded-full mb-3 tracking-wide uppercase shadow-2xs">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Himani's SEO Tools • Missive Digital</span>
+              <span>Missive's SEO Tools • Missive Digital</span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight mb-2.5">
@@ -466,7 +466,7 @@ export default function BlogIntroGeneratorPage({
                           <div
                             className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center ${
                               isSelected
-                                ? 'bg-[#0C81F3] text-white'
+                                ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white'
                                 : 'bg-white text-slate-500 border border-slate-200'
                             }`}
                           >
@@ -809,7 +809,7 @@ export default function BlogIntroGeneratorPage({
                 onClick={() => setActiveFilterTab('tofu')}
                 className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
                   activeFilterTab === 'tofu'
-                    ? 'bg-sky-600 text-white shadow-xs'
+                    ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-xs'
                     : 'bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200'
                 }`}
               >

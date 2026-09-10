@@ -177,7 +177,7 @@ export default function SendPdfModal({
               <button
                 type="button"
                 onClick={onClose}
-                className="w-full py-2.5 px-4 bg-[#0C81F3] hover:bg-[#0b74da] text-white font-semibold text-xs rounded-xl shadow transition cursor-pointer"
+                className="w-full py-2.5 px-4 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:opacity-90 text-white font-semibold text-xs rounded-xl shadow transition cursor-pointer"
               >
                 Done
               </button>
@@ -259,7 +259,7 @@ export default function SendPdfModal({
                 <div className="pt-2 flex items-center justify-between gap-3">
                   <div className="flex items-center gap-1 text-[11px] text-gray-400">
                     <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                    <span>Zero spam guaranteed</span>
+                    <span>We respect your inbox</span>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -275,7 +275,7 @@ export default function SendPdfModal({
                     <button
                       type="submit"
                       disabled={status === 'generating' || status === 'sending'}
-                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#0C81F3] hover:bg-[#0b74da] text-white font-semibold rounded-xl shadow transition disabled:opacity-50 cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-4 py-2 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:opacity-90 text-white font-semibold rounded-xl shadow transition disabled:opacity-50 cursor-pointer"
                     >
                       {status === 'generating' ? (
                         <>

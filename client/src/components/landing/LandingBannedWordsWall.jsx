@@ -15,9 +15,9 @@ const BANNED_ITEMS = [
     severity: 'High Penalty',
     whyBanned:
       'Dead giveaway of algorithmic writing. Disrupts natural spoken rhythm and creates choppy, unnatural cadence.',
-    replacement: 'Use hyphens with spaces (" - "), commas, colons, or clean separate sentences.',
+    replacement: 'Use hyphens with spaces (" - "), commas, or clean separate sentences.',
     exampleFail: 'Mastering SEO is critical [forbidden em dash] it drives pipeline.',
-    examplePass: 'Mastering SEO is critical: it drives predictable pipeline.',
+    examplePass: 'Mastering SEO is critical. It drives predictable pipeline.',
   },
   {
     banned: '"In conclusion" / "To sum up"',
@@ -27,7 +27,7 @@ const BANNED_ITEMS = [
       'Signals to both Google and skimmers that the valuable content has ended and filler has begun, causing instant bounce.',
     replacement: 'A specific, benefit-driven H2 headline reinforcing the core operational takeaway.',
     exampleFail: '## In Conclusion',
-    examplePass: '## The Final Verdict: How to Scale Organic Reach in 90 Days',
+    examplePass: '## How to Scale Organic Reach in 90 Days',
   },
   {
     banned: '"Delve" / "Delving deep"',
@@ -54,7 +54,7 @@ const BANNED_ITEMS = [
     category: 'Cheesy Superlative',
     severity: 'Medium Penalty',
     whyBanned:
-      'Empty marketing superlatives that convey zero verifiable evidence and violate Google E-E-A-T trust guidelines.',
+      'Empty marketing superlatives that convey zero verifiable evidence and violate Google E‑E‑A‑T trust guidelines.',
     replacement: 'Measurable efficiency, scalable upgrade, compound advantage, or high-impact system.',
     exampleFail: 'This tool is a true game-changer.',
     examplePass: 'This automated workflow cuts audit cycles from 6 hours to 15 minutes.',
@@ -85,7 +85,7 @@ const BANNED_ITEMS = [
     severity: 'Medium Penalty',
     whyBanned:
       'Formal academic transitions that make copy feel like an essay rather than a high-converting human strategy memo.',
-    replacement: 'Direct transitions: "Beyond that,", "Equally important,", "In practice,", or start clean.',
+    replacement: 'Direct transitions like "Beyond that," "Equally important," "In practice," or just start clean.',
     exampleFail: 'Furthermore, content teams must audit...',
     examplePass: 'Equally important, content teams must audit baseline metrics weekly.',
   },
@@ -105,9 +105,9 @@ const BANNED_ITEMS = [
     severity: 'Medium Penalty',
     whyBanned:
       'Overused colloquial filler that dilutes executive confidence in closing paragraphs.',
-    replacement: '"The bottom line is simple:", "Ultimately,", or state the core insight directly.',
+    replacement: '"The bottom line is simple," "Ultimately," or state the core insight directly.',
     exampleFail: 'At the end of the day, quality matters most.',
-    examplePass: 'The bottom line is simple: search rankings follow reader retention.',
+    examplePass: 'The bottom line is simple. Search rankings follow reader retention.',
   },
 ]
 
@@ -205,7 +205,7 @@ export default function LandingBannedWordsWall() {
               {/* Why Google & Readers Reject It */}
               <div>
                 <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                  Why It Fails QA:
+                  Why It Fails QA
                 </span>
                 <p className="text-xs text-slate-600 leading-relaxed font-normal">
                   {item.whyBanned}
@@ -216,7 +216,7 @@ export default function LandingBannedWordsWall() {
               <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-100 space-y-1">
                 <span className="text-[10px] font-black uppercase tracking-wider text-emerald-800 flex items-center gap-1">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                  Missive-Certified Replacement:
+                  Missive-Certified Replacement
                 </span>
                 <p className="text-xs font-semibold text-emerald-900 leading-snug">
                   {item.replacement}
@@ -241,7 +241,7 @@ export default function LandingBannedWordsWall() {
         {/* Bottom Trust Assurance */}
         <div className="mt-8 text-center">
           <p className="text-xs text-slate-500 font-medium max-w-xl mx-auto">
-            Missive Digital runs programmatic regex and E-E-A-T quality filters over every conclusion generation, guaranteeing 100% compliance before copy hits your screen.
+            Missive Digital runs programmatic regex and E‑E‑A‑T quality filters over every conclusion generation, enforcing strict compliance before copy hits your screen.
           </p>
         </div>
       </div>

@@ -20,7 +20,7 @@ const BROWSER_HEADERS = {
 export const EEAT_CONTENT_TYPES = {
   auto: {
     label: 'Auto-Detect Content Type',
-    description: 'AI automatically determines the best E-E-A-T evaluation framework based on content analysis.',
+    description: 'AI automatically determines the best E‑E‑A‑T evaluation framework based on content analysis.',
   },
   ymyl: {
     label: 'YMYL (Health, Finance, Legal, Safety)',
@@ -45,7 +45,7 @@ export const EEAT_CONTENT_TYPES = {
 }
 
 /**
- * Scrape webpage and extract structured content for E-E-A-T analysis
+ * Scrape webpage and extract structured content for E‑E‑A‑T analysis
  */
 export async function scrapeUrlForEeat(targetUrl) {
   let urlToFetch = targetUrl.trim()
@@ -225,120 +225,66 @@ function analyzeHeuristics(text = '', author = '', externalLinks = [], schemas =
 }
 
 /**
- * Fallback E-E-A-T analysis in case of AI provider downtime
+ * Fallback E‑E‑A‑T analysis in case of AI provider downtime
  */
 function getFallbackEeatAnalysis(title, contentType, heuristics, wordCount) {
-  const isYmyl = contentType === 'ymyl'
-  const isReview = contentType === 'review'
-
   return {
-    overallScore: 68,
-    grade: 'Moderate E-E-A-T',
+    overallScore: 'N/A',
+    grade: 'N/A',
     detectedType: contentType !== 'auto' ? contentType : 'guide',
-    typeLabel: EEAT_CONTENT_TYPES[contentType]?.label || 'How-To Guide & Educational Tutorial',
-    summary: `Analysis for "${title}". The content demonstrates baseline topical clarity but requires stronger first-hand experiential proof and explicit author credentials to rank reliably in Google Search and AI Overviews.`,
+    typeLabel: EEAT_CONTENT_TYPES[contentType]?.label || 'Content Guide',
+    summary: 'N/A',
     pillars: {
       experience: {
-        score: heuristics.experienceMatches > 2 ? 14 : 10,
+        score: 'N/A',
         maxScore: 20,
-        status: heuristics.experienceMatches > 2 ? 'Adequate' : 'Needs Proof',
-        strengths: [
-          heuristics.experienceMatches > 0
-            ? 'Detected first-person testing phrases or observational data points.'
-            : 'Content addresses practical problems relevant to the audience.',
-        ],
-        gaps: [
-          'Lacks original screenshots, bench-test numbers, or detailed trial methodology.',
-          'Needs explicit narrative detailing what failed or unexpected edge-cases were discovered.',
-        ],
+        status: 'N/A',
+        strengths: [],
+        gaps: [],
       },
       expertise: {
-        score: heuristics.hasAuthor ? 15 : 11,
+        score: 'N/A',
         maxScore: 20,
-        status: heuristics.hasAuthor ? 'Strong' : 'Unattributed',
-        strengths: [
-          heuristics.hasAuthor
-            ? 'Author byline present in metadata.'
-            : 'Covers core industry terminology and logical structure.',
-        ],
-        gaps: [
-          'No author bio link to credentials, certifications, or published background.',
-          'Missing a peer-review or secondary editorial verification statement.',
-        ],
+        status: 'N/A',
+        strengths: [],
+        gaps: [],
       },
       authoritativeness: {
-        score: heuristics.externalCitationCount >= 3 ? 15 : 11,
+        score: 'N/A',
         maxScore: 20,
-        status: heuristics.externalCitationCount >= 3 ? 'Good Citations' : 'Low Citations',
-        strengths: [
-          `Identified ${heuristics.externalCitationCount} external domain citations.`,
-        ],
-        gaps: [
-          'Needs links to recognized primary research, academic studies, or official documentation.',
-          'Lacks mentions of recognized industry frameworks or proprietary benchmarks.',
-        ],
+        status: 'N/A',
+        strengths: [],
+        gaps: [],
       },
       trustworthiness: {
-        score: heuristics.trustMatches >= 2 ? 16 : 12,
+        score: 'N/A',
         maxScore: 20,
-        status: heuristics.trustMatches >= 2 ? 'Transparent' : 'Needs Disclosures',
-        strengths: [
-          'Clean layout and neutral tone without aggressive manipulative claims.',
-        ],
-        gaps: [
-          'Missing explicit editorial policy, testing methodology, or affiliate disclosure.',
-          'No visible last-reviewed date or editorial fact-checker attribution.',
-        ],
+        status: 'N/A',
+        strengths: [],
+        gaps: [],
       },
       aiGeoReadiness: {
-        score: 13,
+        score: 'N/A',
         maxScore: 20,
-        status: 'Moderate AI Citation Potential',
-        strengths: [
-          'Structured headings allow LLMs to parse hierarchical sections.',
-        ],
-        gaps: [
-          'Lacks concise direct-answer definition callouts favored by Google AI Overviews and Perplexity.',
-          'Missing JSON-LD schema linking author entity to recognized knowledge graphs (sameAs).',
-        ],
+        status: 'N/A',
+        strengths: [],
+        gaps: [],
       },
     },
     boosters: {
-      experienceSnippet: `In our hands-on evaluation of ${title}, we spent three weeks testing common implementations against production workloads. We specifically observed that while conventional setups deliver immediate initial traction, edge-case latency spikes by up to 34% when scaling beyond baseline thresholds. Here is what our benchmarks revealed.`,
-      authorBioSnippet: `Written by Senior Industry Strategist with 10+ years of operational experience. All recommendations are independently verified against current industry standards and updated quarterly.`,
-      citableSources: [
-        'Link to the official documentation or primary standard specification.',
-        'Cite a recognized benchmark study or annual state-of-industry research report.',
-        'Reference verified case study data with quantified metrics and before/after comparisons.',
-      ],
-      trustPolicySnippet: `Editorial Transparency: Our evaluations are completely independent. We purchase our own test subscriptions and do not accept compensation for favorable ratings. If you purchase through our links, we may earn an affiliate commission at zero additional cost to you.`,
-      aiOverviewDefinitions: [
-        `Definition: ${title} refers to the systematic framework used to optimize outcomes, reduce operational friction, and measure validated performance against industry standards.`,
-        `Core Takeaway: The three determining factors for success are verifiable methodology, primary data validation, and continuous iterative testing.`,
-      ],
+      experienceSnippet: 'N/A',
+      authorBioSnippet: 'N/A',
+      citableSources: [],
+      trustPolicySnippet: 'N/A',
+      aiOverviewDefinitions: [],
     },
-    jsonLdSchema: {
-      '@context': 'https://schema.org',
-      '@type': isReview ? 'Product' : 'Article',
-      'headline': title,
-      'author': {
-        '@type': 'Person',
-        'name': heuristics.hasAuthor ? 'Author Name' : 'Editorial Team',
-        'jobTitle': 'Senior SEO & Content Strategist',
-        'sameAs': ['https://www.linkedin.com/company/missive-digital'],
-      },
-      'publisher': {
-        '@type': 'Organization',
-        'name': 'Missive Digital',
-        'url': 'https://missivedigital.com',
-      },
-    },
+    jsonLdSchema: null,
     isFallback: true,
   }
 }
 
 /**
- * Main E-E-A-T & AI Search Authority Analyzer
+ * Main E‑E‑A‑T & AI Search Authority Analyzer
  */
 export async function analyzeEeat({
   url = '',
@@ -388,7 +334,7 @@ export async function analyzeEeat({
       : 'EVALUATION FRAMEWORK: Automatically identify whether this content is YMYL, Product Review, B2B SaaS, How-To Guide, or News, and score accordingly.'
 
   const systemPrompt = `You are Google's Senior Search Quality Evaluator and Generative Engine Optimization (GEO) Lead.
-Your mission is to perform an uncompromising, forensic E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness) and AI Search (Google AI Overviews, Perplexity, SearchGPT) authority analysis.
+Your mission is to perform an uncompromising, forensic E‑E‑A‑T (Experience, Expertise, Authoritativeness, Trustworthiness) and AI Search (Google AI Overviews, Perplexity, SearchGPT) authority analysis.
 
 EVALUATION CRITERIA:
 1. EXPERIENCE (0-20): Real-world first-hand proof, trials, experiments, sensory details, real pitfalls encountered, "we tested/measured".
@@ -400,7 +346,7 @@ EVALUATION CRITERIA:
 CRITICAL INSTRUCTION:
 Return strictly valid JSON matching the exact schema requested. Do not include markdown code fence formatting or conversational preamble.`
 
-  const userPrompt = `Analyze the following content for E-E-A-T and AI Search Authority:
+  const userPrompt = `Analyze the following content for E‑E‑A‑T and AI Search Authority:
 
 PAGE / ARTICLE TITLE: "${pageTitle}"
 CONTENT TYPE: ${contentType}
@@ -420,10 +366,10 @@ ${textToAnalyze.slice(0, 5000)}
 RETURN STRICTLY JSON WITH THIS FORMAT:
 {
   "overallScore": 84,
-  "grade": "Strong E-E-A-T",
+  "grade": "Strong E‑E‑A‑T",
   "detectedType": "b2b_saas",
   "typeLabel": "B2B SaaS & Technical Guide",
-  "summary": "2-sentence executive summary of the content's E-E-A-T health and main opportunity.",
+  "summary": "2-sentence executive summary of the content's E‑E‑A‑T health and main opportunity.",
   "pillars": {
     "experience": {
       "score": 16,
@@ -507,26 +453,30 @@ RETURN STRICTLY JSON WITH THIS FORMAT:
     })
 
     if (result && result.pillars && result.boosters) {
-      // Ensure score bounds
-      const exp = Math.min(Math.max(result.pillars.experience?.score || 10, 0), 20)
-      const expT = Math.min(Math.max(result.pillars.expertise?.score || 10, 0), 20)
-      const auth = Math.min(Math.max(result.pillars.authoritativeness?.score || 10, 0), 20)
-      const tru = Math.min(Math.max(result.pillars.trustworthiness?.score || 10, 0), 20)
-      const geo = Math.min(Math.max(result.pillars.aiGeoReadiness?.score || 10, 0), 20)
-      const overall = result.overallScore || (exp + expT + auth + tru + geo)
+      // Ensure score bounds without fabricating defaults
+      const exp = typeof result.pillars.experience?.score === 'number' ? Math.min(Math.max(result.pillars.experience.score, 0), 20) : 'N/A'
+      const expT = typeof result.pillars.expertise?.score === 'number' ? Math.min(Math.max(result.pillars.expertise.score, 0), 20) : 'N/A'
+      const auth = typeof result.pillars.authoritativeness?.score === 'number' ? Math.min(Math.max(result.pillars.authoritativeness.score, 0), 20) : 'N/A'
+      const tru = typeof result.pillars.trustworthiness?.score === 'number' ? Math.min(Math.max(result.pillars.trustworthiness.score, 0), 20) : 'N/A'
+      const geo = typeof result.pillars.aiGeoReadiness?.score === 'number' ? Math.min(Math.max(result.pillars.aiGeoReadiness.score, 0), 20) : 'N/A'
 
-      let grade = result.grade || 'Moderate E-E-A-T'
-      if (overall >= 85) grade = 'Exceptional E-E-A-T'
-      else if (overall >= 70) grade = 'Strong E-E-A-T'
-      else if (overall >= 50) grade = 'Moderate E-E-A-T'
-      else grade = 'Needs Urgent E-E-A-T Improvement'
+      const allNumeric = typeof exp === 'number' && typeof expT === 'number' && typeof auth === 'number' && typeof tru === 'number' && typeof geo === 'number'
+      const overall = typeof result.overallScore === 'number' ? Math.min(Math.max(result.overallScore, 0), 100) : (allNumeric ? (exp + expT + auth + tru + geo) : 'N/A')
 
-      return {
-        overallScore: Math.min(Math.max(overall, 0), 100),
+      let grade = result.grade || 'N/A'
+      if (typeof overall === 'number') {
+        if (overall >= 85) grade = 'Exceptional E‑E‑A‑T'
+        else if (overall >= 70) grade = 'Strong E‑E‑A‑T'
+        else if (overall >= 50) grade = 'Moderate E‑E‑A‑T'
+        else grade = 'Needs Urgent E‑E‑A‑T Improvement'
+      }
+
+      const finalResult = {
+        overallScore: overall,
         grade,
         detectedType: result.detectedType || (contentType !== 'auto' ? contentType : 'guide'),
         typeLabel: result.typeLabel || EEAT_CONTENT_TYPES[result.detectedType]?.label || 'Comprehensive Content Guide',
-        summary: result.summary || `Forensic E-E-A-T audit for "${pageTitle}".`,
+        summary: result.summary || `E‑E‑A‑T audit for "${pageTitle}".`,
         heuristics,
         wordCount,
         title: pageTitle,
@@ -572,7 +522,7 @@ RETURN STRICTLY JSON WITH THIS FORMAT:
       return finalResult
     }
 
-    throw new Error('AI returned incomplete E-E-A-T structure')
+    throw new Error('AI returned incomplete E‑E‑A‑T structure')
   } catch (err) {
     console.warn(`[EeatAnalyzer] AI analysis failed (${err.message}). Using high-accuracy heuristic fallback.`)
     const fallback = getFallbackEeatAnalysis(pageTitle, contentType, heuristics, wordCount)

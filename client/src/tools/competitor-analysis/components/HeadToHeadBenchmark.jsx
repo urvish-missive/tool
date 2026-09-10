@@ -312,7 +312,7 @@ export default function HeadToHeadBenchmark({
                   {compStats.imagesWithAlt || 0}/{compStats.totalImages || 0} ({compAltPct}%)
                 </td>
                 <td className="py-3.5 px-5">
-                  {hasYourData ? `${yourStats.imagesWithAlt || 0}/${yourStats.totalImages || 0} (${yourAltPct}%)` : '100%'}
+                  {hasYourData ? `${yourStats.imagesWithAlt || 0}/${yourStats.totalImages || 0} (${yourAltPct}%)` : 'Full'}
                 </td>
                 <td className="py-3.5 px-5 text-right">
                   {compStats.imagesWithoutAlt > 0 ? (
@@ -320,7 +320,7 @@ export default function HeadToHeadBenchmark({
                       {compStats.imagesWithoutAlt} missing alt
                     </span>
                   ) : (
-                    <span className="text-emerald-700 font-bold text-xs">100% Coverage</span>
+                    <span className="text-emerald-700 font-bold text-xs">Full Coverage</span>
                   )}
                 </td>
               </tr>

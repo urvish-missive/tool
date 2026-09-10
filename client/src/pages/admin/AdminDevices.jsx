@@ -488,7 +488,7 @@ export default function AdminDevices() {
                 <button
                   type="submit"
                   disabled={isSettingLimit}
-                  className="px-4 py-1.5 text-xs font-semibold bg-[#0C81F3] text-white rounded-lg hover:bg-[#0969c3] cursor-pointer"
+                  className="px-4 py-1.5 text-xs font-semibold bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white rounded-lg hover:opacity-90 cursor-pointer"
                 >
                   Save Limit
                 </button>

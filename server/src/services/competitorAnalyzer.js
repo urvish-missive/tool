@@ -49,9 +49,9 @@ function extractSEOData(html, url) {
         hasOGTags: false,
         hasSchema: false,
         hasTwitterCard: false,
-        contentDepthScore: 40,
-        technicalScore: 40,
-        overallBenchmark: 40,
+        contentDepthScore: 'N/A',
+        technicalScore: 'N/A',
+        overallBenchmark: 'N/A',
       },
     }
   }

@@ -7,7 +7,7 @@
 import { callAIAndParseJSON, getConfiguredProviders } from '../utils/aiProvider.js'
 
 const SYSTEM_PROMPT = `You are a world-class SEO content analyst and Generative Engine Optimization (GEO) specialist.
-You analyze web content for organic search rankings, Google AI Overview citation readiness, and E-E-A-T trust signals.
+You analyze web content for organic search rankings, Google AI Overview citation readiness, and E‑E‑A‑T trust signals.
 
 Rules:
 - Be specific and actionable, not generic.
@@ -24,7 +24,7 @@ function buildUserPrompt(content, targetKeyword, secondaryKeywords, contentType,
   const kw = programmaticMetrics?.keyword || {}
   const st = programmaticMetrics?.structure || {}
 
-  return `Analyze this content for SEO quality, E-E-A-T signals, and AI Search / GEO Citation Readiness.
+  return `Analyze this content for SEO quality, E‑E‑A‑T signals, and AI Search / GEO Citation Readiness.
 
 ## Content Type
 ${contentType || 'Not specified'}
@@ -150,7 +150,7 @@ function validateReport(report, metrics) {
       actionableTweak: 'Add a 1-sentence bold definition right under your primary H2 heading.',
     },
     eeat_insights: Array.isArray(report.eeat_insights) && report.eeat_insights.length > 0 ? report.eeat_insights : [
-      'Include first-hand testing data or author credentials to reinforce Google E-E-A-T quality standards.',
+      'Include first-hand testing data or author credentials to reinforce Google E‑E‑A‑T quality standards.',
       'Link to primary data sources or case studies for verifiable trust.',
     ],
     strengths: Array.isArray(report.strengths) ? report.strengths : [],
@@ -222,7 +222,7 @@ function generateFallbackReport(metrics, targetKeyword, contentType) {
       actionableTweak: 'Structure key definitions in 1-2 sentence standalone bullet points.',
     },
     eeat_insights: [
-      'Include first-hand author experience or concrete results data to improve E-E-A-T credibility.',
+      'Include first-hand author experience or concrete results data to improve E‑E‑A‑T credibility.',
     ],
     strengths: strengths.length > 0 ? strengths : ['Content covers a defined topic'],
     critical_issues: issues,

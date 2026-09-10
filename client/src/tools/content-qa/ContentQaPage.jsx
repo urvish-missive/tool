@@ -73,6 +73,7 @@ const HIMANI_CATEGORIES_DEF = [
       { id: 'ts-1', label: 'Is the tone human, crisp, and conversational?', auto: true },
       { id: 'ts-2', label: 'No robotic phrases, no fluff, no clichés.', auto: true },
       { id: 'ts-3', label: 'No em dashes.', auto: true },
+      { id: 'ts-5', label: 'No colons.', auto: true },
       { id: 'ts-4', label: 'Sentences clear, complete, not abrupt.', auto: true },
     ],
   },
@@ -107,7 +108,7 @@ const HIMANI_CATEGORIES_DEF = [
   {
     id: 'eeat_check',
     number: 4,
-    label: 'E-E-A-T Check',
+    label: 'E‑E‑A‑T Check',
     icon: <Award className="w-4 h-4 text-amber-600" />,
     color: '#D97706',
     items: [
@@ -259,7 +260,7 @@ const HIMANI_CATEGORIES_DEF = [
 const LOADING_STEPS = [
   'Parsing content & measuring readability...',
   'Pillars 1-3: Tone, Em Dashes & Read-Aloud cadence...',
-  'Pillars 4-6: E-E-A-T, Insight First & Crispness...',
+  'Pillars 4-6: E‑E‑A‑T, Insight First & Crispness...',
   'Pillars 7-9: Offensiveness, Brand Positioning & Flow...',
   'Pillars 10-12: Sales Pitch filter, Compliance & Platform fit...',
   'Generating Himani Kankaria QA Audit & Pro Recommendations...',
@@ -267,7 +268,7 @@ const LOADING_STEPS = [
 
 const SAMPLE_CONTENT = `In today's fast-paced digital world, content marketing has become a crucial cornerstone and a true game-changer for businesses looking to delve deep into customer engagement. 
 
-As we all know, our company has over 10+ years of experience in the industry, and we have revolutionized the way brands communicate. Needless to say, our state-of-the-art framework is a testament to our unwavering dedication—helping clients seamlessly achieve 100% guaranteed growth.
+As we all know, our company has over 10+ years of experience in the industry, and we have revolutionized the way brands communicate. Needless to say, our state-of-the-art framework is a testament to our unwavering dedication—helping clients seamlessly achieve consistent growth.
 
 Here is how you can supercharge your content strategy:
 - Focus on your core message and harness the power of modern storytelling.
@@ -418,24 +419,28 @@ export default function ContentQaPage({ isEmbedded = false, onResultStateChange,
         const isError =
           h.severity === 'error' ||
           type === 'em-dash' ||
+          type === 'colon' ||
           type === 'milestone' ||
           type === 'compliance'
 
+        const isDynamic = !!h.isDynamic
         const label =
           h.label ||
           (type === 'em-dash'
             ? 'Em Dash Detected'
-            : type === 'ai-cliche'
-              ? 'Robotic AI Cliché'
-              : type === 'filler'
-                ? 'Filler / Fluff Transition'
-                : type === 'superlative'
-                  ? 'Exaggerated Superlative'
-                  : type === 'milestone'
-                    ? 'Milestone / Tenure Boasting'
-                    : type === 'compliance'
-                      ? 'Compliance Risk'
-                      : 'Editorial Flag')
+            : type === 'colon'
+              ? 'Colon Detected'
+              : type === 'ai-cliche'
+                ? (isDynamic ? 'Dynamic AI Buzzword' : 'Robotic AI Cliché')
+                : type === 'filler'
+                  ? 'Filler / Fluff Transition'
+                  : type === 'superlative'
+                    ? 'Exaggerated Superlative'
+                    : type === 'milestone'
+                      ? 'Milestone / Tenure Boasting'
+                      : type === 'compliance'
+                        ? 'Compliance Risk'
+                        : 'Editorial Flag')
 
         const reason =
           h.reason ||
@@ -446,7 +451,9 @@ export default function ContentQaPage({ isEmbedded = false, onResultStateChange,
           h.suggestion ||
           (type === 'em-dash'
             ? 'Use a comma, parentheses, or split into two short sentences.'
-            : 'Remove or replace with conversational human phrasing.')
+            : type === 'colon'
+              ? 'Replace with a period, comma, or split into clean separate sentences.'
+              : 'Remove or replace with conversational human phrasing.')
 
         groupsMap.set(groupKey, {
           id: groupKey,
@@ -455,6 +462,7 @@ export default function ContentQaPage({ isEmbedded = false, onResultStateChange,
           text: h.text,
           severity: h.severity || (isError ? 'error' : 'warning'),
           isError,
+          isDynamic,
           reason,
           suggestion,
           occurrences: [],
@@ -1080,7 +1088,7 @@ Audited with Missive Digital Content QA Tool.`
             <p className="mt-4 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
               QA every piece of content written for your brand the way Himani does.
               <span className="block text-sm text-gray-500 font-medium mt-1">
-                12 Pillars • 34 Precision Checks • Zero AI Fluff & Zero Em Dashes
+                12 Pillars • 35 Precision Checks • Zero AI Fluff, Zero Em Dashes & Zero Colons
               </span>
             </p>
 
@@ -1506,8 +1514,8 @@ Audited with Missive Digital Content QA Tool.`
           {/* ── LOADING ANIMATION ──────────────────────────────────── */}
           {isAnalyzing && (
             <UnifiedToolLoader
-              title="Auditing 34 Checks Across All 12 Quality Pillars..."
-              subtitle="Eliminating AI clichés, scanning structural flow, and verifying E-E-A-T trust signals."
+              title="Auditing 35 Checks Across All 12 Quality Pillars..."
+              subtitle="Eliminating AI clichés, scanning structural flow, and verifying E‑E‑A‑T trust signals."
               steps={LOADING_STEPS}
             />
           )}
@@ -1543,7 +1551,7 @@ Audited with Missive Digital Content QA Tool.`
                   </div>
                   <div>
                     <h2 className="text-base font-bold text-gray-900">Himani QA Report</h2>
-                    <p className="text-xs text-gray-500">12 Pillars • 34 Precision Checks</p>
+                    <p className="text-xs text-gray-500">12 Pillars • 35 Precision Checks</p>
                   </div>
                 </div>
 
@@ -1615,24 +1623,33 @@ Audited with Missive Digital Content QA Tool.`
 
                   {/* Right Column: 4 Signature Quick Alert Cards */}
                   <div className="@min-[560px]:col-span-8 grid @min-[420px]:grid-cols-2 gap-3.5">
-                    {/* Em Dash Sentinel */}
+                    {/* Em Dash & Colon Sentinel */}
                     <div
-                      className={`p-4 rounded-2xl border ${report.quickStats?.emDashesCount === 0 ? 'bg-emerald-50/80 border-emerald-200' : 'bg-red-50/80 border-red-200'}`}
+                      className={`p-4 rounded-2xl border ${(report.quickStats?.emDashesCount === 0 && (report.quickStats?.colonsCount || 0) === 0) ? 'bg-emerald-50/80 border-emerald-200' : 'bg-red-50/80 border-red-200'}`}
                     >
                       <div className="flex items-center justify-between mb-1">
                         <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                          <Ban className="w-3.5 h-3.5 text-rose-500 shrink-0" /> Em Dashes Detected
+                          <Ban className="w-3.5 h-3.5 text-rose-500 shrink-0" /> Em Dashes & Colons
                         </span>
-                        <span
-                          className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${report.quickStats?.emDashesCount === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}
-                        >
-                          {report.quickStats?.emDashesCount || 0}
-                        </span>
+                        <div className="flex items-center gap-1">
+                          <span
+                            className={`text-xs font-extrabold px-1.5 py-0.5 rounded-full ${report.quickStats?.emDashesCount === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}
+                            title="Em Dashes"
+                          >
+                            {report.quickStats?.emDashesCount || 0} em
+                          </span>
+                          <span
+                            className={`text-xs font-extrabold px-1.5 py-0.5 rounded-full ${(report.quickStats?.colonsCount || 0) === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}
+                            title="Colons"
+                          >
+                            {report.quickStats?.colonsCount || 0} colons
+                          </span>
+                        </div>
                       </div>
                       <p className="text-[11px] text-gray-600">
-                        {report.quickStats?.emDashesCount === 0
-                          ? 'Strict Himani rule satisfied: zero em dashes.'
-                          : `Found ${report.quickStats.emDashesCount} em dash(es). Replace with commas or sentence breaks.`}
+                        {report.quickStats?.emDashesCount === 0 && (report.quickStats?.colonsCount || 0) === 0
+                          ? 'Strict Himani rule satisfied: zero em dashes and zero colons.'
+                          : `Found ${report.quickStats?.emDashesCount || 0} em dash(es) and ${report.quickStats?.colonsCount || 0} colon(s). Replace with clean punctuation or sentence breaks.`}
                       </p>
                     </div>
 
@@ -2066,6 +2083,24 @@ Audited with Missive Digital Content QA Tool.`
                         </button>
                       )}
 
+                      {highlightCategoryCounts['colon'] > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => setInspectorFilter('colon')}
+                          className={`text-xs px-3 py-1.5 rounded-full font-semibold transition-all flex items-center gap-1.5 ${
+                            inspectorFilter === 'colon'
+                              ? 'bg-rose-600 text-white shadow-xs'
+                              : 'bg-rose-50 text-rose-700 border border-rose-200 hover:bg-rose-100'
+                          } cursor-pointer`}
+                        >
+                          <Ban className="w-3.5 h-3.5" />
+                          <span>Colons</span>
+                          <span className="text-[10px] px-1.5 py-0.2 rounded-full bg-white/20 font-bold">
+                            {highlightCategoryCounts['colon']}
+                          </span>
+                        </button>
+                      )}
+
                       {highlightCategoryCounts['ai-cliche'] > 0 && (
                         <button
                           type="button"
@@ -2126,7 +2161,7 @@ Audited with Missive Digital Content QA Tool.`
                           onClick={() => setInspectorFilter('milestone')}
                           className={`text-xs px-3 py-1.5 rounded-full font-semibold transition-all flex items-center gap-1.5 ${
                             inspectorFilter === 'milestone'
-                              ? 'bg-blue-600 text-white shadow-xs'
+                              ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-xs'
                               : 'bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100'
                           } cursor-pointer`}
                         >
@@ -2179,7 +2214,7 @@ Audited with Missive Digital Content QA Tool.`
                               <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
                                 <div className="flex flex-wrap items-center gap-2">
                                   <span className="shrink-0">
-                                    {group.type === 'em-dash' ? (
+                                    {group.type === 'em-dash' || group.type === 'colon' ? (
                                       <Ban className="w-4 h-4 text-rose-600" />
                                     ) : group.type === 'ai-cliche' ? (
                                       <Bot className="w-4 h-4 text-amber-600" />
@@ -2200,6 +2235,12 @@ Audited with Missive Digital Content QA Tool.`
                                     <code className="text-xs px-2.5 py-0.5 rounded-md bg-white border border-gray-300 font-mono font-bold text-gray-900 shadow-2xs">
                                       "{group.text}"
                                     </code>
+                                  )}
+
+                                  {group.isDynamic && (
+                                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-[#0C81F3] border border-blue-200">
+                                      Dynamic AI Detection
+                                    </span>
                                   )}
 
                                   {/* Occurrence Pill Badge */}
@@ -2385,7 +2426,7 @@ Audited with Missive Digital Content QA Tool.`
                           Himani Kankaria 12-Pillar Editorial Polish
                         </div>
                         <h3 className="text-xl sm:text-2xl font-black text-white">
-                          Flawless 100% QA Content Rewrite
+                          Flawless QA Content Rewrite
                         </h3>
                         <p className="text-slate-300 text-xs sm:text-sm mt-1 max-w-2xl">
                           Automatically applies zero em-dash rules, insight-first hooks, eliminates
@@ -2696,7 +2737,7 @@ Audited with Missive Digital Content QA Tool.`
                               <div className="flex items-center justify-between p-2.5 bg-emerald-50/70 rounded-xl border border-emerald-200/80 text-xs font-bold text-emerald-950">
                                 <span className="flex items-center gap-1.5">
                                   <Sparkles className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
-                                  <span>Polished 100% QA Rewrite (After)</span>
+                                  <span>Polished QA Rewrite (After)</span>
                                 </span>
                                 <span className="text-[11px] text-emerald-800 font-semibold">
                                   {typeof polishedResult === 'string'
@@ -2962,7 +3003,7 @@ Audited with Missive Digital Content QA Tool.`
                         <div className="flex items-center justify-center gap-2 pt-2">
                           <button
                             onClick={() => setShowDocsModal(false)}
-                            className="px-6 py-2.5 rounded-full bg-[#0C81F3] hover:bg-[#0A6ECF] text-white text-xs font-bold shadow-md cursor-pointer transition-all"
+                            className="px-6 py-2.5 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:opacity-90 text-white text-xs font-bold shadow-md cursor-pointer transition-all"
                           >
                             Got It, Thanks!
                           </button>

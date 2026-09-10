@@ -69,7 +69,7 @@ export default function LandingHero({
               {badge}
             </div>
 
-            <h1 className="text-2xl xs:text-3xl sm:text-4xl md:text-[42px] font-black text-slate-900 tracking-tight leading-[1.15] mb-4 sm:mb-6">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-slate-900 tracking-tight leading-[1.15] mb-4 sm:mb-6">
               {title.map((seg, i) =>
                 seg.gradient ? (
                   <span
@@ -193,7 +193,7 @@ export default function LandingHero({
   }
 
   const cardBottomLeft = floatingCards?.bottomLeft || {
-    tag: 'Google E-E-A-T',
+    tag: 'Google E‑E‑A‑T',
     sub: 'Quality Checked',
     icon: Check,
   }
@@ -311,7 +311,7 @@ export default function LandingHero({
         </div>
 
         {/* Title */}
-        <h1 className="text-xl xs:text-2xl sm:text-3xl md:text-4xl lg:text-[42px] font-black tracking-tight leading-[1.15] mb-3.5 sm:mb-5">
+        <h1 className="text-xl xs:text-2xl sm:text-3xl lg:text-4xl font-bold tracking-tight leading-[1.15] mb-3.5 sm:mb-5">
           {title.map((seg, i) =>
             seg.gradient ? (
               <span

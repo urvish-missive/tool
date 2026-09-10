@@ -4,7 +4,7 @@ const DEFAULT_STEPS = [
   'Reading content & structure',
   'Checking on-page SEO optimization',
   'Evaluating search intent alignment',
-  'Scanning readability & E-E-A-T signals',
+  'Scanning readability & E‑E‑A‑T signals',
   'Generating recommendations report',
 ]
 

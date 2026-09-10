@@ -104,7 +104,7 @@ export default function AdminLeads() {
           />
           <button
             type="submit"
-            className="px-4 py-2.5 bg-[#0C81F3] text-white rounded-xl text-sm font-medium hover:bg-[#0a6cd4] transition-colors cursor-pointer"
+            className="px-4 py-2.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white rounded-xl text-sm font-medium hover:opacity-90 transition-all cursor-pointer"
           >
             Search
           </button>

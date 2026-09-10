@@ -31,7 +31,7 @@ export function toolAccess(toolSlug) {
           'ai-content-writer': { name: 'AI Content Writer', description: 'Generate SEO-optimized articles and long-form content' },
           'blog-intro-generator': { name: 'Blog Introduction Generator', description: 'Generate high-converting blog post introductions across TOFU, MOFU, and BOFU funnel stages' },
           'blog-conclusion-generator': { name: 'Blog Conclusion Generator', description: 'Generate high-converting blog post conclusions with specific H2 titles and intro loop closure' },
-          'eeat-analyzer': { name: 'E-E-A-T & AI Search Authority Analyzer', description: 'Evaluate, score, and improve Google E-E-A-T and AI Overview / Perplexity citation readiness' },
+          'eeat-analyzer': { name: 'E‑E‑A‑T & AI Search Authority Analyzer', description: 'Evaluate, score, and improve Google E‑E‑A‑T and AI Overview / Perplexity citation readiness' },
         }
         const info = defaults[toolSlug] || { name: toolSlug, description: '' }
         await prisma.toolConfig.create({

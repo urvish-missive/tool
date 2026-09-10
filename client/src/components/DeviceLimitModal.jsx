@@ -156,7 +156,7 @@ export default function DeviceLimitModal({ isOpen, onClose, limitData }) {
                   className={`w-full flex items-center justify-center gap-2 px-4 py-2.5 text-white rounded-xl text-sm font-semibold shadow-sm transition-all disabled:opacity-60 cursor-pointer ${
                     isBlocked
                       ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-500/20'
-                      : 'bg-[#0C81F3] hover:bg-[#0969c3] shadow-[#0C81F3]/20'
+                      : 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:opacity-90 shadow-[#0C81F3]/20'
                   }`}
                 >
                   {isLoading ? (

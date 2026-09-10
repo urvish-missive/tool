@@ -294,7 +294,7 @@ export default function BlogTopicGeneratorPage({
       `**Target Word Count:** ${activeMaster?.estimatedWordCount ? `${activeMaster.estimatedWordCount} words` : brief.recommendedWordCount || `${topic.estimatedWordCount} words`}`,
       `**Reading Time:** ${activeMaster?.readingTime || `${Math.round((topic.estimatedWordCount || 2400) / 220)} min read`}`,
       `**Tone of Voice:** ${activeToneLabel}`,
-      `**Missive 12-Pillar QA Standard:** 100% Certified (0 em dashes, 0 robotic clichés, insight-first)`,
+      `**Missive 12-Pillar QA Standard:** Certified (0 em dashes, 0 robotic clichés, insight-first)`,
       '',
       `---`,
       '',
@@ -358,7 +358,7 @@ export default function BlogTopicGeneratorPage({
 
       const eeat = sec.eeatMetricAnchor || sec.eeatProofAnchor || sec.eeatProof
       if (eeat) {
-        lines.push(`- **E-E-A-T Metric Anchor:** ${eeat}`)
+        lines.push(`- **E‑E‑A‑T Metric Anchor:** ${eeat}`)
       }
 
       const visual = sec.suggestedVisual || sec.visualAsset
@@ -398,7 +398,7 @@ export default function BlogTopicGeneratorPage({
       `- 0 Em Dashes: Verified`,
       `- 0 Robotic Clichés (No delve, tapestry, beacon, game-changer): Verified`,
       `- Insight-First Opening Hook: Verified`,
-      `- Quantifiable E-E-A-T Anchors: Verified`,
+      `- Quantifiable E‑E‑A‑T Anchors: Verified`,
       `- Specific Outcome-Driven Conclusion H2: Verified`,
       `- Tone of Voice Alignment (${activeToneLabel}): Verified`
     )
@@ -448,7 +448,7 @@ export default function BlogTopicGeneratorPage({
               </span>
               <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                100% Missive QA Certified
+                Missive QA Certified
               </span>
               {activeMaster && (
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1">
@@ -652,7 +652,7 @@ export default function BlogTopicGeneratorPage({
                   <div className="flex items-center gap-2 text-slate-400">
                     <span>{detailedSections.length} Sequential Sections</span>
                     <span className="text-slate-700">•</span>
-                    <span className="text-emerald-400 font-medium">100% Missive QA Certified</span>
+                    <span className="text-emerald-400 font-medium">Missive QA Certified</span>
                   </div>
                 </div>
 
@@ -796,7 +796,7 @@ export default function BlogTopicGeneratorPage({
                               {(sec.eeatMetricAnchor || sec.eeatProofAnchor || sec.eeatProof) && (
                                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[11px]">
                                   <BarChart3 className="w-3 h-3 text-emerald-400 shrink-0" />
-                                  <span className="font-semibold text-emerald-200">E-E-A-T:</span>
+                                  <span className="font-semibold text-emerald-200">E‑E‑A‑T:</span>
                                   <span className="text-emerald-300/90 truncate max-w-[240px]">
                                     {sec.eeatMetricAnchor || sec.eeatProofAnchor || sec.eeatProof}
                                   </span>
@@ -1176,7 +1176,7 @@ export default function BlogTopicGeneratorPage({
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
                 <div>
                   <strong className="block text-white font-semibold">
-                    5. Quantifiable E-E-A-T Anchors
+                    5. Quantifiable E‑E‑A‑T Anchors
                   </strong>
                   <span className="text-[11px] text-slate-400">
                     Empirical percentages and study proof in every section.
@@ -1841,7 +1841,7 @@ export default function BlogTopicGeneratorPage({
                     Full-Screen Master View
                   </span>
                   <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                    100% Missive QA Certified
+                    Missive QA Certified
                   </span>
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold text-white truncate">

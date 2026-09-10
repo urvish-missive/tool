@@ -252,9 +252,9 @@ const TOOLS = [
   },
   {
     id: 'eeat_analyzer',
-    title: 'E-E-A-T & AI Authority Analyzer',
+    title: 'E‑E‑A‑T & AI Authority Analyzer',
     description:
-      'Forensically audit Experience, Expertise, Authoritativeness, and Trustworthiness with 1-click E-E-A-T boosters, JSON-LD schema, and AI Overview citation readiness.',
+      'Forensically audit Experience, Expertise, Authoritativeness, and Trustworthiness with 1-click E‑E‑A‑T boosters, JSON-LD schema, and AI Overview citation readiness.',
     icon: ShieldCheck,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/eeat-analyzer',
@@ -265,7 +265,7 @@ const TOOLS = [
     id: 'business_competitor_analytics',
     title: 'Business Competitor Intelligence',
     description:
-      'Deep business intelligence on any competitor: history, mergers & acquisitions, product lines, market position, marketing & sales strategies.',
+      'Deep business intelligence on any competitor, covering history, mergers and acquisitions, product lines, market position, and sales strategy.',
     icon: Building2,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/business-competitor-analytics',
@@ -453,15 +453,15 @@ function WorkflowPipeline({ tools }) {
 
 const HOME_FAQS = [
   {
-    question: "What is Himani's SEO Tools?",
+    question: "What is Missive's SEO Tools?",
     answer:
-      'A free suite of AI-powered SEO and content tools built by Missive Digital: research, writing, auditing, and competitive intelligence tools that run on the same battle-tested frameworks the agency uses for its own clients.',
+      'A free suite of AI-powered SEO and content tools built by Missive Digital. It covers research, writing, auditing, and competitive intelligence, using the same frameworks the agency uses for its own clients.',
     tag: 'Basics',
   },
   {
     question: 'Are all the tools really free?',
     answer:
-      'Yes. Every tool in the suite is 100% free with unlimited generations. No credit card, no trial period, and no feature paywalls.',
+      'Yes. Every tool in the suite is free with unlimited generations. No credit card, no trial period, and no feature paywalls.',
     tag: 'Pricing',
   },
   {
@@ -473,7 +473,7 @@ const HOME_FAQS = [
   {
     question: 'Which tool should I start with?',
     answer:
-      'Use the category filters above: Content Creation for writing and generation tools, SEO & Site Audits for technical checks, or Research & Competitive Intel for keyword and competitor analysis. Most workflows start with research, move to content creation, then finish with an audit.',
+      'Use the category filters above. Content Creation covers writing and generation tools, SEO & Site Audits covers technical checks, and Research & Competitive Intel covers keyword and competitor analysis. Most workflows start with research, move to content creation, then finish with an audit.',
     tag: 'Guidance',
   },
   {
@@ -485,7 +485,7 @@ const HOME_FAQS = [
   {
     question: 'Who built these tools and why?',
     answer:
-      'Himani Kankaria, an SEO strategist with 10+ years optimizing B2B and SaaS content, built this suite at Missive Digital to turn the frameworks her team uses on client work into free, self-serve tools for growth leads and creators.',
+      'Himani Kankaria, an SEO strategist with 15+ years of experience optimizing B2B and SaaS content, built this suite at Missive Digital to turn the frameworks her team uses on client work into free, self-serve tools for growth leads and creators.',
     tag: 'Authority',
   },
 ]
@@ -552,7 +552,7 @@ export default function Home() {
               <Sparkles className="w-3.5 h-3.5" />
               <span>Curated by Himani Kankaria • Missive Digital</span>
             </span>
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
               <span className="text-gray-900">Himani's </span>
               <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
                 SEO Tools
@@ -583,7 +583,7 @@ export default function Home() {
             </div>
 
             <div className="mt-7 flex flex-wrap items-center justify-center gap-2 text-[10px] sm:text-[11px] text-slate-500 font-medium">
-              {['No sign-up required', '100% free forever', 'Zero em dashes, zero AI fluff'].map(
+              {['No sign-up required', 'Free forever', 'Zero em dashes, zero AI fluff'].map(
                 (b) => (
                   <span
                     key={b}
@@ -721,7 +721,7 @@ export default function Home() {
                 <h3 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight mb-6">
                   Why We Created{' '}
                   <span className="bg-gradient-to-r from-[#67A7FF] to-[#F7B7B3] bg-clip-text text-transparent">
-                    Himani's SEO Tools
+                    Missive's SEO Tools
                   </span>
                 </h3>
 

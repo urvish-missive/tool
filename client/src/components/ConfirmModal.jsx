@@ -66,7 +66,7 @@ export default function ConfirmModal({
         return {
           icon: <HelpCircle className="w-6 h-6 text-[#0C81F3]" />,
           iconBg: 'bg-blue-50 border-blue-100',
-          confirmBtn: 'bg-[#0C81F3] hover:bg-[#0b74da] text-white focus:ring-[#0C81F3]',
+          confirmBtn: 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:opacity-90 text-white focus:ring-[#0C81F3]',
         }
       case 'danger':
       default:

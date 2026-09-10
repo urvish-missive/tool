@@ -29,7 +29,6 @@ import {
   LandingFAQ,
   LandingCTA,
   LandingLiveDemo,
-  LandingResultsTopbar,
 } from '../components/landing'
 import BlogIntroGeneratorPage from '../tools/blog-intro-generator/BlogIntroGeneratorPage'
 
@@ -37,7 +36,7 @@ import BlogIntroGeneratorPage from '../tools/blog-intro-generator/BlogIntroGener
 const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
-  name: 'Blog Introduction Generator: Missive Digital',
+  name: 'Blog Introduction Generator by Missive Digital',
   description:
     'Free AI-powered blog introduction generator by Missive Digital. Create high-converting TOFU, MOFU, and BOFU blog hooks and introductions in seconds.',
   url: 'https://tools.missivedigital.com/blog-intro-generator',
@@ -90,7 +89,7 @@ const faqStructuredData = {
       name: 'What funnel stages does this tool support?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'The tool supports three funnel stages: TOFU (Top of Funnel / Awareness) with curiosity gaps and statistics, MOFU (Middle of Funnel / Consideration) with Problem-Agitate-Solve frameworks, and BOFU (Bottom of Funnel / Decision) with direct ROI verdicts and proof-driven hooks.',
+        text: 'The tool supports three funnel stages. TOFU (Top of Funnel / Awareness) uses curiosity gaps and statistics, MOFU (Middle of Funnel / Consideration) uses Problem-Agitate-Solve frameworks, and BOFU (Bottom of Funnel / Decision) uses direct ROI verdicts and proof-driven hooks.',
       },
     },
     {
@@ -122,7 +121,7 @@ const FEATURES = [
     icon: MessageSquare,
     title: '8 Tone Options',
     description:
-      'Conversational, Authoritative, Storytelling, Fun, Bold, Empathetic, Witty, or Data-Driven: match your brand voice precisely.',
+      'Conversational, Authoritative, Storytelling, Fun, Bold, Empathetic, Witty, or Data-Driven. Pick the tone that matches your brand voice.',
   },
   {
     icon: PenTool,
@@ -134,13 +133,13 @@ const FEATURES = [
     icon: Zap,
     title: 'AI-Powered, Not Template-Based',
     description:
-      'Powered by Google Gemini, Groq, or OpenRouter: generating psychologically validated introductions, not generic fill-in-the-blank templates.',
+      'Powered by Google Gemini, Groq, or OpenRouter, generating psychologically validated introductions, not generic fill-in-the-blank templates.',
   },
   {
     icon: BookOpen,
-    title: 'SEO & E-E-A-T Compliant',
+    title: 'SEO & E‑E‑A‑T Compliant',
     description:
-      "Every output follows Google's E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness) quality guidelines and SEO best practices.",
+      "Every output follows Google's E‑E‑A‑T (Experience, Expertise, Authoritativeness, Trustworthiness) quality guidelines and SEO best practices.",
   },
 ]
 
@@ -212,13 +211,13 @@ const FAQS = [
   {
     question: 'How many blog introductions can I generate at once?',
     answer:
-      'You can generate 6, 9, 12, or 15 variations per request. The default is 9: 3 per funnel stage (TOFU, MOFU, BOFU). Each variation uses a different psychological hook formula and emotional trigger.',
+      'You can generate 6, 9, 12, or 15 variations per request. The default is 9, which is 3 per funnel stage (TOFU, MOFU, BOFU). Each variation uses a different psychological hook formula and emotional trigger.',
     tag: 'Output',
   },
   {
     question: 'What funnel stages does this tool support?',
     answer:
-      'The tool supports three funnel stages: TOFU (Top of Funnel / Awareness) with curiosity gaps and statistics for cold audiences, MOFU (Middle of Funnel / Consideration) with Problem-Agitate-Solve frameworks for warm leads, and BOFU (Bottom of Funnel / Decision) with ROI verdicts and proof-driven hooks for ready-to-buy readers.',
+      'The tool supports three funnel stages. TOFU (Top of Funnel / Awareness) uses curiosity gaps and statistics for cold audiences, MOFU (Middle of Funnel / Consideration) uses Problem-Agitate-Solve frameworks for warm leads, and BOFU (Bottom of Funnel / Decision) uses ROI verdicts and proof-driven hooks for ready-to-buy readers.',
     tag: 'Funnel',
   },
   {
@@ -230,7 +229,7 @@ const FAQS = [
   {
     question: 'Can I customize the tone of voice?',
     answer:
-      'Yes. Choose from 8 tones: Conversational & Engaging, Authoritative & Thought-Leadership, Storytelling & Narrative, Fun & Playful, Bold & Disruptive, Empathetic & Supportive, Witty & Energetic, or Analytical & Data-Driven.',
+      'Yes. Choose from 8 tones, including Conversational & Engaging, Authoritative & Thought-Leadership, Storytelling & Narrative, Fun & Playful, Bold & Disruptive, Empathetic & Supportive, Witty & Energetic, or Analytical & Data-Driven.',
     tag: 'Tone',
   },
   {
@@ -253,7 +252,7 @@ function TrustSection() {
     <LandingAnimatedStats
       sectionLabel="Built by SEO Experts"
       heading="Trusted by 12,000+ Content Marketers"
-      subheading="Built by Himani Kankaria, an SEO strategist with 10+ years of experience optimizing content for Google's E-E-A-T guidelines."
+      subheading="Built by Himani Kankaria, an SEO strategist with 15+ years of experience optimizing content for Google's E‑E‑A‑T guidelines."
       stats={items}
     />
   )
@@ -297,10 +296,10 @@ export default function BlogIntroLandingPage() {
     <>
       {/* ── SEO Meta Tags (Zero Em Dashes) ── */}
       <Helmet>
-        <title>Multiple Blog Introduction Generator: Free Tool | Missive Digital</title>
+        <title>Multiple Blog Introduction Generator - Free Tool | Missive Digital</title>
         <meta
           name="description"
-          content="Generate multiple high-converting blog post introductions across TOFU, MOFU, and BOFU stages. 9 hook formulas, 8 tone profiles, 100% free, no sign-up required."
+          content="Generate multiple high-converting blog post introductions across TOFU, MOFU, and BOFU stages. 9 hook formulas, 8 tone profiles, Free, no sign-up required."
         />
         <meta
           name="keywords"
@@ -309,7 +308,7 @@ export default function BlogIntroLandingPage() {
         <link rel="canonical" href="https://tools.missivedigital.com/blog-intro-generator" />
         <meta
           property="og:title"
-          content="Multiple Blog Introduction Generator: Free Tool | Missive Digital"
+          content="Multiple Blog Introduction Generator - Free Tool | Missive Digital"
         />
         <meta
           property="og:description"
@@ -317,9 +316,9 @@ export default function BlogIntroLandingPage() {
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://tools.missivedigital.com/blog-intro-generator" />
-        <meta property="og:site_name" content="Missive Digital: Himani's SEO Tools" />
+        <meta property="og:site_name" content="Missive's SEO Tools" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Blog Introduction Generator: Missive Digital" />
+        <meta name="twitter:title" content="Blog Introduction Generator by Missive Digital" />
         <meta
           name="twitter:description"
           content="Generate high-converting blog introductions in seconds. Free, AI-powered, funnel-optimized."
@@ -330,27 +329,17 @@ export default function BlogIntroLandingPage() {
       </Helmet>
 
       <div className={`landing-page min-h-screen bg-white ${hasResults ? 'pt-20' : ''}`}>
-        {hasResults && (
-          <LandingResultsTopbar
-            onBack={handleNewIntro}
-            backLabel="New Blog Intro Search"
-            backHint="Start Over"
-            title="Generated Blog Introductions Workspace"
-            badge="Live Intros"
-          />
-        )}
-
         {/* ═══════════════ 1. HERO WITH FLOATING GLASS CARDS ═══════════════ */}
         <LandingHero
           hideHeroCopy={hasResults}
-          badge="Himani's SEO Tools • Missive Digital"
+          badge="Missive's SEO Tools • Missive Digital"
           title={[
             { text: 'Generate High-Converting ' },
             { text: 'Blog Introductions', gradient: true },
             { text: ' in Seconds' },
           ]}
-          subtitle="AI-powered blog hooks engineered across the full funnel: TOFU (Awareness), MOFU (Consideration), and BOFU (Decision). 9 psychological formulas, 8 tones, zero writer's block."
-          ctaLabel="Start Generating Free →"
+          subtitle="AI-powered blog hooks for every funnel stage, TOFU (Awareness), MOFU (Consideration), and BOFU (Decision). 9 psychological formulas, 8 tones, zero writer's block."
+          ctaLabel="Start Generating Free"
           ctaOnClick={scrollToTool}
           secondaryCta={{
             label: 'See 9 Hook Formulas ↓',
@@ -358,8 +347,8 @@ export default function BlogIntroLandingPage() {
           }}
           trustBadges={[
             'No sign-up required',
-            '100% free',
-            'SEO & E-E-A-T optimized',
+            'Free to use',
+            'SEO & E‑E‑A‑T optimized',
             'Unlimited generations',
           ]}
           toolRef={toolRef}
@@ -443,14 +432,14 @@ export default function BlogIntroLandingPage() {
             {/* ═══════════════ 9. SIGNATURE DARK IMPACT SECTION (#171720) ═══════════════ */}
             <LandingDarkImpact stats={RETENTION_STATS} onCtaClick={scrollToTool} />
 
-            {/* ═══════════════ 10. TRUST / E-E-A-T SECTION ═══════════════ */}
+            {/* ═══════════════ 10. TRUST / E‑E‑A‑T SECTION ═══════════════ */}
             <TrustSection />
 
             {/* ═══════════════ 11. FAQ ACCORDION ═══════════════ */}
             <LandingFAQ
               sectionLabel="Frequently Asked Questions"
               heading="Blog Intro Generator FAQs"
-              subheading="Everything you need to know about creating high-converting blog introductions with AI."
+              subheading="Common questions about hook formulas, funnel stages, and tone options."
               faqs={FAQS}
             />
 
@@ -458,7 +447,7 @@ export default function BlogIntroLandingPage() {
             <LandingCTA
               heading="Stop Writing Boring Blog Intros"
               subheading="Try the Blog Intro Generator free. Create psychologically validated openings that reduce bounce rates and boost engagement. No sign-up required."
-              ctaLabel="Start Generating Free"
+              ctaLabel="Write My Blog Intro"
               ctaOnClick={scrollToTool}
             />
           </>

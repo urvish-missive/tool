@@ -1,5 +1,6 @@
 import { callAIAndParseJSON, apiResultCache } from '../utils/aiProvider.js'
 import { TONE_PROFILES } from './blogTopicGenerator.js'
+import { buildMissiveQaPromptDirectives } from '../utils/missiveQaRules.js'
 
 /**
  * Funnel stage definitions and characteristics
@@ -360,8 +361,13 @@ You MUST generate intros across all 3 funnel stages in this exact count:
 Total must be exactly ${requestedCount} items.`
   }
 
+  const qaDirectives = buildMissiveQaPromptDirectives()
+
   const systemPrompt = `You are Missive Digital's elite conversion copywriter.
 Generate high-retention, scroll-stopping blog post introductions engineered to slash bounce rates and maximize time-on-page.
+
+CRITICAL MISSIVE QA DIRECTIVES (APPLIED TO EVERY PIECE OF GENERATED TEXT):
+${qaDirectives}
 
 COPYWRITING RULES:
 1. First Sentence Hook: Must be an arresting pattern-interrupt. Zero preamble or meta-commentary.
@@ -369,8 +375,7 @@ COPYWRITING RULES:
 3. Body: Exactly 2 tight sentences building the tension or stakes in this voice.
 4. Bridge Line: Exactly 1 smooth transition sentence pulling the reader directly into the article.
 5. Target Audiences: Accurately identify 4-5 key audience segments / personas for this topic.
-6. Banned Clichés: Never use "In today's fast-paced world", "Look no further", "Delve into", "Tapestry", "Let's explore", "Whether you are a...".
-7. Return strictly valid JSON only.`
+6. Return strictly valid JSON only.`
 
   const userPrompt = `Generate exactly ${requestedCount} blog post introductions for:
 TOPIC: "${topic}"
@@ -535,7 +540,7 @@ OUTPUT FORMAT (strictly JSON):
     throw new Error('AI returned empty introductions list')
   } catch (err) {
     console.warn(
-      `[BlogIntroGenerator] AI call failed or returned incomplete response (${err.message}). Generating guaranteed complete variations.`
+      `[BlogIntroGenerator] AI call failed or returned incomplete response (${err.message}). Generating complete variations.`
     )
 
     const fallbackIntros = getFallbackIntroductions(topic, effectiveAudience, parsedKeywords, requestedCount, funnelStage)

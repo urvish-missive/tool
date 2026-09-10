@@ -38,9 +38,7 @@ import {
   LandingCTA,
   LandingConclusionAnatomy,
   LandingBannedWordsWall,
-  LandingFrameworksGallery,
   LandingLiveDemo,
-  LandingResultsTopbar,
 } from '../components/landing'
 import BlogConclusionGeneratorPage from '../tools/blog-conclusion-generator/BlogConclusionGeneratorPage'
 
@@ -48,7 +46,7 @@ import BlogConclusionGeneratorPage from '../tools/blog-conclusion-generator/Blog
 const structuredData = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
-  name: 'Blog Conclusion Generator: Missive Digital',
+  name: 'Blog Conclusion Generator by Missive Digital',
   description:
     'Free AI-powered blog conclusion generator by Missive Digital. Create specific, loop-closing blog conclusions with custom H2 headlines and high-converting CTAs for TOFU, MOFU, and BOFU stages.',
   url: 'https://tools.missivedigital.com/blog-conclusion-generator',
@@ -85,7 +83,7 @@ const faqStructuredData = {
       name: 'What is a blog conclusion generator?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'A blog conclusion generator is an AI-powered tool that writes high-converting ending sections for blog posts. It closes the open loops from your introduction, delivers specific takeaway headlines (never generic "In Conclusion" text), and bridges the reader to a measurable next action: a demo, trial, download, or related post.',
+        text: 'A blog conclusion generator is an AI-powered tool that writes high-converting ending sections for blog posts. It closes the open loops from your introduction, writes a specific takeaway headline instead of a generic "In Conclusion" heading, and points the reader to a clear next step, like a demo, trial, download, or related post.',
       },
     },
     {
@@ -93,7 +91,7 @@ const faqStructuredData = {
       name: 'Why shouldn\'t a blog conclusion just say "In Conclusion"?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Generic "In Conclusion" or "To Sum Up" headings signal to both readers and Google that the content is padded and low-value. A specific, benefit-driven H2 headline (for example: "How to Cut CAC by 30% in 90 Days") improves dwell time, reduces bounce rates, and reinforces topical depth: all of which are E-E-A-T quality signals Google evaluates.',
+        text: 'Generic "In Conclusion" or "To Sum Up" headings signal to both readers and Google that the content is padded and low-value. A specific, benefit-driven H2 headline, for example "How to Cut CAC by 30% in 90 Days," improves dwell time, reduces bounce rates, and builds the kind of topical depth Google rewards.',
       },
     },
     {
@@ -117,7 +115,7 @@ const faqStructuredData = {
       name: 'How does this tool follow Missive QA standards?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "Every conclusion strictly follows Himani Kankaria's 12-Pillar Content QA framework: zero em dashes, zero robotic clichés, quantifiable E-E-A-T proof metrics, insight-first structure, and high visual scannability.",
+        text: "Every conclusion strictly follows Himani Kankaria's 12-Pillar Content QA framework. No em dashes, no robotic clichés, real numbers backing every claim, and copy that's easy to scan.",
       },
     },
     {
@@ -125,7 +123,7 @@ const faqStructuredData = {
       name: 'Is the Blog Conclusion Generator free to use?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes. The Blog Conclusion Generator by Missive Digital is 100% free with no sign-up required. Generate multiple conclusion variations across all funnel stages, copy them directly, or export as Markdown for your CMS.',
+        text: 'Yes. The Blog Conclusion Generator by Missive Digital is free with no sign-up required. Generate multiple conclusion variations across all funnel stages, copy them directly, or export as Markdown for your CMS.',
       },
     },
   ],
@@ -137,7 +135,7 @@ const FEATURES = [
     icon: Target,
     title: 'Specific, Benefit-Driven H2 Headlines',
     description:
-      'Never write "In Conclusion" again. Every conclusion receives a specific, benefit-driven H2 that reinforces what the reader achieved: improving dwell time, E-E-A-T, and search rankings.',
+      'Never write "In Conclusion" again. Every conclusion gets a specific, benefit-driven H2 that shows what the reader gained, which helps dwell time, E‑E‑A‑T, and rankings.',
   },
   {
     icon: Layers,
@@ -149,25 +147,25 @@ const FEATURES = [
     icon: MessageSquare,
     title: 'Intro Loop Closure',
     description:
-      'Paste your blog introduction and the AI identifies every open loop: unanswered questions, teased data, and promised insights: then resolves them explicitly in the conclusion.',
+      'Paste your blog introduction and the AI finds every open loop, like unanswered questions, teased data, and promised insights, then resolves them explicitly in the conclusion.',
   },
   {
     icon: ShieldCheck,
     title: 'Missive 12-Pillar QA Certified',
     description:
-      "Built strictly on Himani Kankaria's QA rules: zero em dashes, zero robotic buzzwords (delve, tapestry, game changer), 3+ concrete metrics, and short scannable paragraphs.",
+      "Built strictly on Himani Kankaria's QA rules. No em dashes, no robotic buzzwords like delve, tapestry, or game changer, at least 3 concrete metrics, and short paragraphs you can scan.",
   },
   {
     icon: Zap,
     title: '8 Distinct Tone Profiles',
     description:
-      'Authoritative, Conversational, Storytelling, Fun, Bold, Empathetic, Witty, or Data-Driven: match your brand voice and reader expectations with high fidelity.',
+      'Authoritative, Conversational, Storytelling, Fun, Bold, Empathetic, Witty, or Data-Driven. Pick the tone that matches your brand and your readers.',
   },
   {
     icon: BookOpen,
-    title: 'SEO & Google E-E-A-T Compliant',
+    title: 'SEO & Google E‑E‑A‑T Compliant',
     description:
-      "Every output follows Google's E-E-A-T quality rater guidelines: specific, experience-led, authoritative, and defensible: with zero filler summaries.",
+      "Every output follows Google's E‑E‑A‑T quality rater guidelines. It's specific, experience-led, and backed up, with no filler summaries.",
   },
 ]
 
@@ -198,10 +196,9 @@ const STEPS = [
   },
 ]
 
-
 const STATS = [
   { value: '0', label: 'Generic "In Conclusion" headings' },
-  { value: '100%', label: 'Intro open loop resolution rate' },
+  { value: 'High', label: 'Intro open loop resolution rate' },
   { value: '42%', label: 'Higher CTA click-through rate' },
   { value: '20-30 sec', label: 'Average generation time' },
 ]
@@ -210,7 +207,7 @@ const FAQS = [
   {
     question: 'What is a blog conclusion generator?',
     answer:
-      'A blog conclusion generator is an AI-powered tool that writes high-converting ending sections for blog posts. It generates specific, non-generic H2 headlines, closes the open loops from your introduction, and bridges the reader to a measurable next action: demo, trial, download, related post, or comment.',
+      'A blog conclusion generator is an AI-powered tool that writes high-converting ending sections for blog posts. It generates specific, non-generic H2 headlines, closes the open loops from your introduction, and points the reader to a clear next step, like a demo, trial, download, related post, or comment.',
     tag: 'Basics',
   },
   {
@@ -222,7 +219,7 @@ const FAQS = [
   {
     question: 'How do Missive QA checklist rules apply to blog conclusions?',
     answer:
-      "Conclusions generated by this tool strictly enforce Himani Kankaria's 12-Pillar Content QA standard: zero em dashes or double hyphens, zero robotic clichés (delve, tapestry, beacon, game changer, plethora), at least 3 concrete quantifiable metrics, and tight 1 to 3 sentence scannable paragraphs.",
+      "Conclusions generated by this tool strictly enforce Himani Kankaria's 12-Pillar Content QA standard. No em dashes or double hyphens, no robotic clichés like delve, tapestry, beacon, game changer, or plethora, at least 3 concrete metrics, and short 1 to 3 sentence paragraphs.",
     tag: 'QA Rules',
   },
   {
@@ -240,13 +237,13 @@ const FAQS = [
   {
     question: 'Can I customize the call to action?',
     answer:
-      'Yes. Choose from six CTA goals: Book a Strategy Call or Demo, Start Free Trial or Sign Up, Download Checklist or Guide, Read Next Related Post, Leave a Comment or Discuss, or Custom Call to Action. For custom CTAs, simply input your exact button copy and the AI weaves it into the narrative bridge.',
+      'Yes. Choose from six CTA goals, including Book a Strategy Call or Demo, Start Free Trial or Sign Up, Download Checklist or Guide, Read Next Related Post, Leave a Comment or Discuss, or Custom Call to Action. For custom CTAs, just enter your exact button copy and the AI works it into the closing paragraph.',
     tag: 'CTAs',
   },
   {
     question: 'Is the Blog Conclusion Generator free to use?',
     answer:
-      'Yes. The Blog Conclusion Generator by Missive Digital is 100% free with no sign-up required, no credit card, and no usage caps. Generate, copy, and export conclusions across all funnel stages at no cost.',
+      'Yes. The Blog Conclusion Generator by Missive Digital is free with no sign-up required, no credit card, and no usage caps. Generate, copy, and export conclusions across all funnel stages at no cost.',
     tag: 'Pricing',
   },
 ]
@@ -269,9 +266,9 @@ const CONCLUSION_FUNNEL_STAGES = [
       'The Big-Picture Horizon',
       'The Contrarian Challenge',
     ],
-    sampleTitle: 'The Verdict: Turning Organic Architecture Into Your Moat',
+    sampleTitle: 'What Actually Grows Organic Traffic',
     sampleHook:
-      '## The Verdict: Turning Organic Architecture Into Your Lasting Moat\n\nRemember the question we started with? Mastering organic reach is not about chasing every new tactic. It is about mastering the underlying fundamentals that compound quarter over quarter.\n\nThe difference between teams that struggle and those that lead is deliberate consistency in execution.',
+      'Remember the question we started with? Growing organic reach is not about chasing every new tactic. It comes down to getting the basics right, week after week.\n\nThe teams that win are the ones who stay consistent, not the ones with the flashiest new trick.',
     sampleBridge:
       'Where will your team focus your efforts first? Choose one high-impact principle from this guide and benchmark your current workflow this week.',
     metric: '3.4x Reader Dwell Time',
@@ -292,9 +289,9 @@ const CONCLUSION_FUNNEL_STAGES = [
       'The Comparison Verdict & Decision Matrix',
       'The Common Pitfall Warning',
     ],
-    sampleTitle: 'Your Implementation Blueprint: Putting Content Architecture to Work',
+    sampleTitle: 'How to Put This Audit Plan to Work',
     sampleHook:
-      '## Your Implementation Blueprint: Putting Content Architecture to Work\n\nThe concepts we broke down are not theoretical. They represent the exact operational playbook needed to execute modern content QA with confidence.\n\nStart with a structured audit of your highest-priority landing pages before scaling across the organization.',
+      'What we covered here is not just theory. It is the exact plan you need to run a content QA audit with confidence.\n\nStart by auditing your highest-priority landing pages, then roll the same checks out across the rest of your site.',
     sampleBridge:
       'To make rollout effortless, download our 12-point pre-flight checklist containing all formulas, benchmarks, and QA rules covered in this guide.',
     metric: '34% Lead Magnet Opt-Ins',
@@ -315,9 +312,9 @@ const CONCLUSION_FUNNEL_STAGES = [
       'The Cost of Inaction & Demo Booking',
       'The Fast-Track Implementation Pitch',
     ],
-    sampleTitle: "The Bottom Line: Don't Let Inaction Delay Your Pipeline",
+    sampleTitle: "Don't Let Waiting Cost You Leads",
     sampleHook:
-      "## The Bottom Line: Don't Let Inaction Delay Your Organic Pipeline\n\nEvery month your team delays modernizing your content operations, the compounding cost of inaction quietly increases.\n\nTop performers choose momentum. With verified QA guardrails supporting your workflow, your team can begin seeing validated impact in as little as 14 days.",
+      'Every month you put off fixing your content, you lose a little more ground to competitors who already did.\n\nThe teams that move first win first. With QA checks built into your workflow, you can start seeing real results in as little as 14 days.',
     sampleBridge:
       'Ready to see how much faster your team can ship rank-ready copy? Test drive our platform today and unlock full access with zero commitments.',
     metric: '42% Higher CTA Clicks',
@@ -367,7 +364,7 @@ const CONCLUSION_PILLS = [
     icon: TrendingUp,
   },
   {
-    text: 'Google E-E-A-T Aligned',
+    text: 'Google E‑E‑A‑T Aligned',
     color: 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100',
     icon: Check,
   },
@@ -400,13 +397,13 @@ function TrustSection() {
     <LandingAnimatedStats
       sectionLabel="Built by SEO Strategists"
       heading="Trusted by Content Teams Who Care About Ending Strong"
-      subheading="Built by Himani Kankaria, an SEO strategist with 10+ years of experience optimizing enterprise copy for Google's quality guidelines and direct reader conversions."
+      subheading="Built by Himani Kankaria, an SEO strategist with 15+ years of experience optimizing enterprise copy for Google's quality guidelines and direct reader conversions."
       stats={items}
     />
   )
 }
 
-/* ─────────────── E-E-A-T Authority Banner (Uniform Spacing) ─────────────── */
+/* ─────────────── E‑E‑A‑T Authority Banner (Uniform Spacing) ─────────────── */
 function AuthorityBanner() {
   const ref = useScrollReveal()
   return (
@@ -420,7 +417,7 @@ function AuthorityBanner() {
             {
               icon: CheckCircle2,
               title: 'Curated by Himani Kankaria',
-              text: 'SEO Strategist with 10+ years optimizing B2B and SaaS content for Google search intent and conversions.',
+              text: 'SEO Strategist with 15+ years of experience optimizing B2B and SaaS content for Google search intent and conversions.',
             },
             {
               icon: CheckCircle2,
@@ -429,7 +426,7 @@ function AuthorityBanner() {
             },
             {
               icon: CheckCircle2,
-              title: 'E-E-A-T Quality Safeguards',
+              title: 'E‑E‑A‑T Quality Safeguards',
               text: 'Ensures conclusions deliver topical closure, author authority, and defensible action steps.',
             },
           ].map((item, i) => (
@@ -490,7 +487,7 @@ export default function BlogConclusionLandingPage() {
     <>
       {/* ── SEO Meta Tags (Zero Em Dashes) ── */}
       <Helmet>
-        <title>Blog Conclusion Generator: Free AI Tool | Missive Digital</title>
+        <title>Blog Conclusion Generator - Free AI Tool | Missive Digital</title>
         <meta
           name="description"
           content="Generate high-converting blog conclusions in seconds. AI-powered specific H2 headlines, intro loop closure, and funnel-matched CTAs for TOFU, MOFU, and BOFU stages. Free, no sign-up required."
@@ -502,7 +499,7 @@ export default function BlogConclusionLandingPage() {
         <link rel="canonical" href="https://tools.missivedigital.com/blog-conclusion-generator" />
         <meta
           property="og:title"
-          content="Blog Conclusion Generator: Free AI Tool | Missive Digital"
+          content="Blog Conclusion Generator - Free AI Tool | Missive Digital"
         />
         <meta
           property="og:description"
@@ -513,9 +510,9 @@ export default function BlogConclusionLandingPage() {
           property="og:url"
           content="https://tools.missivedigital.com/blog-conclusion-generator"
         />
-        <meta property="og:site_name" content="Missive Digital: Himani's SEO Tools" />
+        <meta property="og:site_name" content="Missive's SEO Tools" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Blog Conclusion Generator: Missive Digital" />
+        <meta name="twitter:title" content="Blog Conclusion Generator by Missive Digital" />
         <meta
           name="twitter:description"
           content="Generate specific, loop-closing blog conclusions with custom H2 headlines and high-converting CTAs. Free, AI-powered, funnel-optimized."
@@ -526,27 +523,16 @@ export default function BlogConclusionLandingPage() {
       </Helmet>
 
       <div className={`landing-page min-h-screen bg-white ${hasResults ? 'pt-20' : ''}`}>
-        {hasResults && (
-          <LandingResultsTopbar
-            onBack={handleNewConclusion}
-            backLabel="New Conclusion Search"
-            backHint="Start Over"
-            title="Generated Blog Conclusions Workspace"
-            badge="Live Conclusions"
-          />
-        )}
-
         {/* ═══════════════ 1. HERO WITH CUSTOM FLOATING GLASS CARDS ═══════════════ */}
         <LandingHero
           hideHeroCopy={hasResults}
-          badge="Himani's SEO Tools • Missive Digital"
+          badge="Missive's SEO Tools • Missive Digital"
           title={[
-            { text: 'Turn Reader Attention into ' },
-            { text: 'Measurable Commercial Action', gradient: true },
-            { text: ': With Conclusions That Actually Close the Loop' },
+            { text: 'Write Blog Endings ' },
+            { text: 'That Actually Convert', gradient: true },
           ]}
-          subtitle="Most blog conclusions waste the trust and attention earned earlier in the post. Our AI writes specific H2 headlines, resolves every open loop from your introduction, and bridges the reader to a measurable next action: demo, trial, download, or related article."
-          ctaLabel="Start Generating Free →"
+          subtitle="Most blog conclusions waste the trust and attention earned earlier in the post. Our AI writes specific H2 headlines, resolves every open loop from your introduction, and points the reader to a clear next step, like a demo, trial, download, or related article."
+          ctaLabel="Write My Conclusion Free"
           ctaOnClick={scrollToTool}
           secondaryCta={{
             label: 'See Conclusion Anatomy ↓',
@@ -554,7 +540,7 @@ export default function BlogConclusionLandingPage() {
           }}
           trustBadges={[
             'No sign-up required',
-            '100% free forever',
+            'Free forever',
             'Missive 12-Pillar QA Certified',
             'Loop-closing conclusions',
           ]}
@@ -571,170 +557,166 @@ export default function BlogConclusionLandingPage() {
 
         {!hasResults && (
           <>
+            {/* ═══════════════ 2. INFINITE CMS & PUBLISHING MARQUEE ═══════════════ */}
+            <LandingMarquee />
 
-        {/* ═══════════════ 2. INFINITE CMS & PUBLISHING MARQUEE ═══════════════ */}
-        <LandingMarquee />
+            {/* ═══════════════ 3. ANIMATED LIVE DEMO ═══════════════ */}
+            <LandingLiveDemo
+              badge="See It Close the Loop"
+              heading="Watch a Conclusion Get Engineered Live"
+              subheading="Paste your topic and intro, and watch the AI resolve every open loop into a specific H2 and CTA bridge."
+              accentIcon={ShieldCheck}
+              examples={[
+                {
+                  label: 'BOFU · ROI Verdict',
+                  input: 'Enterprise Content QA Automation',
+                  outputTitle: "Don't Let Waiting Cost You Leads",
+                  outputBody:
+                    'Every month you put off automating QA, you lose a little more ground. Start your trial today, no commitment needed.',
+                  outputMeta: ['BOFU', 'Zero Em Dashes', 'Full Loop Closure'],
+                },
+                {
+                  label: 'MOFU · Blueprint Recap',
+                  input: 'Content Operations Audit Framework',
+                  outputTitle: 'How to Put This Audit to Work',
+                  outputBody:
+                    'What we covered above is not just theory. Download our 12-point checklist to roll this out across your editorial team this quarter.',
+                  outputMeta: ['MOFU', 'Lead Magnet CTA', '34% Opt-In Lift'],
+                },
+                {
+                  label: 'TOFU · Mindset Shift',
+                  input: 'Programmatic SEO Content Architecture',
+                  outputTitle: 'What Actually Grows Organic Traffic',
+                  outputBody:
+                    'Growing organic reach is not about chasing every new tactic. It comes down to getting the basics right, week after week. Try it on your own workflow this week.',
+                  outputMeta: ['TOFU', 'Perspective Shift', '3.4x Dwell Time'],
+                },
+              ]}
+            />
 
-        {/* ═══════════════ 3. ANIMATED LIVE DEMO ═══════════════ */}
-        <LandingLiveDemo
-          badge="See It Close the Loop"
-          heading="Watch a Conclusion Get Engineered Live"
-          subheading="Paste your topic and intro, and watch the AI resolve every open loop into a specific H2 and CTA bridge."
-          accentIcon={ShieldCheck}
-          examples={[
-            {
-              label: 'BOFU · ROI Verdict',
-              input: 'Enterprise Content QA Automation',
-              outputTitle: 'The Bottom Line: Don\'t Let Inaction Delay Your Pipeline',
-              outputBody:
-                'Every month your team delays automating QA, the compounding cost of inaction quietly increases. Start your trial today with zero commitments.',
-              outputMeta: ['BOFU', 'Zero Em Dashes', '100% Loop Closure'],
-            },
-            {
-              label: 'MOFU · Blueprint Recap',
-              input: 'Content Operations Audit Framework',
-              outputTitle: 'Your Implementation Blueprint: Putting the Audit to Work',
-              outputBody:
-                'The concepts above are not theoretical. Download our 12-point checklist to roll this out across your editorial team this quarter.',
-              outputMeta: ['MOFU', 'Lead Magnet CTA', '34% Opt-In Lift'],
-            },
-            {
-              label: 'TOFU · Mindset Shift',
-              input: 'Programmatic SEO Content Architecture',
-              outputTitle: 'The Verdict: Turning Architecture Into Your Moat',
-              outputBody:
-                'Mastering organic reach is not about chasing tactics. It is about the fundamentals that compound quarter over quarter. Benchmark your workflow this week.',
-              outputMeta: ['TOFU', 'Perspective Shift', '3.4x Dwell Time'],
-            },
-          ]}
-        />
+            {/* ═══════════════ 4. INTERACTIVE CONCLUSION FUNNEL FLOW VISUALIZER ═══════════════ */}
+            <LandingFunnelFlow
+              stages={CONCLUSION_FUNNEL_STAGES}
+              badge="Conversion Architecture"
+              heading={
+                <>
+                  Conclusions Engineered Across the{' '}
+                  <span className="bg-gradient-to-r from-[#0C81F3] to-[#EB8988] bg-clip-text text-transparent">
+                    Entire Funnel
+                  </span>
+                </>
+              }
+              subheading="A generic ending treats every visitor the same. Our generator adapts takeaway depth and CTA triggers to where your reader is in their buying journey."
+              sampleLabel1="Specific H2 & Loop-Closing Synthesis"
+              sampleLabel2="Contextual Call-to-Action Bridge"
+              ctaButtonText={(s) => `Generate ${s.id.toUpperCase()} Conclusions Now`}
+              onTryTool={scrollToTool}
+            />
 
-        {/* ═══════════════ 4. INTERACTIVE CONCLUSION FUNNEL FLOW VISUALIZER ═══════════════ */}
-        <LandingFunnelFlow
-          stages={CONCLUSION_FUNNEL_STAGES}
-          badge="Conversion Architecture"
-          heading={
-            <>
-              Conclusions Engineered Across the{' '}
-              <span className="bg-gradient-to-r from-[#0C81F3] to-[#EB8988] bg-clip-text text-transparent">
-                Entire Funnel
-              </span>
-            </>
-          }
-          subheading="A generic ending treats every visitor the same. Our generator adapts takeaway depth and CTA triggers to where your reader is in their buying journey."
-          sampleLabel1="Specific H2 & Loop-Closing Synthesis:"
-          sampleLabel2="Contextual Call-to-Action Bridge:"
-          ctaButtonText={(s) => `Generate ${s.id.toUpperCase()} Conclusions Now`}
-          onTryTool={scrollToTool}
-        />
+            {/* ═══════════════ 5. STATS ROW ═══════════════ */}
+            <LandingStats stats={STATS} />
 
-        {/* ═══════════════ 5. STATS ROW ═══════════════ */}
-        <LandingStats stats={STATS} />
+            {/* ═══════════════ 6. FEATURES GRID ═══════════════ */}
+            <LandingFeatures
+              sectionLabel="Why This Tool?"
+              heading="Conclusions Built to Convert Readers"
+              subheading="A great conclusion does not repeat the article. It resolves the tension you built, reinforces the core promise, and moves the reader to one specific, measurable next step."
+              features={FEATURES}
+              columns={3}
+            />
 
-        {/* ═══════════════ 6. FEATURES GRID ═══════════════ */}
-        <LandingFeatures
-          sectionLabel="Why This Tool?"
-          heading="Conclusions That Convert: Not Just Summarize"
-          subheading="A great conclusion does not repeat the article. It resolves the tension you built, reinforces the core promise, and moves the reader to one specific, measurable next step."
-          features={FEATURES}
-          columns={3}
-        />
+            {/* ═══════════════ 7. NEW VISUAL SECTION: ANATOMY OF A GREAT CONCLUSION ═══════════════ */}
+            <LandingConclusionAnatomy />
 
-        {/* ═══════════════ 7. NEW VISUAL SECTION: ANATOMY OF A 10/10 CONCLUSION ═══════════════ */}
-        <LandingConclusionAnatomy />
+            {/* ═══════════════ 8. NEW VISUAL SECTION: BANNED WORDS WALL VS MISSIVE STANDARDS ═══════════════ */}
+            <LandingBannedWordsWall />
 
-        {/* ═══════════════ 8. NEW VISUAL SECTION: BANNED WORDS WALL VS MISSIVE STANDARDS ═══════════════ */}
-        <LandingBannedWordsWall />
+            {/* ═══════════════ 9. SIGNATURE FLOATING PILL CLOUD ═══════════════ */}
+            <LandingPillCloud
+              pills={CONCLUSION_PILLS}
+              badge="Conversion Psychology"
+              heading="Every Conversion Trigger At Your Fingertips"
+              subheading="We analyzed top-ranking B2B and SaaS publications to extract the exact ending frameworks that eliminate drop-off and drive measurable next actions."
+              note="Hover over any framework to see the depth built into every AI generation."
+            />
 
-        {/* ═══════════════ 9. NEW VISUAL SECTION: 12 CONCLUSION FRAMEWORKS GALLERY ═══════════════ */}
-        <LandingFrameworksGallery onTryTool={scrollToTool} />
+            {/* ═══════════════ 11. HOW IT WORKS (STEP CARDS) ═══════════════ */}
+            <LandingHowItWorks
+              sectionLabel="How It Works"
+              heading="From Topic to High-Converting Conclusion in 4 Steps"
+              subheading="No complex prompts needed. Paste your topic, optionally add your intro, and let the AI close open loops and engineer the CTA bridge."
+              steps={STEPS}
+            />
 
-        {/* ═══════════════ 10. SIGNATURE FLOATING PILL CLOUD ═══════════════ */}
-        <LandingPillCloud
-          pills={CONCLUSION_PILLS}
-          badge="Conversion Psychology"
-          heading="Every Conversion Trigger At Your Fingertips"
-          subheading="We analyzed top-ranking B2B and SaaS publications to extract the exact ending frameworks that eliminate drop-off and drive measurable next actions."
-          note="Hover over any framework to see the depth built into every AI generation."
-        />
+            {/* ═══════════════ 12. SIGNATURE DARK IMPACT SECTION (Tailored for Conclusions) ═══════════════ */}
+            <LandingDarkImpact
+              watermark="CONVERSION"
+              badge="The Conclusion Imperative"
+              title={
+                <>
+                  The Final 100 Words Decide{' '}
+                  <span className="bg-gradient-to-r from-[#0C81F3] to-[#EB8988] bg-clip-text text-transparent">
+                    Your Reader's Next Commercial Move
+                  </span>
+                </>
+              }
+              subtitle="You spent hours researching, writing, and optimizing the rest of the post. If it ends with a generic summary or just stops, a reader with nowhere to go usually just leaves. A specific, well-placed conclusion gives them a next step to take."
+              stats={[
+                {
+                  value: '42%',
+                  label: 'Higher CTA Conversions',
+                  sub: 'When using contextual bridges vs generic "contact us" endings',
+                  gradient: 'from-[#0C81F3] to-[#67A7FF]',
+                },
+                {
+                  value: '0',
+                  label: 'Banned Robotic Buzzwords',
+                  sub: 'Strictly zero em dashes and zero AI clichés',
+                  gradient: 'from-[#67A7FF] to-[#EB8988]',
+                },
+                {
+                  value: 'Full',
+                  label: 'Open Loop Resolution',
+                  sub: 'Satisfies every promise and question from the intro',
+                  gradient: 'from-[#EB8988] to-[#FFB7B2]',
+                },
+                {
+                  value: '20-30s',
+                  label: 'Multi-Stage Generation',
+                  sub: 'Instant TOFU, MOFU, and BOFU variations',
+                  gradient: 'from-[#0C81F3] to-[#EB8988]',
+                },
+              ]}
+              quote='"The purpose of a conclusion is not to repeat what you already said. It is to give the reader a compelling, actionable reason to take the next step."'
+              author="Himani Kankaria, Founder of Missive Digital"
+              ctaLabel="Generate My Blog Conclusion"
+              onCtaClick={scrollToTool}
+            />
 
-        {/* ═══════════════ 11. HOW IT WORKS (STEP CARDS) ═══════════════ */}
-        <LandingHowItWorks
-          sectionLabel="How It Works"
-          heading="From Topic to High-Converting Conclusion in 4 Steps"
-          subheading="No complex prompts needed. Paste your topic, optionally add your intro, and let the AI close open loops and engineer the CTA bridge."
-          steps={STEPS}
-        />
+            {/* ═══════════════ 13. E‑E‑A‑T AUTHORITY BANNER ═══════════════ */}
+            <AuthorityBanner />
 
-        {/* ═══════════════ 12. SIGNATURE DARK IMPACT SECTION (Tailored for Conclusions) ═══════════════ */}
-        <LandingDarkImpact
-          watermark="CONVERSION"
-          badge="The Conclusion Imperative"
-          title={
-            <>
-              The Final 100 Words Decide{' '}
-              <span className="bg-gradient-to-r from-[#0C81F3] to-[#EB8988] bg-clip-text text-transparent">
-                Your Reader's Next Commercial Move
-              </span>
-            </>
-          }
-          subtitle="You spent hours researching, writing, and optimizing. But if your article ends with a generic summary or an abrupt stop, 85% of readers bounce without taking action. A strategic conclusion converts passive attention into pipeline."
-          stats={[
-            {
-              value: '42%',
-              label: 'Higher CTA Conversions',
-              sub: 'When using contextual bridges vs generic "contact us" endings',
-              gradient: 'from-[#0C81F3] to-[#67A7FF]',
-            },
-            {
-              value: '0',
-              label: 'Banned Robotic Buzzwords',
-              sub: 'Strictly zero em dashes and zero AI clichés',
-              gradient: 'from-[#67A7FF] to-[#EB8988]',
-            },
-            {
-              value: '100%',
-              label: 'Open Loop Resolution',
-              sub: 'Satisfies every promise and question from the intro',
-              gradient: 'from-[#EB8988] to-[#FFB7B2]',
-            },
-            {
-              value: '20-30s',
-              label: 'Multi-Stage Generation',
-              sub: 'Instant TOFU, MOFU, and BOFU variations',
-              gradient: 'from-[#0C81F3] to-[#EB8988]',
-            },
-          ]}
-          quote='"The purpose of a conclusion is not to repeat what you already said. It is to give the reader a compelling, actionable reason to take the next step."'
-          author="Himani Kankaria, Founder of Missive Digital"
-          ctaLabel="Close the Loop: Generate High-Converting Conclusions"
-          onCtaClick={scrollToTool}
-        />
+            {/* ═══════════════ 14. TRUST / E‑E‑A‑T SECTION ═══════════════ */}
+            <TrustSection />
 
-        {/* ═══════════════ 13. E-E-A-T AUTHORITY BANNER ═══════════════ */}
-        <AuthorityBanner />
+            {/* ═══════════════ 15. FAQ ACCORDION ═══════════════ */}
+            <LandingFAQ
+              sectionLabel="Frequently Asked Questions"
+              heading="Blog Conclusion Generator FAQs"
+              subheading="Learn how AI-powered conclusions close open loops, drive CTA clicks, and follow Missive's QA standards."
+              faqs={FAQS}
+            />
 
-        {/* ═══════════════ 14. TRUST / E-E-A-T SECTION ═══════════════ */}
-        <TrustSection />
-
-        {/* ═══════════════ 15. FAQ ACCORDION ═══════════════ */}
-        <LandingFAQ
-          sectionLabel="Frequently Asked Questions"
-          heading="Blog Conclusion Generator FAQs"
-          subheading="Learn how AI-powered conclusions close open loops, drive CTA clicks, and follow Missive's QA standards."
-          faqs={FAQS}
-        />
-
-          {/* ═══════════════ 16. FINAL RADIANT CTA ═══════════════ */}
-          <LandingCTA
-            heading="Stop Ending Blog Posts Weakly"
-            subheading="Generate high-converting blog conclusions that close loops, reinforce value, and drive measurable action. 100% free with no sign-up required."
-            ctaLabel="Generate My Conclusions Free"
-            ctaOnClick={scrollToTool}
-          />
-        </>
-      )}
-    </div>
-  </>
-)
+            {/* ═══════════════ 16. FINAL RADIANT CTA ═══════════════ */}
+            <LandingCTA
+              heading="Stop Ending Blog Posts Weakly"
+              subheading="Generate high-converting blog conclusions that close loops, reinforce value, and drive measurable action. free with no sign-up required."
+              ctaLabel="Generate My Conclusions Free"
+              ctaOnClick={scrollToTool}
+            />
+          </>
+        )}
+      </div>
+    </>
+  )
 }

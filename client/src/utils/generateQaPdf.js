@@ -259,7 +259,7 @@ export function generateQaPdf(report, meta = {}) {
   y += 4.5
   text(
     doc,
-    'Evaluates tone, E-E-A-T credibility, structure, scannability, zero em-dashes, and conversational cadence.',
+    'Evaluates tone, E‑E‑A‑T credibility, structure, scannability, zero em-dashes, and conversational cadence.',
     M,
     y,
     {

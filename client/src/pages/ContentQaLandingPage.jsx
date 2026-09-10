@@ -16,7 +16,7 @@ import {
   CircleDot,
   ArrowRight,
 } from 'lucide-react'
-import { LandingLiveDemo, LandingFAQ, LandingResultsTopbar } from '../components/landing'
+import { LandingLiveDemo, LandingFAQ } from '../components/landing'
 import ContentQaPage from '../tools/content-qa/ContentQaPage'
 
 /* ─────────────── SEO Structured Data (JSON-LD) ─────────────── */
@@ -25,7 +25,7 @@ const structuredData = {
   '@type': 'SoftwareApplication',
   name: 'Content QA Checklist by Missive Digital',
   description:
-    "Free AI-powered content QA tool by Missive Digital. Audit blog posts, newsletters, and landing pages against Himani Kankaria's 12-Pillar Content QA Framework: zero em dashes, zero robotic buzzwords, and quantifiable E-E-A-T proof.",
+    "Free AI-powered content QA tool by Missive Digital. Audit blog posts, newsletters, and landing pages against Himani Kankaria's 12-Pillar Content QA Framework. No em dashes, no robotic buzzwords, and real E‑E‑A‑T proof.",
   url: 'https://tools.missivedigital.com/content-qa',
   applicationCategory: 'BusinessApplication',
   operatingSystem: 'Web',
@@ -44,7 +44,7 @@ const faqStructuredData = {
       name: 'What is a content QA checklist?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "A content QA checklist is a structured set of quality checks applied to writing before it is published. It audits tone, readability, audience fit, E-E-A-T proof, structure, and visual scannability. This free tool runs every piece of copy against Himani Kankaria's 12-Pillar Content QA Framework.",
+        text: "A content QA checklist is a structured set of quality checks applied to writing before it is published. It audits tone, readability, audience fit, E‑E‑A‑T proof, structure, and visual scannability. This free tool runs every piece of copy against Himani Kankaria's 12-Pillar Content QA Framework.",
       },
     },
     {
@@ -60,7 +60,7 @@ const faqStructuredData = {
       name: 'What are the 12 pillars of the Missive QA framework?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Tone, Style and AI Check; Read Aloud Test; Audience Alignment; E-E-A-T and Practical Proof; Insight First; Meaning and Crispness; Zero Offensiveness; Relevance to Brand Positioning; Structure and Narrative Flow; No Direct Sales Pitches; Compliance and Risk Check; and Visual and Platform Fit.',
+        text: 'Tone, Style and AI Check; Read Aloud Test; Audience Alignment; E‑E‑A‑T and Practical Proof; Insight First; Meaning and Crispness; Zero Offensiveness; Relevance to Brand Positioning; Structure and Narrative Flow; No Direct Sales Pitches; Compliance and Risk Check; and Visual and Platform Fit.',
       },
     },
     {
@@ -84,7 +84,7 @@ const faqStructuredData = {
       name: 'Is the Content QA tool free to use?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes. The Content QA Checklist by Missive Digital is 100% free with no sign-up required. Run unlimited audits, export PDF reports, and polish with one click.',
+        text: 'Yes. The Content QA Checklist by Missive Digital is free with no sign-up required. Run unlimited audits, export PDF reports, and polish with one click.',
       },
     },
   ],
@@ -95,7 +95,7 @@ const PILLARS = [
   {
     n: '01',
     name: 'Tone, Style & AI Check',
-    rule: 'Zero em dashes, zero robotic cliches, natural human cadence.',
+    rule: 'Zero em dashes, zero colons, zero robotic cliches, natural human cadence.',
     status: 'PASS',
   },
   {
@@ -112,7 +112,7 @@ const PILLARS = [
   },
   {
     n: '04',
-    name: 'E-E-A-T & Practical Proof',
+    name: 'E‑E‑A‑T & Practical Proof',
     rule: 'Real metrics and lived experience explaining how and why.',
     status: 'PASS',
   },
@@ -253,7 +253,7 @@ const STEPS = [
 const FAQS = [
   {
     q: 'What exactly is a content QA checklist?',
-    a: 'A structured set of quality checks applied to writing before publishing. It audits tone, readability, audience fit, E-E-A-T proof, structure, and scannability, and it runs every draft against the 12-Pillar Missive framework.',
+    a: 'A structured set of quality checks applied to writing before publishing. It audits tone, readability, audience fit, E‑E‑A‑T proof, structure, and scannability, and it runs every draft against the 12-Pillar Missive framework.',
     sev: 'Basics',
   },
   {
@@ -278,7 +278,7 @@ const FAQS = [
   },
   {
     q: 'Who built the framework behind it?',
-    a: 'Himani Kankaria, an SEO strategist with 10+ years optimizing B2B and SaaS content. The 12 pillars formalize the checklist her team uses on every client deliverable.',
+    a: 'Himani Kankaria, an SEO strategist with 15+ years of experience optimizing B2B and SaaS content. The 12 pillars formalize the checklist her team uses on every client deliverable.',
     sev: 'Authority',
   },
 ]
@@ -334,7 +334,9 @@ function BannedTicker() {
 function QaHero({ onCta, toolRef, onResultStateChange, hideHeroCopy, resetSignal }) {
   const ref = useScrollReveal()
   return (
-    <section className={`relative bg-[#F9F7F6] overflow-hidden ${hideHeroCopy ? 'py-4 sm:py-6' : 'py-20 sm:py-28'}`}>
+    <section
+      className={`relative bg-[#F9F7F6] overflow-hidden ${hideHeroCopy ? 'py-4 sm:py-6' : 'py-20 sm:py-28'}`}
+    >
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-24 -right-24 w-[480px] h-[480px] bg-[#DAD0FF]/50 rounded-full blur-3xl lp-float-slow" />
         <div className="absolute -bottom-28 -left-24 w-[420px] h-[420px] bg-[#D8FFD8]/60 rounded-full blur-3xl lp-float-reverse" />
@@ -347,7 +349,7 @@ function QaHero({ onCta, toolRef, onResultStateChange, hideHeroCopy, resetSignal
               <ShieldCheck className="w-4 h-4" />
               Missive Digital
             </span>
-            <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-display font-semibold tracking-[-0.03em] text-[#292929] leading-[1.05]">
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-display font-semibold tracking-[-0.03em] text-[#292929] leading-[1.05]">
               Publish Copy That{' '}
               <span className="bg-gradient-to-r from-[#0C81F3] to-[#EB8988] bg-clip-text text-transparent">
                 Passes Inspection
@@ -378,7 +380,7 @@ function QaHero({ onCta, toolRef, onResultStateChange, hideHeroCopy, resetSignal
               </button>
             </div>
             <div className="mt-9 flex flex-wrap justify-center gap-2.5">
-              {['Zero em dashes', 'Zero buzzwords', 'Score + diff', 'PDF report'].map((t) => (
+              {['Zero em dashes & colons', 'Zero buzzwords', 'Score + diff', 'PDF report'].map((t) => (
                 <span
                   key={t}
                   className="inline-flex items-center gap-1.5 rounded-full bg-white border border-[#DEDEDE] text-[#292929] px-3.5 py-1.5 text-[13px] font-medium"
@@ -402,7 +404,11 @@ function QaHero({ onCta, toolRef, onResultStateChange, hideHeroCopy, resetSignal
               </span>
             </div>
             <div className="p-5 sm:p-7">
-              <ContentQaPage isEmbedded={true} onResultStateChange={onResultStateChange} resetSignal={resetSignal} />
+              <ContentQaPage
+                isEmbedded={true}
+                onResultStateChange={onResultStateChange}
+                resetSignal={resetSignal}
+              />
             </div>
           </div>
         </div>
@@ -421,7 +427,7 @@ function CheckSheet() {
       <div className="max-w-[1140px] mx-auto px-6 sm:px-8">
         <div ref={ref} className="lp-reveal max-w-2xl">
           <Eyebrow icon={ShieldCheck}>The Check Sheet</Eyebrow>
-          <h2 className="mt-4 text-3xl sm:text-5xl font-display font-semibold tracking-[-0.02em] text-[#292929] leading-[0.98]">
+          <h2 className="mt-4 text-3xl sm:text-4xl font-display font-semibold tracking-[-0.02em] text-[#292929] leading-[0.98]">
             12 Pillars. Scored Line By Line.
           </h2>
           <p className="mt-5 text-[17px] text-[#54595F] leading-relaxed">
@@ -430,7 +436,10 @@ function CheckSheet() {
           </p>
         </div>
 
-        <div ref={gridRef} className="lp-reveal lp-stagger mt-12 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div
+          ref={gridRef}
+          className="lp-reveal lp-stagger mt-12 grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
           {PILLARS.map((p, i) => {
             const Icon = i % 2 === 0 ? CheckCircle2 : CircleDot
             const isOpen = open === i
@@ -490,7 +499,7 @@ function ScrubComparison() {
           <div className="flex justify-center mb-1">
             <Eyebrow icon={Sparkles}>Raw Output vs Polished</Eyebrow>
           </div>
-          <h2 className="mt-4 text-3xl sm:text-5xl font-display font-semibold tracking-[-0.02em] text-[#292929] leading-[0.98]">
+          <h2 className="mt-4 text-3xl sm:text-4xl font-display font-semibold tracking-[-0.02em] text-[#292929] leading-[0.98]">
             The Same Sentence, Before The Scan
           </h2>
         </div>
@@ -536,7 +545,9 @@ function ScrubComparison() {
               <span className="text-[13px] font-semibold uppercase tracking-wider text-[#2E7D4F]">
                 Approved
               </span>
-              <span className="ml-auto font-display text-[12px] text-[#54595F]">1 click polish</span>
+              <span className="ml-auto font-display text-[12px] text-[#54595F]">
+                1 click polish
+              </span>
             </div>
             <p className="text-[15px] text-[#292929] leading-relaxed">
               "Teams using the old workflow lost 3.2 hours per draft. The same teams now ship 6
@@ -569,7 +580,7 @@ function Workbench() {
       <div className="max-w-[1140px] mx-auto px-6 sm:px-8">
         <div ref={ref} className="lp-reveal max-w-2xl">
           <Eyebrow icon={Wand2}>The Workbench</Eyebrow>
-          <h2 className="mt-4 text-3xl sm:text-5xl font-display font-semibold tracking-[-0.02em] text-[#292929] leading-[0.98]">
+          <h2 className="mt-4 text-3xl sm:text-4xl font-display font-semibold tracking-[-0.02em] text-[#292929] leading-[0.98]">
             Inspector-Grade Tooling For Content
           </h2>
         </div>
@@ -592,7 +603,9 @@ function Workbench() {
                     <Icon className="w-5 h-5" />
                   </div>
                 </div>
-                <h3 className="text-lg font-semibold text-[#292929] font-display mb-2">{f.title}</h3>
+                <h3 className="text-lg font-semibold text-[#292929] font-display mb-2">
+                  {f.title}
+                </h3>
                 <p className="text-[14px] text-[#54595F] leading-relaxed">{f.desc}</p>
               </div>
             )
@@ -613,7 +626,7 @@ function Runbook() {
         <div className="lg:col-span-5">
           <div ref={ref} className="lp-reveal lg:sticky lg:top-28">
             <Eyebrow icon={FileText}>The Runbook</Eyebrow>
-            <h2 className="mt-4 text-3xl sm:text-5xl font-display font-semibold tracking-[-0.02em] text-[#292929] leading-[0.98]">
+            <h2 className="mt-4 text-3xl sm:text-4xl font-display font-semibold tracking-[-0.02em] text-[#292929] leading-[0.98]">
               From Draft To Approval in 4 Steps
             </h2>
             <p className="mt-5 text-[17px] text-[#54595F] leading-relaxed">
@@ -670,17 +683,20 @@ function StampCta({ onCta }) {
   return (
     <section className="py-20 sm:py-28 bg-[#F9F7F6]">
       <div className="max-w-[1140px] mx-auto px-6 sm:px-8">
-        <div ref={ref} className="lp-reveal relative overflow-hidden rounded-[36px] bg-gradient-to-br from-[#DAD0FF] via-[#E7E4FF] to-[#D8FFD8] px-6 sm:px-14 py-14 sm:py-20 text-center">
+        <div
+          ref={ref}
+          className="lp-reveal relative overflow-hidden rounded-[36px] bg-gradient-to-br from-[#DAD0FF] via-[#E7E4FF] to-[#D8FFD8] px-6 sm:px-14 py-14 sm:py-20 text-center"
+        >
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[500px] h-[500px] rounded-full border border-white/50" />
           <span className="inline-block font-display text-[12px] sm:text-[13px] font-semibold uppercase tracking-[0.24em] text-[#292929] border-2 border-[#292929]/70 rounded-xl px-4 py-2 rotate-[-4deg] mb-8 opacity-90 bg-white/40">
             APPROVED FOR PUBLISHING
           </span>
-          <h2 className="text-3xl sm:text-5xl font-display font-semibold tracking-[-0.02em] text-[#292929] leading-[0.98] max-w-2xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-display font-semibold tracking-[-0.02em] text-[#292929] leading-[0.98] max-w-2xl mx-auto">
             Stop Shipping Copy That Fails QA
           </h2>
           <p className="mt-6 text-[17px] text-[#54595F] max-w-xl mx-auto leading-relaxed">
-            Run the scan on your next draft. 12 pillars, 34 checks, one-click polish, and a clean
-            PDF report: free, no sign-up.
+            Run the scan on your next draft. 12 pillars, 35 checks, one-click polish, and a clean
+            PDF report - free, no sign-up.
           </p>
           <div className="mt-10 flex justify-center">
             <GradientButton onClick={onCta}>
@@ -723,7 +739,7 @@ export default function ContentQaLandingPage() {
   return (
     <>
       <Helmet>
-        <title>Content QA Checklist: Free AI Tool | Missive Digital</title>
+        <title>Content QA Checklist - Free AI Tool | Missive Digital</title>
         <meta
           name="description"
           content="Audit blog posts, newsletters, and landing pages against Himani Kankaria's 12-Pillar Content QA Framework. Catch robotic AI fluff, fix weak copy with one-click polish, and publish rank-ready content. Free, no sign-up required."
@@ -733,16 +749,16 @@ export default function ContentQaLandingPage() {
           content="content QA checklist, content quality checker, AI content detector, content audit tool, em dash checker, robotic AI writing, content polishing tool, SEO content quality, Himani Kankaria, Missive Digital"
         />
         <link rel="canonical" href="https://tools.missivedigital.com/content-qa" />
-        <meta property="og:title" content="Content QA Checklist: Free AI Tool | Missive Digital" />
+        <meta property="og:title" content="Content QA Checklist - Free AI Tool | Missive Digital" />
         <meta
           property="og:description"
           content="Audit any copy against the 12-Pillar Missive QA Framework, catch robotic AI fluff, and fix weak writing with one-click polish. Free, no sign-up required."
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://tools.missivedigital.com/content-qa" />
-        <meta property="og:site_name" content="Missive Digital: Himani's SEO Tools" />
+        <meta property="og:site_name" content="Missive's SEO Tools" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Content QA Checklist: Missive Digital" />
+        <meta name="twitter:title" content="Content QA Checklist by Missive Digital" />
         <meta
           name="twitter:description"
           content="Audit any copy against the 12-Pillar Missive QA Framework, catch robotic AI fluff, and fix weak writing with one-click polish."
@@ -751,17 +767,9 @@ export default function ContentQaLandingPage() {
         <script type="application/ld+json">{JSON.stringify(faqStructuredData)}</script>
       </Helmet>
 
-      <div className={`landing-page min-h-screen bg-[#F9F7F6] font-sans ${hasResults ? 'pt-20' : ''}`}>
-        {hasResults && (
-          <LandingResultsTopbar
-            onBack={handleNewAudit}
-            backLabel="New Audit / Edit Draft"
-            backHint="Reset"
-            title="Content QA Inspection Workspace"
-            badge="Live Audit"
-            maxWidth="max-w-[1400px]"
-          />
-        )}
+      <div
+        className={`landing-page min-h-screen bg-[#F9F7F6] font-sans ${hasResults ? 'pt-20' : ''}`}
+      >
 
         <QaHero
           onCta={scrollToTool}
@@ -781,26 +789,27 @@ export default function ContentQaLandingPage() {
               examples={[
                 {
                   label: 'Tone, Style & AI Check',
-                  input: 'In today\'s fast-paced world, our game-changing solution will revolutionize your workflow.',
+                  input:
+                    "In today's fast-paced world, our game-changing solution will revolutionize your workflow.",
                   outputTitle: '2 Violations Caught',
                   outputBody:
-                    'Flagged: throat-clearing preamble ("In today\'s fast-paced world") and banned buzzword ("game-changing"). Replace with a direct, metric-led opening.',
+                    'Flags throat-clearing preamble ("In today\'s fast-paced world") and a banned buzzword ("game-changing"). Replace with a direct, metric-led opening.',
                   outputMeta: ['Tone & Style', '2 Cliches', 'Zero Em Dashes'],
                 },
                 {
-                  label: 'E-E-A-T & Practical Proof',
+                  label: 'E‑E‑A‑T & Practical Proof',
                   input: 'We help teams write better content faster with AI.',
                   outputTitle: 'Missing Quantifiable Proof',
                   outputBody:
-                    'No concrete metric or lived experience detected. Add a specific number: "Teams cut draft time from 3 hours to 40 minutes."',
-                  outputMeta: ['E-E-A-T', '0 Metrics Found', 'Insight First'],
+                    'No concrete metric or lived experience detected. Add a specific number, like "Teams cut draft time from 3 hours to 40 minutes."',
+                  outputMeta: ['E‑E‑A‑T', '0 Metrics Found', 'Insight First'],
                 },
                 {
                   label: 'Overall Score',
-                  input: 'Final pass: polished draft ready for review.',
-                  outputTitle: 'Score: 92 / 100',
+                  input: 'Final pass, polished draft ready for review.',
+                  outputTitle: 'Score 92 / 100',
                   outputBody:
-                    '12/12 pillars passed. Zero em dashes, zero robotic cliches, 5 metric anchors, 100% scannable paragraphs. Ready to publish.',
+                    '12/12 pillars passed. Zero em dashes, zero robotic cliches, 5 metric anchors, fully scannable paragraphs. Ready to publish.',
                   outputMeta: ['12/12 Pillars', 'Ready to Publish', 'PDF Export Ready'],
                 },
               ]}

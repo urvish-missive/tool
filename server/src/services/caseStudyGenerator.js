@@ -4,7 +4,7 @@ import { buildMissiveQaPromptDirectives, auditCaseStudyMissiveQa } from '../util
 
 /**
  * Strips all forbidden em dashes ("—" or " -- ") and replaces them with clean standard punctuation
- * to guarantee strict Missive QA compliance across every piece of generated text.
+ * to enforce strict Missive QA compliance across every piece of generated text.
  */
 function sanitizeEmDashes(text) {
   if (typeof text !== 'string') return text
@@ -378,7 +378,7 @@ Catch you next Tuesday,
           'CaseStudy Schema (creativeWork)',
           'Review & Rating Schema with client quote attribution',
           'HowTo Schema for the 3-step implementation blueprint',
-          'Organization & Brand entity links to establish E-E-A-T topical graphs',
+          'Organization & Brand entity links to establish E‑E‑A‑T topical graphs',
         ],
       },
     },
@@ -462,8 +462,7 @@ A modern case study must power the entire revenue engine. You MUST produce:
 
 STRICT TECHNICAL RULES:
 - Output must be strictly valid JSON only.
-- Under NO circumstances use em dashes ("—" or "--"). Use hyphens with spaces (" - "), colons, commas, or clean separate sentences.
-- Zero robotic buzzwords ("delve", "tapestry", "beacon", "game-changer", "testament", "plethora", "revolutionize", "unleash", "in today's fast-paced world", "look no further").`
+- Follow the Missive QA directives above in every field.`
 
   const userPrompt = `Generate a comprehensive conversion-engineered B2B Case Study and multi-channel revenue engine for:
 
@@ -534,7 +533,7 @@ OUTPUT JSON SCHEMA:
       {
         "title": "Compelling blog topic title from the same niche/domain",
         "targetStage": "TOFU or MOFU or BOFU",
-        "whyRelevant": "Why linking this case study in this article builds deep E-E-A-T and converts readers",
+        "whyRelevant": "Why linking this case study in this article builds deep E‑E‑A‑T and converts readers",
         "recommendedCalloutPlacement": "Specific location in the article structure to cite this case study",
         "suggestedAnchor": "Recommended anchor text to link with"
       },

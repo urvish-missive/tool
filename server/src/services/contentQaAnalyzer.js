@@ -1,6 +1,6 @@
 /**
  * Programmatic Content QA Analyzer
- * Based strictly on Himani Kankaria's 12-Pillar Content QA Checklist (34 checks across 12 categories)
+ * Based strictly on Himani Kankaria's 12-Pillar Content QA Checklist (35 checks across 12 categories)
  */
 
 export const HIMANI_CATEGORIES = {
@@ -14,6 +14,7 @@ export const HIMANI_CATEGORIES = {
       { id: 'ts-1', label: 'Is the tone human, crisp, and conversational?', auto: true, weight: 1.2 },
       { id: 'ts-2', label: 'No robotic phrases, no fluff, no clichés.', auto: true, weight: 1.5 },
       { id: 'ts-3', label: 'No em dashes.', auto: true, weight: 1.5 },
+      { id: 'ts-5', label: 'No colons.', auto: true, weight: 1.5 },
       { id: 'ts-4', label: 'Sentences clear, complete, not abrupt.', auto: true, weight: 1.0 },
     ],
   },
@@ -44,7 +45,7 @@ export const HIMANI_CATEGORIES = {
   eeat_check: {
     id: 'eeat_check',
     number: 4,
-    label: 'E-E-A-T Check',
+    label: 'E‑E‑A‑T Check',
     iconKey: 'award',
     color: '#F59E0B',
     items: [
@@ -187,6 +188,16 @@ const AI_ROBOTIC_PHRASES = [
   { phrase: 'cutting-edge', suggestion: 'modern / latest' },
   { phrase: 'state-of-the-art', suggestion: 'modern / high-end' },
   { phrase: 'unlock the potential', suggestion: 'get more from' },
+  { phrase: 'multifaceted', suggestion: 'complex / varied / dynamic' },
+  { phrase: 'intertwined', suggestion: 'linked / connected' },
+  { phrase: 'elucidate', suggestion: 'explain / clarify' },
+  { phrase: 'bespoke', suggestion: 'custom / tailored' },
+  { phrase: 'myriad of', suggestion: 'many / countless' },
+  { phrase: 'myriad', suggestion: 'many / numerous' },
+  { phrase: 'paradigm shift', suggestion: 'fundamental change / major shift' },
+  { phrase: 'synergy', suggestion: 'teamwork / combined impact' },
+  { phrase: 'synergies', suggestion: 'benefits / collaboration' },
+  { phrase: 'in an era where', suggestion: 'when / now that' },
 ]
 
 // ── Filler & Throat-Clearing Openers ──────────────────────────────
@@ -290,6 +301,51 @@ export function analyzeContentQA(content, title = '', targetKeyword = '', metaDe
     statuses['ts-3'] = 'fail'
     evidence['ts-3'] = `Found ${emDashCount} em dash(es) / long dashes in content.`
     suggestions['ts-3'] = 'Replace em dashes with commas, periods, or clean sentence breaks.'
+  }
+
+  // TS-5: Zero Colons Rule (Himani's strict rule: no colons)
+  const colonRegex = /:/g
+  let colonMatch
+  let colonCount = 0
+  const colonPositions = []
+  while ((colonMatch = colonRegex.exec(safeContent)) !== null) {
+    const idx = colonMatch.index
+    // Exclude URLs (http:// or https://)
+    const prevChunk = safeContent.slice(Math.max(0, idx - 8), idx)
+    const nextChunk = safeContent.slice(idx + 1, idx + 3)
+    if (/https?$/i.test(prevChunk) && nextChunk === '//') {
+      continue
+    }
+    // Exclude timestamps like 10:30, 2:45
+    const charBefore = safeContent[idx - 1] || ''
+    const charAfter = safeContent[idx + 1] || ''
+    if (/\d/.test(charBefore) && /\d/.test(charAfter)) {
+      continue
+    }
+
+    colonCount++
+    colonPositions.push(idx)
+    highlights.push({
+      type: 'colon',
+      label: 'Colon Detected',
+      severity: 'error',
+      text: ':',
+      index: idx,
+      length: 1,
+      suggestion: 'Replace with a period, comma, or split into clean separate sentences.',
+      reason: "Himani's Content QA rule strictly forbids colons for clean, direct human flow.",
+      message: `Found colon at position ${idx}. Replace with clean punctuation or a separate sentence.`,
+      context: extractContext(idx, 1),
+    })
+  }
+
+  if (colonCount === 0) {
+    statuses['ts-5'] = 'pass'
+    evidence['ts-5'] = 'Zero colons detected. Clean sentence structure respected.'
+  } else {
+    statuses['ts-5'] = 'fail'
+    evidence['ts-5'] = `Found ${colonCount} colon(s) in content.`
+    suggestions['ts-5'] = 'Remove colons or replace with periods, commas, or separate sentences.'
   }
 
   // TS-2: No robotic phrases, no fluff, no clichés
@@ -400,7 +456,7 @@ export function analyzeContentQA(content, title = '', targetKeyword = '', metaDe
   evidence['aud-3'] = 'Opening hook and emotional resonance evaluated.'
 
   // ─────────────────────────────────────────────────────────────
-  // 4. E-E-A-T CHECK
+  // 4. E‑E‑A‑T CHECK
   // ─────────────────────────────────────────────────────────────
 
   // EAT-1: Lived experience, observation, real context
@@ -739,6 +795,7 @@ export function analyzeContentQA(content, title = '', targetKeyword = '', metaDe
   // Quick stats summary
   const quickStats = {
     emDashesCount: emDashCount,
+    colonsCount: colonCount,
     aiPhrasesCount: foundAiPhrases.length,
     fillerPhrasesCount: foundFillerPhrases.length,
     fleschScore: flesch,

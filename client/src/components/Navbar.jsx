@@ -79,11 +79,18 @@ const NAV_ITEMS = [
               icon: Bot,
               label: 'AI SEO',
               href: 'https://missivedigital.com/ai-seo/',
-              badge: 'HOT',
               badgeColor: 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white',
             },
-            { icon: Smartphone, label: 'CAF Framework', href: 'https://missivedigital.com/ai-seo/' },
-            { icon: Target, label: 'GEO Readiness Score', href: 'https://missivedigital.com/ai-seo/' },
+            {
+              icon: Smartphone,
+              label: 'CAF Framework',
+              href: 'https://missivedigital.com/ai-seo/',
+            },
+            {
+              icon: Target,
+              label: 'GEO Readiness Score',
+              href: 'https://missivedigital.com/ai-seo/',
+            },
             {
               icon: BarChart3,
               label: 'Telecom AI SEO',
@@ -103,19 +110,55 @@ const NAV_ITEMS = [
         {
           items: [
             { icon: Search, label: 'SEO', href: 'https://missivedigital.com/seo-agency/' },
-            { icon: FileText, label: 'Content Consulting', href: 'https://missivedigital.com/content-consulting/' },
-            { icon: Briefcase, label: 'LinkedIn Marketing', href: 'https://missivedigital.com/linkedin-marketing-services/' },
-            { icon: User, label: 'Personal Branding', href: 'https://missivedigital.com/personal-branding/' },
-            { icon: ShoppingCart, label: 'Ecommerce SEO', href: 'https://missivedigital.com/ecommerce-seo/' },
+            {
+              icon: FileText,
+              label: 'Content Consulting',
+              href: 'https://missivedigital.com/content-consulting/',
+            },
+            {
+              icon: Briefcase,
+              label: 'LinkedIn Marketing',
+              href: 'https://missivedigital.com/linkedin-marketing-services/',
+            },
+            {
+              icon: User,
+              label: 'Personal Branding',
+              href: 'https://missivedigital.com/personal-branding/',
+            },
+            {
+              icon: ShoppingCart,
+              label: 'Ecommerce SEO',
+              href: 'https://missivedigital.com/ecommerce-seo/',
+            },
           ],
         },
         {
           items: [
-            { icon: Edit, label: 'Content Optimization', href: 'https://missivedigital.com/content-optimization-services/' },
-            { icon: PenTool, label: 'Content Writing', href: 'https://missivedigital.com/content-writing-services/' },
-            { icon: Tag, label: 'Content Audit', href: 'https://missivedigital.com/content-audit-services/' },
-            { icon: Globe, label: 'Digital Marketing', href: 'https://missivedigital.com/digital-marketing-agency-ahmedabad/' },
-            { icon: Code2, label: 'Web Design & Development', href: 'https://missivedigital.com/website-design-development-smb/' },
+            {
+              icon: Edit,
+              label: 'Content Optimization',
+              href: 'https://missivedigital.com/content-optimization-services/',
+            },
+            {
+              icon: PenTool,
+              label: 'Content Writing',
+              href: 'https://missivedigital.com/content-writing-services/',
+            },
+            {
+              icon: Tag,
+              label: 'Content Audit',
+              href: 'https://missivedigital.com/content-audit-services/',
+            },
+            {
+              icon: Globe,
+              label: 'Digital Marketing',
+              href: 'https://missivedigital.com/digital-marketing-agency-ahmedabad/',
+            },
+            {
+              icon: Code2,
+              label: 'Web Design & Development',
+              href: 'https://missivedigital.com/website-design-development-smb/',
+            },
           ],
         },
       ],
@@ -129,17 +172,45 @@ const NAV_ITEMS = [
           items: [
             { icon: Cloud, label: 'SaaS', href: 'https://missivedigital.com/industry/saas/' },
             { icon: Radio, label: 'Telecom', href: 'https://missivedigital.com/industry/telecom/' },
-            { icon: Stethoscope, label: 'Healthcare', href: 'https://missivedigital.com/industry/healthcare/' },
-            { icon: DollarSign, label: 'Fintech', href: 'https://missivedigital.com/industry/fintech/' },
-            { icon: PhoneCall, label: 'Tele Marketing', href: 'https://missivedigital.com/industry/telecom-marketing-agency/' },
+            {
+              icon: Stethoscope,
+              label: 'Healthcare',
+              href: 'https://missivedigital.com/industry/healthcare/',
+            },
+            {
+              icon: DollarSign,
+              label: 'Fintech',
+              href: 'https://missivedigital.com/industry/fintech/',
+            },
+            {
+              icon: PhoneCall,
+              label: 'Tele Marketing',
+              href: 'https://missivedigital.com/industry/telecom-marketing-agency/',
+            },
           ],
         },
         {
           items: [
-            { icon: Gem, label: 'Jewelry', href: 'https://missivedigital.com/industry/jewelry-seo/' },
-            { icon: HomeIcon, label: 'Real Estate', href: 'https://missivedigital.com/industry/real-estate-seo/' },
-            { icon: Utensils, label: 'Restaurant', href: 'https://missivedigital.com/industry/restaurant-seo/' },
-            { icon: Wine, label: 'Food and Beverages', href: 'https://missivedigital.com/industry/food-and-beverages-seo/' },
+            {
+              icon: Gem,
+              label: 'Jewelry',
+              href: 'https://missivedigital.com/industry/jewelry-seo/',
+            },
+            {
+              icon: HomeIcon,
+              label: 'Real Estate',
+              href: 'https://missivedigital.com/industry/real-estate-seo/',
+            },
+            {
+              icon: Utensils,
+              label: 'Restaurant',
+              href: 'https://missivedigital.com/industry/restaurant-seo/',
+            },
+            {
+              icon: Wine,
+              label: 'Food and Beverages',
+              href: 'https://missivedigital.com/industry/food-and-beverages-seo/',
+            },
           ],
         },
       ],
@@ -167,7 +238,7 @@ const NAV_ITEMS = [
     },
   },
   {
-    label: "Himani's SEO Tools",
+    label: "Missive's SEO Tools",
     dropdown: {
       columns: [
         {
@@ -175,12 +246,15 @@ const NAV_ITEMS = [
           items: [
             { icon: Lightbulb, label: 'Blog Topic Generator', href: '/blog-topic-generator' },
             { icon: Rocket, label: 'Blog Intro Generator', href: '/blog-intro-generator' },
-            { icon: Target, label: 'Blog Conclusion Generator', href: '/blog-conclusion-generator' },
+            {
+              icon: Target,
+              label: 'Blog Conclusion Generator',
+              href: '/blog-conclusion-generator',
+            },
             {
               icon: BarChart3,
               label: 'Case Study Generator',
               href: '/case-study-generator',
-              badge: 'NEW',
               badgeColor: 'bg-emerald-500 text-white',
             },
             { icon: PenTool, label: 'AI Content Writer', href: '/ai-content-writer' },
@@ -191,11 +265,13 @@ const NAV_ITEMS = [
           items: [
             { icon: FileText, label: 'AI Content Analyzer', href: '/content-analyzer' },
             { icon: CheckSquare, label: 'Content QA Checklist', href: '/content-qa' },
-            { icon: ShieldCheck, label: 'E-E-A-T & AI Authority Analyzer', href: '/eeat-analyzer' },
+            { icon: ShieldCheck, label: 'E‑E‑A‑T & AI Authority Analyzer', href: '/eeat-analyzer' },
             { icon: HelpCircle, label: 'FAQ Generator', href: '/faq-generator' },
             { icon: Palette, label: 'Logo Maker', href: '/logo-maker' },
           ],
-        },        { title: 'Rankings & Audits',
+        },
+        {
+          title: 'Rankings & Audits',
           items: [
             {
               icon: TrendingUp,
@@ -213,7 +289,6 @@ const NAV_ITEMS = [
               icon: Building2,
               label: 'Business Competitor Intel',
               href: '/business-competitor-analytics',
-              badge: 'NEW',
               badgeColor: 'bg-white text-gray-900',
             },
             { icon: DollarSign, label: 'SEO ROI Calculator', href: '/seo-roi-calculator' },
@@ -375,71 +450,75 @@ export default function Navbar() {
                 </button>
 
                 {/* Desktop dropdown */}
-                {item.dropdown && activeDropdown === idx && (() => {
-                  const visibleCols = getVisibleColumns(item.dropdown)
-                  if (visibleCols.length === 0) return null
+                {item.dropdown &&
+                  activeDropdown === idx &&
+                  (() => {
+                    const visibleCols = getVisibleColumns(item.dropdown)
+                    if (visibleCols.length === 0) return null
 
-                  return (
-                    <div
-                      className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-max max-w-[calc(100vw-2rem)] rounded-2xl overflow-hidden shadow-2xl border border-white/40 z-50"
-                      onMouseEnter={() => handleMouseEnter(idx)}
-                      onMouseLeave={handleMouseLeave}
-                    >
+                    return (
                       <div
-                        className="p-3.5 sm:p-4"
-                        style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)' }}
+                        className="absolute top-full left-1/2 -translate-x-1/2 mt-3 w-max max-w-[calc(100vw-2rem)] rounded-2xl overflow-hidden shadow-2xl border border-white/40 z-50"
+                        onMouseEnter={() => handleMouseEnter(idx)}
+                        onMouseLeave={handleMouseLeave}
                       >
                         <div
-                          className={`grid gap-2.5 sm:gap-3 ${
-                            visibleCols.length === 1
-                              ? 'grid-cols-1'
-                              : visibleCols.length === 2
-                                ? 'grid-cols-2'
-                                : visibleCols.length === 4
-                                  ? 'grid-cols-2 lg:grid-cols-4'
-                                  : 'grid-cols-3'
-                          }`}
+                          className="p-3.5 sm:p-4"
+                          style={{
+                            background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)',
+                          }}
                         >
-                          {visibleCols.map((col, ci) => (
-                            <div key={ci} className="space-y-1 min-w-[168px] sm:min-w-[180px]">
-                              {col.title && (
-                                <div className="px-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-white/75 border-b border-white/15 mb-1.5 flex items-center justify-between">
-                                  <span>{col.title}</span>
-                                </div>
-                              )}
-                              {col.items.map((sub) => {
-                                const isInternal = sub.href && sub.href.startsWith('/')
-                                const LinkComponent = isInternal ? Link : 'a'
-                                return (
-                                  <LinkComponent
-                                    key={sub.label}
-                                    {...(isInternal ? { to: sub.href } : { href: sub.href })}
-                                    onClick={() => setActiveDropdown(null)}
-                                    className="flex items-center gap-2 px-2.5 py-1.5 sm:py-2 rounded-lg text-white/95 hover:bg-white/20 hover:text-white transition-all text-xs sm:text-[13px] font-medium group"
-                                  >
-                                    {sub.icon && (
-                                      <span className="text-sm w-4 h-4 flex items-center justify-center shrink-0 leading-none group-hover:scale-110 transition-transform">
-                                        <sub.icon className="w-3.5 h-3.5" />
-                                      </span>
-                                    )}
-                                    <span className="leading-snug truncate">{sub.label}</span>
-                                    {sub.badge && (
-                                      <span
-                                        className={`ml-auto shrink-0 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full shadow-2xs ${sub.badgeColor || 'bg-white text-gray-900'}`}
-                                      >
-                                        {sub.badge}
-                                      </span>
-                                    )}
-                                  </LinkComponent>
-                                )
-                              })}
-                            </div>
-                          ))}
+                          <div
+                            className={`grid gap-2.5 sm:gap-3 ${
+                              visibleCols.length === 1
+                                ? 'grid-cols-1'
+                                : visibleCols.length === 2
+                                  ? 'grid-cols-2'
+                                  : visibleCols.length === 4
+                                    ? 'grid-cols-2 lg:grid-cols-4'
+                                    : 'grid-cols-3'
+                            }`}
+                          >
+                            {visibleCols.map((col, ci) => (
+                              <div key={ci} className="space-y-1 min-w-[168px] sm:min-w-[180px]">
+                                {col.title && (
+                                  <div className="px-2.5 pb-1 text-[10px] font-bold uppercase tracking-wider text-white/75 border-b border-white/15 mb-1.5 flex items-center justify-between">
+                                    <span>{col.title}</span>
+                                  </div>
+                                )}
+                                {col.items.map((sub) => {
+                                  const isInternal = sub.href && sub.href.startsWith('/')
+                                  const LinkComponent = isInternal ? Link : 'a'
+                                  return (
+                                    <LinkComponent
+                                      key={sub.label}
+                                      {...(isInternal ? { to: sub.href } : { href: sub.href })}
+                                      onClick={() => setActiveDropdown(null)}
+                                      className="flex items-center gap-2 px-2.5 py-1.5 sm:py-2 rounded-lg text-white/95 hover:bg-white/20 hover:text-white transition-all text-xs sm:text-[13px] font-medium group"
+                                    >
+                                      {sub.icon && (
+                                        <span className="text-sm w-4 h-4 flex items-center justify-center shrink-0 leading-none group-hover:scale-110 transition-transform">
+                                          <sub.icon className="w-3.5 h-3.5" />
+                                        </span>
+                                      )}
+                                      <span className="leading-snug truncate">{sub.label}</span>
+                                      {sub.badge && (
+                                        <span
+                                          className={`ml-auto shrink-0 text-[9px] font-extrabold px-1.5 py-0.5 rounded-full shadow-2xs ${sub.badgeColor || 'bg-white text-gray-900'}`}
+                                        >
+                                          {sub.badge}
+                                        </span>
+                                      )}
+                                    </LinkComponent>
+                                  )
+                                })}
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  )
-                })()}
+                    )
+                  })()}
               </div>
             ))}
           </div>
@@ -514,53 +593,54 @@ export default function Navbar() {
                         />
                       </svg>
                     </button>
-                    {mobileExpanded === idx && (() => {
-                      const visibleCols = getVisibleColumns(item.dropdown)
-                      if (visibleCols.length === 0) return null
+                    {mobileExpanded === idx &&
+                      (() => {
+                        const visibleCols = getVisibleColumns(item.dropdown)
+                        if (visibleCols.length === 0) return null
 
-                      return (
-                        <div className="pl-4 pb-2 space-y-3">
-                          {visibleCols.map((col, cIdx) => (
-                            <div key={cIdx} className="space-y-1">
-                              {col.title && (
-                                <div className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400 px-4 pt-2">
-                                  {col.title}
-                                </div>
-                              )}
-                              {col.items.map((sub) => {
-                                const isInternal = sub.href && sub.href.startsWith('/')
-                                const LinkComponent = isInternal ? Link : 'a'
-                                return (
-                                  <LinkComponent
-                                    key={sub.label}
-                                    {...(isInternal ? { to: sub.href } : { href: sub.href })}
-                                    onClick={() => {
-                                      setMobileOpen(false)
-                                      setMobileExpanded(null)
-                                    }}
-                                    className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-50"
-                                  >
-                                    {sub.icon && (
-                                      <span className="text-sm w-5 h-5 flex items-center justify-center shrink-0">
-                                        <sub.icon className="w-4 h-4 text-gray-500" />
-                                      </span>
-                                    )}
-                                    <span className="truncate">{sub.label}</span>
-                                    {sub.badge && (
-                                      <span
-                                        className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full ${sub.badgeColor || 'bg-gray-100 text-gray-800'}`}
-                                      >
-                                        {sub.badge}
-                                      </span>
-                                    )}
-                                  </LinkComponent>
-                                )
-                              })}
-                            </div>
-                          ))}
-                        </div>
-                      )
-                    })()}
+                        return (
+                          <div className="pl-4 pb-2 space-y-3">
+                            {visibleCols.map((col, cIdx) => (
+                              <div key={cIdx} className="space-y-1">
+                                {col.title && (
+                                  <div className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400 px-4 pt-2">
+                                    {col.title}
+                                  </div>
+                                )}
+                                {col.items.map((sub) => {
+                                  const isInternal = sub.href && sub.href.startsWith('/')
+                                  const LinkComponent = isInternal ? Link : 'a'
+                                  return (
+                                    <LinkComponent
+                                      key={sub.label}
+                                      {...(isInternal ? { to: sub.href } : { href: sub.href })}
+                                      onClick={() => {
+                                        setMobileOpen(false)
+                                        setMobileExpanded(null)
+                                      }}
+                                      className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-50"
+                                    >
+                                      {sub.icon && (
+                                        <span className="text-sm w-5 h-5 flex items-center justify-center shrink-0">
+                                          <sub.icon className="w-4 h-4 text-gray-500" />
+                                        </span>
+                                      )}
+                                      <span className="truncate">{sub.label}</span>
+                                      {sub.badge && (
+                                        <span
+                                          className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full ${sub.badgeColor || 'bg-gray-100 text-gray-800'}`}
+                                        >
+                                          {sub.badge}
+                                        </span>
+                                      )}
+                                    </LinkComponent>
+                                  )
+                                })}
+                              </div>
+                            ))}
+                          </div>
+                        )
+                      })()}
                   </>
                 ) : (
                   <a

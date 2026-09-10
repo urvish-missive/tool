@@ -75,8 +75,8 @@ export default function LandingFunnelFlow({
   badge = 'Conversion Architecture',
   heading,
   subheading,
-  sampleLabel1 = 'Opening Hook (Sentence 1-2):',
-  sampleLabel2 = 'Seamless Bridge to First H2:',
+  sampleLabel1 = 'Opening Hook (Sentence 1-2)',
+  sampleLabel2 = 'Bridge to First H2',
   ctaButtonText,
   onTryTool,
 }) {
@@ -91,7 +91,8 @@ export default function LandingFunnelFlow({
 
   const handleCopySample = async () => {
     try {
-      const textToCopy = current.sampleFullText || `"${current.sampleHook}"\n\n${current.sampleBridge}`
+      const titlePrefix = current.sampleTitle ? `${current.sampleTitle}\n\n` : ''
+      const textToCopy = current.sampleFullText || `${titlePrefix}${current.sampleHook}\n\n${current.sampleBridge}`
       await navigator.clipboard.writeText(textToCopy)
       setCopied(true)
       setTimeout(() => setCopied(false), 2200)
@@ -222,7 +223,7 @@ export default function LandingFunnelFlow({
 
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">
-                    Psychological Hook Formulas:
+                    Psychological Hook Formulas
                   </p>
                   <div className="flex flex-wrap gap-2">
                     {current.formulas.map((f, i) => (
@@ -272,8 +273,17 @@ export default function LandingFunnelFlow({
                     <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wide block mb-1">
                       {sampleLabel1}
                     </span>
-                    <blockquote className="text-sm sm:text-base font-bold text-slate-900 leading-snug p-3.5 rounded-xl bg-white border border-slate-200 shadow-2xs transition-all duration-300">
-                      "{current.sampleHook}"
+                    <blockquote className="p-3.5 rounded-xl bg-white border border-slate-200 shadow-2xs transition-all duration-300 space-y-2">
+                      {current.sampleTitle && (
+                        <p className="text-sm sm:text-base font-black text-slate-900 leading-snug">
+                          {current.sampleTitle}
+                        </p>
+                      )}
+                      {current.sampleHook.split('\n\n').filter(Boolean).map((para, i) => (
+                        <p key={i} className="text-xs sm:text-sm font-medium text-slate-600 leading-relaxed">
+                          {para}
+                        </p>
+                      ))}
                     </blockquote>
                   </div>
 

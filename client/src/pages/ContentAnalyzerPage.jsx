@@ -188,7 +188,7 @@ export default function ContentAnalyzerPage() {
         <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4" />
         <div className="relative max-w-3xl mx-auto px-4 sm:px-6 text-center">
           <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase">
-            Himani's SEO Tools • Missive Digital
+            Missive's SEO Tools • Missive Digital
           </span>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
             <span className="text-gray-900">AI SEO </span>

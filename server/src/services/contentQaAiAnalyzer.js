@@ -4,13 +4,16 @@
  */
 
 import { callAIAndParseJSON, getConfiguredProviders } from '../utils/aiProvider.js'
+import { buildMissiveQaPromptDirectives, MISSIVE_BANNED_WORDS } from '../utils/missiveQaRules.js'
 
 const SYSTEM_PROMPT = `You are Himani Kankaria's AI Content QA Auditor. You evaluate content strictly against Himani Kankaria's 12-Pillar Content QA Checklist:
 
 1. Tone, Style, and AI Check:
    - Is the tone human, crisp, and conversational?
-   - No robotic phrases, no fluff, no clichés ("delve", "tapestry", "beacon", "game-changer", "testament").
-   - Strictly ZERO em dashes ("—", "--").
+   - No robotic phrases, no fluff, no clichés.
+     * Reference examples of robotic/AI buzzwords to eliminate: ${MISSIVE_BANNED_WORDS.map((w) => `"${w}"`).join(', ')}.
+     * DYNAMIC BUZZWORD DETECTION: Treat the above list as EXAMPLES, not an exhaustive limit. Dynamically detect and extract ANY word or phrase in the text that matches this robotic, hyperbolic, or overused AI nature (e.g., "multifaceted", "intertwined", "elucidate", "bespoke", "paramount", "leverage", "paradigm", "testament", "dive deep", "seamlessly", "spearhead", "foster").
+   - Strictly ZERO em dashes ("—", "--") and ZERO colons (":").
    - Sentences clear, complete, not abrupt.
 
 2. Read Aloud Test:
@@ -23,7 +26,7 @@ const SYSTEM_PROMPT = `You are Himani Kankaria's AI Content QA Auditor. You eval
    - Does it fulfill the purpose of searching & reading?
    - Would this make them pause and read (scroll-stopping hook)?
 
-4. E-E-A-T Check:
+4. E‑E‑A‑T Check:
    - Is lived experience, real observation, or practical context added?
    - Does the content explain WHY or HOW, not just WHAT?
    - Does it show you are a thought-leader in this niche?
@@ -89,6 +92,7 @@ Word Count: ${programmaticData?.meta?.wordCount || 0}
 Sentences: ${programmaticData?.meta?.sentenceCount || 0}
 Flesch Score: ${programmaticData?.meta?.flesch || 0}
 Em Dashes Found: ${programmaticData?.quickStats?.emDashesCount || 0}
+Colons Found: ${programmaticData?.quickStats?.colonsCount || 0}
 AI Cliches Detected: ${programmaticData?.quickStats?.aiPhrasesCount || 0}
 Programmatic Overall: ${programmaticData?.overall || 0}%
 
@@ -106,6 +110,14 @@ Return a JSON object adhering to this schema:
     "Most urgent fix #1 with specific guidance",
     "Most urgent fix #2 with specific guidance",
     "Most urgent fix #3 with specific guidance"
+  ],
+  "dynamicBuzzwords": [
+    {
+      "phrase": "exact word or phrase quoted from content",
+      "type": "ai_hallmark" | "corporate_buzzword" | "throat_clearing",
+      "reason": "Why this sounds robotic, hollow, or clichéd",
+      "suggestion": "Simpler, conversational human alternative"
+    }
   ],
   "categories": {
     "tone_style_ai": {
@@ -223,11 +235,23 @@ function validateReport(report) {
     }
   }
 
+  const dynamicBuzzwords = Array.isArray(report?.dynamicBuzzwords)
+    ? report.dynamicBuzzwords
+        .filter(b => b && typeof b.phrase === 'string' && b.phrase.trim().length > 1)
+        .map(b => ({
+          phrase: b.phrase.trim(),
+          type: typeof b.type === 'string' ? b.type : 'ai_hallmark',
+          reason: typeof b.reason === 'string' ? b.reason : 'Robotic or clichéd phrasing detected.',
+          suggestion: typeof b.suggestion === 'string' ? b.suggestion : 'Use simpler conversational human phrasing.',
+        }))
+    : []
+
   return {
     overallScore: clamp(report?.overallScore),
     publicationReadiness: report?.publicationReadiness || (report?.overallScore >= 80 ? 'Ready to Publish' : 'Minor Polish Needed'),
     summary: typeof report?.summary === 'string' ? report.summary : 'Analysis completed against Himani Kankaria\'s Content QA framework.',
     topFixes: toArray(report?.topFixes),
+    dynamicBuzzwords,
     categories,
     himaniProTips: toArray(report?.himaniProTips),
   }
@@ -276,6 +300,16 @@ function generateAlgorithmicHimaniPolish(content, title, _targetKeyword) {
   if (emMatches.length > 0) {
     polished = polished.replace(/[—–]/g, ', ').replace(/--/g, ', ')
     dynamicChanges.push(`Eliminated ${emMatches.length} em dash(es) in favor of crisp commas and sentence stops.`)
+  }
+
+  // Check colons (excluding URLs and timestamps)
+  const nonUrlText = content.replace(/https?:\/\/[^\s]+/g, '').replace(/\b\d{1,2}:\d{2}\b/g, '')
+  const colonMatches = nonUrlText.match(/:/g) || []
+  if (colonMatches.length > 0) {
+    polished = polished.replace(/(\b[a-zA-Z0-9]+)\s*:\s+([A-Z])/g, '$1. $2')
+      .replace(/(\b[a-zA-Z0-9]+)\s*:\s+([a-z])/g, '$1, $2')
+      .replace(/(?<!https?)(?<!\d):(?!\/\/)(?!\d)/g, ' - ')
+    dynamicChanges.push(`Eliminated ${colonMatches.length} colon(s) in favor of crisp sentence stops and commas.`)
   }
 
   // Check AI cliches & robotic phrasing
@@ -352,6 +386,14 @@ export function generateDynamicImprovements(beforeAnalysis, afterAnalysis, aiImp
   if (emBefore > 0) {
     const eliminated = Math.max(1, emBefore - emAfter)
     dynamicList.push(`Eliminated ${eliminated} em dash(es) ("—") in favor of clean commas and strong sentence stops.`)
+  }
+
+  // 1b. Colons
+  const colonBefore = statsBefore.colonsCount ?? (originalText.replace(/https?:\/\/[^\s]+/g, '').replace(/\b\d{1,2}:\d{2}\b/g, '').match(/:/g) || []).length
+  const colonAfter = statsAfter.colonsCount ?? (polishedText.replace(/https?:\/\/[^\s]+/g, '').replace(/\b\d{1,2}:\d{2}\b/g, '').match(/:/g) || []).length
+  if (colonBefore > 0) {
+    const eliminatedColons = Math.max(1, colonBefore - colonAfter)
+    dynamicList.push(`Eliminated ${eliminatedColons} colon(s) (":") in favor of clean commas and strong sentence stops.`)
   }
 
   // 2. Robotic AI Clichés
@@ -444,18 +486,21 @@ export function generateDynamicImprovements(beforeAnalysis, afterAnalysis, aiImp
  * Rewrites the content to achieve 100% compliance with all 12 checklist points
  */
 export async function polishContentWithHimaniRules(content, title, targetKeyword, platform, options = {}) {
-  const polishPrompt = `You are Himani Kankaria, master content strategist and editor.
-Rewrite the following content so it achieves a 100% flawless score on your 12-Pillar Content QA Checklist.
+  const qaDirectives = buildMissiveQaPromptDirectives()
 
-CRITICAL RULES TO APPLY:
-1. Tone, Style & AI: Make the tone crisp, human, conversational, with natural cadence. ELIMINATE all robotic cliches (no "delve", "tapestry", "game-changer", "testament").
-2. Zero Em Dashes: STAMP OUT every single em dash ("—", "--"). Use commas, periods, or clean sentence structures instead.
-3. Insight First: Rewrite the opening so it starts with an immediate counter-intuitive insight, punchy observation, or hook. CUT the throat-clearing backstory.
-4. Read Aloud: Ensure every sentence rolls naturally off the tongue. Break sentences over 25 words.
-5. Meaning & Crispness: Delete every filler sentence (e.g., "Needless to say", "In today's world"). Every single line must add distinct value.
-6. E-E-A-T: Add real-world practitioner framing and explain the "why" and "how".
-7. No Direct Sales Pitches: Eliminate tenure boasting ("10 years of experience") and pushy sales plugs. Let the depth speak for itself.
-8. Scannability: Format with short 1-3 sentence paragraphs, punchy subheadings, and bullet lists.
+  const polishPrompt = `You are Himani Kankaria, master content strategist and editor.
+Rewrite the following content so it achieves full compliance on your 12-Pillar Content QA Checklist.
+
+CRITICAL MISSIVE QA DIRECTIVES (APPLIED TO EVERY PIECE OF REWRITTEN TEXT):
+${qaDirectives}
+
+ADDITIONAL RULES TO APPLY:
+1. Insight First: Rewrite the opening so it starts with an immediate counter-intuitive insight, punchy observation, or hook. CUT the throat-clearing backstory.
+2. Read Aloud: Ensure every sentence rolls naturally off the tongue. Break sentences over 25 words.
+3. Meaning & Crispness: Delete every filler sentence (e.g., "Needless to say", "In today's world"). Every single line must add distinct value.
+4. E‑E‑A‑T: Add real-world practitioner framing and explain the "why" and "how".
+5. No Direct Sales Pitches: Eliminate tenure boasting ("10 years of experience") and pushy sales plugs. Let the depth speak for itself.
+6. Scannability: Format with short 1-3 sentence paragraphs, punchy subheadings, and bullet lists.
 
 Title: ${title || 'Not provided'}
 Keyword: ${targetKeyword || 'Not provided'}
@@ -473,7 +518,7 @@ Return a JSON object:
   "improvementsMade": [
     "Specific improvement 1 made to THIS specific content (e.g. Cut 40 words of fluff from intro)",
     "Specific improvement 2 made to THIS specific content (e.g. Replaced buzzwords with direct phrasing)",
-    "Specific improvement 3 made to THIS specific content (e.g. Removed em dashes and shortened sentences)"
+    "Specific improvement 3 made to THIS specific content (e.g. Removed em dashes and colons, shortened sentences)"
   ]
 }`
 
@@ -492,7 +537,7 @@ Return a JSON object:
       polishedContent: parsed.polishedContent || content,
       improvementsMade: Array.isArray(parsed.improvementsMade) && parsed.improvementsMade.length > 0
         ? parsed.improvementsMade
-        : ['Converted robotic cliches to conversational prose', 'Removed em dashes', 'Optimized scannability'],
+        : ['Converted robotic cliches to conversational prose', 'Removed em dashes and colons', 'Optimized scannability'],
       himaniScoreBefore: parsed.himaniScoreBefore || 60,
       himaniScoreAfter: parsed.himaniScoreAfter || 98,
     }

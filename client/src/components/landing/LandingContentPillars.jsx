@@ -39,7 +39,7 @@ const PILLARS = [
   },
   {
     icon: Sparkles,
-    title: 'SEO & E-E-A-T Aligned',
+    title: 'SEO & E‑E‑A‑T Aligned',
     desc: 'Every suggestion follows Google quality rater guidelines. Zero fluff, zero generic advice. Only actionable, expert-level topic strategy.',
     stat: 'Intent-Aligned',
     color: 'from-[#EB8988] to-[#0C81F3]',

@@ -15,38 +15,38 @@ const ANATOMY_STAGES = [
     id: 'tofu',
     stageLabel: 'TOFU (Awareness)',
     targetIntent: 'Mental model shift, perspective synthesis, low-friction next step',
-    h2Title: 'The Verdict: Turning SEO Architecture Into Your Lasting Moat',
+    h2Title: 'What Actually Grows Organic Traffic',
     hookClosure:
       'Remember the friction we highlighted in the opening? Scaling organic reach is not about chasing every algorithm update. It is about mastering the core data fundamentals that compound over quarters.',
     body:
-      'Throughout this guide, we evaluated why reactive tactics yield diminishing returns. When growth teams systematize their content architecture, they eliminate wasted cycles and build an unassailable organic moat.\n\nThe difference between stagnating blogs and category leaders is not headcount. It is disciplined execution of repeatable systems.',
+      'Throughout this guide, we looked at why reactive tactics run out of steam. When growth teams organize their content around a clear structure, they stop wasting cycles and build lasting organic traffic.\n\nThe difference between stagnating blogs and category leaders is not headcount. It is sticking to a repeatable system.',
     ctaPrompt:
       'Where will your team focus your energy this quarter? Start by benchmarking one high-priority workflow against our organic architecture framework.',
     ctaButton: 'Explore More Growth Frameworks',
     anatomyAnnotations: [
       {
-        layer: 'Layer 1: Specific H2 Headline',
+        layer: 'Specific H2 Headline',
         tag: 'H2 Takeaway',
         text: 'Zero generic words like "In Conclusion". Highlights the primary strategic takeaway immediately.',
         color: 'border-sky-300 bg-sky-50 text-sky-800',
         badgeColor: 'bg-sky-500 text-white',
       },
       {
-        layer: 'Layer 2: Intro Loop Closure',
+        layer: 'Intro Loop Closure',
         tag: 'Loop Resolution',
         text: 'Explicitly resolves the tension established in the introduction, fulfilling the promise made to the reader.',
         color: 'border-blue-300 bg-blue-50 text-blue-800',
         badgeColor: 'bg-blue-600 text-white',
       },
       {
-        layer: 'Layer 3: Value Synthesis Anchor',
+        layer: 'Value Synthesis Anchor',
         tag: 'Synthesis',
         text: 'Synthesizes the core mental model shift. Avoids mechanical bullet-point repetition.',
         color: 'border-indigo-300 bg-indigo-50 text-indigo-800',
         badgeColor: 'bg-indigo-600 text-white',
       },
       {
-        layer: 'Layer 4: Low-Friction CTA Bridge',
+        layer: 'Low-Friction CTA Bridge',
         tag: 'Low-Friction Action',
         text: 'Smoothly transitions from insight into the next logical low-friction step (newsletter, related guide).',
         color: 'border-emerald-300 bg-emerald-50 text-emerald-800',
@@ -58,7 +58,7 @@ const ANATOMY_STAGES = [
     id: 'mofu',
     stageLabel: 'MOFU (Consideration)',
     targetIntent: 'Decision criteria summary, execution blueprint, lead magnet download',
-    h2Title: 'Your Implementation Blueprint: Putting Content Architecture to Work',
+    h2Title: 'How to Put This Audit Plan to Work',
     hookClosure:
       'The frameworks we broke down are not theoretical. They represent the exact operational playbook needed to execute modern content QA with total confidence.',
     body:
@@ -68,28 +68,28 @@ const ANATOMY_STAGES = [
     ctaButton: 'Download the Pre-Flight QA Checklist',
     anatomyAnnotations: [
       {
-        layer: 'Layer 1: Specific H2 Headline',
+        layer: 'Specific H2 Headline',
         tag: 'Blueprint H2',
         text: 'Signals direct operational utility and immediate implementation value.',
         color: 'border-amber-300 bg-amber-50 text-amber-800',
         badgeColor: 'bg-amber-500 text-white',
       },
       {
-        layer: 'Layer 2: Intro Loop Closure',
+        layer: 'Intro Loop Closure',
         tag: 'Practical Proof',
         text: 'Validates that the questions raised in the intro now have concrete operational answers.',
         color: 'border-orange-300 bg-orange-50 text-orange-800',
         badgeColor: 'bg-orange-600 text-white',
       },
       {
-        layer: 'Layer 3: Value Synthesis Anchor',
+        layer: 'Value Synthesis Anchor',
         tag: 'Decision Criteria',
         text: 'Highlights implementation trade-offs and guides the reader toward systematic action.',
         color: 'border-purple-300 bg-purple-50 text-purple-800',
         badgeColor: 'bg-purple-600 text-white',
       },
       {
-        layer: 'Layer 4: High-Value Lead Magnet CTA',
+        layer: 'High-Value Lead Magnet CTA',
         tag: 'Asset Download',
         text: 'Bridges directly into a tangible resource download (checklist, template, audit sheet).',
         color: 'border-emerald-300 bg-emerald-50 text-emerald-800',
@@ -101,7 +101,7 @@ const ANATOMY_STAGES = [
     id: 'bofu',
     stageLabel: 'BOFU (Decision & ROI)',
     targetIntent: 'Definitive ROI verdict, cost of delay, direct consultation or trial trigger',
-    h2Title: "The Bottom Line: Don't Let Inaction Delay Your Organic Pipeline",
+    h2Title: "Don't Let Waiting Cost You Leads",
     hookClosure:
       'Every month your team delays modernizing your content operations, the compounding cost of inaction quietly drains budget.',
     body:
@@ -111,28 +111,28 @@ const ANATOMY_STAGES = [
     ctaButton: 'Book Your Free Strategy Teardown',
     anatomyAnnotations: [
       {
-        layer: 'Layer 1: Specific H2 Headline',
+        layer: 'Specific H2 Headline',
         tag: 'ROI Verdict H2',
         text: 'Focuses on the bottom-line economic reality and executive urgency.',
         color: 'border-rose-300 bg-rose-50 text-rose-800',
         badgeColor: 'bg-rose-500 text-white',
       },
       {
-        layer: 'Layer 2: Intro Loop Closure',
+        layer: 'Intro Loop Closure',
         tag: 'Cost of Delay',
         text: 'Connects the initial bottleneck directly to commercial revenue loss.',
         color: 'border-red-300 bg-red-50 text-red-800',
         badgeColor: 'bg-red-600 text-white',
       },
       {
-        layer: 'Layer 3: Value Synthesis Anchor',
+        layer: 'Value Synthesis Anchor',
         tag: 'Executive Choice',
         text: 'Contrasts the drag of manual processes against the speed of proven infrastructure.',
         color: 'border-indigo-300 bg-indigo-50 text-indigo-800',
         badgeColor: 'bg-indigo-600 text-white',
       },
       {
-        layer: 'Layer 4: High-Intent Direct CTA',
+        layer: 'High-Intent Direct CTA',
         tag: 'Demo or Trial',
         text: 'Direct, low-friction invitation for high-intent decision makers ready to buy.',
         color: 'border-emerald-300 bg-emerald-50 text-emerald-800',
@@ -177,11 +177,11 @@ export default function LandingConclusionAnatomy() {
           <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-[42px] font-extrabold text-slate-900 tracking-tight leading-tight mb-3 sm:mb-4">
             Anatomy of a{' '}
             <span className="bg-gradient-to-r from-[#0C81F3] to-[#EB8988] bg-clip-text text-transparent">
-              10/10 High-Converting Conclusion
+              High-Converting Conclusion
             </span>
           </h2>
           <p className="text-xs sm:text-sm md:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed font-normal">
-            A high-converting conclusion is not a summary. It is an intentional 4-layer architecture engineered to satisfy Google's E-E-A-T signals and transition lingering readers into measurable commercial pipeline.
+            A high-converting conclusion is not a summary. It is an intentional 4-layer architecture engineered to satisfy Google's E‑E‑A‑T signals and transition lingering readers into measurable commercial pipeline.
           </p>
         </div>
 

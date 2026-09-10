@@ -100,7 +100,7 @@ function SearchEngineKeywordsSection({ searchEngineKeywords }) {
               onClick={() => setFilter(f)}
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
                 filter === f
-                  ? 'bg-blue-600 text-white shadow-sm'
+                  ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-sm'
                   : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
               } cursor-pointer`}
             >
@@ -157,13 +157,19 @@ function SearchEngineKeywordsSection({ searchEngineKeywords }) {
                 </td>
                 <td className="py-2.5 pr-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"
-                        style={{ width: `${k.opportunityScore}%` }}
-                      />
-                    </div>
-                    <span className="text-xs font-bold text-gray-700">{k.opportunityScore}</span>
+                    {typeof k.opportunityScore === 'number' ? (
+                      <>
+                        <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full"
+                            style={{ width: `${k.opportunityScore}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-bold text-gray-700">{k.opportunityScore}</span>
+                      </>
+                    ) : (
+                      <span className="text-xs font-medium text-gray-400">N/A</span>
+                    )}
                   </div>
                 </td>
                 <td className="py-2.5 text-right">
@@ -319,7 +325,11 @@ function KeywordTable({ keywords }) {
         (intentFilter === 'All' || k.intent === intentFilter) &&
         k.keyword.toLowerCase().includes(search.toLowerCase())
     )
-    .sort((a, b) => (sortDir === 'desc' ? b[sortKey] - a[sortKey] : a[sortKey] - b[sortKey]))
+    .sort((a, b) => {
+      const valA = typeof a[sortKey] === 'number' ? a[sortKey] : -1
+      const valB = typeof b[sortKey] === 'number' ? b[sortKey] : -1
+      return sortDir === 'desc' ? valB - valA : valA - valB
+    })
 
   const copyKeyword = (kw, idx) => {
     navigator.clipboard.writeText(kw)
@@ -437,23 +447,31 @@ function KeywordTable({ keywords }) {
                 </td>
                 <td className="py-2.5 pr-4">
                   <div className="flex items-center gap-2">
-                    <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${
-                          k.opportunityScore >= 80
-                            ? 'bg-green-500'
-                            : k.opportunityScore >= 60
-                              ? 'bg-yellow-500'
-                              : 'bg-red-400'
-                        }`}
-                        style={{ width: `${k.opportunityScore}%` }}
-                      />
-                    </div>
-                    <span className="text-xs font-bold">{k.opportunityScore}</span>
+                    {typeof k.opportunityScore === 'number' ? (
+                      <>
+                        <div className="w-16 h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${
+                              k.opportunityScore >= 80
+                                ? 'bg-green-500'
+                                : k.opportunityScore >= 60
+                                  ? 'bg-yellow-500'
+                                  : 'bg-red-400'
+                            }`}
+                            style={{ width: `${k.opportunityScore}%` }}
+                          />
+                        </div>
+                        <span className="text-xs font-bold">{k.opportunityScore}</span>
+                      </>
+                    ) : (
+                      <span className="text-xs font-medium text-gray-400">N/A</span>
+                    )}
                   </div>
                 </td>
                 <td className="py-2.5 pr-4">
-                  <span className="text-xs font-bold text-gray-700">{k.businessRelevance}</span>
+                  <span className="text-xs font-bold text-gray-700">
+                    {typeof k.businessRelevance === 'number' ? k.businessRelevance : (k.businessRelevance || 'N/A')}
+                  </span>
                 </td>
                 <td
                   className="py-2.5 pr-4 text-xs text-gray-500 max-w-xs truncate"

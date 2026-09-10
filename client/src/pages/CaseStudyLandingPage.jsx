@@ -23,7 +23,6 @@ import {
   LandingCTA,
   LandingCaseStudyShowcase,
   LandingDistributionChannels,
-  LandingResultsTopbar,
   LandingLiveDemo,
 } from '../components/landing'
 import CaseStudyGeneratorPage from '../tools/case-study-generator/CaseStudyGeneratorPage'
@@ -61,7 +60,7 @@ const faqStructuredData = {
       name: 'What outputs does the case study generator produce?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Six outputs: (1) Full case study with KPIs, (2) Blog weaving with internal link opportunities, (3) Sales battlecard with objection handlers, (4) Paid ads and social media repurposing, (5) Video scripts and newsletter copy, (6) AI search and GEO citations.',
+        text: 'Six outputs. A full case study with KPIs, blog weaving with internal link opportunities, a sales battlecard with objection handlers, paid ads and social media repurposing, video scripts and newsletter copy, and AI search and GEO citations.',
       },
     },
     {
@@ -69,7 +68,7 @@ const faqStructuredData = {
       name: 'Is the case study generator free?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes. The AI Case Study Generator by Missive Digital is 100% free with no sign-up required. Generate unlimited case studies with all 6 distribution channels at no cost.',
+        text: 'Yes. The AI Case Study Generator by Missive Digital is free with no sign-up required. Generate unlimited case studies with all 6 distribution channels at no cost.',
       },
     },
     {
@@ -77,7 +76,7 @@ const faqStructuredData = {
       name: 'Does this follow Missive QA checklist rules?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: "Every generated case study follows Himani Kankaria's 12-Pillar Content QA Framework: zero em dashes, zero robotic buzzwords, quantified metrics, and E-E-A-T proof signals.",
+        text: "Every generated case study follows Himani Kankaria's 12-Pillar Content QA Framework. No em dashes, no robotic buzzwords, real numbers backing every claim, and clear E‑E‑A‑T proof.",
       },
     },
     {
@@ -85,7 +84,7 @@ const faqStructuredData = {
       name: 'Can I use sample presets to test the tool?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Yes. The tool includes 3 sample presets: SaaS Churn Reduction, Fintech Organic Growth, and DTC E-Commerce CRO, so you can see a full generated output before entering your own data.',
+        text: 'Yes. The tool includes 3 sample presets, SaaS Churn Reduction, Fintech Organic Growth, and DTC E-Commerce CRO, so you can see a full generated output before entering your own data.',
       },
     },
     {
@@ -129,7 +128,7 @@ const FEATURES = [
     icon: ShieldCheck,
     title: 'Missive 12-Pillar QA Certified',
     description:
-      "Built on Himani Kankaria's QA rules: zero em dashes, zero robotic buzzwords, 3+ concrete metrics, and tight scannable paragraphs.",
+      "Built on Himani Kankaria's QA rules. No em dashes, no robotic buzzwords, at least 3 concrete metrics, and tight, scannable paragraphs.",
   },
   {
     icon: Zap,
@@ -149,8 +148,7 @@ const STEPS = [
   {
     icon: Sparkles,
     title: 'Pick Tone & Audience',
-    description:
-      'Choose your tone of voice and target audience for the case study narrative.',
+    description: 'Choose your tone of voice and target audience for the case study narrative.',
   },
   {
     icon: TrendingUp,
@@ -170,7 +168,7 @@ const STATS = [
   { value: '6', label: 'Distribution channels' },
   { value: '3', label: 'Sample presets included' },
   { value: '20-30 sec', label: 'Average generation time' },
-  { value: '100%', label: 'E-E-A-T compliant' },
+  { value: 'E‑E‑A‑T', label: 'Fully compliant' },
 ]
 
 const FAQS = [
@@ -182,17 +180,17 @@ const FAQS = [
   {
     question: 'What outputs does the case study generator produce?',
     answer:
-      'Six outputs: (1) Full case study with KPIs, (2) Blog weaving with internal link opportunities, (3) Sales battlecard with objection handlers, (4) Paid ads and social media repurposing, (5) Video scripts and newsletter copy, (6) AI search and GEO citations.',
+      'Six outputs. A full case study with KPIs, blog weaving with internal link opportunities, a sales battlecard with objection handlers, paid ads and social media repurposing, video scripts and newsletter copy, and AI search and GEO citations.',
   },
   {
     question: 'Is the case study generator free?',
     answer:
-      'Yes. The AI Case Study Generator by Missive Digital is 100% free with no sign-up required. Generate unlimited case studies with all 6 distribution channels at no cost.',
+      'Yes. The AI Case Study Generator by Missive Digital is free with no sign-up required. Generate unlimited case studies with all 6 distribution channels at no cost.',
   },
   {
     question: 'Does this follow Missive QA checklist rules?',
     answer:
-      "Every generated case study follows Himani Kankaria's 12-Pillar Content QA Framework: zero em dashes, zero robotic buzzwords, quantified metrics, and E-E-A-T proof signals.",
+      "Every generated case study follows Himani Kankaria's 12-Pillar Content QA Framework. No em dashes, no robotic buzzwords, real numbers backing every claim, and clear E‑E‑A‑T proof.",
   },
   {
     question: 'Can I use sample presets to test the tool?',
@@ -271,7 +269,7 @@ export default function CaseStudyLandingPage() {
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://tools.missivedigital.com/case-study-generator" />
-        <meta property="og:site_name" content="Missive Digital: Himani's SEO Tools" />
+        <meta property="og:site_name" content="Missive's SEO Tools" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="AI Case Study Generator - Missive Digital" />
         <meta
@@ -283,34 +281,21 @@ export default function CaseStudyLandingPage() {
       </Helmet>
 
       <div className={`landing-page min-h-screen bg-white font-sans ${hasResults ? 'pt-20' : ''}`}>
-        {hasResults && (
-          <LandingResultsTopbar
-            onBack={handleNewCaseStudy}
-            backLabel="New Case Study"
-            backHint="Start Over"
-            title="Case Study & 6-Channel Distribution Blueprint"
-            badge="Live Case Study"
-          />
-        )}
-
         {/* 1. Hero with embedded tool */}
         <LandingHero
           hideHeroCopy={hasResults}
-          badge="Himani's SEO Tools • Missive Digital"
-          title={[
-            { text: 'Turn Client Wins Into ' },
-            { text: 'Revenue Engines', gradient: true },
-          ]}
+          badge="Missive's SEO Tools • Missive Digital"
+          title={[{ text: 'Turn Client Wins Into ' }, { text: 'Revenue Engines', gradient: true }]}
           subtitle="Generate evidence-backed B2B case studies with sales battlecards, social repurposing, video scripts, and AI search citations. All from one form."
-          ctaLabel="Generate Case Study Free →"
+          ctaLabel="Generate Case Study Free"
           ctaOnClick={scrollToTool}
           secondaryCta={{
-            label: 'See 6 Output Channels ↓',
+            label: 'See 6 Output Channels',
             onClick: () => scrollToSection('channels'),
           }}
           trustBadges={[
             'No sign-up required',
-            '100% free',
+            'Free to use',
             '6 distribution channels',
             'Sales battlecards included',
           ]}
@@ -340,7 +325,7 @@ export default function CaseStudyLandingPage() {
                 {
                   label: 'Enterprise ROI Transformation',
                   input: 'FinTech SaaS · 312% Pipeline Growth in 90 Days',
-                  outputTitle: 'Executive Snapshot: Accelerating Enterprise Deal Cycles',
+                  outputTitle: 'Executive Snapshot for Faster Enterprise Deals',
                   outputBody:
                     '"How a leading merchant payments provider eliminated $420,000 in operational friction by replacing manual spreadsheet underwriting with automated compliance workflows."',
                   outputMeta: ['Quantified ROI', '312% Growth', 'Zero Em Dashes'],
@@ -348,7 +333,7 @@ export default function CaseStudyLandingPage() {
                 {
                   label: 'Sales Enablement Battlecard',
                   input: 'Displacing Legacy ERP with Modern Modular Tech',
-                  outputTitle: 'Sales Battlecard: 3 Counter-Objections & Implementation Speed',
+                  outputTitle: 'Sales Battlecard With 3 Counter-Objections',
                   outputBody:
                     '"Arms sales reps with proven answers to \'Why change now?\', a side-by-side migration timeline comparison, and empirical data proving a 45-day go-live milestone."',
                   outputMeta: ['Sales Battlecard', '3 Objections Handled', 'CFO-Ready Proof'],
@@ -356,7 +341,7 @@ export default function CaseStudyLandingPage() {
                 {
                   label: '6-Channel Repurposing Engine',
                   input: 'Omnichannel B2B Campaign Repurposing',
-                  outputTitle: 'Repurposing Suite: 1 Case Study into 6 Distribution Assets',
+                  outputTitle: 'One Case Study Turned Into 6 Assets',
                   outputBody:
                     '"Synthesizes 1 long-form pillar case study, 1 LinkedIn narrative carousel, 1 outbound cold email cadence, 1 executive PDF brief, and 3 slide deck benchmark visuals."',
                   outputMeta: ['6 Channels', 'Omnichannel ROI', 'Instant Repurposing'],
@@ -394,7 +379,7 @@ export default function CaseStudyLandingPage() {
             <LandingFAQ
               sectionLabel="Frequently Asked Questions"
               heading="Case Study Generator FAQs"
-              subheading="Everything you need to know about generating evidence-backed case studies with AI."
+              subheading="Common questions about outputs, presets, and how the case study data is used."
               faqs={FAQS}
             />
 
@@ -402,7 +387,7 @@ export default function CaseStudyLandingPage() {
             <LandingCTA
               heading="Stop Letting Client Wins Collect Dust"
               subheading="Generate a full commercial playbook from your best client results. Case study, battlecard, social content, and AI citations. Free, no sign-up."
-              ctaLabel="Start Generating Free"
+              ctaLabel="Build My Case Study"
               ctaOnClick={scrollToTool}
             />
           </>

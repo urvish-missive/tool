@@ -4,7 +4,7 @@
  * 
  * Used for:
  * 1. Guiding LLM generation prompts for zero-fluff, human, conversion-driven copy
- * 2. Programmatically auditing generated content for compliance (em dashes, banned buzzwords, E-E-A-T metrics)
+ * 2. Programmatically auditing generated content for compliance (em dashes, banned buzzwords, E‑E‑A‑T metrics)
  */
 
 export const MISSIVE_BANNED_WORDS = [
@@ -35,7 +35,7 @@ export const MISSIVE_QA_PILLARS = [
     id: 'tone_style_ai',
     number: 1,
     name: 'Tone, Style & AI Check',
-    directive: 'Human, crisp, conversational. Strictly ZERO em dashes ("—", "--"). Zero robotic buzzwords (delve, tapestry, beacon, game-changer, testament). Sentences clear, complete, never abrupt.',
+    directive: 'Human, crisp, conversational. Strictly ZERO em dashes ("—", "--") and ZERO colons (":"). Zero robotic buzzwords (delve, tapestry, beacon, game-changer, testament). Sentences clear, complete, never abrupt.',
   },
   {
     id: 'read_aloud',
@@ -52,7 +52,7 @@ export const MISSIVE_QA_PILLARS = [
   {
     id: 'eeat_proof',
     number: 4,
-    name: 'E-E-A-T & Practical Proof',
+    name: 'E‑E‑A‑T & Practical Proof',
     directive: 'Must incorporate real lived experience, exact numbers/metrics, and practical context. Explains WHY and HOW the transformation happened, not just WHAT was done.',
   },
   {
@@ -110,10 +110,10 @@ export const MISSIVE_QA_PILLARS = [
  */
 export function buildMissiveQaPromptDirectives() {
   return `MISSIVE DIGITAL 12-PILLAR QA RULES (MANDATORY & NON-NEGOTIABLE):
-1. ZERO EM DASHES: You are strictly forbidden from using em dashes ("—" or "--"). Use hyphens with spaces (" - "), commas, colons, or clean separate sentences.
-2. ZERO ROBOTIC BUZZWORDS: Never use banned clichés: "delve", "tapestry", "beacon", "game-changer", "testament", "plethora", "revolutionize", "unleash", "in today's fast-paced world", "look no further".
+1. ZERO EM DASHES & ZERO COLONS: You are strictly forbidden from using em dashes ("—" or "--") and colons (":"). Use clean separate sentences, commas, or hyphens with spaces (" - ").
+2. ZERO ROBOTIC BUZZWORDS: Never use robotic clichés. Treat words like "delve", "tapestry", "beacon", "game-changer", "testament", "plethora", "revolutionize", "unleash", "in today's fast-paced world", "look no further" as EXAMPLES. You are strictly forbidden from using these or ANY similar robotic AI hallmarks (e.g., "multifaceted", "bespoke", "intertwined", "elucidate", "leverage", "paramount", "myriad", "dive deep", "seamlessly") and empty corporate hype.
 3. INSIGHT FIRST: Open immediately with the high-stakes friction or concrete metric. No throat-clearing backstories.
-4. E-E-A-T PROOF: Back every claim with concrete metrics (percentages, dollar amounts, timeframes, conversion rates). Explain HOW and WHY the methodology worked.
+4. E‑E‑A‑T PROOF: Back every claim with concrete metrics (percentages, dollar amounts, timeframes, conversion rates). Explain HOW and WHY the methodology worked.
 5. NO SALES FLUFF: Maintain a credible, authoritative editorial voice. Let the verified KPIs speak for themselves without cheesy marketing superlatives.
 6. SCANNABILITY: Keep paragraphs concise (1-3 sentences). Use bulleted execution steps and clear data blocks.`
 }
@@ -150,6 +150,23 @@ export function auditCaseStudyMissiveQa(text = '') {
     violations.push(`Contains ${emDashCount} forbidden em dash(es)`)
   }
 
+  // Check 1b: Colons check (excluding URLs and clock time)
+  const textWithoutUrls = text.replace(/https?:\/\/[^\s]+/g, '').replace(/\b\d{1,2}:\d{2}\b/g, '')
+  const colonCount = (textWithoutUrls.match(/:/g) || []).length
+  const colonPassed = colonCount === 0
+  checks.push({
+    pillar: 'Tone, Style & AI Check',
+    name: 'Zero Colons Rule',
+    passed: colonPassed,
+    score: colonPassed ? 100 : Math.max(0, 100 - colonCount * 25),
+    detail: colonPassed
+      ? 'Flawless: 0 colons found. Copy maintains clean, direct syntax.'
+      : `Found ${colonCount} forbidden colon(s). Himani's QA rule strictly requires clean separate sentences or commas.`,
+  })
+  if (!colonPassed) {
+    violations.push(`Contains ${colonCount} forbidden colon(s)`)
+  }
+
   // Check 2: Banned words check
   const textLower = text.toLowerCase()
   const foundBannedWords = MISSIVE_BANNED_WORDS.filter((bw) => textLower.includes(bw))
@@ -172,12 +189,12 @@ export function auditCaseStudyMissiveQa(text = '') {
   const metricOccurrences = (text.match(/\d+(%|\$|x|k|M|\+)?/gi) || []).length
   const metricsPassed = metricOccurrences >= 3
   checks.push({
-    pillar: 'E-E-A-T & Practical Proof',
+    pillar: 'E‑E‑A‑T & Practical Proof',
     name: 'Quantifiable Proof & KPIs',
     passed: metricsPassed,
     score: metricsPassed ? 100 : Math.min(metricOccurrences * 30, 80),
     detail: metricsPassed
-      ? `Strong E-E-A-T: Contains ${metricOccurrences} quantifiable metrics and data anchors.`
+      ? `Strong E‑E‑A‑T: Contains ${metricOccurrences} quantifiable metrics and data anchors.`
       : 'Insufficient metrics: Case study lacks enough quantifiable data points (percentages, dollar amounts, or timelines).',
   })
   if (!metricsPassed) {
@@ -218,16 +235,16 @@ export function auditCaseStudyMissiveQa(text = '') {
 
   // Calculate overall QA score
   const totalScore = Math.round(checks.reduce((acc, c) => acc + c.score, 0) / checks.length)
-  const overallPassed = totalScore >= 85 && emDashPassed && bannedWordsPassed
+  const overallPassed = totalScore >= 85 && emDashPassed && colonPassed && bannedWordsPassed
 
   return {
     passed: overallPassed,
     overallScore: totalScore,
-    statusBadge: overallPassed ? '100% Missive QA Certified' : 'QA Polish Recommended',
+    statusBadge: overallPassed ? 'Missive QA Certified' : 'QA Polish Recommended',
     checks,
     violations,
     summary: overallPassed
-      ? 'This case study strictly complies with Missive Digital\'s 12-Pillar QA framework. It contains zero em dashes, zero robotic clichés, and strong quantifiable E-E-A-T proof.'
+      ? 'This case study strictly complies with Missive Digital\'s 12-Pillar QA framework. It contains zero em dashes, zero colons, zero robotic clichés, and strong quantifiable E‑E‑A‑T proof.'
       : `Review suggested: Score is ${totalScore}/100 with ${violations.length} item(s) flagged for attention.`,
   }
 }

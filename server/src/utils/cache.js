@@ -2,7 +2,7 @@ import crypto from 'crypto'
 
 /**
  * High-performance In-Memory Cache with TTL and Max-Capacity Eviction.
- * Guarantees zero data compromise and sub-millisecond response for identical queries.
+ * Provides high reliability and sub-millisecond response for identical queries.
  */
 class MemoryCache {
   constructor(defaultTtlMs = 10 * 60 * 1000, maxSize = 300) {

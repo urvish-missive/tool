@@ -20,7 +20,7 @@ const PILLARS = [
     number: '01',
     icon: Sparkles,
     name: 'Tone, Style & AI Check',
-    rule: 'Natural human cadence with strictly zero em dashes and zero robotic clichés.',
+    rule: 'Natural human cadence with strictly zero em dashes, zero colons, and zero robotic clichés.',
   },
   {
     number: '02',
@@ -37,14 +37,14 @@ const PILLARS = [
   {
     number: '04',
     icon: TrendingUp,
-    name: 'E-E-A-T & Practical Proof',
+    name: 'E‑E‑A‑T & Practical Proof',
     rule: 'Backed by real metrics and lived experience explaining the how and why behind results.',
   },
   {
     number: '05',
     icon: Zap,
     name: 'Insight First Rule',
-    rule: 'Opens immediately with the core finding or pattern interrupt: zero throat-clearing.',
+    rule: 'Opens immediately with the core finding or pattern interrupt, with no throat-clearing.',
   },
   {
     number: '06',
@@ -90,8 +90,8 @@ const PILLARS = [
   },
 ]
 
-const CORE_GUARANTEES = [
-  { label: 'Zero Em Dashes', sub: 'Clean human syntax and cadence' },
+const CORE_STANDARDS = [
+  { label: 'Zero Em Dashes & Colons', sub: 'Clean human syntax without em dashes or colons' },
   { label: 'Zero Robotic Buzzwords', sub: 'No delve, tapestry, or beacon' },
   { label: 'Quantifiable Proof', sub: 'At least 3 concrete data anchors' },
   { label: 'High Scannability', sub: 'Short 1 to 3 sentence paragraphs' },
@@ -120,13 +120,13 @@ export default function LandingMissiveQA() {
             </span>
           </h2>
           <p className="text-xs sm:text-sm md:text-base text-slate-600 max-w-xl mx-auto leading-relaxed font-normal">
-            Every conclusion is automatically audited against 12 strict editorial guardrails to eliminate robotic AI clichés and guarantee human-level conversion quality.
+            Every conclusion is automatically audited against 12 strict editorial guardrails to eliminate robotic AI clichés and maintain human-level conversion quality.
           </p>
         </div>
 
-        {/* 4 Core Guarantees Micro-Bar */}
+        {/* 4 Core Standards Micro-Bar */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2.5 sm:gap-3.5 mb-8 sm:mb-10">
-          {CORE_GUARANTEES.map((g, i) => (
+          {CORE_STANDARDS.map((g, i) => (
             <div
               key={i}
               className="p-3 sm:p-4 rounded-2xl bg-white border border-slate-200/80 shadow-2xs flex items-start gap-2.5"

@@ -596,11 +596,11 @@ function validateReport(data, seedKeyword, detectedLanguage, detectedRegion, sea
     if (!existingKws.has(sk.keyword?.toLowerCase().trim())) {
       mergedKeywords.push({
         keyword: sk.keyword,
-        intent: sk.intent || 'Commercial',
+        intent: sk.intent || 'N/A',
         type: sk.type || 'search-engine',
-        opportunityScore: sk.opportunityScore || 85,
-        businessRelevance: sk.businessRelevance || 88,
-        reason: `Trending search query on ${sk.source}`,
+        opportunityScore: typeof sk.opportunityScore === 'number' ? sk.opportunityScore : 'N/A',
+        businessRelevance: typeof sk.businessRelevance === 'number' ? sk.businessRelevance : 'N/A',
+        reason: sk.reason || `Trending search query on ${sk.source || 'search engine'}`,
       })
       existingKws.add(sk.keyword?.toLowerCase().trim())
     }
@@ -610,16 +610,16 @@ function validateReport(data, seedKeyword, detectedLanguage, detectedRegion, sea
     seedKeyword: data.seedKeyword || seedKeyword,
     detectedLanguage: data.detectedLanguage || detectedLanguage,
     detectedRegion: data.detectedRegion || detectedRegion,
-    summary: typeof data.summary === 'string' ? data.summary : `Keyword research for "${seedKeyword}" (${detectedLanguage}).`,
+    summary: typeof data.summary === 'string' ? data.summary : (seedKeyword ? `Keyword research for "${seedKeyword}".` : 'N/A'),
     searchEngineKeywords,
     competitorInsights,
     keywords: mergedKeywords.map(k => ({
       keyword: k.keyword || '',
-      intent: k.intent || 'Informational',
-      type: k.type || 'informational',
-      opportunityScore: Math.min(100, Math.max(0, k.opportunityScore || 50)),
-      businessRelevance: Math.min(100, Math.max(0, k.businessRelevance || 50)),
-      reason: k.reason || '',
+      intent: k.intent || 'N/A',
+      type: k.type || 'N/A',
+      opportunityScore: typeof k.opportunityScore === 'number' ? Math.min(100, Math.max(0, k.opportunityScore)) : 'N/A',
+      businessRelevance: typeof k.businessRelevance === 'number' ? Math.min(100, Math.max(0, k.businessRelevance)) : 'N/A',
+      reason: k.reason || 'N/A',
     })),
     longTailKeywords: Array.isArray(data.longTailKeywords) ? data.longTailKeywords : searchEngineKeywords.slice(0, 8).map(s => s.keyword),
     questionKeywords: Array.isArray(data.questionKeywords) ? data.questionKeywords : [],
@@ -638,54 +638,33 @@ function generateFallbackReport(input, crawlData, searchEngineKeywords = [], com
   const biz = input.businessType || 'General'
 
   const baseKeywords = searchEngineKeywords.length > 0
-    ? searchEngineKeywords
-    : [
-        { keyword: `${kwLower} software`, intent: 'Commercial', type: 'primary', opportunityScore: 92, businessRelevance: 95, reason: 'High-intent commercial query' },
-        { keyword: `best ${kwLower}`, intent: 'Commercial', type: 'commercial', opportunityScore: 90, businessRelevance: 92, reason: 'Comparison query' },
-        { keyword: `${kwLower} pricing`, intent: 'Transactional', type: 'transactional', opportunityScore: 88, businessRelevance: 90, reason: 'Budget evaluation' },
-        { keyword: `${kwLower} features`, intent: 'Informational', type: 'informational', opportunityScore: 82, businessRelevance: 85, reason: 'Feature discovery' },
-        { keyword: `how does ${kwLower} work`, intent: 'Informational', type: 'question', opportunityScore: 78, businessRelevance: 80, reason: 'Awareness query' },
-      ]
+    ? searchEngineKeywords.map(sk => ({
+        keyword: sk.keyword,
+        intent: sk.intent || 'N/A',
+        type: sk.type || 'search-engine',
+        opportunityScore: typeof sk.opportunityScore === 'number' ? sk.opportunityScore : 'N/A',
+        businessRelevance: typeof sk.businessRelevance === 'number' ? sk.businessRelevance : 'N/A',
+        reason: sk.reason || `Search query on ${sk.source || 'search engine'}`,
+      }))
+    : []
 
-  const longTailKeywords = [
-    `best ${kwLower} for small business`,
-    `enterprise ${kwLower} solutions`,
-    `top rated ${kwLower} platforms`,
-    `${kwLower} alternatives and comparison`,
-    `${kwLower} implementation guide`,
-  ]
+  const hasLiveKeywords = searchEngineKeywords.length > 0
 
-  const questionKeywords = [
-    `What is ${kwLower} and how does it work?`,
-    `How much does ${kwLower} cost?`,
-    `What are the best ${kwLower} features?`,
-    `How to choose the right ${kwLower}?`,
-    `What is the ROI of ${kwLower}?`,
-  ]
+  const longTailKeywords = hasLiveKeywords
+    ? searchEngineKeywords.slice(0, 8).map(s => s.keyword)
+    : []
 
-  const topicClusters = [
-    {
-      topic: `${kw} Platforms & Tools`,
-      keywords: [`best ${kwLower}`, `${kwLower} software`, `top ${kwLower} tools`],
-      contentIdeas: [`Top 10 ${kw} Solutions Compared`, `How to Choose the Right ${kw}`],
-    },
-    {
-      topic: `${kw} Pricing & ROI`,
-      keywords: [`${kwLower} pricing`, `${kwLower} cost`, `${kwLower} plans`],
-      contentIdeas: [`${kw} Pricing Breakdown Guide`, `Calculating the ROI of ${kw}`],
-    },
-    {
-      topic: `${kw} Features & Architecture`,
-      keywords: [`${kwLower} features`, `${kwLower} integrations`, `${kwLower} API`],
-      contentIdeas: [`Essential ${kw} Features Checklist`, `${kw} Integration Best Practices`],
-    },
-  ]
+  const questionKeywords = hasLiveKeywords
+    ? searchEngineKeywords.filter(s => /^(what|how|why|where|when|who|is|can|are)\b/i.test(s.keyword)).map(s => s.keyword)
+    : []
 
   return {
     seedKeyword: kw,
     detectedLanguage: input.detectedLanguage || 'English',
     detectedRegion: input.detectedRegion || 'Global',
-    summary: `Found ${baseKeywords.length} keyword opportunities for "${kw}" (${biz} business) targeting the ${input.detectedLanguage} search market. Includes real-time search queries from Google and Bing with competitor page intelligence.`,
+    summary: hasLiveKeywords
+      ? `Found ${baseKeywords.length} search engine queries for "${kw}".`
+      : 'N/A',
     searchEngineKeywords,
     competitorInsights,
     keywords: baseKeywords,
@@ -693,23 +672,10 @@ function generateFallbackReport(input, crawlData, searchEngineKeywords = [], com
     questionKeywords,
     commercialKeywords: baseKeywords.filter(k => k.intent === 'Commercial' || k.intent === 'Transactional').map(k => k.keyword),
     informationalKeywords: baseKeywords.filter(k => k.intent === 'Informational').map(k => k.keyword),
-    topicClusters,
-    contentOpportunities: [
-      { title: `The Ultimate Guide to ${kw} in 2026`, primaryKeyword: kw, intent: 'Informational', contentType: 'Long-form Pillar Guide', reason: 'Pillar page opportunity for organic search authority.' },
-      { title: `Top ${kw} Solutions Compared: Features & Pricing`, primaryKeyword: `best ${kwLower}`, intent: 'Commercial', contentType: 'Comparison Article', reason: 'High-intent buyer comparison content.' },
-      { title: `${kw} Pricing Breakdown: What Should You Pay?`, primaryKeyword: `${kwLower} pricing`, intent: 'Transactional', contentType: 'Buyer Guide', reason: 'Captures direct purchasing and budget evaluation searches.' },
-    ],
-    recommendations: [
-      'Target high-intent Google & Bing search autocomplete queries on dedicated service landing pages',
-      'Incorporate the exact semantic keywords used by top-ranking competitors into your H1/H2 headings',
-      'Create comprehensive comparison and buyer guide content targeting commercial keywords',
-      'Implement structured FAQ schema on pages targeting question keywords',
-    ],
-    quickWins: [
-      `Add top competitor focus terms to your homepage H2 headings`,
-      `Create a dedicated "Best ${kw}" comparison guide`,
-      `Add an FAQ section answering top Google autocomplete questions`,
-    ],
+    topicClusters: [],
+    contentOpportunities: [],
+    recommendations: [],
+    quickWins: [],
   }
 }
 

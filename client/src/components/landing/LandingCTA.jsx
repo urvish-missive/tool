@@ -9,7 +9,7 @@ export default function LandingCTA({
   subheading = '',
   ctaLabel = 'Get Started Free',
   ctaOnClick,
-  badge = '100% FREE - NO SIGN-UP',
+  badge = 'FREE - NO SIGN-UP',
   className = 'bg-[#F9F7F6]',
 }) {
   const ref = useScrollReveal({ threshold: 0.15 })
@@ -31,7 +31,7 @@ export default function LandingCTA({
             {badge}
           </span>
 
-          <h2 className="relative text-3xl sm:text-5xl font-display font-semibold tracking-[-0.02em] text-[#292929] leading-[0.98] max-w-2xl mx-auto">
+          <h2 className="relative text-3xl sm:text-4xl font-display font-semibold tracking-[-0.02em] text-[#292929] leading-[0.98] max-w-2xl mx-auto">
             {heading}
           </h2>
 

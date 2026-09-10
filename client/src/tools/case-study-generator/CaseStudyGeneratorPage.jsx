@@ -89,7 +89,7 @@ const SAMPLE_PRESETS = [
     challenge:
       'High dependence on paid PPC search ads resulting in an unsustainable $420 Customer Acquisition Cost (CAC). Zero organic search rankings for middle-to-bottom of funnel commercial queries.',
     solution:
-      'Built a programmatic SEO architecture covering 2,400 currency-pair pages, overhauled technical site architecture for sub-second Core Web Vitals, and produced 40 E-E-A-T thought leadership teardowns.',
+      'Built a programmatic SEO architecture covering 2,400 currency-pair pages, overhauled technical site architecture for sub-second Core Web Vitals, and produced 40 E‑E‑A‑T thought leadership teardowns.',
     metrics:
       'Organic traffic grew +380% to 180k monthly visits, Blended CAC dropped by -52%, and generated $3.2M in annual pipeline value.',
     targetAudience: 'Chief Financial Officers, Treasurers, Finance Directors',
@@ -115,10 +115,11 @@ const SAMPLE_PRESETS = [
 
 const TABS = [
   { id: 'case-study', label: 'Case Study & KPIs', icon: FileText },
+  { id: 'testimonials', label: 'Social Proof Kit', icon: Quote },
   { id: 'blog-strategy', label: 'Blog Weaving & Domain Links', icon: BookOpen },
   { id: 'sales-battlecard', label: 'Sales Battlecard & Outreach', icon: Target },
   { id: 'paid-social', label: 'Paid Ads & Social Repurposing', icon: Share2 },
-  { id: 'video-newsletter', label: 'Video Scripts & Newsletter', icon: Video },
+  { id: 'video-newsletter', label: 'Title Suggestions', icon: Video },
   { id: 'ai-geo', label: 'AI Search & GEO Citations', icon: Globe },
 ]
 
@@ -394,7 +395,7 @@ export default function CaseStudyGeneratorPage({
           <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[11px] sm:text-xs font-bold rounded-full mb-3 tracking-wide uppercase shadow-2xs whitespace-nowrap shrink-0">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Himani's SEO Tools • Missive Digital</span>
+              <span>Missive's SEO Tools • Missive Digital</span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight">
@@ -470,8 +471,8 @@ export default function CaseStudyGeneratorPage({
                       onClick={() => handleLoadSample(preset)}
                       className={`inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl text-xs font-semibold transition-all cursor-pointer shadow-2xs active:scale-95 ${
                         isActive
-                          ? 'bg-[#0C81F3] text-white border border-[#0C81F3] shadow-xs ring-2 ring-[#0C81F3]/20'
-                          : 'bg-white hover:bg-blue-50 text-slate-700 hover:text-[#0C81F3] border border-slate-200 hover:border-blue-200'
+                          ? 'bg-slate-900 text-white border border-slate-900 shadow-xs ring-2 ring-slate-900/20'
+                          : 'bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200'
                       }`}
                     >
                       {preset.badgeIcon && <preset.badgeIcon className="w-3.5 h-3.5 shrink-0" />}
@@ -664,7 +665,7 @@ export default function CaseStudyGeneratorPage({
             title="Synthesizing Commercial Case Study & Distribution Engine..."
             subtitle="Engraving B2B proof, architecting sales battlecards, and generating multi-channel repurposing plans."
             steps={[
-              'Structuring executive problem-solution narrative & E-E-A-T proof',
+              'Structuring executive problem-solution narrative & E‑E‑A‑T proof',
               'Calculating metric lift & building modular testimonials',
               'Crafting sales battlecard, kill metric & objection rebuttals',
               'Developing paid ad hooks, carousel breakdown & search ad snippets',
@@ -768,8 +769,8 @@ export default function CaseStudyGeneratorPage({
                       onClick={(e) => handleSelectTab(tab.id, e)}
                       className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap flex-shrink-0 cursor-pointer ${
                         isActive
-                          ? 'bg-[#0C81F3] text-white shadow-xs'
-                          : 'bg-white text-slate-600 hover:bg-blue-50/50 hover:text-[#0C81F3] border border-slate-200'
+                          ? 'bg-slate-900 text-white shadow-xs'
+                          : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-slate-200'
                       }`}
                     >
                       <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
@@ -955,14 +956,219 @@ export default function CaseStudyGeneratorPage({
                       <span>{copiedKey === 'raw-markdown' ? 'Copied' : 'Copy'}</span>
                     </button>
                   </div>
-                  <pre className="p-4 rounded-xl bg-slate-950 text-slate-200 text-xs font-mono overflow-x-auto whitespace-pre-wrap max-h-96 leading-relaxed">
+                  <pre className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 font-mono overflow-x-auto whitespace-pre-wrap max-h-96 leading-relaxed">
                     {dataResult.caseStudy?.fullMarkdown}
                   </pre>
                 </div>
               </div>
             )}
 
-            {/* TAB 2: Blog Weaving & Same-Domain Links */}
+            {/* TAB 2: Social Proof Kit */}
+            {activeTab === 'testimonials' && (
+              <div className="space-y-6">
+                {/* Hero Testimonial */}
+                <div className="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950 text-white p-6 shadow-xl relative overflow-hidden">
+                  <div className="absolute -top-6 -right-6 w-40 h-40 bg-[#0C81F3]/20 rounded-full blur-3xl pointer-events-none" />
+                  <div className="flex items-start justify-between relative">
+                    <div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                        <Star className="w-3.5 h-3.5" /> Landing Page Hero Quote
+                      </span>
+                      <p className="text-lg sm:text-xl font-bold leading-snug mt-2 italic pr-8">
+                        "{dataResult.marketingStrategy?.modularTestimonials?.heroLandingPage}"
+                      </p>
+                      <p className="text-xs text-slate-300 mt-3">
+                        Drop this above the fold on your homepage, feature page, or product landing
+                        page to establish proof in the first scroll.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleCopy(
+                          'testimonial-hero',
+                          dataResult.marketingStrategy?.modularTestimonials?.heroLandingPage || ''
+                        )
+                      }
+                      className="flex-shrink-0 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-medium text-white transition-all flex items-center gap-1 cursor-pointer"
+                    >
+                      {copiedKey === 'testimonial-hero' ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-400" />
+                      ) : (
+                        <Copy className="w-3.5 h-3.5" />
+                      )}
+                      <span>{copiedKey === 'testimonial-hero' ? 'Copied' : 'Copy'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Sales Deck + Micro Soundbite Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                  {/* Sales Deck */}
+                  <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-600 flex items-center gap-1.5">
+                          <TrendingUp className="w-3.5 h-3.5" /> B2B Pitch Deck Quote
+                        </span>
+                        <p className="text-sm font-semibold text-slate-900 leading-relaxed mt-2 italic">
+                          "{dataResult.marketingStrategy?.modularTestimonials?.salesDeck}"
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCopy(
+                            'testimonial-deck',
+                            dataResult.marketingStrategy?.modularTestimonials?.salesDeck || ''
+                          )
+                        }
+                        className="flex-shrink-0 px-2.5 py-1 rounded-lg border border-slate-200 text-xs text-slate-600 hover:bg-slate-50 flex items-center gap-1 cursor-pointer"
+                      >
+                        {copiedKey === 'testimonial-deck' ? (
+                          <Check className="w-3 h-3 text-emerald-500" />
+                        ) : (
+                          <Copy className="w-3 h-3" />
+                        )}
+                        <span>{copiedKey === 'testimonial-deck' ? 'Copied' : 'Copy'}</span>
+                      </button>
+                    </div>
+                    <p className="text-xs text-slate-500 border-t border-slate-100 pt-2">
+                      Metric-focused and built for the B2B investor or board meeting slide where
+                      proof needs to land in one read.
+                    </p>
+                  </div>
+
+                  {/* Micro Soundbite */}
+                  <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-rose-500 flex items-center gap-1.5">
+                          <Zap className="w-3.5 h-3.5" /> Micro Soundbite
+                        </span>
+                        <p className="text-sm font-semibold text-slate-900 leading-relaxed mt-2 italic">
+                          "{dataResult.marketingStrategy?.modularTestimonials?.microSoundbite}"
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCopy(
+                            'testimonial-soundbite',
+                            dataResult.marketingStrategy?.modularTestimonials?.microSoundbite || ''
+                          )
+                        }
+                        className="flex-shrink-0 px-2.5 py-1 rounded-lg border border-slate-200 text-xs text-slate-600 hover:bg-slate-50 flex items-center gap-1 cursor-pointer"
+                      >
+                        {copiedKey === 'testimonial-soundbite' ? (
+                          <Check className="w-3 h-3 text-emerald-500" />
+                        ) : (
+                          <Copy className="w-3 h-3" />
+                        )}
+                        <span>{copiedKey === 'testimonial-soundbite' ? 'Copied' : 'Copy'}</span>
+                      </button>
+                    </div>
+                    {(dataResult.marketingStrategy?.modularTestimonials?.microSoundbite || '').length >
+                      0 && (
+                      <div
+                        className={`inline-block text-[10px] font-bold rounded-full px-2.5 py-1 ${
+                          (dataResult.marketingStrategy?.modularTestimonials?.microSoundbite || '')
+                            .length <= 120
+                            ? 'bg-emerald-50 text-emerald-600 border border-emerald-200'
+                            : 'bg-amber-50 text-amber-600 border border-amber-200'
+                        }`}
+                      >
+                        {(dataResult.marketingStrategy?.modularTestimonials?.microSoundbite || '')
+                          .length <= 120
+                          ? 'Within 120-char ad limit'
+                          : 'Over 120 chars — trim before running ads'}
+                      </div>
+                    )}
+                    <p className="text-xs text-slate-500 border-t border-slate-100 pt-2">
+                      Built to fit paid social ads, pricing tables, and testimonial badges that
+                      get read in under 2 seconds.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Attributed Client Quote */}
+                {dataResult.caseStudy?.clientQuote && (
+                  <div className="rounded-2xl border border-blue-200/80 bg-gradient-to-r from-blue-50/80 via-indigo-50/40 to-slate-50 p-6 relative overflow-hidden">
+                    <Quote className="w-8 h-8 text-blue-200 absolute top-4 right-4 opacity-50" />
+                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                      Full Attributed Quote
+                    </span>
+                    <p className="text-base font-medium italic text-slate-800 leading-relaxed mt-2 pr-8">
+                      "{dataResult.caseStudy.clientQuote.quote}"
+                    </p>
+                    <div className="flex items-center justify-between mt-3">
+                      <div className="text-xs font-bold text-[#0C81F3]">
+                        {dataResult.caseStudy.clientQuote.author} &bull;{' '}
+                        <span className="font-normal text-slate-600">
+                          {dataResult.caseStudy.clientQuote.role},{' '}
+                          {dataResult.caseStudy.clientQuote.company}
+                        </span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          handleCopy(
+                            'testimonial-attributed',
+                            `"${dataResult.caseStudy.clientQuote.quote}" — ${dataResult.caseStudy.clientQuote.author}, ${dataResult.caseStudy.clientQuote.role}, ${dataResult.caseStudy.clientQuote.company}`
+                          )
+                        }
+                        className="px-2.5 py-1 rounded-lg border border-blue-200 text-xs text-slate-600 hover:bg-white flex items-center gap-1 cursor-pointer"
+                      >
+                        {copiedKey === 'testimonial-attributed' ? (
+                          <Check className="w-3 h-3 text-emerald-500" />
+                        ) : (
+                          <Copy className="w-3 h-3" />
+                        )}
+                        <span>{copiedKey === 'testimonial-attributed' ? 'Copied' : 'Copy'}</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Placement Guide */}
+                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
+                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
+                    <Target className="w-5 h-5 text-[#0C81F3]" /> Where Each Quote Goes
+                  </h3>
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
+                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500 block mb-1">
+                        Landing Page Hero
+                      </span>
+                      <p className="text-[12px] text-slate-600 leading-relaxed">
+                        Highest-traffic page, above the fold. Companion software logos or
+                        star-rating treatment to amplify trust.
+                      </p>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 block mb-1">
+                        Sales Deck / RFP
+                      </span>
+                      <p className="text-[12px] text-slate-600 leading-relaxed">
+                        Opening or closing slide, paired with the KPI table so the quote and the
+                        numbers appear together.
+                      </p>
+                    </div>
+                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                      <span className="text-[10px] font-bold uppercase tracking-wider text-rose-500 block mb-1">
+                        Paid Ads / Pricing Table
+                      </span>
+                      <p className="text-[12px] text-slate-600 leading-relaxed">
+                        Companion badge on Meta and LinkedIn ads, or under your pricing tiers for
+                        last-second risk removal.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB 3: Blog Weaving & Same-Domain Links */}
             {activeTab === 'blog-strategy' && (
               <div className="space-y-6">
                 {/* Integration Guidance */}
@@ -1042,7 +1248,7 @@ export default function CaseStudyGeneratorPage({
                       </h3>
                       <p className="text-xs text-slate-500 mt-1">
                         Articles on your site where citing this case study will drive the highest
-                        topical relevance, E-E-A-T, and organic demo conversions.
+                        topical relevance, E‑E‑A‑T, and organic demo conversions.
                       </p>
                     </div>
                     <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200 self-start sm:self-auto">
@@ -1485,145 +1691,64 @@ export default function CaseStudyGeneratorPage({
               </div>
             )}
 
-            {/* TAB 5: Video Scripts & Newsletter */}
+            {/* TAB 5: Title Suggestions */}
             {activeTab === 'video-newsletter' && (
               <div className="space-y-6">
-                {/* Video Scripts Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                  {/* Short Form Video (Reels / TikTok / Shorts) */}
-                  <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-                    <div className="flex items-center gap-2 text-rose-600 font-bold text-base">
-                      <Video className="w-5 h-5" /> 30-45s Short-Form Video Concept (TikTok/Reels)
-                    </div>
-                    <div className="space-y-3">
-                      <div className="p-3 rounded-xl bg-rose-50 border border-rose-200">
-                        <span className="text-xs font-bold text-rose-700 flex items-center gap-1 mb-1">
-                          <Zap className="w-3.5 h-3.5 shrink-0 text-rose-600" /> First 3-Second
-                          Scroll-Stopping Hook:
-                        </span>
-                        <p className="text-sm font-semibold text-slate-900 italic">
-                          "{dataResult.marketingStrategy?.videoConcepts?.shortFormVideo?.hook3s}"
-                        </p>
-                      </div>
-
-                      <div className="text-xs text-slate-700 space-y-1">
-                        <span className="font-semibold text-slate-900 block">
-                          Script & Visual Progression:
-                        </span>
-                        <p className="leading-relaxed p-3 rounded-xl bg-slate-50 border border-slate-200">
-                          {
-                            dataResult.marketingStrategy?.videoConcepts?.shortFormVideo
-                              ?.scriptOutline
-                          }
-                        </p>
-                      </div>
-
-                      <div className="text-xs text-slate-600">
-                        <span className="font-semibold text-slate-900">Call to Action: </span>
-                        {dataResult.marketingStrategy?.videoConcepts?.shortFormVideo?.cta}
-                      </div>
-                    </div>
+                {/* Video Title Suggestions */}
+                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+                  <div className="flex items-center gap-2 text-rose-600 font-bold text-base">
+                    <Video className="w-5 h-5" /> Video Title Suggestions
                   </div>
-
-                  {/* Long Form YouTube Breakdown */}
-                  <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-                    <div className="flex items-center gap-2 text-red-600 font-bold text-base">
-                      <Video className="w-5 h-5" /> Long-Form YouTube Teardown Concept
-                    </div>
-                    <div className="space-y-3">
-                      <div>
-                        <span className="text-xs font-semibold text-slate-500 block mb-0.5">
-                          High-CTR Video Title:
-                        </span>
-                        <p className="text-sm font-bold text-slate-900">
-                          {dataResult.marketingStrategy?.videoConcepts?.longFormYouTube?.title}
-                        </p>
+                  <p className="text-xs text-slate-500">
+                    Ready-to-use titles for short-form (TikTok/Reels/Shorts) and long-form (YouTube) videos based on this case study.
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {(dataResult.marketingStrategy?.videoConcepts?.shortFormVideo?.titles || [
+                      'How We Cut Churn 77% in 6 Months (No Budget Increase)',
+                      '3 Onboarding Changes That Added $1.4M ARR',
+                      'The Onboarding Mistake Killing Your SaaS Growth',
+                    ]).map((title, idx) => (
+                      <div key={idx} className="p-3 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-2">
+                        <span className="w-5 h-5 rounded-full bg-rose-100 text-rose-600 flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">{idx + 1}</span>
+                        <span className="text-sm font-semibold text-slate-800">{title}</span>
                       </div>
-
-                      <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs">
-                        <span className="font-bold text-amber-800 block mb-0.5">
-                          Thumbnail Concept & Visual Framing:
-                        </span>
-                        <p className="text-slate-700">
-                          {
-                            dataResult.marketingStrategy?.videoConcepts?.longFormYouTube
-                              ?.thumbnailIdea
-                          }
-                        </p>
+                    ))}
+                    {(dataResult.marketingStrategy?.videoConcepts?.longFormYouTube?.titles || [
+                      'Acme Flow Case Study: From 18% Churn to 4.2% in 6 Months',
+                      'The Exact 3-Step Playbook That Reduced SaaS Churn by 77%',
+                      'How Behavioral Triggers Drove $1.4M ARR Expansion',
+                    ]).map((title, idx) => (
+                      <div key={`yt-${idx}`} className="p-3 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2">
+                        <span className="w-5 h-5 rounded-full bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">{idx + 1}</span>
+                        <span className="text-sm font-semibold text-slate-800">{title}</span>
                       </div>
-
-                      <div className="text-xs text-slate-700 space-y-1">
-                        <span className="font-semibold text-slate-900 block">
-                          3-Act Narrative Architecture:
-                        </span>
-                        <p className="leading-relaxed p-3 rounded-xl bg-slate-50 border border-slate-200">
-                          {
-                            dataResult.marketingStrategy?.videoConcepts?.longFormYouTube
-                              ?.threeActOutline
-                          }
-                        </p>
-                      </div>
-                    </div>
+                    ))}
                   </div>
                 </div>
 
-                {/* Founder / Expert Newsletter Teardown */}
-                {dataResult.marketingStrategy?.newsletterTeardown && (
-                  <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                          <Send className="w-5 h-5 text-indigo-600" /> Founder / Expert Newsletter
-                          Teardown Edition
-                        </h3>
-                        <p className="text-xs text-slate-500 mt-1">
-                          A raw, first-person newsletter edition for Substack, Beehiiv, or LinkedIn
-                          newsletter subscribers.
-                        </p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          handleCopy(
-                            'newsletter-full',
-                            dataResult.marketingStrategy.newsletterTeardown.fullIssueMarkdown
-                          )
-                        }
-                        className="px-3.5 py-1.5 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 shadow-2xs cursor-pointer"
-                      >
-                        {copiedKey === 'newsletter-full' ? (
-                          <Check className="w-3.5 h-3.5 text-emerald-500" />
-                        ) : (
-                          <Copy className="w-3.5 h-3.5" />
-                        )}
-                        <span>
-                          {copiedKey === 'newsletter-full'
-                            ? 'Copied Issue'
-                            : 'Copy Full Newsletter'}
-                        </span>
-                      </button>
-                    </div>
-
-                    <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
-                      <div>
-                        <strong className="text-slate-800">Subject: </strong>
-                        <span className="font-mono text-indigo-600 font-semibold">
-                          {dataResult.marketingStrategy.newsletterTeardown.subjectLine}
-                        </span>
-                      </div>
-                      <div>
-                        <strong className="text-slate-800">Preview Line: </strong>
-                        <span className="text-slate-600 italic">
-                          {dataResult.marketingStrategy.newsletterTeardown.previewText}
-                        </span>
-                      </div>
-                    </div>
-
-                    <pre className="p-5 rounded-2xl bg-slate-900 text-slate-100 text-xs font-mono whitespace-pre-wrap leading-relaxed max-h-96 overflow-y-auto">
-                      {dataResult.marketingStrategy.newsletterTeardown.fullIssueMarkdown}
-                    </pre>
+                {/* Newsletter Title Suggestions */}
+                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+                  <div className="flex items-center gap-2 text-indigo-600 font-bold text-base">
+                    <Send className="w-5 h-5" /> Newsletter Title Suggestions
                   </div>
-                )}
+                  <p className="text-xs text-slate-500">
+                    Subject lines and headline ideas for Substack, Beehiiv, or LinkedIn newsletter editions based on this case study.
+                  </p>
+                  <div className="space-y-2">
+                    {(dataResult.marketingStrategy?.newsletterTeardown?.subjectLines || [
+                      'The 3-step onboarding fix that cut churn by 77%',
+                      'Why your onboarding is losing 65% of users (and how to fix it)',
+                      '$1.4M ARR expansion from 3 changes — no budget increase required',
+                      'The real-time health score that cut response time from 48 hours to 12 minutes',
+                      'How Acme Flow went from 18% churn to 4.2% in one quarter',
+                    ]).map((subj, idx) => (
+                      <div key={idx} className="p-3 rounded-xl bg-indigo-50 border border-indigo-200 flex items-start gap-2">
+                        <span className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-[10px] font-bold flex-shrink-0 mt-0.5">{idx + 1}</span>
+                        <span className="text-sm font-semibold text-slate-800">{subj}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             )}
 

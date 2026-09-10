@@ -122,7 +122,7 @@ export default function AdminActivity() {
             }}
             className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
               toolFilter === t.slug
-                ? 'bg-[#0C81F3] text-white border-[#0C81F3]'
+                ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white border-transparent'
                 : 'bg-white text-gray-600 border-gray-200 hover:border-gray-300 hover:text-gray-900'
             } cursor-pointer`}
           >
@@ -258,7 +258,7 @@ export default function AdminActivity() {
                       onClick={() => setPage(pageNum)}
                       className={`px-3 py-1 text-xs font-medium rounded-lg border transition-colors ${
                         pageNum === page
-                          ? 'bg-[#0C81F3] text-white border-[#0C81F3]'
+? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white border-transparent'
                           : 'border-gray-200 text-gray-600 hover:bg-white'
                       } cursor-pointer`}
                     >

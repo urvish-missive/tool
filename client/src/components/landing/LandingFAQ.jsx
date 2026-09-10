@@ -30,7 +30,7 @@ export default function LandingFAQ({
               </span>
             </div>
           )}
-          <h2 className="mt-2 text-3xl sm:text-5xl font-display font-semibold tracking-[-0.02em] text-[#292929] leading-[0.98]">
+          <h2 className="mt-2 text-3xl sm:text-4xl font-display font-semibold tracking-[-0.02em] text-[#292929] leading-[0.98]">
             {heading}
           </h2>
           {subheading && (

@@ -87,7 +87,7 @@ const EEAT_PILLARS = [
       'Google\'s Knowledge Graph cross-references author entities. Content signed by recognized industry figures receives higher baseline quality thresholds.',
     passFailExample: {
       fail: 'Published by "Admin" or generic brand handle with zero bio.',
-      pass: 'Written by Himani Kankaria (10+ yrs enterprise SEO), reviewed by senior technical architect with linked schema.',
+      pass: 'Written by Himani Kankaria (15+ years of experience in enterprise SEO), reviewed by senior technical architect with linked schema.',
     },
   },
   {
@@ -221,12 +221,12 @@ export default function LandingEeatAuditMatrix() {
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold text-slate-900 tracking-tight leading-tight mb-3">
             The Forensic{' '}
             <span className="bg-gradient-to-r from-[#0C81F3] to-[#EB8988] bg-clip-text text-transparent">
-              E-E-A-T &amp; AI Citation Matrix
+              E‑E‑A‑T &amp; AI Citation Matrix
             </span>
           </h2>
           <p className="text-xs sm:text-sm md:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed font-normal">
             Search algorithms don&apos;t just index keywords: they grade your domain across 4 core
-            E-E-A-T pillars and generative citation readiness. Here is the exact evaluation architecture
+            E‑E‑A‑T pillars and generative citation readiness. Here is the exact evaluation architecture
             our tool inspects on every audit.
           </p>
         </div>
@@ -312,7 +312,7 @@ export default function LandingEeatAuditMatrix() {
           <div className="mb-8">
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3.5 flex items-center gap-1.5">
               <Eye className="w-3.5 h-3.5 text-[#0C81F3]" />
-              Exact Forensic Signals Checked During Audit:
+              Exact Signals Checked During Audit
             </h4>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {current.signals.map((sig, i) => (
@@ -342,7 +342,7 @@ export default function LandingEeatAuditMatrix() {
             <div className="p-4 sm:p-5 rounded-2xl bg-gradient-to-br from-blue-50/70 to-indigo-50/40 border border-blue-100">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#0C81F3] mb-1.5">
                 <Sparkles className="w-3.5 h-3.5" />
-                Why Google &amp; AI Search Value This Pillar:
+                Why Google &amp; AI Search Value This Pillar
               </div>
               <p className="text-xs sm:text-sm text-slate-700 leading-relaxed">
                 {current.whyItRanks}
@@ -353,15 +353,15 @@ export default function LandingEeatAuditMatrix() {
             <div className="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col justify-between">
               <div>
                 <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block mb-2">
-                  Pass vs Fail Authority Benchmark:
+                  Pass vs Fail Authority Benchmark
                 </span>
                 <div className="space-y-2 text-xs">
                   <div className="flex items-start gap-2 text-rose-800 bg-rose-50/80 p-2 rounded-xl border border-rose-200/60">
-                    <span className="font-bold shrink-0 text-rose-600">FAIL:</span>
+                    <span className="font-bold shrink-0 text-rose-600">FAIL</span>
                     <span className="line-clamp-2">{current.passFailExample.fail}</span>
                   </div>
                   <div className="flex items-start gap-2 text-emerald-800 bg-emerald-50/80 p-2 rounded-xl border border-emerald-200/60">
-                    <span className="font-bold shrink-0 text-emerald-600">PASS:</span>
+                    <span className="font-bold shrink-0 text-emerald-600">PASS</span>
                     <span className="line-clamp-2">{current.passFailExample.pass}</span>
                   </div>
                 </div>
@@ -376,7 +376,7 @@ export default function LandingEeatAuditMatrix() {
             { label: '4 Core Pillars', sub: 'Experience, Expertise, Authoritativeness, Trust' },
             { label: 'AI Citation Ready', sub: 'Engineered for Google AI Overviews & Perplexity' },
             { label: 'YMYL Safety Checks', sub: 'High scrutiny for finance, health, and legal' },
-            { label: '1-Click Fixes', sub: 'Direct schema & E-E-A-T booster generation' },
+            { label: '1-Click Fixes', sub: 'Direct schema & E‑E‑A‑T booster generation' },
           ].map((item, idx) => (
             <div
               key={idx}

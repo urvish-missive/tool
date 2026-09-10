@@ -469,7 +469,7 @@ function ScoreFormulaModal({ isOpen, onClose, report, scoreBreakdown, onDownload
                     ) : (
                       <div className="text-[11px] text-emerald-700 bg-emerald-50/50 p-2 rounded-xl border border-emerald-100 italic flex items-center gap-1.5">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                        <span>0 deductions applied. 100% full compliance on all checks.</span>
+                        <span>0 deductions applied. Full compliance on all checks.</span>
                       </div>
                     )}
                   </div>
@@ -1047,7 +1047,7 @@ export default function SeoAuditPage() {
 
                       <div className="mt-3 pt-2.5 border-t border-gray-100 flex items-center justify-between text-[11px] text-gray-500">
                         <span className="truncate pr-1 font-medium">
-                          {catIssueCount > 0 ? `${catIssueCount} issue(s) detected` : detail.status || '100% Passed'}
+                          {catIssueCount > 0 ? `${catIssueCount} issue(s) detected` : detail.status || 'All Passed'}
                         </span>
                         <ChevronRight className="w-3.5 h-3.5 text-gray-400 group-hover:text-[#0C81F3] shrink-0" />
                       </div>
@@ -1155,7 +1155,7 @@ export default function SeoAuditPage() {
                       onClick={() => setFilterCategory(cat)}
                       className={`px-2.5 py-1 rounded-lg text-xs font-medium transition-colors cursor-pointer capitalize ${
                         filterCategory === cat
-                          ? 'bg-[#0C81F3] text-white font-bold shadow-sm'
+                          ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white font-bold shadow-sm'
                           : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                       }`}
                     >
@@ -1199,7 +1199,7 @@ export default function SeoAuditPage() {
                   {issues.filter(i => i.category?.toLowerCase() === 'technical').length === 0 ? (
                     <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-900 flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>100% clean technical checks! No sitemap, robots, or URL structure defects detected.</span>
+                      <span>Clean technical checks! No sitemap, robots, or URL structure defects detected.</span>
                     </div>
                   ) : (
                     <div className="space-y-3">
@@ -1353,7 +1353,7 @@ export default function SeoAuditPage() {
                   {issues.filter(i => i.category?.toLowerCase() === 'onpage').length === 0 ? (
                     <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 text-xs text-emerald-900 flex items-center gap-2">
                       <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                      <span>100% clean on-page hierarchy! Perfect single H1 tag and metadata on all pages.</span>
+                      <span>Clean on-page hierarchy! Perfect single H1 tag and metadata on all pages.</span>
                     </div>
                   ) : (
                     <div className="space-y-3">

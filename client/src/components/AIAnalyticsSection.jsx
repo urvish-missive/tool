@@ -68,7 +68,7 @@ const PILLARS_META = [
   },
   {
     key: 'eeat_score',
-    label: 'E-E-A-T Trust',
+    label: 'E‑E‑A‑T Trust',
     icon: ShieldCheck,
     desc: 'First-hand experience, authority proof, and brand credibility',
   },
@@ -157,7 +157,7 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#0C81F3]/10 text-[#0C81F3] text-[11px] font-bold uppercase tracking-wider">
               <Sparkles className="w-3 h-3" />
-              Himani's SEO Tools • Missive Digital
+              Missive's SEO Tools • Missive Digital
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
@@ -320,14 +320,14 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
               </p>
             </div>
 
-            {/* 4. E-E-A-T Trust Score */}
+            {/* 4. E‑E‑A‑T Trust Score */}
             <div
               className={`p-4 sm:p-5 rounded-2xl border transition-all ${report.eeat_score >= 70 ? 'bg-emerald-50/70 border-emerald-200' : 'bg-slate-50 border-slate-200'}`}
             >
               <div className="flex items-center justify-between mb-2">
                 <span className="text-xs font-bold text-slate-900 flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  <span>E-E-A-T Trust Score</span>
+                  <span>E‑E‑A‑T Trust Score</span>
                 </span>
                 <span
                   className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full ${getScoreBadge(report.eeat_score || 72)}`}
@@ -367,7 +367,7 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
             icon: AlertTriangle,
           },
           { id: 'geo', label: 'GEO & AI Overview', icon: Sparkles },
-          { id: 'eeat', label: 'E-E-A-T Experience Audit', icon: ShieldCheck },
+          { id: 'eeat', label: 'E‑E‑A‑T Experience Audit', icon: ShieldCheck },
           { id: 'plan', label: `Strategic Roadmap (${recommendations.length})`, icon: Lightbulb },
         ].map((tab) => {
           const Icon = tab.icon
@@ -683,7 +683,7 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
         </div>
       )}
 
-      {/* ── TAB 4: E-E-A-T EXPERIENCE AUDIT ──────────────────────────────── */}
+      {/* ── TAB 4: E‑E‑A‑T EXPERIENCE AUDIT ──────────────────────────────── */}
       {activeTab === 'eeat' && (
         <div className="space-y-6 animate-fade-in">
           <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
@@ -694,7 +694,7 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
                 </div>
                 <div>
                   <h3 className="text-base sm:text-lg font-bold text-slate-900">
-                    Google E-E-A-T Quality Audit
+                    Google E‑E‑A‑T Quality Audit
                   </h3>
                   <p className="text-xs text-slate-500">
                     Experience, Expertise, Authoritativeness, and Trustworthiness analysis.
@@ -712,7 +712,7 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
             {/* Insights Checklist */}
             <div className="space-y-3">
               <h4 className="text-xs font-bold uppercase tracking-wider text-slate-400">
-                Audited E-E-A-T Signals & Proof Points
+                Audited E‑E‑A‑T Signals & Proof Points
               </h4>
               <div className="space-y-2.5">
                 {eeatInsights.map((insight, i) => (

@@ -1,4 +1,5 @@
 import { callAIAndParseJSON, apiResultCache } from '../utils/aiProvider.js'
+import { buildMissiveQaPromptDirectives } from '../utils/missiveQaRules.js'
 
 /**
  * Standardized Tone profiles with rich prompt directives
@@ -152,39 +153,42 @@ export async function generateBlogTopics({
     ? kwList.join(', ')
     : `High-intent commercial and informational keywords for ${niche}`
 
+  const qaDirectives = buildMissiveQaPromptDirectives()
+
   const systemPrompt = `You are Himani Kankaria's elite Content Strategist and SEO Architect at Missive Digital.
 You design high-intent, clickable, and search-optimized blog topics arranged in a Pillar-and-Cluster topical authority structure.
 
-MANDATORY MISSIVE 12-PILLAR QA RULES (STRICT & NON-NEGOTIABLE):
-1. ZERO EM DASHES: You are strictly forbidden from using em dashes ("—" or "--"). Use hyphens with spaces (" - "), colons (":"), commas, or clean sentences.
-2. ZERO ROBOTIC BUZZWORDS: Never use banned clichés: "delve", "tapestry", "beacon", "game-changer", "testament", "plethora", "revolutionize", "unleash", "in today's fast-paced world", "look no further", "furthermore", "moreover", "in conclusion", "at the end of the day".
-3. INSIGHT-FIRST OPENINGS: Every opening hook and headline must state the quantifiable stakes, metric benchmark, or acute operational friction immediately. Never open with generic throat-clearing preambles ("In this article...", "In today's world...").
-4. 100% NICHE-SPECIFIC & ORIGINAL CONTENT (NO HARDCODED BOILERPLATE): Every single headline, outline heading, purpose, talking point, E-E-A-T proof anchor, common pitfall, and brief directive must be 100% custom, original, and deeply tailored to the specific niche ("${niche}"). Absolutely ZERO generic placeholders or repetitive canned phrases.
-5. EXHAUSTIVE, MULTI-LAYERED ARTICLE OUTLINES: When generating an article outline, DO NOT provide a superficial 3-4 line list. You MUST generate 5 to 7 detailed, sequential sections. Each section must include:
+CRITICAL MISSIVE QA DIRECTIVES (APPLIED TO EVERY PIECE OF GENERATED TEXT):
+${qaDirectives}
+
+ADDITIONAL RULES (NON-NEGOTIABLE):
+1. INSIGHT-FIRST OPENINGS: Every opening hook and headline must state the quantifiable stakes, metric benchmark, or acute operational friction immediately. Never open with generic throat-clearing preambles ("In this article...", "In today's world...").
+2. 100% NICHE-SPECIFIC & ORIGINAL CONTENT (NO HARDCODED BOILERPLATE): Every single headline, outline heading, purpose, talking point, E‑E‑A‑T proof anchor, common pitfall, and brief directive must be 100% custom, original, and deeply tailored to the specific niche ("${niche}"). Absolutely ZERO generic placeholders or repetitive canned phrases.
+3. EXHAUSTIVE, MULTI-LAYERED ARTICLE OUTLINES: When generating an article outline, DO NOT provide a superficial 3-4 line list. You MUST generate 5 to 7 detailed, sequential sections. Each section must include:
    - Descriptive, non-generic H2 heading specific to ${niche}
    - Purpose / editorial objective
    - 2 to 3 nested H3 subsections with specific writing guidance
    - 3 to 5 tactical talking points detailing specific arguments, workflows, or sub-topics
-   - E-E-A-T metric anchor (concrete data point, benchmark, or lived experience to cite)
+   - E‑E‑A‑T metric anchor (concrete data point, benchmark, or lived experience to cite)
    - Suggested visual asset (e.g., custom flowchart, data table, comparison chart)
    - Common pitfall or amateur mistake to avoid
-6. COMPREHENSIVE SEO BRIEF: For every topic, provide an actionable SEO brief containing:
+4. COMPREHENSIVE SEO BRIEF: For every topic, provide an actionable SEO brief containing:
    - Target Persona & reader friction specific to ${niche}
    - Funnel Stage: TOFU (Awareness), MOFU (Consideration), or BOFU (Decision)
    - Search Intent: Informational, Commercial Investigation, or Transactional
    - Recommended Word Count (e.g. "2,200 - 2,800 words")
    - Title Tag: under 60 characters with primary keyword front-loaded and strong CTR trigger
-   - SERP Meta Description: 145-155 characters with clear value hook and action prompt (STRICTLY 0 em dashes)
+   - SERP Meta Description: 145-155 characters with clear value hook and action prompt
    - Competitor Gap: what existing articles fail to cover and your Information Gain advantage
    - Secondary / LSI keywords (3 to 5 terms)
    - Internal linking anchors (linking to cornerstone pillar page and sister cluster nodes)
    - Conversion CTA bridge aligned with the funnel stage
-7. PEOPLE ALSO ASK (FAQ) SECTION: Provide 3 to 4 Google search FAQs with direct, 2-3 sentence featured snippet answers.
-8. CONCLUSION HEADLINES: Strictly NO "In Conclusion", "Conclusion", "Final Thoughts", or "Summary". The final section must have an outcome-driven action title (e.g. "The 30-Day Execution Roadmap: Putting [Topic] to Work").
-9. TONE OF VOICE MANDATE (${toneProfile.label}): ${toneProfile.directive}
+5. PEOPLE ALSO ASK (FAQ) SECTION: Provide 3 to 4 Google search FAQs with direct, 2-3 sentence featured snippet answers.
+6. CONCLUSION HEADLINES: Strictly NO "In Conclusion", "Conclusion", "Final Thoughts", or "Summary". The final section must have an outcome-driven action title (e.g. "The 30-Day Execution Roadmap for [Topic]").
+7. TONE OF VOICE MANDATE (${toneProfile.label}): ${toneProfile.directive}
    Every single headline, hook, angle, section heading, talking point, and brief recommendation must distinctly embody this tone.
-10. CRITICAL COUNT REQUIREMENT: You MUST generate EXACTLY ${targetCount} topic objects in the "topics" array.
-11. Return ONLY valid JSON, with no markdown code blocks outside JSON.`
+8. CRITICAL COUNT REQUIREMENT: You MUST generate EXACTLY ${targetCount} topic objects in the "topics" array.
+9. Return ONLY valid JSON, with no markdown code blocks outside JSON.`
 
   const userPrompt = `Generate an authoritative Pillar-and-Cluster topical authority blueprint with EXACTLY ${targetCount} detailed, niche-specific topic objects for:
 - Niche / Subject: ${niche}
@@ -196,9 +200,8 @@ MANDATORY MISSIVE 12-PILLAR QA RULES (STRICT & NON-NEGOTIABLE):
 
 CRITICAL RULES:
 - Every field must be custom-written for "${niche}". Absolutely ZERO generic boilerplate or canned text.
-- Strictly ZERO em dashes ("—" or "--") in any field.
-- Strictly ZERO banned robotic clichés (no delve, tapestry, beacon, game-changer, unleash, revolutionize, in conclusion).
-- Full in-depth editorial outlines (5 to 7 sections with nested H3 subsections, tactical talking points, E-E-A-T anchors, visual assets, and common pitfalls).
+- Follow the Missive QA directives above in every field.
+- Full in-depth editorial outlines (5 to 7 sections with nested H3 subsections, tactical talking points, E‑E‑A‑T anchors, visual assets, and common pitfalls).
 - Full SEO brief for each topic (Persona, Funnel, Intent, Title Tag, Meta Description, Competitor Gap, LSI keywords, Internal linking, CTA).
 - 3 to 4 People Also Ask FAQs with direct answers.
 
@@ -227,7 +230,7 @@ Return a JSON object with this EXACT structure:
       "difficulty": "medium",
       "estimatedWordCount": 2400,
       "clusterName": "Core Foundations",
-      "whyItWorks": "Why this angle captures search intent, beats generic SERP results, and builds E-E-A-T in ${niche}.",
+      "whyItWorks": "Why this angle captures search intent, beats generic SERP results, and builds E‑E‑A‑T in ${niche}.",
       "relatedKeywords": ["lsi keyword 1", "lsi keyword 2", "lsi keyword 3", "lsi keyword 4"],
       "seoBrief": {
         "targetPersona": "Target reader role and their core operational challenge in ${niche}",
@@ -460,7 +463,7 @@ Return a JSON object with this EXACT structure:
             { name: 'Zero Em Dashes', status: 'Passed', detail: 'Strictly 0 em dashes found. Clean punctuation throughout.' },
             { name: 'Zero Robotic Clichés', status: 'Passed', detail: '0 banned AI buzzwords detected.' },
             { name: 'Insight-First Opening', status: 'Passed', detail: 'Immediate hook with zero generic throat-clearing.' },
-            { name: 'Quantifiable E-E-A-T Anchors', status: 'Passed', detail: 'Every section anchored with empirical metrics or case proof.' },
+            { name: 'Quantifiable E‑E‑A‑T Anchors', status: 'Passed', detail: 'Every section anchored with empirical metrics or case proof.' },
             { name: 'Outcome-Driven Conclusion', status: 'Passed', detail: 'Loop-closing conclusion with non-generic action heading.' },
             { name: 'Tone of Voice Alignment', status: 'Passed', detail: `Embodying ${toneProfile.label}.` },
           ],
@@ -552,25 +555,28 @@ export async function generateMasterArticleBrief({
   const topicTitle = typeof topic === 'string' ? topic : topic.title || topic.targetKeyword
   const topicKeyword = typeof topic === 'object' ? topic.targetKeyword || niche : niche
 
+  const qaDirectives = buildMissiveQaPromptDirectives()
+
   const systemPrompt = `You are Himani Kankaria's Chief Editorial Architect at Missive Digital.
 Your task is to produce an exhaustive, publication-grade Master Article Outline and Strategic SEO Brief for a comprehensive 2,500-word long-form article in the "${niche}" space.
 
-MANDATORY MISSIVE 12-PILLAR QA RULES:
-1. ZERO EM DASHES: Absolutely 0 em dashes ("—" or "--"). Use hyphens with spaces (" - "), colons (":"), commas, or clean sentences.
-2. ZERO ROBOTIC BUZZWORDS: Never use banned clichés: "delve", "tapestry", "beacon", "game-changer", "testament", "plethora", "revolutionize", "unleash", "in today's fast-paced world", "look no further", "furthermore", "moreover", "in conclusion", "at the end of the day".
-3. INSIGHT-FIRST OPENING: Hook must open with an acute friction or concrete metric. Zero generic throat-clearing.
-4. OUTLINE DEPTH: Provide 6 to 8 exhaustive sections. Each section must contain:
+CRITICAL MISSIVE QA DIRECTIVES (APPLIED TO EVERY PIECE OF GENERATED TEXT):
+${qaDirectives}
+
+ADDITIONAL RULES:
+1. INSIGHT-FIRST OPENING: Hook must open with an acute friction or concrete metric. Zero generic throat-clearing.
+2. OUTLINE DEPTH: Provide 6 to 8 exhaustive sections. Each section must contain:
    - Descriptive H2 title (never "In Conclusion" or generic labels)
    - Word allocation target (~350 to 500 words)
    - Editorial purpose
    - 2 to 3 nested H3 subsections with specific writing instructions
    - 3 to 5 tactical talking points
-   - Concrete E-E-A-T metric or data anchor
+   - Concrete E‑E‑A‑T metric or data anchor
    - Suggested visual asset (e.g., custom flowchart, data table, comparison chart)
    - Amateur trap/pitfall to avoid
-5. 4 GOOGLE PEOPLE ALSO ASK FAQs with featured snippet-ready answers (2-3 sentences each).
-6. TONE OF VOICE (${toneProfile.label}): ${toneProfile.directive}
-7. Return ONLY valid JSON.`
+3. 4 GOOGLE PEOPLE ALSO ASK FAQs with featured snippet-ready answers (2-3 sentences each).
+4. TONE OF VOICE (${toneProfile.label}): ${toneProfile.directive}
+5. Return ONLY valid JSON.`
 
   const userPrompt = `Generate a 2,500-Word Master Editorial Brief & In-Depth Article Blueprint for:
 - Article Title: ${topicTitle}
@@ -661,7 +667,7 @@ Return a JSON object with this EXACT structure:
   "writingGuidelines": {
     "toneDirective": "${toneProfile.directive}",
     "paragraphLength": "Keep paragraphs tight (1 to 3 sentences maximum).",
-    "bannedWordsReminder": "Strictly ZERO em dashes and zero robotic clichés (no delve, tapestry, beacon, game-changer, in conclusion)."
+    "bannedWordsReminder": "Follows the Missive QA directives above."
   }
 }`
 
@@ -1326,7 +1332,7 @@ export function generateDynamicTopics({
           keyPoints: [
             `Myth 1 Deconstructed: Why quality and depth consistently outrank high-volume superficial fluff.`,
             `Myth 2 Deconstructed: How over-engineered processes create paralyzing organizational drag.`,
-            `Myth 3 Deconstructed: Why copying competitor tactics guarantees secondary market positioning.`,
+            `Myth 3 Deconstructed: Why copying competitor tactics leads to secondary market positioning.`,
           ],
           eeatProof: `Empirical case studies showing traffic and conversion gains after cutting output volume by 50% and doubling depth.`,
           visualAsset: `Myth vs Reality scorecard table highlighting the strategic difference in outcomes`,
@@ -1564,7 +1570,7 @@ export function generateDynamicTopics({
           { name: 'Zero Em Dashes', status: 'Passed', detail: 'Strictly 0 em dashes found. Clean punctuation throughout.' },
           { name: 'Zero Robotic Clichés', status: 'Passed', detail: '0 banned AI buzzwords detected.' },
           { name: 'Insight-First Opening', status: 'Passed', detail: 'Immediate hook with zero generic throat-clearing.' },
-          { name: 'Quantifiable E-E-A-T Anchors', status: 'Passed', detail: 'Every section anchored with empirical metrics or case proof.' },
+          { name: 'Quantifiable E‑E‑A‑T Anchors', status: 'Passed', detail: 'Every section anchored with empirical metrics or case proof.' },
           { name: 'Outcome-Driven Conclusion', status: 'Passed', detail: 'Loop-closing conclusion with non-generic action heading.' },
           { name: 'Tone of Voice Alignment', status: 'Passed', detail: `Embodying ${toneProfile.label}.` },
         ],

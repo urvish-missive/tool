@@ -1,5 +1,6 @@
 import { callAIAndParseJSON, apiResultCache } from '../utils/aiProvider.js'
 import { TONE_PROFILES } from './blogTopicGenerator.js'
+import { buildMissiveQaPromptDirectives } from '../utils/missiveQaRules.js'
 
 /**
  * Funnel stage definitions and conversion intent for conclusions
@@ -47,7 +48,7 @@ export const CTA_GOALS = {
 }
 
 /**
- * Fallback conclusions for guaranteed uptime
+ * Fallback conclusions for high availability
  */
 function getFallbackConclusions(
   topic,
@@ -109,7 +110,7 @@ function getFallbackConclusions(
         title: `The 3-Part Decision Framework for Scaling ${topic}`,
         framework: 'The Comparison Verdict & Practical Roadmap',
         hookClosure: `Choosing how to execute ${kw} comes down to balancing internal bandwidth against time-to-value.`,
-        body: `You don't need to overhaul everything overnight. Prioritize your roadmap into quick wins (Week 1–2), architectural stabilization (Month 1), and automated scale (Month 2+).\n\nMeasuring the right leading indicators keeps your stakeholders aligned and guarantees positive compounding.`,
+        body: `You don't need to overhaul everything overnight. Prioritize your roadmap into quick wins (Week 1–2), architectural stabilization (Month 1), and automated scale (Month 2+).\n\nMeasuring the right leading indicators keeps your stakeholders aligned and supports positive compounding.`,
         ctaPrompt: `Use our free Decision Matrix template to score your team's readiness across each stage.`,
         ctaButton: 'Get the Free Decision Matrix Template →',
         why: 'Helps consideration-stage buyers evaluate trade-offs and structure their rollout plan.',
@@ -246,14 +247,19 @@ export async function generateBlogConclusions({
     stagePlan = Array(count).fill(funnelStage)
   }
 
+  const qaDirectives = buildMissiveQaPromptDirectives()
+
   const systemPrompt = `You are Missive Digital's Principal Content Strategist and Conversion Copywriter.
 Your task is to generate exactly ${count} distinct, high-converting, search-optimized blog article conclusions.
+
+CRITICAL MISSIVE QA DIRECTIVES (APPLIED TO EVERY PIECE OF GENERATED TEXT):
+${qaDirectives}
 
 CRITICAL RULES (NON-NEGOTIABLE):
 1. **NEVER USE THE WORD "CONCLUSION" OR "FINAL THOUGHTS" OR "SUMMARY" OR "WRAPPING UP"**:
    - The H2 title must be a SPECIFIC, creative, punchy headline that hooks the reader and conveys momentum.
    - Examples of BAD titles: "Conclusion", "Final Words", "In Summary", "Wrapping Up".
-   - Examples of GOOD titles: "The Final Verdict: How to Scale Without the Burnout", "Where Does Your Traffic Strategy Go From Here?", "The Bottom Line on Modern Programmatic SEO", "Your Next Step Towards High-Converting Funnels".
+   - Examples of GOOD titles: "How to Scale Without the Burnout", "Where Does Your Traffic Strategy Go From Here", "The Bottom Line on Modern Programmatic SEO", "Your Next Step Towards High-Converting Funnels".
 2. **INTRO LOOP CLOSURE**:
    ${cleanIntro ? '- You MUST examine the provided Blog Introduction. Deliberately close the open loop, answer the core question, or resolve the tension established in that opening.' : '- Establish a satisfying closure to the core challenge posed by the article title.'}
 3. **NO FLUFF OR BORING SUMMARIES**:
@@ -317,7 +323,7 @@ ${stagePlan.map((s, idx) => `Variation ${idx + 1}: ${CONCLUSION_FUNNEL_STAGES[s]
         const stageKey = stagePlan[index] || item.funnelStage || 'tofu'
         const stageMeta = CONCLUSION_FUNNEL_STAGES[stageKey] || CONCLUSION_FUNNEL_STAGES.tofu
 
-        // Guarantee specific H2 title does not have generic "Conclusion"
+        // Ensure specific H2 title does not have generic "Conclusion"
         let cleanH2 = (item.specificH2Title || '').trim()
         cleanH2 = cleanH2.replace(/^#+\s*/, '')
         if (!cleanH2 || /^(conclusion|final thoughts|in conclusion|summary|wrapping up)/i.test(cleanH2)) {

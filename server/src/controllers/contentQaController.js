@@ -13,9 +13,12 @@ function buildFallbackAiReport(programmatic) {
   // Build topFixes from highlights (most severe first) + failing statuses
   const topFixes = []
 
-  // Priority 1: Em dashes (Himani's strict rule)
+  // Priority 1: Em dashes & Colons (Himani's strict rule)
   if (quickStats.emDashesCount > 0) {
-    topFixes.push(`Remove all ${quickStats.emDashesCount} em dash(es) — Himani's rule strictly requires zero em dashes. Replace with commas or sentence breaks.`)
+    topFixes.push(`Remove all ${quickStats.emDashesCount} em dash(es). Himani's rule strictly requires zero em dashes. Replace with commas or sentence breaks.`)
+  }
+  if (quickStats.colonsCount > 0) {
+    topFixes.push(`Remove all ${quickStats.colonsCount} colon(s). Himani's rule strictly forbids colons in prose. Replace with clean periods, commas, or separate sentences.`)
   }
 
   // Priority 2: AI clichés
@@ -37,7 +40,8 @@ function buildFallbackAiReport(programmatic) {
   }
 
   const criticalFailMap = {
-    'ts-3': 'Himani forbids em dashes entirely — replace with commas or break into shorter sentences.',
+    'ts-3': "Himani forbids em dashes entirely. Replace with commas or break into shorter sentences.",
+    'ts-5': "Himani strictly forbids colons. Replace with clean periods, commas, or separate sentences.",
     'ts-2': 'Eliminate all robotic AI clichés ("delve", "tapestry", "testament"). Write as if speaking directly to a peer.',
     'ins-1': 'Cut the throat-clearing intro and start immediately with the core insight or contrarian observation.',
     'eat-1': 'Add a real-world example, anecdote, or first-hand data to ground the advice and build trust.',
@@ -76,7 +80,7 @@ function buildFallbackAiReport(programmatic) {
   ]
 
   const catItemMap = {
-    tone_style_ai: ['ts-1', 'ts-2', 'ts-3', 'ts-4'],
+    tone_style_ai: ['ts-1', 'ts-2', 'ts-3', 'ts-5', 'ts-4'],
     read_aloud: ['ra-1', 'ra-2', 'ra-3'],
     audience_alignment: ['aud-1', 'aud-2', 'aud-3'],
     eeat_check: ['eat-1', 'eat-2', 'eat-3'],
@@ -131,6 +135,7 @@ function buildFallbackAiReport(programmatic) {
     publicationReadiness: overall >= 85 ? 'Ready to Publish' : overall >= 70 ? 'Minor Polish Needed' : overall >= 50 ? 'Needs Revision' : 'Major QA Overhaul Required',
     summary,
     topFixes: topFixes.slice(0, 5),
+    dynamicBuzzwords: [],
     categories,
     himaniProTips: [
       'Start every paragraph with the insight, not the setup. Your reader should never have to scroll to find value.',
@@ -206,8 +211,56 @@ export async function analyzeContentQAHandler(req, res) {
           categories: mergeCategories(fallbackReport.categories, aiReport.categories),
           // Ensure pro tips always exist
           himaniProTips: (aiReport.himaniProTips?.length > 0) ? aiReport.himaniProTips : fallbackReport.himaniProTips,
+          dynamicBuzzwords: aiReport.dynamicBuzzwords || [],
         }
       : fallbackReport
+
+    // Step 3c: Merge dynamically detected buzzwords from AI into highlights
+    const highlights = [...(programmatic.highlights || [])]
+    if (aiReport?.dynamicBuzzwords && Array.isArray(aiReport.dynamicBuzzwords)) {
+      const lowerContent = content.toLowerCase()
+      for (const item of aiReport.dynamicBuzzwords) {
+        if (!item.phrase) continue
+        const phraseLower = item.phrase.toLowerCase().trim()
+        if (phraseLower.length < 2) continue
+
+        // Check if this phrase is already captured in highlights
+        const alreadyHighlighted = highlights.some(h => 
+          (h.text || '').toLowerCase().trim() === phraseLower
+        )
+        if (!alreadyHighlighted) {
+          // Find occurrences in content
+          let searchIdx = 0
+          let foundCount = 0
+          while (searchIdx < content.length && foundCount < 10) {
+            const idx = lowerContent.indexOf(phraseLower, searchIdx)
+            if (idx === -1) break
+
+            const start = Math.max(0, idx - 30)
+            const end = Math.min(content.length, idx + phraseLower.length + 30)
+            const prefix = start > 0 ? '...' : ''
+            const suffix = end < content.length ? '...' : ''
+            const snippet = prefix + content.substring(start, end).replace(/\s+/g, ' ') + suffix
+
+            highlights.push({
+              type: 'ai-cliche',
+              label: 'Dynamic AI Buzzword',
+              severity: 'warning',
+              text: content.substring(idx, idx + phraseLower.length),
+              index: idx,
+              length: phraseLower.length,
+              suggestion: item.suggestion || 'Replace with simpler conversational phrasing.',
+              reason: item.reason || `Detected as robotic AI phrasing (similar to examples like delve, tapestry, etc.).`,
+              context: snippet,
+              isDynamic: true,
+            })
+
+            foundCount++
+            searchIdx = idx + phraseLower.length
+          }
+        }
+      }
+    }
 
     // Step 4: Save to DB (non-fatal)
     let qaId = null
@@ -238,14 +291,17 @@ export async function analyzeContentQAHandler(req, res) {
         statuses: programmatic.statuses,
         evidence: programmatic.evidence,
         suggestions: programmatic.suggestions,
-        highlights: programmatic.highlights,
+        highlights,
         categoryScores,
         overall,
         total: programmatic.total,
         passed: programmatic.passed,
         failed: programmatic.failed,
         warnings: programmatic.warnings,
-        quickStats: programmatic.quickStats,
+        quickStats: {
+          ...programmatic.quickStats,
+          aiPhrasesCount: highlights.filter(h => h.type === 'ai-cliche').length,
+        },
         meta: programmatic.meta,
         ai: mergedAi,
       },
