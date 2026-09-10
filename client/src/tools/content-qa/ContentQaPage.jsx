@@ -1047,7 +1047,6 @@ Audited with Missive Digital Content QA Tool.`
       {/* ── HERO BANNER (ONLY SHOWN WHEN NOT EMBEDDED) ──── */}
       {!isEmbedded && (
         <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
-          <div className="lp-scanline" />
           <div
             className="absolute inset-0"
             style={{

@@ -350,7 +350,6 @@ export default function BlogIntroGeneratorPage({
       {/* Hero Header — ONLY SHOWN WHEN NOT EMBEDDED */}
       {!isEmbedded && (
         <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24 bg-gradient-to-b from-slate-50 to-white border-b border-slate-200">
-          <div className="lp-scanline" />
           <div
             className="absolute inset-0 pointer-events-none"
             style={{

@@ -1,4 +1,67 @@
+import { useState, useEffect, useMemo, useRef } from 'react'
 import useScrollReveal from './useScrollReveal'
+
+function parseCountable(value) {
+  const match = String(value).match(/^(\d[\d,]*)(\+|%)?$/)
+  if (!match) return null
+  return {
+    target: parseInt(match[1].replace(/,/g, ''), 10),
+    suffix: match[2] || '',
+  }
+}
+
+const ACCENTS = [
+  'from-[#67A7FF] to-[#0C81F3]',
+  'from-[#F7B7B3] to-[#EB8988]',
+  'from-[#A7E3C2] to-[#4B9F77]',
+  'from-[#FCD36B] to-[#F59E0B]',
+]
+
+function StatCell({ value, label, accent }) {
+  const [count, setCount] = useState(0)
+  const cellRef = useRef(null)
+  const parsed = useMemo(() => parseCountable(value), [value])
+
+  useEffect(() => {
+    if (!parsed) return
+    const el = cellRef.current
+    if (!el) return
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return
+        const duration = 1400
+        const start = performance.now()
+        const tick = (now) => {
+          const progress = Math.min((now - start) / duration, 1)
+          const eased = 1 - Math.pow(1 - progress, 3)
+          setCount(Math.round(parsed.target * eased))
+          if (progress < 1) requestAnimationFrame(tick)
+        }
+        requestAnimationFrame(tick)
+        observer.unobserve(el)
+      },
+      { threshold: 0.4 }
+    )
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [parsed])
+
+  return (
+    <div ref={cellRef} className="lp-reveal-child text-center px-2">
+      <div className="relative inline-block pb-2">
+        <span className="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 tracking-tight tabular-nums">
+          {parsed ? `${count.toLocaleString()}${parsed.suffix}` : value}
+        </span>
+        <span
+          className={`block mt-1 mx-auto h-0.5 w-8 rounded-full bg-gradient-to-r ${accent}`}
+        />
+      </div>
+      <p className="text-[11px] sm:text-xs text-slate-500 font-medium leading-snug max-w-[170px] mx-auto">
+        {label}
+      </p>
+    </div>
+  )
+}
 
 /**
  * LandingStats — key statistics row for social proof.
@@ -7,21 +70,19 @@ export default function LandingStats({ stats = [] }) {
   const ref = useScrollReveal({ threshold: 0.1 })
 
   return (
-    <section className="py-10 sm:py-12 lg:py-14 bg-gradient-to-r from-[#0C81F3] to-[#EB8988]">
+    <section className="py-8 sm:py-10 lg:py-12 bg-[#F9F7F6]">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div ref={ref} className="lp-reveal lp-stagger grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
+        <div ref={ref} className="lp-reveal lp-stagger grid grid-cols-2 sm:grid-cols-4 gap-x-4 sm:gap-x-6 gap-y-8 sm:gap-y-10">
           {stats.map((s, i) => (
-            <div key={i} className="lp-reveal-child text-center p-2 sm:p-0">
-              <div className="text-2xl xs:text-3xl sm:text-4xl font-black text-white tracking-tight leading-none">
-                {s.value}
-                {s.suffix && <span className="text-white/85 text-lg xs:text-xl sm:text-2xl font-bold ml-0.5">{s.suffix}</span>}
-              </div>
-              <p className="text-[11px] sm:text-xs md:text-sm text-white/90 font-medium mt-1.5 leading-snug">{s.label}</p>
-            </div>
+            <StatCell
+              key={i}
+              value={`${s.value}${s.suffix || ''}`}
+              label={s.label}
+              accent={ACCENTS[i % ACCENTS.length]}
+            />
           ))}
         </div>
       </div>
     </section>
   )
-
 }

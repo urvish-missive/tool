@@ -41,6 +41,7 @@ import {
   Phone,
   Mail,
   MapPin,
+  Calendar,
 } from 'lucide-react'
 import { useGetPublicToolsQuery } from '../services/apiSlice'
 
@@ -74,15 +75,21 @@ const NAV_ITEMS = [
       columns: [
         {
           items: [
-            { icon: Bot, label: 'AI SEO', href: '#' },
-            { icon: Smartphone, label: 'CAF Framework', href: '#' },
-            { icon: Target, label: 'GEO Readiness Score', href: '#' },
+            {
+              icon: Bot,
+              label: 'AI SEO',
+              href: 'https://missivedigital.com/ai-seo/',
+              badge: 'HOT',
+              badgeColor: 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white',
+            },
+            { icon: Smartphone, label: 'CAF Framework', href: 'https://missivedigital.com/ai-seo/' },
+            { icon: Target, label: 'GEO Readiness Score', href: 'https://missivedigital.com/ai-seo/' },
             {
               icon: BarChart3,
               label: 'Telecom AI SEO',
               badge: 'BLOG',
               badgeColor: 'bg-white text-gray-900',
-              href: '#',
+              href: 'https://missivedigital.com/telecom-ai-seo/',
             },
           ],
         },
@@ -95,20 +102,20 @@ const NAV_ITEMS = [
       columns: [
         {
           items: [
-            { icon: Search, label: 'SEO', href: '#' },
-            { icon: FileText, label: 'Content Consulting', href: '#' },
-            { icon: Briefcase, label: 'LinkedIn Marketing', href: '#' },
-            { icon: User, label: 'Personal Branding', href: '#' },
-            { icon: ShoppingCart, label: 'Ecommerce SEO', href: '#' },
+            { icon: Search, label: 'SEO', href: 'https://missivedigital.com/seo-agency/' },
+            { icon: FileText, label: 'Content Consulting', href: 'https://missivedigital.com/content-consulting/' },
+            { icon: Briefcase, label: 'LinkedIn Marketing', href: 'https://missivedigital.com/linkedin-marketing-services/' },
+            { icon: User, label: 'Personal Branding', href: 'https://missivedigital.com/personal-branding/' },
+            { icon: ShoppingCart, label: 'Ecommerce SEO', href: 'https://missivedigital.com/ecommerce-seo/' },
           ],
         },
         {
           items: [
-            { icon: Edit, label: 'Content Optimization', href: '#' },
-            { icon: PenTool, label: 'Content Writing', href: '#' },
-            { icon: Tag, label: 'Content Audit', href: '#' },
-            { icon: Globe, label: 'Digital Marketing', href: '#' },
-            { icon: Code2, label: 'Web Design & Development', href: '#' },
+            { icon: Edit, label: 'Content Optimization', href: 'https://missivedigital.com/content-optimization-services/' },
+            { icon: PenTool, label: 'Content Writing', href: 'https://missivedigital.com/content-writing-services/' },
+            { icon: Tag, label: 'Content Audit', href: 'https://missivedigital.com/content-audit-services/' },
+            { icon: Globe, label: 'Digital Marketing', href: 'https://missivedigital.com/digital-marketing-agency-ahmedabad/' },
+            { icon: Code2, label: 'Web Design & Development', href: 'https://missivedigital.com/website-design-development-smb/' },
           ],
         },
       ],
@@ -120,19 +127,19 @@ const NAV_ITEMS = [
       columns: [
         {
           items: [
-            { icon: Cloud, label: 'SaaS', href: '#' },
-            { icon: Radio, label: 'Telecom', href: '#' },
-            { icon: Stethoscope, label: 'Healthcare', href: '#' },
-            { icon: DollarSign, label: 'Fintech', href: '#' },
-            { icon: PhoneCall, label: 'Tele Marketing', href: '#' },
+            { icon: Cloud, label: 'SaaS', href: 'https://missivedigital.com/industry/saas/' },
+            { icon: Radio, label: 'Telecom', href: 'https://missivedigital.com/industry/telecom/' },
+            { icon: Stethoscope, label: 'Healthcare', href: 'https://missivedigital.com/industry/healthcare/' },
+            { icon: DollarSign, label: 'Fintech', href: 'https://missivedigital.com/industry/fintech/' },
+            { icon: PhoneCall, label: 'Tele Marketing', href: 'https://missivedigital.com/industry/telecom-marketing-agency/' },
           ],
         },
         {
           items: [
-            { icon: Gem, label: 'Jewelry', href: '#' },
-            { icon: HomeIcon, label: 'Real Estate', href: '#' },
-            { icon: Utensils, label: 'Restaurant', href: '#' },
-            { icon: Wine, label: 'Food and Beverages', href: '#' },
+            { icon: Gem, label: 'Jewelry', href: 'https://missivedigital.com/industry/jewelry-seo/' },
+            { icon: HomeIcon, label: 'Real Estate', href: 'https://missivedigital.com/industry/real-estate-seo/' },
+            { icon: Utensils, label: 'Restaurant', href: 'https://missivedigital.com/industry/restaurant-seo/' },
+            { icon: Wine, label: 'Food and Beverages', href: 'https://missivedigital.com/industry/food-and-beverages-seo/' },
           ],
         },
       ],
@@ -144,14 +151,14 @@ const NAV_ITEMS = [
       columns: [
         {
           items: [
-            { icon: Edit, label: 'Blog', href: '#' },
+            { icon: Edit, label: 'Blog', href: 'https://missivedigital.com/blog/' },
             { icon: CheckSquare, label: 'Content QA Checklist', href: '/content-qa' },
             {
               icon: Search,
               label: 'SEO Strategies',
               badge: 'WEBINAR',
               badgeColor: 'bg-white text-gray-900',
-              href: '#',
+              href: 'https://missivedigital.com/resources/seo-strategies-webinar/',
             },
             { icon: BarChart3, label: 'Case Study Generator', href: '/case-study-generator' },
           ],
@@ -246,8 +253,15 @@ const NAV_ITEMS = [
       columns: [
         {
           items: [
-            { icon: Info, label: 'About', href: '#' },
-            { icon: Users, label: 'Contact', href: '#' },
+            { icon: Info, label: 'About Missive', href: 'https://missivedigital.com/about/' },
+            { icon: Users, label: 'Contact Us', href: 'https://missivedigital.com/contact-us/' },
+            {
+              icon: Calendar,
+              label: 'Book Appointment',
+              href: 'https://calendly.com/missivedigital/30min',
+              badge: 'CALENDLY',
+              badgeColor: 'bg-emerald-500 text-white',
+            },
           ],
         },
         {
@@ -258,7 +272,11 @@ const NAV_ITEMS = [
               label: 'hello@missivedigital.com',
               href: 'mailto:hello@missivedigital.com',
             },
-            { icon: MapPin, label: '825, Iconic Shyamal, Ahmedabad, 380015', href: '#' },
+            {
+              icon: MapPin,
+              label: '825, Iconic Shyamal, Ahmedabad',
+              href: 'https://maps.google.com/?q=Iconic+Shyamal+Ahmedabad',
+            },
           ],
         },
       ],
@@ -429,10 +447,11 @@ export default function Navbar() {
           {/* CTA + Mobile toggle */}
           <div className="flex items-center gap-3">
             <a
-              href="#"
-              className="hidden sm:inline-flex items-center rounded-full bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 transition-colors shadow-sm"
+              href="https://calendly.com/missivedigital/30min"
+              className="hidden sm:inline-flex items-center gap-2 rounded-full bg-gray-900 px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-800 transition-all shadow-sm group"
             >
-              Book a Consultation
+              <Calendar className="w-4 h-4 text-[#EB8988] group-hover:scale-110 transition-transform" />
+              <span>Book Appointment</span>
             </a>
             <button
               onClick={() => setMobileOpen(!mobileOpen)}
@@ -555,10 +574,11 @@ export default function Navbar() {
             ))}
             <div className="px-4 pt-2">
               <a
-                href="#"
-                className="block w-full text-center rounded-full bg-gray-900 px-5 py-3 text-sm font-semibold text-white hover:bg-gray-800"
+                href="https://calendly.com/missivedigital/30min"
+                className="flex items-center justify-center gap-2 w-full text-center rounded-full bg-gray-900 px-5 py-3 text-sm font-semibold text-white hover:bg-gray-800 transition-colors shadow-sm"
               >
-                Book a Consultation
+                <Calendar className="w-4 h-4 text-[#EB8988]" />
+                <span>Book Appointment</span>
               </a>
             </div>
           </div>

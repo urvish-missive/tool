@@ -532,7 +532,6 @@ export default function Home() {
       <main className="flex-1">
         {/* ═══════════════ 1. HERO ═══════════════ */}
         <section className="relative overflow-hidden !pt-36 sm:!pt-40 py-16 sm:py-20 lg:py-28">
-          <div className="lp-scanline" />
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div
               className="absolute inset-0"
@@ -752,8 +751,6 @@ export default function Home() {
 
                   <a
                     href="https://missivedigital.com/"
-                    target="_blank"
-                    rel="noreferrer noopener"
                     className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-sm font-bold hover:opacity-95 active:scale-[0.98] transition-all shadow-md shrink-0 cursor-pointer"
                   >
                     <span>Explore Missive Digital</span>

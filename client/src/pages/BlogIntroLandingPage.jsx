@@ -140,7 +140,7 @@ const FEATURES = [
     icon: BookOpen,
     title: 'SEO & E-E-A-T Compliant',
     description:
-      'Every output follows Google\'s E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness) quality guidelines and SEO best practices.',
+      "Every output follows Google's E-E-A-T (Experience, Expertise, Authoritativeness, Trustworthiness) quality guidelines and SEO best practices.",
   },
 ]
 
@@ -158,7 +158,8 @@ const STEPS = [
   {
     icon: Sparkles,
     title: 'AI Generates Intros',
-    description: 'Our AI analyzes search intent and psychological triggers to craft high-converting openings.',
+    description:
+      'Our AI analyzes search intent and psychological triggers to craft high-converting openings.',
   },
   {
     icon: CheckCircle2,
@@ -171,7 +172,7 @@ const STATS = [
   { value: '8', label: 'Tone-of-voice profiles available' },
   { value: '3', label: 'Funnel stages covered (TOFU, MOFU, BOFU)' },
   { value: '15', label: 'Max unique hooks per generation' },
-  { value: '< 10s', label: 'Real-time AI generation speed' },
+  { value: '15s-20s', label: 'Real-time AI generation speed' },
 ]
 
 const RETENTION_STATS = [
@@ -362,7 +363,9 @@ export default function BlogIntroLandingPage() {
             'Unlimited generations',
           ]}
           toolRef={toolRef}
-          toolLabel={hasResults ? 'Active Blog Introductions' : 'Generate Blog Introductions • Live'}
+          toolLabel={
+            hasResults ? 'Active Blog Introductions' : 'Generate Blog Introductions • Live'
+          }
           toolSlot={
             <BlogIntroGeneratorPage
               isEmbedded={true}

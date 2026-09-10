@@ -49,7 +49,6 @@ export default function LandingHero({
             : 'pt-28 xs:pt-32 sm:pt-36 lg:pt-40 pb-14 sm:pb-20 lg:pb-24'
         }`}
       >
-        <div className="lp-scanline" />
         {/* Background ambient lighting isolated in overflow-hidden container */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div
@@ -210,7 +209,6 @@ export default function LandingHero({
 
   return (
     <section className="relative overflow-hidden pt-28 xs:pt-32 sm:pt-36 lg:pt-40 pb-16 sm:pb-20 lg:pb-24 border-b border-slate-200/60 bg-gradient-to-b from-white via-slate-50/40 to-white">
-      <div className="lp-scanline" />
       {/* Background ambient lighting isolated in overflow-hidden container */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div

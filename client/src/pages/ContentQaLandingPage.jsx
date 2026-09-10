@@ -338,9 +338,7 @@ function QaHero({ onCta, toolRef, onResultStateChange, hideHeroCopy, resetSignal
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-24 -right-24 w-[480px] h-[480px] bg-[#DAD0FF]/50 rounded-full blur-3xl lp-float-slow" />
         <div className="absolute -bottom-28 -left-24 w-[420px] h-[420px] bg-[#D8FFD8]/60 rounded-full blur-3xl lp-float-reverse" />
-        <div className="absolute top-1/3 left-1/2 -translate-x-1/2 w-[720px] h-[720px] rounded-full border border-[#0C81F3]/5" />
       </div>
-      <div className="lp-scanline" />
 
       <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         {!hideHeroCopy && (

@@ -179,63 +179,6 @@
   animation: caret-blink 1s step-end infinite;
 }
 
-/* Vertical scanline sweep — slow, smooth hairline hero scan */
-@keyframes scan-sweep {
-  0% {
-    top: -1px;
-    opacity: 0;
-  }
-  8% {
-    opacity: 0.65;
-  }
-  90% {
-    opacity: 0.65;
-  }
-  100% {
-    top: 100%;
-    opacity: 0;
-  }
-}
-.lp-scanline {
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: -1px;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent 0%,
-    rgba(12, 129, 243, 0.05) 15%,
-    rgba(12, 129, 243, 0.5) 38%,
-    rgba(235, 137, 136, 0.6) 50%,
-    rgba(12, 129, 243, 0.5) 62%,
-    rgba(235, 137, 136, 0.05) 85%,
-    transparent 100%
-  );
-  box-shadow:
-    0 0 6px 1px rgba(12, 129, 243, 0.18),
-    0 0 14px 2px rgba(235, 137, 136, 0.12);
-  animation: scan-sweep 12s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  pointer-events: none;
-  z-index: 10;
-  will-change: top, opacity;
-}
-.lp-scanline::after {
-  content: '';
-  position: absolute;
-  bottom: 100%;
-  left: 0;
-  right: 0;
-  height: 32px;
-  background: linear-gradient(
-    to top,
-    rgba(12, 129, 243, 0.035),
-    rgba(235, 137, 136, 0.015) 50%,
-    transparent
-  );
-  pointer-events: none;
-}
-
 /* Score ring fill driven by CSS var --ring-val */
 @keyframes ring-fill {
   from { stroke-dashoffset: var(--ring-max, 251.2); }
