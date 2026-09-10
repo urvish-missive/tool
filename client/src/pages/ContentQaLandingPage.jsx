@@ -334,7 +334,7 @@ function BannedTicker() {
 function QaHero({ onCta, toolRef, onResultStateChange, hideHeroCopy, resetSignal }) {
   const ref = useScrollReveal()
   return (
-    <section className={`relative bg-[#F9F7F6] ${hideHeroCopy ? 'py-4 sm:py-6' : 'py-20 sm:py-28'}`}>
+    <section className={`relative bg-[#F9F7F6] overflow-hidden ${hideHeroCopy ? 'py-4 sm:py-6' : 'py-20 sm:py-28'}`}>
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute -top-24 -right-24 w-[480px] h-[480px] bg-[#DAD0FF]/50 rounded-full blur-3xl lp-float-slow" />
         <div className="absolute -bottom-28 -left-24 w-[420px] h-[420px] bg-[#D8FFD8]/60 rounded-full blur-3xl lp-float-reverse" />

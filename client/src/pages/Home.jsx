@@ -532,6 +532,7 @@ export default function Home() {
       <main className="flex-1">
         {/* ═══════════════ 1. HERO ═══════════════ */}
         <section className="relative overflow-hidden !pt-36 sm:!pt-40 py-16 sm:py-20 lg:py-28">
+          <div className="lp-scanline" />
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div
               className="absolute inset-0"

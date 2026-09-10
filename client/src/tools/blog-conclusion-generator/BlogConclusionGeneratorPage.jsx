@@ -401,6 +401,7 @@ export default function BlogConclusionGeneratorPage({
       {/* Hero Header: only shown when standalone */}
       {!isEmbedded && (
         <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24 bg-gradient-to-b from-slate-50 to-white border-b border-slate-200">
+          <div className="lp-scanline" />
           <div className="absolute inset-0 pointer-events-none" />
           <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-gradient-to-bl from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
           <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-gradient-to-tr from-[#A7D2FF]/20 to-[#F7B7B3]/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />

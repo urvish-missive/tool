@@ -43,12 +43,13 @@ export default function LandingHero({
   if (toolSlot) {
     return (
       <section
-        className={`relative border-b border-slate-200/60 bg-gradient-to-b from-white via-slate-50/40 to-white transition-all ${
+        className={`relative border-b border-slate-200/60 bg-gradient-to-b from-white via-slate-50/40 to-white transition-all overflow-hidden ${
           hideHeroCopy
             ? 'pt-4 sm:pt-6 pb-12'
             : 'pt-28 xs:pt-32 sm:pt-36 lg:pt-40 pb-14 sm:pb-20 lg:pb-24'
         }`}
       >
+        <div className="lp-scanline" />
         {/* Background ambient lighting isolated in overflow-hidden container */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
           <div
@@ -208,7 +209,8 @@ export default function LandingHero({
   const TopRightIcon = cardTopRight.icon || TrendingUp
 
   return (
-    <section className="relative pt-28 xs:pt-32 sm:pt-36 lg:pt-40 pb-16 sm:pb-20 lg:pb-24 border-b border-slate-200/60 bg-gradient-to-b from-white via-slate-50/40 to-white">
+    <section className="relative overflow-hidden pt-28 xs:pt-32 sm:pt-36 lg:pt-40 pb-16 sm:pb-20 lg:pb-24 border-b border-slate-200/60 bg-gradient-to-b from-white via-slate-50/40 to-white">
+      <div className="lp-scanline" />
       {/* Background ambient lighting isolated in overflow-hidden container */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div

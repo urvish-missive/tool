@@ -679,6 +679,7 @@ export default function KeywordResearchPage() {
 
       {/* Hero */}
       <section className="relative !pt-36 overflow-hidden py-16 sm:py-20 lg:py-24">
+        <div className="lp-scanline" />
         <div
           className="absolute inset-0"
           style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }}

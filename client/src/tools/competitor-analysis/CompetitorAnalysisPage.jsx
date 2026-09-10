@@ -70,6 +70,7 @@ export default function CompetitorAnalysisPage() {
     <div className="min-h-screen bg-slate-50/50 pb-20">
       {/* Hero Header */}
       <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
+        <div className="lp-scanline" />
         <div
           className="absolute inset-0"
           style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }}
