@@ -553,7 +553,7 @@ export default function Home() {
               <span>Curated by Himani Kankaria • Missive Digital</span>
             </span>
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight">
-              <span className="text-gray-900">Himani's </span>
+              <span className="text-gray-900">Missive's </span>
               <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
                 SEO Tools
               </span>
@@ -583,17 +583,15 @@ export default function Home() {
             </div>
 
             <div className="mt-7 flex flex-wrap items-center justify-center gap-2 text-[10px] sm:text-[11px] text-slate-500 font-medium">
-              {['No sign-up required', 'Free forever', 'Zero em dashes, zero AI fluff'].map(
-                (b) => (
-                  <span
-                    key={b}
-                    className="inline-flex items-center gap-1 px-2.5 py-1 bg-white/90 backdrop-blur-xs border border-slate-200 rounded-full shadow-2xs"
-                  >
-                    <ShieldCheckIcon className="w-3 h-3 text-emerald-500 shrink-0" />
-                    {b}
-                  </span>
-                )
-              )}
+              {['No sign-up required', 'Free forever', 'Zero em dashes, zero AI fluff'].map((b) => (
+                <span
+                  key={b}
+                  className="inline-flex items-center gap-1 px-2.5 py-1 bg-white/90 backdrop-blur-xs border border-slate-200 rounded-full shadow-2xs"
+                >
+                  <ShieldCheckIcon className="w-3 h-3 text-emerald-500 shrink-0" />
+                  {b}
+                </span>
+              ))}
             </div>
           </div>
         </section>

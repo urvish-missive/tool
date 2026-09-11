@@ -175,7 +175,7 @@ const STEPS = [
 const STATS = [
   { value: '8-15', label: 'Topics per generation' },
   { value: '3', label: 'Funnel stages mapped' },
-  { value: '20-30 sec', label: 'Average generation time' },
+  { value: '25-30 sec', label: 'Average generation time' },
   { value: 'E‑E‑A‑T', label: 'Fully aligned' },
 ]
 

@@ -167,7 +167,7 @@ const STEPS = [
 const STATS = [
   { value: '6', label: 'Distribution channels' },
   { value: '3', label: 'Sample presets included' },
-  { value: '20-30 sec', label: 'Average generation time' },
+  { value: '25-30 sec', label: 'Average generation time' },
   { value: 'E‑E‑A‑T', label: 'Fully compliant' },
 ]
 
@@ -209,7 +209,7 @@ function TrustSection() {
   const items = [
     { icon: Users, value: '2,500+', label: 'Sales & marketing teams' },
     { icon: FileText, value: '40,000+', label: 'Case studies generated' },
-    { icon: Clock, value: '20-30 sec', label: 'Average generation time' },
+    { icon: Clock, value: '25-30 sec', label: 'Average generation time' },
   ]
 
   return <LandingAnimatedStats stats={items} />

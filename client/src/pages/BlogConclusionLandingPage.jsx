@@ -200,7 +200,7 @@ const STATS = [
   { value: '0', label: 'Generic "In Conclusion" headings' },
   { value: 'High', label: 'Intro open loop resolution rate' },
   { value: '42%', label: 'Higher CTA click-through rate' },
-  { value: '20-30 sec', label: 'Average generation time' },
+  { value: '25-30 sec', label: 'Average generation time' },
 ]
 
 const FAQS = [
@@ -390,7 +390,7 @@ function TrustSection() {
   const items = [
     { icon: Users, value: '2,000+', label: 'Active content strategists monthly' },
     { icon: BarChart3, value: '50,000+', label: 'Conclusions generated and published' },
-    { icon: Clock, value: '20-30 sec', label: 'Average generation and audit time' },
+    { icon: Clock, value: '25-30 sec', label: 'Average generation and audit time' },
   ]
 
   return (

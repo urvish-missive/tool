@@ -171,7 +171,7 @@ const STATS = [
   { value: '8', label: 'Tone-of-voice profiles available' },
   { value: '3', label: 'Funnel stages covered (TOFU, MOFU, BOFU)' },
   { value: '15', label: 'Max unique hooks per generation' },
-  { value: '15s-20s', label: 'Real-time AI generation speed' },
+  { value: '25-30 sec', label: 'Average generation time' },
 ]
 
 const RETENTION_STATS = [

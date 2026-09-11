@@ -188,7 +188,7 @@ const STATS = [
   { value: '10M+', label: 'Pages analyzed with the framework' },
   { value: '2-3x', label: 'Higher AI Search rankings' },
   { value: '15', label: 'E‑E‑A‑T quality dimensions scored' },
-  { value: '20-30 sec', label: 'Average full audit time' },
+  { value: '25-30 sec', label: 'Average full audit time' },
 ]
 
 const FAQS = [
@@ -299,7 +299,7 @@ function TrustSection() {
   const items = [
     { icon: Users, value: '2,000+', label: 'Active content strategists monthly' },
     { icon: BarChart3, value: '45,000+', label: 'Content pieces audited' },
-    { icon: Clock, value: '20-30 sec', label: 'Average audit time' },
+    { icon: Clock, value: '25-30 sec', label: 'Average audit time' },
   ]
 
   return (
