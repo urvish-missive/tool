@@ -1896,7 +1896,7 @@ Audited with Missive Digital Content QA Tool.`
                             </div>
 
                             {/* Checklist Items */}
-                            <div className="px-4 pb-4 border-t border-gray-100 pt-3 flex-1 flex flex-col justify-between gap-1.5">
+                            <div className="px-4 pb-3 border-t border-gray-100 pt-3 flex-1 flex flex-col gap-2.5">
                               {cat.items.map((item) => {
                                 const st = getStatus(item)
                                 const evidenceText = report.evidence?.[item.id]
@@ -1937,7 +1937,7 @@ Audited with Missive Digital Content QA Tool.`
 
                                       {/* Programmatic Evidence */}
                                       {evidenceText && (
-                                        <p className="text-[11px] text-gray-500 mt-1 italic">
+                                        <p className="text-[11px] text-gray-500 mt-0.5 italic">
                                           {evidenceText}
                                         </p>
                                       )}
@@ -1974,7 +1974,24 @@ Audited with Missive Digital Content QA Tool.`
                             const hasSuggestions = allSuggestions.length > 0
                             if (!hasIssues && !hasSuggestions && !aiCat?.verdict) return null
                             return (
-                              <div className="bg-blue-50/40 p-4 border-t border-blue-100 text-xs space-y-2">
+                              <div className="mt-3 border-t border-gray-100">
+                                <div className="flex items-center gap-1.5 px-4 py-2.5">
+                                  <Sparkles className="w-3.5 h-3.5 text-[#0C81F3]" />
+                                  <span className="text-[10px] font-extrabold uppercase tracking-wider text-[#0C81F3]">
+                                    AI Insights
+                                  </span>
+                                  {hasIssues && (
+                                    <span className="ml-auto text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-rose-50 text-rose-600 border border-rose-200">
+                                      {allIssues.length} Issue{allIssues.length > 1 ? 's' : ''}
+                                    </span>
+                                  )}
+                                  {hasSuggestions && (
+                                    <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-blue-50 text-[#0C81F3] border border-blue-200">
+                                      {[...new Set(allSuggestions)].length} Fix{[...new Set(allSuggestions)].length > 1 ? 'es' : ''}
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="bg-blue-50/60 m-3 mt-0 p-4 rounded-xl border border-blue-100 text-xs space-y-2.5">
                                 {hasIssues && (
                                   <div>
                                     <span className="font-bold text-rose-700 block mb-1">
@@ -1983,7 +2000,7 @@ Audited with Missive Digital Content QA Tool.`
                                     {allIssues.map((issue, idx) => (
                                       <p
                                         key={idx}
-                                        className="text-gray-700 text-[11px] mb-0.5 flex items-start gap-1"
+                                        className="text-gray-700 text-[11px] mb-1 flex items-start gap-1"
                                       >
                                         <span className="text-rose-500">•</span>
                                         <span>{issue}</span>
@@ -1999,7 +2016,7 @@ Audited with Missive Digital Content QA Tool.`
                                     {[...new Set(allSuggestions)].map((s, idx) => (
                                       <p
                                         key={idx}
-                                        className="text-gray-700 text-[11px] mb-0.5 flex items-start gap-1"
+                                        className="text-gray-700 text-[11px] mb-1 flex items-start gap-1"
                                       >
                                         <span className="text-[#0C81F3]">→</span>
                                         <span>{s}</span>
@@ -2008,10 +2025,11 @@ Audited with Missive Digital Content QA Tool.`
                                   </div>
                                 )}
                                 {aiCat?.verdict && (
-                                  <p className="text-[11px] text-gray-500 italic pt-1 border-t border-blue-200/60 mt-1">
+                                  <p className="text-[11px] text-gray-500 italic pt-2 border-t border-blue-200/60 mt-1">
                                     {aiCat.verdict}
                                   </p>
                                 )}
+                                </div>
                               </div>
                             )
                           })()}
