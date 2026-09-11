@@ -1,4 +1,4 @@
-import { callAIAndParseJSON, callAI, apiResultCache } from '../utils/aiProvider.js'
+import { callAIAndParseJSON, callAI } from '../utils/aiProvider.js'
 import { extractAndCleanJSON } from '../utils/helpers.js'
 
 const CONTENT_TYPES = {
@@ -293,12 +293,6 @@ export async function generateContent({
   const wordTarget = Math.min(Math.max(parseInt(wordCount) || 1500, 300), 5000)
   const validType = CONTENT_TYPES[contentType] ? contentType : 'blog-post'
 
-  const cacheKey = apiResultCache.hashKey('content-writer', { keyword, contentType: validType, targetAudience, tone, wordTarget, kwList, websiteUrl, preferredProvider })
-  const cached = apiResultCache.get(cacheKey)
-  if (cached) {
-    return cached
-  }
-
   try {
     // ── Call 1: Article content ──
     console.log(`Content Writer: generating article content (${wordTarget} words)...`)
@@ -370,7 +364,6 @@ export async function generateContent({
       secondaryKeywords: Array.isArray(meta.secondaryKeywords) ? meta.secondaryKeywords : kwList,
     }
 
-    apiResultCache.set(cacheKey, finalResult, 15 * 60 * 1000)
     return finalResult
   } catch (error) {
     console.error('Content writer AI error:', error.message)

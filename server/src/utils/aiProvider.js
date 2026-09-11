@@ -2,25 +2,31 @@ import { fetchWithTimeout, extractAndCleanJSON } from './helpers.js'
 
 /* ── Configuration ─────────────────────────────────────────────── */
 
-const AI_TIMEOUT = 7000
+const AI_TIMEOUT = 5000
 
 const PROVIDERS = {
   'gemini-3.5-flash-lite': {
-    url: process.env.AI_API_URL || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+    url:
+      process.env.AI_API_URL ||
+      'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
     model: process.env.GEMINI_3_5_LITE_MODEL || 'gemini-3.5-flash-lite',
     key: process.env.AI_API_KEY,
     headerName: 'Authorization',
     headerPrefix: 'Bearer ',
   },
   'gemini-3.5-flash': {
-    url: process.env.AI_API_URL || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+    url:
+      process.env.AI_API_URL ||
+      'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
     model: process.env.GEMINI_3_5_MODEL || 'gemini-3.5-flash',
     key: process.env.AI_API_KEY,
     headerName: 'Authorization',
     headerPrefix: 'Bearer ',
   },
   gemini: {
-    url: process.env.AI_API_URL || 'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
+    url:
+      process.env.AI_API_URL ||
+      'https://generativelanguage.googleapis.com/v1beta/openai/chat/completions',
     model: process.env.GEMINI_MODEL || 'gemini-3.5-flash-lite',
     key: process.env.AI_API_KEY,
     headerName: 'Authorization',
@@ -77,7 +83,6 @@ const PROVIDERS = {
   },
 }
 
-
 /* ── Core AI Call ───────────────────────────────────────────────── */
 
 async function callProvider(providerName, messages, options = {}) {
@@ -89,8 +94,8 @@ async function callProvider(providerName, messages, options = {}) {
   const {
     temperature = 0.4,
     maxTokens = 4000,
-    timeout = (providerName.startsWith('zen') ? 12000 : AI_TIMEOUT),
-    jsonMode = false
+    timeout = providerName.startsWith('zen') ? 12000 : AI_TIMEOUT,
+    jsonMode = false,
   } = options
 
   const body = {
@@ -114,11 +119,15 @@ async function callProvider(providerName, messages, options = {}) {
     headers['User-Agent'] = 'opencode/1.0.0'
   }
 
-  const response = await fetchWithTimeout(provider.url, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  }, timeout)
+  const response = await fetchWithTimeout(
+    provider.url,
+    {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+    },
+    timeout
+  )
 
   if (!response.ok) {
     const status = response.status
@@ -126,7 +135,9 @@ async function callProvider(providerName, messages, options = {}) {
 
     // Handle 402 (credits exceeded) on OpenRouter — try free tier model
     if (status === 402 && providerName === 'openrouter' && !provider.model.includes(':free')) {
-      console.log('OpenRouter paid credits exhausted; falling back to free tier model minimax/minimax-m2.7:free...')
+      console.log(
+        'OpenRouter paid credits exhausted; falling back to free tier model minimax/minimax-m2.7:free...'
+      )
       try {
         const freeOpts = { ...options, maxTokens: Math.min(maxTokens, 4000) }
         const freeBody = {
@@ -137,21 +148,28 @@ async function callProvider(providerName, messages, options = {}) {
         }
         if (jsonMode) freeBody.response_format = { type: 'json_object' }
 
-        const freeRes = await fetchWithTimeout(provider.url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            [provider.headerName]: `${provider.headerPrefix}${provider.key}`,
+        const freeRes = await fetchWithTimeout(
+          provider.url,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              [provider.headerName]: `${provider.headerPrefix}${provider.key}`,
+            },
+            body: JSON.stringify(freeBody),
           },
-          body: JSON.stringify(freeBody),
-        }, timeout)
+          timeout
+        )
 
         if (freeRes.ok) {
           const freeData = await freeRes.json()
           let freeContent = freeData.choices?.[0]?.message?.content || ''
           if (freeContent) {
             freeContent = freeContent.replace(/<think>[\s\S]*?<\/think>/gi, '').trim()
-            freeContent = freeContent.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
+            freeContent = freeContent
+              .replace(/^```(?:json)?\s*/i, '')
+              .replace(/```\s*$/i, '')
+              .trim()
             return freeContent
           }
         }
@@ -163,23 +181,59 @@ async function callProvider(providerName, messages, options = {}) {
     // Handle 402 (credits exceeded) — retry with fewer tokens if applicable
     if (status === 402 && maxTokens > 1000) {
       console.log(`Retrying ${providerName} with reduced tokens (${Math.floor(maxTokens / 2)})`)
-      return callProvider(providerName, messages, { ...options, maxTokens: Math.floor(maxTokens / 2) })
+      return callProvider(providerName, messages, {
+        ...options,
+        maxTokens: Math.floor(maxTokens / 2),
+      })
     }
 
     throw new Error(`AI API ${providerName} returned ${status}: ${bodyText.substring(0, 200)}`)
   }
 
   const data = await response.json()
-  let content = data.choices?.[0]?.message?.content || data.choices?.[0]?.message?.reasoning_content || ''
+  let content =
+    data.choices?.[0]?.message?.content || data.choices?.[0]?.message?.reasoning_content || ''
   if (!content) throw new Error(`AI API ${providerName} returned empty content`)
 
   // Strip <think>...</think> tags (some models include reasoning)
   content = content.replace(/<think>[\s\S]*?<\/think>/gi, '').trim()
 
   // Strip ```json...``` fences if present
-  content = content.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/i, '').trim()
+  content = content
+    .replace(/^```(?:json)?\s*/i, '')
+    .replace(/```\s*$/i, '')
+    .trim()
+
+  // Track last successful model invocation for temporary UI debugging
+  lastModelInvocation = {
+    provider: providerName,
+    model: data.model || provider.model,
+    timestamp: new Date().toISOString(),
+  }
 
   return content
+}
+
+export let lastModelInvocation = {
+  provider: null,
+  model: null,
+  timestamp: null,
+}
+
+export function getLastModelInvocation() {
+  return { ...lastModelInvocation }
+}
+
+export function getActiveModelInfo() {
+  const configured = QUALITY_PROVIDER_ORDER.filter((p) => PROVIDERS[p]?.key)
+  const primaryProvider = configured[0] || 'groq'
+  const primaryModel = PROVIDERS[primaryProvider]?.model || 'openai/gpt-oss-120b'
+  return {
+    primaryProvider,
+    primaryModel,
+    activeModelDisplay: `${primaryProvider.toUpperCase()}: ${primaryModel}`,
+    lastInvocation: getLastModelInvocation(),
+  }
 }
 
 /* ── High-Level Call with Auto-Rotation ────────────────────────── */
@@ -241,10 +295,14 @@ export async function callAI(messages, options = {}) {
     providerOrder = getRotationProviderOrder()
   }
 
-  console.log(`AI provider order: ${providerOrder.join(' → ')}`)
+  // maxProviders caps how many providers we try before giving up (default: all)
+  const maxProviders = callOpts.maxProviders || providerOrder.length
+  delete callOpts.maxProviders
+
+  console.log(`AI provider order: ${providerOrder.slice(0, maxProviders).join(' → ')}`)
   const errors = []
 
-  for (const providerName of providerOrder) {
+  for (const providerName of providerOrder.slice(0, maxProviders)) {
     if (!PROVIDERS[providerName]?.key) continue
 
     try {
@@ -264,7 +322,11 @@ export async function callAI(messages, options = {}) {
  * Call AI and parse JSON response with automatic cleanup.
  * Falls back to extracting JSON from markdown code blocks.
  */
-export async function callAIAndParseJSON(messagesOrSystem, optionsOrUser = {}, possibleOptions = {}) {
+export async function callAIAndParseJSON(
+  messagesOrSystem,
+  optionsOrUser = {},
+  possibleOptions = {}
+) {
   let messages = messagesOrSystem
   let options = optionsOrUser
   if (typeof messagesOrSystem === 'string' && typeof optionsOrUser === 'string') {
@@ -295,9 +357,6 @@ export function getPrimaryProvider() {
   const preferred = process.env.AI_PROVIDER?.toLowerCase()
   if (preferred && PROVIDERS[preferred]?.key) return preferred
   // Default: first configured provider
-  const configured = Object.keys(PROVIDERS).filter(p => PROVIDERS[p].key)
+  const configured = Object.keys(PROVIDERS).filter((p) => PROVIDERS[p].key)
   return configured[0] || null
 }
-
-export { apiResultCache } from './cache.js'
-

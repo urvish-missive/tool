@@ -7,7 +7,6 @@ import { calculateScores } from '../services/audit/seoAnalyzer.js'
 import { analyzeAuditWithAI, generateFallbackAIReport } from '../services/audit/aiAnalyzer.js'
 import { getCompletePageSpeedAudit, generateDynamicPageSpeed } from '../services/audit/pageSpeedService.js'
 import { withTimeout } from '../utils/helpers.js'
-import { apiResultCache } from '../utils/cache.js'
 import prisma from '../utils/prisma.js'
 
 export async function createAudit(req, res) {
@@ -28,13 +27,6 @@ export async function createAudit(req, res) {
       normalizedUrl = parsed.href
     } catch {
       return res.status(400).json({ success: false, error: 'Please enter a valid website URL.' })
-    }
-
-    const cacheKey = apiResultCache.hashKey('audit', { normalizedUrl, preferredProvider })
-    const cached = apiResultCache.get(cacheKey)
-    if (cached) {
-      console.log(`[OK] Returning cached audit report for ${normalizedUrl}`)
-      return res.json({ success: true, auditId: cached.auditId, report: cached.report })
     }
 
     console.log(`Starting comprehensive audit for: ${normalizedUrl}`)
@@ -252,7 +244,6 @@ export async function createAudit(req, res) {
     }
 
     console.log(`[OK] Audit complete for ${normalizedUrl} — score: ${scores.overallScore}/100`)
-    apiResultCache.set(cacheKey, { auditId, report }, 10 * 60 * 1000)
     res.json({ success: true, auditId, report })
   } catch (err) {
     console.error('Audit controller error:', err)

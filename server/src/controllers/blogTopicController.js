@@ -87,6 +87,9 @@ export async function generateTopicsHandler(req, res) {
       tone: result.tone || tone,
       generatedAt: result.generatedAt,
       inputParams: result.inputParams,
+      modelUsed: result.modelUsed || 'groq (openai/gpt-oss-120b)',
+      providerUsed: result.providerUsed || 'groq',
+      isFallback: Boolean(result.isFallback),
     })
   } catch (err) {
     console.error('Blog topic generation error:', err.message)

@@ -29,6 +29,7 @@ import adminRoutes from './routes/adminRoutes.js'
 
 import { toolAccess } from './middleware/toolAccess.js'
 import prisma from './utils/prisma.js'
+import { getActiveModelInfo } from './utils/aiProvider.js'
 
 const app = express()
 const PORT = process.env.PORT || 5000
@@ -89,6 +90,11 @@ app.use('/api/devices', deviceRoutes)
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
+})
+
+// Active AI Model telemetry (temporary diagnostic endpoint)
+app.get('/api/ai/active-model', (req, res) => {
+  res.json({ success: true, ...getActiveModelInfo() })
 })
 
 // Tool configs (public — for frontend to check if tool is enabled)

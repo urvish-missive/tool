@@ -356,9 +356,9 @@ export default function BlogTopicGeneratorPage({
         lines.push('')
       }
 
-      const eeat = sec.eeatMetricAnchor || sec.eeatProofAnchor || sec.eeatProof
+      const eeat = sec.eeatEvidenceOpportunity || sec.eeatMetricAnchor || sec.eeatProofAnchor || sec.eeatProof
       if (eeat) {
-        lines.push(`- **E‑E‑A‑T Metric Anchor:** ${eeat}`)
+        lines.push(`- **E‑E‑A‑T Evidence Opportunity:** ${eeat}`)
       }
 
       const visual = sec.suggestedVisual || sec.visualAsset
@@ -387,9 +387,9 @@ export default function BlogTopicGeneratorPage({
     }
 
     lines.push(
-      `### 4. Topical Silo & Keyword Architecture`,
+      `### 4. Topical Silo & Entity Architecture`,
       `- **Primary Keyword:** ${topic.targetKeyword}`,
-      `- **Secondary / LSI Keywords:** ${(brief.secondaryKeywords || topic.relatedKeywords || []).join(', ')}`,
+      `- **Related Entities & Semantic Topics:** ${(brief.secondaryKeywords || topic.relatedEntities || topic.relatedKeywords || []).join(', ')}`,
       `- **Inbound Link Anchor (from Pillar):** ${brief.internalLinkAnchors?.[0] || brief.internalLinkAnchors?.inboundFromPillar || `Master guide to ${niche}`}`,
       `- **Outbound Link Anchor (to Cluster Node):** ${brief.internalLinkAnchors?.[1] || brief.internalLinkAnchors?.outboundToCluster || `${topic.targetKeyword} playbook`}`,
       `- **Conversion Call to Action (CTA) Bridge:** ${brief.ctaBridge || 'Download resource or schedule operational review'}`,
@@ -446,10 +446,17 @@ export default function BlogTopicGeneratorPage({
               <span className="text-xs font-bold uppercase tracking-wider text-[#0C81F3]">
                 Editorial Master Brief & Blueprint
               </span>
-              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-                <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                Missive QA Certified
-              </span>
+              {topic.missiveQa?.passed ? (
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  Missive QA Verified
+                </span>
+              ) : (
+                <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 flex items-center gap-1" title={topic.missiveQa?.hardFailures?.join(' | ') || 'QA Action Required'}>
+                  <AlertTriangle className="w-3 h-3 text-amber-400" />
+                  QA: {topic.missiveQa?.score ?? 0}/100
+                </span>
+              )}
               {activeMaster && (
                 <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1">
                   <Sparkles className="w-3 h-3 text-purple-400" />
@@ -652,7 +659,11 @@ export default function BlogTopicGeneratorPage({
                   <div className="flex items-center gap-2 text-slate-400">
                     <span>{detailedSections.length} Sequential Sections</span>
                     <span className="text-slate-700">•</span>
-                    <span className="text-emerald-400 font-medium">Missive QA Certified</span>
+                    {topic.missiveQa?.passed ? (
+                      <span className="text-emerald-400 font-medium">Missive QA Verified</span>
+                    ) : (
+                      <span className="text-amber-400 font-medium">QA Score: {topic.missiveQa?.score ?? 0}/100</span>
+                    )}
                   </div>
                 </div>
 
@@ -793,12 +804,12 @@ export default function BlogTopicGeneratorPage({
                                 </div>
                               )}
 
-                              {(sec.eeatMetricAnchor || sec.eeatProofAnchor || sec.eeatProof) && (
+                              {(sec.eeatEvidenceOpportunity || sec.eeatMetricAnchor || sec.eeatProofAnchor || sec.eeatProof) && (
                                 <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-[11px]">
                                   <BarChart3 className="w-3 h-3 text-emerald-400 shrink-0" />
-                                  <span className="font-semibold text-emerald-200">E‑E‑A‑T:</span>
+                                  <span className="font-semibold text-emerald-200">E‑E‑A‑T Opportunity:</span>
                                   <span className="text-emerald-300/90 truncate max-w-[240px]">
-                                    {sec.eeatMetricAnchor || sec.eeatProofAnchor || sec.eeatProof}
+                                    {sec.eeatEvidenceOpportunity || sec.eeatMetricAnchor || sec.eeatProofAnchor || sec.eeatProof}
                                   </span>
                                 </div>
                               )}
@@ -1120,13 +1131,58 @@ export default function BlogTopicGeneratorPage({
                 <ShieldCheck className="w-4 h-4" />
                 <span>Missive 12-Pillar QA Compliance Verification</span>
               </span>
-              <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-2.5 py-0.5 rounded">
-                100/100 Flawless Standard
+              <span className={`text-xs font-mono font-bold px-2.5 py-0.5 rounded border ${
+                topic.missiveQa?.passed
+                  ? 'text-emerald-400 bg-emerald-950/60 border-emerald-800/50'
+                  : 'text-amber-400 bg-amber-950/60 border-amber-800/50'
+              }`}>
+                {topic.missiveQa?.score ?? 100}/100 {topic.missiveQa?.passed ? 'Verified Standard' : 'QA Action Required'}
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
-              <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 flex items-start gap-2 text-emerald-300">
+            {topic.missiveQa?.hardFailures?.length > 0 && (
+              <div className="p-3.5 rounded-xl bg-rose-950/40 border border-rose-800/60 text-rose-300 text-xs space-y-1">
+                <strong className="text-rose-200 block font-semibold flex items-center gap-1.5">
+                  <AlertTriangle className="w-4 h-4 text-rose-400" />
+                  QA Hard Failures Detected ({topic.missiveQa.hardFailures.length})
+                </strong>
+                <ul className="list-disc pl-5 space-y-0.5 text-rose-300/90 text-[11px]">
+                  {topic.missiveQa.hardFailures.map((failure, idx) => (
+                    <li key={idx}>{failure}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {topic.missiveQa?.checks && topic.missiveQa.checks.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
+                {topic.missiveQa.checks.map((chk, idx) => {
+                  const isPass = chk.status === 'Passed'
+                  return (
+                    <div
+                      key={idx}
+                      className={`p-3 rounded-xl border flex items-start gap-2 ${
+                        isPass
+                          ? 'bg-slate-950/60 border-slate-800 text-emerald-300'
+                          : 'bg-rose-950/30 border-rose-800/40 text-rose-300'
+                      }`}
+                    >
+                      {isPass ? (
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
+                      ) : (
+                        <AlertTriangle className="w-3.5 h-3.5 text-rose-400 shrink-0 mt-0.5" />
+                      )}
+                      <div>
+                        <strong className="block text-white font-semibold">{chk.name}</strong>
+                        <span className="text-[11px] text-slate-400">{chk.detail}</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 text-xs">
+                <div className="p-3 rounded-xl bg-slate-950/60 border border-slate-800 flex items-start gap-2 text-emerald-300">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5" />
                 <div>
                   <strong className="block text-white font-semibold">1. Zero Em Dashes</strong>
@@ -1268,6 +1324,7 @@ export default function BlogTopicGeneratorPage({
                 </div>
               </div>
             </div>
+            )}
           </div>
         )}
       </div>
@@ -1540,6 +1597,26 @@ export default function BlogTopicGeneratorPage({
         {/* Results Section */}
         {results && (
           <div id="blog-topic-results" className="space-y-6 animate-fade-in">
+            {/* TEMPORARY MODEL INDICATOR (Will be removed later) */}
+            <div className="flex items-center justify-between p-3.5 px-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-950 text-xs sm:text-sm font-medium shadow-xs">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white font-mono text-[10px] font-extrabold uppercase tracking-wider">
+                  Temporary Model Info
+                </span>
+                <span>
+                  Generated by Model: <strong className="font-mono text-amber-950 font-bold">{results.modelUsed || results.providerUsed || 'Rule-Based Semantic Pipeline'}</strong>
+                </span>
+                {results.providerUsed && (
+                  <span className="text-amber-800 text-xs font-mono">
+                    (Provider: {results.providerUsed})
+                  </span>
+                )}
+              </div>
+              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold font-mono ${results.isFallback ? 'bg-amber-200 text-amber-900 border border-amber-300' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'}`}>
+                {results.isFallback ? 'Fallback Engine' : 'Live AI Response'}
+              </span>
+            </div>
+
             {/* Cornerstone Pillar Card */}
             {pillarTopic && (
               <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border border-slate-800 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
@@ -1714,13 +1791,39 @@ export default function BlogTopicGeneratorPage({
                             Master Blueprint Active
                           </span>
                         )}
+                        {topic.lifecycleState && topic.lifecycleState !== 'released' && (
+                          <span className="px-2 py-0.5 rounded-md bg-blue-50 text-blue-700 border border-blue-200 font-semibold text-[11px] capitalize">
+                            {topic.lifecycleState}
+                          </span>
+                        )}
+                        {topic.cannibalizationRisk && (
+                          <span className={`px-2 py-0.5 rounded-md font-semibold text-[11px] ${
+                            topic.cannibalizationRisk === 'high'
+                              ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                              : topic.cannibalizationRisk === 'medium'
+                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                              : 'bg-slate-50 text-slate-600 border border-slate-200'
+                          }`}>
+                            SERP Risk: {topic.cannibalizationRisk}
+                          </span>
+                        )}
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-semibold">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                          Missive QA Verified
-                        </span>
+                        {topic.missiveQa?.passed ? (
+                          <span className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-semibold">
+                            <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                            Missive QA Verified
+                          </span>
+                        ) : (
+                          <span
+                            className="hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-amber-50 text-amber-700 border border-amber-200 text-[11px] font-semibold"
+                            title={topic.missiveQa?.hardFailures?.join(' | ') || 'QA Action Required'}
+                          >
+                            <AlertTriangle className="w-3 h-3 text-amber-600" />
+                            QA: {topic.missiveQa?.score ?? 0}/100
+                          </span>
+                        )}
                         <button
                           onClick={() => triggerCopy(topic.title, `title-${topicKey}`)}
                           className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 text-xs font-semibold transition-colors cursor-pointer"
@@ -1757,7 +1860,7 @@ export default function BlogTopicGeneratorPage({
                     </div>
 
                     {/* Keywords & Target Rationale */}
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs pt-1 border-t border-slate-100">
+                    <div className="flex flex-col gap-2 text-xs pt-1 border-t border-slate-100">
                       <div className="flex items-center gap-2">
                         <Target className="w-3.5 h-3.5 text-[#0C81F3] shrink-0" />
                         <span className="text-slate-500 whitespace-nowrap">Focus Keyword:</span>
@@ -1765,17 +1868,19 @@ export default function BlogTopicGeneratorPage({
                           {topic.targetKeyword}
                         </strong>
                       </div>
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        <span className="text-slate-400 text-[11px]">LSI Entities:</span>
-                        {topic.relatedKeywords?.slice(0, 3).map((kw, kIdx) => (
-                          <span
-                            key={kIdx}
-                            className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-mono text-[11px]"
-                          >
-                            {kw}
-                          </span>
-                        ))}
-                      </div>
+                      {(topic.relatedEntities || topic.relatedKeywords) && (topic.relatedEntities || topic.relatedKeywords).length > 0 && (
+                        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                          <span className="text-slate-400 text-[11px]">Related Entities & Semantic Topics:</span>
+                          {(topic.relatedEntities || topic.relatedKeywords).slice(0, 6).map((kw, i) => (
+                            <span
+                              key={i}
+                              className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 text-[11px] border border-slate-200 dark:border-slate-700"
+                            >
+                              {kw}
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     {/* Expandable Deep Brief Button */}
@@ -1840,9 +1945,15 @@ export default function BlogTopicGeneratorPage({
                   <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-[#0C81F3]/20 text-[#0C81F3] border border-[#0C81F3]/30">
                     Full-Screen Master View
                   </span>
-                  <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
-                    Missive QA Certified
-                  </span>
+                  {fullScreenTopicData.topic.missiveQa?.passed ? (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                      Missive QA Verified
+                    </span>
+                  ) : (
+                    <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                      QA Score: {fullScreenTopicData.topic.missiveQa?.score ?? 0}/100
+                    </span>
+                  )}
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold text-white truncate">
                   {fullScreenTopicData.topic.title}

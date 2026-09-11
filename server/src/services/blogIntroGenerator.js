@@ -1,4 +1,4 @@
-import { callAIAndParseJSON, apiResultCache } from '../utils/aiProvider.js'
+import { callAIAndParseJSON } from '../utils/aiProvider.js'
 import { TONE_PROFILES } from './blogTopicGenerator.js'
 import { buildMissiveQaPromptDirectives } from '../utils/missiveQaRules.js'
 
@@ -306,20 +306,6 @@ export async function generateBlogIntroductions({
   const activeTone = (tone || 'conversational').toLowerCase().trim()
   const toneProfile = TONE_PROFILES[activeTone] || TONE_PROFILES.conversational
 
-  const cacheKey = apiResultCache.hashKey('blog-intros', {
-    topic,
-    targetKeywords,
-    targetAudience,
-    funnelStage,
-    tone: activeTone,
-    count,
-    preferredProvider,
-  })
-  const cached = apiResultCache.get(cacheKey)
-  if (cached) {
-    return cached
-  }
-
   const userAudience = (targetAudience || '').trim()
   const effectiveAudience = userAudience || 'relevant industry readers, buyers, and practitioners'
   const parsedKeywords = Array.isArray(targetKeywords)
@@ -533,7 +519,6 @@ OUTPUT FORMAT (strictly JSON):
         generatedAt: new Date().toISOString(),
       }
 
-      apiResultCache.set(cacheKey, output, 10 * 60 * 1000)
       return output
     }
 

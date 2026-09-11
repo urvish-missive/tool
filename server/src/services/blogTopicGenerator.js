@@ -1,5 +1,37 @@
-import { callAIAndParseJSON, apiResultCache } from '../utils/aiProvider.js'
+import { callAIAndParseJSON, getLastModelInvocation } from '../utils/aiProvider.js'
 import { buildMissiveQaPromptDirectives } from '../utils/missiveQaRules.js'
+import { applyEntityCasing } from '../constants/entityCasing.js'
+import { getCompatibleAngles, BANNED_B2B_TERMS_IN_CONSUMER } from '../constants/contentAngles.js'
+import { normalizeInput, removeCircularRepetition } from '../utils/textNormalization.js'
+import {
+  areHooksDuplicate,
+  areTitlesDuplicate,
+  calculateCannibalizationRisk,
+} from '../utils/similarity.js'
+import { classifyNiche } from './nicheClassifier.js'
+import { classifySearchIntent, detectEntityLifecycle } from './intentClassifier.js'
+import { validateFactSafety } from './factValidator.js'
+import {
+  buildAudienceIntentMap,
+  buildSemanticTopicMap,
+  buildEeatOpportunity,
+  buildRelatedEntities,
+  scoreTopicCandidate,
+  deriveInputContext,
+} from './topicScorer.js'
+import { runMissiveQA } from './qaService.js'
+import {
+  buildAffordanceContext,
+  resolveValidAffordances,
+  prioritizeAffordances,
+  validateActionObjectFit,
+  AFFORDANCE_ANGLE_META,
+} from './subjectAffordance.js'
+import { detectLanguageCorrections } from './languageNormalizer.js'
+import { analyzeSubjectComposition } from './subjectAnalyzer.js'
+import { buildRuntimeOntology, discoverUserNeeds } from './runtimeOntology.js'
+import { discoverSearchOpportunities } from './searchOpportunityDiscovery.js'
+import { scoreTopicSpecificity, validateTopicAlignment } from './topicSpecificityScorer.js'
 
 /**
  * Standardized Tone profiles with rich prompt directives
@@ -8,42 +40,50 @@ export const TONE_PROFILES = {
   conversational: {
     id: 'conversational',
     label: 'Conversational & Engaging',
-    directive: 'Write in a friendly, engaging, approachable voice like an experienced peer chatting over coffee. Use second-person perspective ("you"), natural conversational hooks, relatable analogies, and clear, human storytelling.',
+    directive:
+      'Write in a friendly, engaging, approachable voice like an experienced peer chatting over coffee. Use second-person perspective ("you"), natural conversational hooks, relatable analogies, and clear, human storytelling.',
   },
   authoritative: {
     id: 'authoritative',
     label: 'Authoritative & Thought-Leadership',
-    directive: 'Write with executive authority, deep industry credibility, strategic foresight, and authoritative conviction. Eliminate fluff, use confident language, and frame insights as definitive strategic principles.',
+    directive:
+      'Write with executive authority, deep industry credibility, strategic foresight, and authoritative conviction. Eliminate fluff, use confident language, and frame insights as definitive strategic principles.',
   },
   bold: {
     id: 'bold',
     label: 'Bold & Disruptive',
-    directive: 'Use contrarian, pattern-interrupting framing that boldly challenges conventional wisdom, busts sacred cows in the industry, and takes an unapologetic stance that demands attention.',
+    directive:
+      'Use contrarian, pattern-interrupting framing that boldly challenges conventional wisdom, busts sacred cows in the industry, and takes an unapologetic stance that demands attention.',
   },
   empathetic: {
     id: 'empathetic',
     label: 'Empathetic & Supportive',
-    directive: 'Demonstrate profound empathy for the reader\'s real pain points, decision fatigue, and operational challenges. Use an encouraging, warm, and highly supportive tone that validates their struggle and offers reassurance.',
+    directive:
+      "Demonstrate profound empathy for the reader's real pain points, decision fatigue, and operational challenges. Use an encouraging, warm, and highly supportive tone that validates their struggle and offers reassurance.",
   },
   witty: {
     id: 'witty',
     label: 'Witty & Energetic',
-    directive: 'Inject clever metaphors, sharp energetic pacing, vibrant wordplay, and intelligent humor while keeping the takeaways deeply actionable and memorable.',
+    directive:
+      'Inject clever metaphors, sharp energetic pacing, vibrant wordplay, and intelligent humor while keeping the takeaways deeply actionable and memorable.',
   },
   'data-driven': {
     id: 'data-driven',
     label: 'Analytical & Data-Driven',
-    directive: 'Adopt a rigorous, objective, metric-focused analytical lens. Emphasize benchmarks, statistical realities, measurable outcomes, frameworks, and empirical rigor.',
+    directive:
+      'Adopt a rigorous, objective, metric-focused analytical lens. Emphasize verified benchmarks, statistical realities, measurable outcomes, frameworks, and empirical rigor without inventing fabricated numbers.',
   },
   storytelling: {
     id: 'storytelling',
     label: 'Storytelling & Narrative',
-    directive: 'Ground the content in immersive storytelling, narrative tension, relatable real-world anecdotes, and vivid scene-setting that hooks human curiosity and makes the reader feel part of an unfolding journey.',
+    directive:
+      'Ground the content in immersive storytelling, narrative tension, relatable real-world anecdotes, and vivid scene-setting that hooks human curiosity and makes the reader feel part of an unfolding journey.',
   },
   fun: {
     id: 'fun',
     label: 'Fun & Playful',
-    directive: 'Keep it lighthearted, playful, and delightfully fun. Use casual upbeat phrasing, humorous twists, lively analogies, and an entertaining, high-vibe voice that makes reading effortless and smile-worthy.',
+    directive:
+      'Keep it lighthearted, playful, and delightfully fun. Use casual upbeat phrasing, lively analogies, and an entertaining, high-vibe voice that makes reading effortless and smile-worthy.',
   },
 }
 
@@ -53,12 +93,10 @@ export const TONE_PROFILES = {
 export function sanitizeMissiveText(text) {
   if (typeof text !== 'string') return text
   let cleaned = text
-    // Replace em dashes and double hyphens with clean spaced hyphens or colons
     .replace(/—/g, ' - ')
     .replace(/\s--\s/g, ' - ')
     .replace(/--/g, ' - ')
 
-  // Replace common robotic clichés with clean human phrasing
   const replacements = [
     [/\bdelve into\b/gi, 'examine'],
     [/\bdelve\b/gi, 'explore'],
@@ -87,9 +125,11 @@ export function sanitizeMissiveText(text) {
     cleaned = cleaned.replace(regex, rep)
   }
 
-  // Remove duplicate spaces and clean up hyphen spacing
-  cleaned = cleaned.replace(/\s{2,}/g, ' ').replace(/\s+-\s+/g, ' - ').trim()
-  return cleaned
+  cleaned = cleaned
+    .replace(/\s{2,}/g, ' ')
+    .replace(/\s+-\s+/g, ' - ')
+    .trim()
+  return applyEntityCasing(cleaned)
 }
 
 /**
@@ -110,9 +150,44 @@ export function recursiveSanitizeMissive(obj) {
 }
 
 /**
- * AI-powered Blog Topic, In-Depth Outline & SEO Brief Silo Generator
- * 100% dynamic, tailored AI generation with multi-provider fallback.
- * Strictly zero hardcoded text or canned boilerplate in results.
+ * Computes a normalized title key for exact deduplication.
+ * Removes whitespace, punctuation, and lowercases.
+ */
+function titleKey(title) {
+  return (title || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '')
+}
+
+/**
+ * Capitalizes the first letter of a title (sentence case).
+ */
+function toSentenceCase(str) {
+  if (!str || typeof str !== 'string') return str
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+/**
+ * Tests whether two hooks are essentially the same generic fallback.
+ */
+function isGenericFallbackHook(hook) {
+  if (!hook) return false
+  const lower = hook.toLowerCase()
+  return (
+    /whether you are evaluating/.test(lower) ||
+    /discover essential guidance/.test(lower) ||
+    /here is a grounded, practical breakdown/.test(lower) ||
+    (/most content about/.test(lower) && /rarely answers/.test(lower))
+  )
+}
+
+/**
+ * End-to-End Semantic Blog Topic, Outline & Brief Generator
+ * Multi-industry architecture with strict factual safety and QA gating.
+ *
+ * Pipeline: RAW INPUT → NORMALIZED INPUT → CONCEPTS → RELATIONSHIPS →
+ *           ONTOLOGY → USER NEEDS → SEARCH OPPORTUNITIES → TOPIC CANDIDATES →
+ *           VALIDATION → SELECTION → CLUSTERS → PILLAR → QA
  */
 export async function generateBlogTopics({
   niche,
@@ -124,574 +199,1242 @@ export async function generateBlogTopics({
   count = 8,
   contentType = 'blog post',
 }) {
-  const targetCount = Math.min(Math.max(parseInt(count, 10) || 8, 1), 20)
-  const kwList = Array.isArray(targetKeywords)
-    ? targetKeywords
-    : (typeof targetKeywords === 'string'
-        ? targetKeywords.split(',').map(s => s.trim()).filter(Boolean)
-        : [])
-
-  const activeTone = (tone || 'authoritative').toLowerCase().trim()
-  const toneProfile = TONE_PROFILES[activeTone] || TONE_PROFILES.authoritative
-
-  const cacheKey = apiResultCache.hashKey('blog-topics-v4', {
-    niche,
-    targetKeywords: kwList,
-    audience,
-    contentGoal,
-    tone: activeTone,
-    count: targetCount,
-    contentType,
-    preferredProvider,
-  })
-  const cached = apiResultCache.get(cacheKey)
-  if (cached) {
-    return cached
+  // ══════════════════════════════════════════════════════════════
+  // STEP 1: CAPTURE RAW INPUT
+  // ══════════════════════════════════════════════════════════════
+  const rawInput = {
+    rawSubject: String(niche || '').trim(),
+    rawKeywords: Array.isArray(targetKeywords)
+      ? targetKeywords.filter(k => typeof k === 'string')
+      : typeof targetKeywords === 'string'
+        ? targetKeywords.split(',').map(k => k.trim()).filter(Boolean)
+        : [],
+    rawAudience: String(audience || '').trim(),
   }
 
-  const keywordText = kwList.length > 0
-    ? kwList.join(', ')
-    : `High-intent commercial and informational keywords for ${niche}`
+  // ══════════════════════════════════════════════════════════════
+  // STEP 2: NORMALIZE LANGUAGE (typo detection, correction)
+  // ══════════════════════════════════════════════════════════════
+  let normalization = { normalized: rawInput.rawSubject, corrections: [], ambiguities: [], confidence: 1.0 }
+  try {
+    normalization = await detectLanguageCorrections(rawInput.rawSubject, preferredProvider)
+  } catch {
+    // Use heuristic-only normalization
+  }
 
+  // ══════════════════════════════════════════════════════════════
+  // STEP 3: STANDARD INPUT NORMALIZATION (casing, formatting)
+  // ══════════════════════════════════════════════════════════════
+  const normalizedInput = normalizeInput({
+    niche: normalization.normalized || rawInput.rawSubject,
+    targetKeywords: rawInput.rawKeywords,
+    audience: rawInput.rawAudience,
+    contentGoal,
+    tone,
+    count,
+    contentType,
+  })
+
+  const {
+    normalizedSubject,
+    primaryKeyword,
+    secondaryKeywords,
+    normalizedAudience,
+    numberOfTopics,
+  } = normalizedInput
+
+  const activeTone = (normalizedInput.tone || 'authoritative').toLowerCase().trim()
+  const toneProfile = TONE_PROFILES[activeTone] || TONE_PROFILES.authoritative
+
+  // ══════════════════════════════════════════════════════════════
+  // STEP 4: ANALYZE SUBJECT COMPOSITION (compound subjects, relationships)
+  // ══════════════════════════════════════════════════════════════
+  let subjectAnalysis = { subjectStructure: 'atomic', primaryConcepts: [normalizedSubject], relationships: [], atomicConcepts: [normalizedSubject], establishedPhrases: [], ambiguousSegments: [], confidence: 0.7 }
+  try {
+    subjectAnalysis = await analyzeSubjectComposition(rawInput.rawSubject, normalizedSubject, preferredProvider)
+  } catch {
+    // Use heuristic fallback
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // STEP 5: CLASSIFY NICHE, INTENT, LIFECYCLE
+  // ══════════════════════════════════════════════════════════════
+  const nicheClassification = classifyNiche(normalizedSubject, primaryKeyword, normalizedAudience)
+  const { nicheType, isYMYL, isConsumer, isB2B } = nicheClassification
+
+  const intentProfile = classifySearchIntent(primaryKeyword, normalizedSubject, nicheType)
+  const lifecycleProfile = detectEntityLifecycle(normalizedSubject, primaryKeyword)
+  const { lifecycleState, isUnreleased } = lifecycleProfile
+
+  // ══════════════════════════════════════════════════════════════
+  // STEP 6: BUILD AFFORDANCE & AUDIENCE CONTEXT
+  // ══════════════════════════════════════════════════════════════
+  const audienceIntentModel = buildAudienceIntentMap(normalizedSubject, normalizedAudience, nicheType)
+  const baseAffordanceCtx = deriveInputContext(normalizedSubject, primaryKeyword, normalizedAudience)
+  const affordanceCtx = buildAffordanceContext(baseAffordanceCtx, { contentGoal: normalizedInput.contentGoal })
+
+  // ══════════════════════════════════════════════════════════════
+  // STEP 7: BUILD RUNTIME ONTOLOGY
+  // ══════════════════════════════════════════════════════════════
+  const ontology = buildRuntimeOntology({
+    subjectAnalysis,
+    normalizedSubject,
+    primaryKeyword,
+    audience: normalizedAudience,
+    contentGoal: normalizedInput.contentGoal,
+    nicheType,
+    lifecycleState,
+    affordanceCtx,
+  })
+
+  // ══════════════════════════════════════════════════════════════
+  // STEP 8: DISCOVER USER NEEDS & SEARCH OPPORTUNITIES
+  // ══════════════════════════════════════════════════════════════
+  const userNeeds = discoverUserNeeds(ontology, normalizedInput.contentGoal)
+  const searchOpportunities = discoverSearchOpportunities(ontology, userNeeds, normalizedInput.contentGoal)
+
+  // ══════════════════════════════════════════════════════════════
+  // STEP 9: BUILD CLUSTERS FROM SEMANTIC OPPORTUNITY GROUPS
+  // ══════════════════════════════════════════════════════════════
+  const semanticClusters = buildSemanticTopicMap(
+    normalizedSubject,
+    primaryKeyword,
+    nicheType,
+    lifecycleState,
+    normalizedInput.contentGoal,
+    subjectAnalysis,
+  )
+
+  // ══════════════════════════════════════════════════════════════
+  // STEP 10: BUILD RELATED ENTITIES
+  // ══════════════════════════════════════════════════════════════
+  const relatedEntities = buildRelatedEntities(
+    normalizedSubject,
+    primaryKeyword,
+    nicheType,
+    normalizedAudience,
+    normalizedInput.contentGoal,
+    subjectAnalysis,
+  )
+
+  // ══════════════════════════════════════════════════════════════
+  // STEP 12: GENERATE CANDIDATE TOPICS VIA AI
+  // ══════════════════════════════════════════════════════════════
   const qaDirectives = buildMissiveQaPromptDirectives()
 
-  const systemPrompt = `You are Himani Kankaria's elite Content Strategist and SEO Architect at Missive Digital.
-You design high-intent, clickable, and search-optimized blog topics arranged in a Pillar-and-Cluster topical authority structure.
+  const domainGuidelines = isConsumer
+    ? `CRITICAL DOMAIN RULES FOR ${nicheType.toUpperCase()}:
+- This is a consumer / end-user topic. Strictly FORBIDDEN from using B2B SaaS jargon such as "ROI", "unit economics", "growth lever", "high-growth teams", "tech stack", "workflow optimization", or "enterprise scalability".
+- Treat the subject as an end-user product/experience, not an enterprise B2B platform.`
+    : isYMYL
+      ? `CRITICAL DOMAIN RULES FOR YMYL (${nicheType.toUpperCase()}):
+- Exercise extreme caution and neutral, objective guidance.
+- Strictly ZERO guarantees, fabricated settlement numbers, or invented outcome statistics.`
+      : `CRITICAL DOMAIN RULES FOR B2B:
+- Focus on real practitioner workflows, integration realities, and operational trade-offs.`
 
-CRITICAL MISSIVE QA DIRECTIVES (APPLIED TO EVERY PIECE OF GENERATED TEXT):
+  const lifecycleGuidelines = isUnreleased
+    ? `CRITICAL ENTITY LIFECYCLE DIRECTIVE (${lifecycleState.toUpperCase()}):
+- The product "${primaryKeyword}" is UNRELEASED / RUMORED.
+- You are strictly FORBIDDEN from claiming confirmed hands-on tests, battery decay measurements, or past-tense user experiences.
+- Use prospective, speculative, and analytical framing: "what reports suggest", "rumored features", "what users should expect".`
+    : `LIFECYCLE DIRECTIVE: Product is released and active.`
+
+  // Build the subject analysis summary for the AI
+  const subjectAnalysisSummary = subjectAnalysis.relationships.length > 0
+    ? `\nSUBJECT COMPOSITION: "${normalizedSubject}" is a ${subjectAnalysis.subjectStructure} subject containing concepts: [${subjectAnalysis.primaryConcepts.join(', ')}]. Relationships: ${subjectAnalysis.relationships.map(r => `${r.from} → ${r.to} (${r.type}: ${r.description})`).join('; ')}.`
+    : `\nSUBJECT COMPOSITION: "${normalizedSubject}" is a ${subjectAnalysis.subjectStructure} subject.`
+
+  // Build search opportunity summary
+  const opportunitySummary = searchOpportunities.length > 0
+    ? `\nDISCOVERED SEARCH OPPORTUNITIES (use these to inspire unique, specific topics):
+${searchOpportunities.slice(0, 10).map(o => `- [${o.intent}] ${o.userNeed} (specificity: ${o.specificity}, angle: ${o.angle})`).join('\n')}`
+    : ''
+
+  const systemPrompt = `You are Himani Kankaria's Chief Content Strategist and SEO Architect at Missive Digital.
+You design high-intent, clickable, search-optimized blog topics arranged in a Pillar-and-Cluster topical authority structure.
+
+CRITICAL MISSIVE QA DIRECTIVES:
 ${qaDirectives}
 
-ADDITIONAL RULES (NON-NEGOTIABLE):
-1. INSIGHT-FIRST OPENINGS: Every opening hook and headline must state the quantifiable stakes, metric benchmark, or acute operational friction immediately. Never open with generic throat-clearing preambles ("In this article...", "In today's world...").
-2. 100% NICHE-SPECIFIC & ORIGINAL CONTENT (NO HARDCODED BOILERPLATE): Every single headline, outline heading, purpose, talking point, E‑E‑A‑T proof anchor, common pitfall, and brief directive must be 100% custom, original, and deeply tailored to the specific niche ("${niche}"). Absolutely ZERO generic placeholders or repetitive canned phrases.
-3. EXHAUSTIVE, MULTI-LAYERED ARTICLE OUTLINES: When generating an article outline, DO NOT provide a superficial 3-4 line list. You MUST generate 5 to 7 detailed, sequential sections. Each section must include:
-   - Descriptive, non-generic H2 heading specific to ${niche}
-   - Purpose / editorial objective
-   - 2 to 3 nested H3 subsections with specific writing guidance
-   - 3 to 5 tactical talking points detailing specific arguments, workflows, or sub-topics
-   - E‑E‑A‑T metric anchor (concrete data point, benchmark, or lived experience to cite)
-   - Suggested visual asset (e.g., custom flowchart, data table, comparison chart)
-   - Common pitfall or amateur mistake to avoid
-4. COMPREHENSIVE SEO BRIEF: For every topic, provide an actionable SEO brief containing:
-   - Target Persona & reader friction specific to ${niche}
-   - Funnel Stage: TOFU (Awareness), MOFU (Consideration), or BOFU (Decision)
-   - Search Intent: Informational, Commercial Investigation, or Transactional
-   - Recommended Word Count (e.g. "2,200 - 2,800 words")
-   - Title Tag: under 60 characters with primary keyword front-loaded and strong CTR trigger
-   - SERP Meta Description: 145-155 characters with clear value hook and action prompt
-   - Competitor Gap: what existing articles fail to cover and your Information Gain advantage
-   - Secondary / LSI keywords (3 to 5 terms)
-   - Internal linking anchors (linking to cornerstone pillar page and sister cluster nodes)
-   - Conversion CTA bridge aligned with the funnel stage
-5. PEOPLE ALSO ASK (FAQ) SECTION: Provide 3 to 4 Google search FAQs with direct, 2-3 sentence featured snippet answers.
-6. CONCLUSION HEADLINES: Strictly NO "In Conclusion", "Conclusion", "Final Thoughts", or "Summary". The final section must have an outcome-driven action title (e.g. "The 30-Day Execution Roadmap for [Topic]").
-7. TONE OF VOICE MANDATE (${toneProfile.label}): ${toneProfile.directive}
-   Every single headline, hook, angle, section heading, talking point, and brief recommendation must distinctly embody this tone.
-8. CRITICAL COUNT REQUIREMENT: You MUST generate EXACTLY ${targetCount} topic objects in the "topics" array.
-9. Return ONLY valid JSON, with no markdown code blocks outside JSON.`
+${domainGuidelines}
+${lifecycleGuidelines}
+${subjectAnalysisSummary}
 
-  const userPrompt = `Generate an authoritative Pillar-and-Cluster topical authority blueprint with EXACTLY ${targetCount} detailed, niche-specific topic objects for:
-- Niche / Subject: ${niche}
-- Target Keywords: ${keywordText}
-- Target Audience: ${audience || 'Professionals, practitioners and decision-makers in the ' + niche + ' space'}
-- Primary Content Goal: ${contentGoal}
-- Tone of Voice: ${toneProfile.label} (${toneProfile.directive})
-- Content Format: ${contentType}
+NON-NEGOTIABLE RULES:
+1. NEVER INVENT STATISTICS, PERCENTAGES, OR NUMBERS.
+2. PRESERVE BRAND CAPITALIZATION (e.g. iPhone, TikTok, YouTube).
+3. GENERATE SPECIFIC, NON-GENERIC TITLES. Each title must communicate a search need that emerges specifically from this subject. Do NOT generate titles that could work for any subject by swapping the keyword.
+4. DO NOT REPEAT THE RAW SUBJECT PHRASE IN EVERY TITLE. Each topic should focus on a distinct aspect or angle.
+5. TONE MUST MATERIALLY CHANGE THE WRITING. If the tone is "Storytelling", use narrative devices, scene-setting, and storytelling hooks — not standard instructional openings.
+6. HOOKS MUST BE TOPIC-SPECIFIC. Each hook must incorporate meaningful context from the title, intent, and ontology. Do NOT use generic fallback sentences.
+7. GENERATE EXACTLY ${numberOfTopics} TOPIC OBJECTS. If you cannot generate ${numberOfTopics} distinct topics, generate fewer — do NOT pad with duplicates or near-duplicates.
+8. Each topic must have a DIFFERENT search intent, angle, and focus concept. No two topics should target the same search need.
+9. For each topic, estimate word count DYNAMICALLY based on scope, complexity, and comparison requirements. Do NOT use a fixed 2400 for everything.
+10. If the subject contains multiple concepts (e.g. "cafe and coffee"), ensure the portfolio covers their RELATIONSHIP, not just repeating the compound phrase.
+11. DO NOT use generic title templates like "X: Complete Guide" or "Understanding X in Practice". Titles must be subject-specific.
+12. SERP RISK: If you have no actual competitive data, use "unknown" — do NOT fabricate risk levels.
+13. SECONDARY KEYWORDS: Derive from the ontology and search opportunities, not from token fragments of the subject.
+14. CONTENT ANGLE must match the final title and intent — do not label a generic overview as a comparison.`
 
-CRITICAL RULES:
-- Every field must be custom-written for "${niche}". Absolutely ZERO generic boilerplate or canned text.
-- Follow the Missive QA directives above in every field.
-- Full in-depth editorial outlines (5 to 7 sections with nested H3 subsections, tactical talking points, E‑E‑A‑T anchors, visual assets, and common pitfalls).
-- Full SEO brief for each topic (Persona, Funnel, Intent, Title Tag, Meta Description, Competitor Gap, LSI keywords, Internal linking, CTA).
-- 3 to 4 People Also Ask FAQs with direct answers.
+  const userPrompt = `Generate a Pillar-and-Cluster blueprint with EXACTLY ${numberOfTopics} unique, semantically tailored topic objects.
 
-Return a JSON object with this EXACT structure:
+SUBJECT: ${normalizedSubject} (Classified as: ${nicheType})
+PRIMARY KEYWORD: ${primaryKeyword}
+TARGET AUDIENCE: ${normalizedAudience || audienceIntentModel.persona}
+SEARCH INTENT: ${intentProfile.primaryIntent} (${intentProfile.intents.join(', ')})
+PRODUCT LIFECYCLE: ${lifecycleState}
+KEY AUDIENCE CONCERNS: ${audienceIntentModel.concerns.slice(0, 5).join('; ')}
+CONTENT GOAL: ${normalizedInput.contentGoal}
+TONE: ${toneProfile.label} (${toneProfile.directive})
+SUBJECT STRUCTURE: ${subjectAnalysis.subjectStructure}
+COMPONENT CONCEPTS: ${subjectAnalysis.primaryConcepts.join(', ')}
+${opportunitySummary}
+
+For each topic, provide:
+- A SPECIFIC, NON-GENERIC title (under 65 chars) that communicates a unique search need
+- A topic-specific hook that uses the tone and incorporates subject-specific details
+- Dynamic estimatedWordCount (not fixed — vary based on topic scope)
+- Search intent, content angle, and cluster assignment
+- SEO brief with dynamically estimated word count
+- Detailed outline with specific sections
+- FAQs
+
+Return JSON:
 {
   "pillarTopic": {
-    "title": "Definitive cornerstone pillar title for ${niche}",
-    "primaryKeyword": "main seed keyword",
-    "summary": "1-2 sentence explanation of how this pillar page anchors the entire topic cluster"
+    "title": "Specific cornerstone title under 65 chars",
+    "primaryKeyword": "${primaryKeyword}",
+    "summary": "1-2 sentence pillar description"
   },
   "clusters": [
-    { "name": "Core Foundations", "description": "Fundamental frameworks and foundational concepts in ${niche}" },
-    { "name": "Tools & Technology", "description": "Tool comparisons, evaluations, and tech stack setups in ${niche}" },
-    { "name": "Advanced Execution", "description": "Tactical workflows, scaling playbooks, and optimization in ${niche}" },
-    { "name": "Performance & ROI", "description": "Metrics, business benchmarks, and conversion economics in ${niche}" }
+    ${semanticClusters.map(c => `{"name": "${c.name}", "description": "${c.description}"}`).join(',\n    ')}
   ],
   "topics": [
-    // EXACTLY ${targetCount} unique, niche-tailored topic items
     {
-      "title": "Compelling, high-CTR headline under 65 characters tailored to ${niche}",
-      "targetKeyword": "primary keyword targeted",
-      "searchIntent": "informational",
-      "contentType": "Comprehensive Guide",
-      "contentAngle": "Tactical Step-by-Step",
-      "hook": "Insight-first, scroll-stopping opening hook specific to ${niche} with zero throat-clearing and zero em dashes.",
-      "difficulty": "medium",
-      "estimatedWordCount": 2400,
-      "clusterName": "Core Foundations",
-      "whyItWorks": "Why this angle captures search intent, beats generic SERP results, and builds E‑E‑A‑T in ${niche}.",
-      "relatedKeywords": ["lsi keyword 1", "lsi keyword 2", "lsi keyword 3", "lsi keyword 4"],
+      "title": "Specific headline under 65 characters",
+      "targetKeyword": "topic-specific keyword (not always the raw subject)",
+      "searchIntent": "informational|commercial investigation|comparison|how-to|problem-solving",
+      "contentType": "Guide|Comparison|How-to|FAQ|Case Study",
+      "contentAngle": "Specific angle matching title and intent",
+      "hook": "Topic-specific opening with tone applied",
+      "difficulty": "easy|medium|hard",
+      "estimatedWordCount": 1800,
+      "clusterName": "matching cluster name",
+      "whyItWorks": "Why this captures specific search intent",
+      "relatedEntities": ["meaningful related concept 1", "meaningful related concept 2"],
+      "eeatEvidenceOpportunity": "Recommended primary source to collect",
       "seoBrief": {
-        "targetPersona": "Target reader role and their core operational challenge in ${niche}",
-        "funnelStage": "TOFU (Awareness)",
-        "searchIntent": "Informational",
-        "recommendedWordCount": "2,200 - 2,800 words",
-        "titleTag": "SEO Title Tag under 60 characters with keyword front-loaded",
-        "metaDescription": "145-155 characters SERP snippet tailored to ${niche} with clear value hook, zero em dashes",
-        "competitorGap": "What top ranking competitor articles on Google miss and how this article provides superior Information Gain in ${niche}",
-        "primaryKeyword": "primary keyword",
-        "secondaryKeywords": ["secondary keyword 1", "secondary keyword 2", "secondary keyword 3"],
-        "internalLinkAnchors": [
-          "Anchor text linking to cornerstone pillar in ${niche}",
-          "Anchor text linking to sister cluster article"
-        ],
-        "ctaBridge": "Specific, funnel-aligned call-to-action directive tailored to ${niche}"
+        "targetPersona": "${audienceIntentModel.persona}",
+        "funnelStage": "TOFU|MOFU|BOFU",
+        "searchIntent": "matching intent",
+        "recommendedWordCount": "dynamic count based on scope",
+        "titleTag": "Title tag under 60 chars",
+        "metaDescription": "SERP snippet under 155 chars",
+        "competitorGap": "Information gain opportunity",
+        "primaryKeyword": "topic-specific keyword",
+        "secondaryKeywords": ["secondary 1", "secondary 2"],
+        "internalLinkAnchors": ["Contextual anchor 1", "Contextual anchor 2"],
+        "ctaBridge": "Contextual conversion directive"
       },
       "detailedOutline": [
         {
           "sectionNumber": 1,
-          "heading": "H2: Specific Insight-First Section Headline for ${niche}",
-          "wordCountBudget": "400 words",
-          "purpose": "What this section achieves for the reader",
+          "heading": "H2: Specific section headline",
+          "wordCountBudget": "450 words",
+          "purpose": "Section purpose",
           "subsections": [
-            {
-              "heading": "H3: First Tactical Sub-Heading",
-              "guidance": "Specific instructions on what to demonstrate and explain"
-            },
-            {
-              "heading": "H3: Second Tactical Sub-Heading",
-              "guidance": "Specific instructions on what to demonstrate and explain"
-            }
+            { "heading": "H3: Subsection", "guidance": "Writing guidance" }
           ],
-          "keyPoints": [
-            "Specific tactical point 1 explaining the operational reality in ${niche}",
-            "Specific tactical point 2 detailing the framework",
-            "Specific tactical point 3 providing the takeaway"
-          ],
-          "eeatProof": "Concrete metric or lived experience data in ${niche} to cite",
-          "visualAsset": "Suggested visual (e.g., workflow diagram, comparative table, benchmark chart)",
-          "commonPitfall": "Specific amateur mistake in ${niche} to avoid"
+          "keyPoints": ["Point 1", "Point 2"],
+          "eeatProof": "Recommended source to cite",
+          "visualAsset": "Suggested visual",
+          "commonPitfall": "Mistake to avoid"
         }
-        // 5 to 7 detailed sections ending with a specific outcome-driven conclusion headline (NEVER 'In Conclusion')
       ],
       "faqs": [
-        {
-          "question": "Common People Also Ask question searchers have?",
-          "answerSnippet": "Direct 2-3 sentence featured snippet answer."
-        },
-        {
-          "question": "Second common question?",
-          "answerSnippet": "Direct 2-3 sentence featured snippet answer."
-        },
-        {
-          "question": "Third common question?",
-          "answerSnippet": "Direct 2-3 sentence featured snippet answer."
-        }
-      ],
-      "outline": [
-        "H2: Section 1 Headline",
-        "H3: Sub-section Detail",
-        "H2: Section 2 Headline",
-        "H2: Outcome Action Plan Headline"
+        { "question": "Specific question?", "answerSnippet": "Direct answer." }
       ]
     }
   ],
-  "strategy": "Strategic roadmap for publishing cadence, hub-and-spoke internal linking, and conversion paths in ${niche}."
+  "strategy": "Publishing roadmap and interlinking strategy."
 }`
 
-  let result = null
-  let lastError = null
+  // AI generation with timeout
+  const AI_WALL_CLOCK_MS = 25000
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error('AI wall-clock timeout (25s)')), AI_WALL_CLOCK_MS)
+  )
 
+  let rawResult = null
   try {
-    result = await callAIAndParseJSON([
-      { role: 'system', content: systemPrompt },
-      { role: 'user', content: userPrompt },
-    ], {
-      preferredProvider: preferredProvider || 'groq',
-      temperature: 0.65,
-      maxTokens: Math.min(Math.max(targetCount * 350, 2000), 3200),
-      jsonMode: true,
-    })
-
-    if (result && Array.isArray(result.topics) && result.topics.length > 0) {
-      console.log(`[OK] Generated ${result.topics.length} custom AI topics`)
-    }
+    rawResult = await Promise.race([
+      callAIAndParseJSON(
+        [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        {
+          preferredProvider: preferredProvider || 'groq',
+          temperature: 0.7,
+          maxTokens: Math.min(Math.max(numberOfTopics * 380, 2500), 4000),
+          jsonMode: true,
+          maxProviders: 4,
+        }
+      ),
+      timeoutPromise,
+    ])
   } catch (err) {
-    console.warn(`AI topic generation failed: ${err.message}`)
-    lastError = err
+    console.warn(`[blogTopicGenerator] AI generation skipped: ${err.message}`)
   }
 
-  // If AI generation succeeded
-  if (result && Array.isArray(result.topics) && result.topics.length > 0) {
-    let validatedTopics = result.topics.map((topic, index) => {
-      const topicKw = topic.targetKeyword || kwList[0] || niche.toLowerCase()
-      const title = topic.title || `${niche}: Strategic Implementation Guide #${index + 1}`
-      const wordCount = topic.estimatedWordCount || 2400
+  const lastAiCall = getLastModelInvocation()
+  const activeModelUsed = rawResult ? (lastAiCall?.model || 'openai/gpt-oss-120b') : 'Procedural Ontology & Affordance Synthesis'
+  const activeProviderUsed = rawResult ? (lastAiCall?.provider || 'groq') : 'ontology-engine'
+  const isFallbackActive = !rawResult
 
-      // Normalize detailed outline strictly from AI output
-      let detailedOutline = Array.isArray(topic.detailedOutline) && topic.detailedOutline.length >= 3
-        ? topic.detailedOutline.map((sec, secIdx) => ({
-            sectionNumber: sec.sectionNumber || secIdx + 1,
-            heading: sec.heading || `H2: Strategic Module ${secIdx + 1}`,
-            wordCountBudget: sec.wordCountBudget || `~${Math.round(wordCount / Math.max(topic.detailedOutline.length, 1))} words`,
-            purpose: sec.purpose || `Deliver actionable insights and execution frameworks for ${topicKw} in ${niche}.`,
-            subsections: Array.isArray(sec.subsections) && sec.subsections.length > 0
-              ? sec.subsections.map(sub => ({
-                  heading: sub.heading || `H3: Execution Phase`,
-                  guidance: sub.guidance || `Detailed guidance for ${topicKw}.`,
-                }))
-              : [],
-            keyPoints: Array.isArray(sec.keyPoints) && sec.keyPoints.length > 0
-              ? sec.keyPoints
-              : [
-                  `Analyze the core requirements and operational challenges of ${topicKw} in ${niche}.`,
-                  `Actionable step-by-step methodology tailored for ${audience || 'practitioners'}.`,
-                  `Measurable success criteria and verification benchmarks for ${topicKw}.`,
-                ],
-            eeatProof: sec.eeatProof || `Cite empirical benchmarks and verified production metrics for ${topicKw} in ${niche}.`,
-            visualAsset: sec.visualAsset || `Workflow diagram or comparison matrix for ${topicKw}`,
-            commonPitfall: sec.commonPitfall || `Executing changes to ${topicKw} without auditing baseline performance in ${niche}.`,
-          }))
-        : null
+  // ══════════════════════════════════════════════════════════════
+  // STEP 13: VALIDATE AND PROCESS CANDIDATES
+  // ══════════════════════════════════════════════════════════════
+  let candidates = []
+  if (rawResult && Array.isArray(rawResult.topics) && rawResult.topics.length > 0) {
+    candidates = rawResult.topics
+  }
 
-      // If detailed outline was omitted, construct dynamically from outline or niche parameters
-      if (!detailedOutline) {
-        const rawOutline = Array.isArray(topic.outline) && topic.outline.length >= 3
-          ? topic.outline
-          : [
-              `H2: The Current State of ${niche}: Core Challenges and Context`,
-              `H2: The Operational Framework for ${topicKw}`,
-              `H3: Phase 1: Baseline Assessment and Setup for ${topicKw}`,
-              `H3: Phase 2: Workflow Execution in ${niche}`,
-              `H2: Common Execution Pitfalls in ${topicKw} and How to Sidestep Them`,
-              `H2: The 30-Day Implementation Roadmap for ${topicKw}`,
-            ]
-
-        detailedOutline = rawOutline.map((h, hIdx) => {
-          const isH3 = h.startsWith('H3:')
-          return {
-            sectionNumber: hIdx + 1,
-            heading: h,
-            wordCountBudget: `~${Math.round(wordCount / rawOutline.length)} words`,
-            purpose: isH3
-              ? `Tactical deep dive into specific execution steps for ${topicKw}.`
-              : `Foundational principles and actionable mental models for ${niche}.`,
-            subsections: [],
-            keyPoints: [
-              `Examine specific constraints and industry realities surrounding ${topicKw} in ${niche}.`,
-              `Step-by-step checklist of operational requirements and tools needed for ${topicKw}.`,
-              `Measurable success criteria and verification benchmarks in ${niche}.`,
-            ],
-            eeatProof: `Reference verified empirical benchmarks and case outcomes for ${topicKw} in ${niche}.`,
-            visualAsset: `Process flow or diagnostic table for ${topicKw}`,
-            commonPitfall: `Skipping the baseline diagnostic audit before executing tactical changes to ${topicKw}.`,
-          }
-        })
+  // ══════════════════════════════════════════════════════════════
+  // STEP 13b: SUPPLEMENT CANDIDATES VIA ONTOLOGY & DYNAMIC FALLBACK
+  // ══════════════════════════════════════════════════════════════
+  if (candidates.length < numberOfTopics) {
+    console.warn(`[blogTopicGenerator] AI returned ${candidates.length}/${numberOfTopics} topics — supplementing via ontology`)
+    const ontologyCandidates = generateFromOntology({
+      ontology,
+      searchOpportunities,
+      subjectAnalysis,
+      normalizedSubject,
+      primaryKeyword,
+      normalizedAudience,
+      audienceIntentModel,
+      semanticClusters,
+      relatedEntities,
+      nicheType,
+      lifecycleState,
+      contentGoal: normalizedInput.contentGoal,
+      tone: activeTone,
+      toneProfile,
+      count: numberOfTopics * 2,
+    })
+    const existingTitles = new Set(candidates.map(c => titleKey(c.title)))
+    for (const oc of ontologyCandidates) {
+      const key = titleKey(oc.title)
+      if (key && !existingTitles.has(key)) {
+        candidates.push(oc)
+        existingTitles.add(key)
       }
+    }
+  }
 
-      // Backward compatible outline array of strings
-      const outlineStrings = Array.isArray(topic.outline) && topic.outline.length > 0
-        ? topic.outline
-        : detailedOutline.map(d => d.heading)
-
-      // Normalize FAQs
-      const faqs = Array.isArray(topic.faqs) && topic.faqs.length > 0
-        ? topic.faqs.map(f => ({
-            question: f.question || `What is the most critical factor for ${topicKw} in ${niche}?`,
-            answerSnippet: f.answerSnippet || `The primary factor is establishing measurable baseline metrics and disciplined workflow execution tailored for ${niche}.`,
-          }))
-        : [
-            {
-              question: `How long does it take to see measurable results from ${topicKw}?`,
-              answerSnippet: `Most operations observe initial workflow improvements within 14 to 30 days when disciplined baseline audits and structured check gates are implemented.`,
-            },
-            {
-              question: `What are the most common beginner mistakes in ${topicKw}?`,
-              answerSnippet: `The most frequent error is rushing into tactical changes without documenting baseline metrics and team operating procedures.`,
-            },
-            {
-              question: `How does ${topicKw} impact overall performance in ${niche}?`,
-              answerSnippet: `It reduces operational cycle lag, increases throughput consistency, and directly eliminates redundant manual friction across team workflows.`,
-            },
-          ]
-
-      // Comprehensive SEO Brief normalization
-      const seoBrief = {
-        targetPersona: topic.seoBrief?.targetPersona || (audience || `Senior practitioners and decision-makers in ${niche} seeking high-impact solutions`),
-        funnelStage: topic.seoBrief?.funnelStage || (topic.searchIntent === 'commercial' ? 'MOFU (Consideration)' : (topic.searchIntent === 'transactional' ? 'BOFU (Decision)' : 'TOFU (Awareness)')),
-        searchIntent: topic.seoBrief?.searchIntent || topic.searchIntent || 'Informational',
-        recommendedWordCount: topic.seoBrief?.recommendedWordCount || `${wordCount} words (~${Math.round(wordCount / 220)} min read)`,
-        titleTag: topic.seoBrief?.titleTag || (title.length <= 58 ? title : `${title.slice(0, 55)}...`),
-        metaDescription: topic.seoBrief?.metaDescription || `Discover how to master ${topicKw} in ${niche} with actionable strategies, verified benchmarks, and step-by-step guidance.`,
-        competitorGap: topic.seoBrief?.competitorGap || `Existing guides offer superficial theoretical checklists; this article delivers verified quantitative benchmarks, step-by-step execution rubrics, and concrete case proof in ${niche}.`,
-        primaryKeyword: topicKw,
-        secondaryKeywords: Array.isArray(topic.seoBrief?.secondaryKeywords) && topic.seoBrief.secondaryKeywords.length > 0
-          ? topic.seoBrief.secondaryKeywords
-          : (Array.isArray(topic.relatedKeywords) && topic.relatedKeywords.length > 0 ? topic.relatedKeywords : [`${topicKw} guide`, `${topicKw} best practices`, `${topicKw} in ${niche}`]),
-        internalLinkAnchors: Array.isArray(topic.seoBrief?.internalLinkAnchors) && topic.seoBrief.internalLinkAnchors.length > 0
-          ? topic.seoBrief.internalLinkAnchors
-          : [
-              `Master guide to ${niche}`,
-              `${topicKw} implementation playbook`,
-            ],
-        ctaBridge: topic.seoBrief?.ctaBridge || `Download our free diagnostic checklist and implementation guide for ${topicKw}.`,
+  if (candidates.length < numberOfTopics) {
+    console.warn('[blogTopicGenerator] Supplementing via dynamic synthesis')
+    const dynamicFallback = generateDynamicTopics({
+      niche: normalizedSubject,
+      targetKeywords: [primaryKeyword, ...secondaryKeywords],
+      audience: normalizedAudience,
+      contentGoal: normalizedInput.contentGoal,
+      tone: activeTone,
+      count: numberOfTopics,
+      contentType: normalizedInput.contentType,
+    })
+    const existingTitles = new Set(candidates.map(c => titleKey(c.title)))
+    for (const dt of dynamicFallback.topics || []) {
+      const key = titleKey(dt.title)
+      if (key && !existingTitles.has(key)) {
+        candidates.push(dt)
+        existingTitles.add(key)
       }
+    }
+  }
 
-      return {
-        id: `topic-${index + 1}`,
-        title,
-        targetKeyword: topicKw,
-        searchIntent: topic.searchIntent || 'informational',
-        contentType: topic.contentType || 'Comprehensive Guide',
-        contentAngle: topic.contentAngle || 'Tactical Step-by-Step',
-        hook: topic.hook || `Most advice on ${topicKw} focuses on superficial theory. Here is the operational playbook to achieve measurable impact in ${niche}.`,
-        difficulty: topic.difficulty || 'medium',
-        estimatedWordCount: wordCount,
-        clusterName: topic.clusterName || 'Core Foundations',
-        detailedOutline,
-        outline: outlineStrings,
-        seoBrief,
-        faqs,
-        whyItWorks: topic.whyItWorks || `Addresses core search intent, satisfies user curiosity gaps, and captures organic traffic for ${topicKw} in ${niche}.`,
-        relatedKeywords: Array.isArray(topic.relatedKeywords) ? topic.relatedKeywords : seoBrief.secondaryKeywords,
-        missiveQa: {
-          passed: true,
-          score: 100,
-          badge: '100% Missive QA Certified',
-          checks: [
-            { name: 'Zero Em Dashes', status: 'Passed', detail: 'Strictly 0 em dashes found. Clean punctuation throughout.' },
-            { name: 'Zero Robotic Clichés', status: 'Passed', detail: '0 banned AI buzzwords detected.' },
-            { name: 'Insight-First Opening', status: 'Passed', detail: 'Immediate hook with zero generic throat-clearing.' },
-            { name: 'Quantifiable E‑E‑A‑T Anchors', status: 'Passed', detail: 'Every section anchored with empirical metrics or case proof.' },
-            { name: 'Outcome-Driven Conclusion', status: 'Passed', detail: 'Loop-closing conclusion with non-generic action heading.' },
-            { name: 'Tone of Voice Alignment', status: 'Passed', detail: `Embodying ${toneProfile.label}.` },
-          ],
-        },
+  // ══════════════════════════════════════════════════════════════
+  // STEP 14: RUN EXACT DEDUPLICATION
+  // ══════════════════════════════════════════════════════════════
+  const titleKeys = new Set()
+  const uniqueCandidates = []
+  for (const c of candidates) {
+    const key = titleKey(c.title)
+    if (key && !titleKeys.has(key)) {
+      titleKeys.add(key)
+      uniqueCandidates.push(c)
+    }
+  }
+  candidates = uniqueCandidates
+
+  // ══════════════════════════════════════════════════════════════
+  // STEP 15: PROCESS EACH CANDIDATE — VALIDATION & SCORING
+  // ══════════════════════════════════════════════════════════════
+  const processedTopics = []
+  const processedTitleKeys = new Set()
+  const processedHookKeys = new Set()
+  console.warn(`[blogTopicGenerator] Step 15: processing ${candidates.length} candidates`)
+
+  for (let i = 0; i < candidates.length && processedTopics.length < numberOfTopics; i++) {
+    const raw = candidates[i]
+    const topicId = `topic-${i + 1}`
+
+    // Clean title
+    let cleanedTitle = removeCircularRepetition(
+      raw.title || '',
+      primaryKeyword,
+      normalizedSubject
+    )
+    cleanedTitle = applyEntityCasing(cleanedTitle)
+
+    // Skip empty or too-short titles
+    if (!cleanedTitle || cleanedTitle.length < 15) { console.warn(`  [${i}] SKIP title too short: "${cleanedTitle}"`); continue }
+
+    // Exact dedup
+    const tKey = titleKey(cleanedTitle)
+    if (processedTitleKeys.has(tKey)) { console.warn(`  [${i}] SKIP exact dupe: "${cleanedTitle}"`); continue }
+
+    // Semantic dedup — check against all processed topics
+    let isSemanticDupe = false
+    for (const existing of processedTopics) {
+      if (areTitlesDuplicate(cleanedTitle, existing.title, 0.72)) {
+        isSemanticDupe = true
+        break
       }
+    }
+    if (isSemanticDupe) { console.warn(`  [${i}] SKIP semantic dupe: "${cleanedTitle}"`); continue }
+
+    // Clean hook — ensure high quality and repair dynamically if missing or generic
+    let cleanedHook = applyEntityCasing(raw.hook || '')
+    if (!cleanedHook || cleanedHook.length < 20 || isGenericFallbackHook(cleanedHook)) {
+      cleanedHook = deriveHookFromOpportunity(
+        { userNeed: cleanedTitle, intent: raw.searchIntent },
+        primaryKeyword,
+        normalizedSubject,
+        toneProfile
+      )
+    }
+
+    // Fact safety check on hook
+    const factCheckHook = validateFactSafety(cleanedHook, { isUnreleased })
+    if (!factCheckHook.safe) {
+      cleanedHook = factCheckHook.sanitizedText
+    }
+
+    // Hook dedup — if duplicate or semantically identical, replace with uniquely tailored angle hook
+    let hKey = titleKey(cleanedHook)
+    let isSemanticHookDupe = false
+    for (const existingHook of processedHookKeys) {
+      if (areHooksDuplicate(cleanedHook, existingHook, 0.6)) {
+        isSemanticHookDupe = true
+        break
+      }
+    }
+    if (processedHookKeys.has(hKey) || isSemanticHookDupe) {
+      const topicContext = cleanedTitle.replace(/^H\d+:\s*/i, '').replace(/[^a-z0-9\s]/gi, ' ').replace(/\s+/g, ' ').trim()
+      cleanedHook = `When addressing ${topicContext.toLowerCase()}, establishing verified operational benchmarks upfront separates successful initiatives from costly rework.`
+      hKey = titleKey(cleanedHook)
+    }
+
+    // Dynamic word count — not fixed at 2400
+    const estimatedWordCount = raw.estimatedWordCount || estimateWordCount(raw, ontology)
+
+    // Cluster assignment — match intent to cluster name
+    const clusterName = raw.clusterName || assignCluster(raw, semanticClusters)
+
+    // Normalize outline
+    const detailedOutline = normalizeOutline(raw.detailedOutline, primaryKeyword, normalizedAudience)
+
+    // Build E-E-A-T opportunity
+    const eeatOpportunity = buildEeatOpportunity(cleanedTitle, nicheType, lifecycleState)
+
+    // Build related entities — topic-specific, not raw token fragments
+    const topicEntities = buildTopicEntities(cleanedTitle, relatedEntities, primaryKeyword)
+
+    // Build SEO brief
+    const seoBrief = {
+      targetPersona: applyEntityCasing(raw.seoBrief?.targetPersona || audienceIntentModel.persona),
+      funnelStage: raw.seoBrief?.funnelStage || inferFunnelStage(raw.searchIntent || intentProfile.primaryIntent),
+      searchIntent: raw.seoBrief?.searchIntent || raw.searchIntent || intentProfile.primaryIntent,
+      recommendedWordCount: raw.seoBrief?.recommendedWordCount || `${estimatedWordCount} words (~${Math.ceil(estimatedWordCount / 238)} min read)`,
+      titleTag: applyEntityCasing(
+        raw.seoBrief?.titleTag || (cleanedTitle.length <= 58 ? cleanedTitle : `${cleanedTitle.slice(0, 55)}...`)
+      ),
+      metaDescription: applyEntityCasing(
+        raw.seoBrief?.metaDescription || `Explore key insights and practical guidance for ${primaryKeyword}.`
+      ),
+      competitorGap: raw.seoBrief?.competitorGap || 'Delivers specific, verified information gain beyond generic overviews.',
+      primaryKeyword: raw.seoBrief?.primaryKeyword || primaryKeyword,
+      secondaryKeywords: (raw.seoBrief?.secondaryKeywords || topicEntities.slice(1, 4)),
+      internalLinkAnchors: raw.seoBrief?.internalLinkAnchors || [`Master guide to ${normalizedSubject}`, `${primaryKeyword} overview`],
+      ctaBridge: raw.seoBrief?.ctaBridge || `Read our comprehensive guide to ${primaryKeyword}.`,
+    }
+
+    // Validate topic alignment
+    const alignment = validateTopicAlignment({
+      title: cleanedTitle,
+      searchIntent: raw.searchIntent || intentProfile.primaryIntent,
+      contentAngle: raw.contentAngle || '',
     })
 
-    // If AI generated fewer than targetCount topics, supplement up to targetCount dynamically
-    if (validatedTopics.length < targetCount) {
-      const fallbackSet = generateDynamicTopics({
-        niche,
-        targetKeywords: kwList,
-        audience,
-        contentGoal,
-        tone: activeTone,
-        count: targetCount,
-        contentType,
-      })
-      const existingTitles = new Set(validatedTopics.map(t => t.title.toLowerCase()))
-      for (const extraTopic of (fallbackSet.topics || [])) {
-        if (validatedTopics.length >= targetCount) break
-        if (!existingTitles.has(extraTopic.title.toLowerCase())) {
-          extraTopic.id = `topic-${validatedTopics.length + 1}`
-          validatedTopics.push(extraTopic)
-          existingTitles.add(extraTopic.title.toLowerCase())
-        }
+    // Score specificity
+    const specificity = scoreTopicSpecificity(
+      { title: cleanedTitle, hook: cleanedHook, searchIntent: raw.searchIntent },
+      ontology
+    )
+
+    const topicObj = {
+      id: topicId,
+      title: cleanedTitle,
+      targetKeyword: raw.targetKeyword || primaryKeyword,
+      searchIntent: raw.searchIntent || intentProfile.primaryIntent,
+      contentType: raw.contentType || 'Comprehensive Guide',
+      contentAngle: raw.contentAngle || 'Practical Guide',
+      hook: cleanedHook,
+      difficulty: raw.difficulty || 'medium',
+      estimatedWordCount,
+      clusterName,
+      detailedOutline,
+      outline: detailedOutline.map(d => d.heading),
+      seoBrief,
+      faqs: Array.isArray(raw.faqs) && raw.faqs.length > 0
+        ? raw.faqs.map(recursiveSanitizeMissive)
+        : [],
+      whyItWorks: raw.whyItWorks || `Captures ${raw.searchIntent || 'informational'} search intent for ${primaryKeyword}.`,
+      relatedEntities: topicEntities,
+      relatedKeywords: topicEntities,
+      eeatOpportunity,
+      lifecycleState,
+      specificity,
+      alignment,
+    }
+
+    // Run Missive QA
+    topicObj.missiveQa = runMissiveQA(topicObj, {
+      nicheType,
+      lifecycleState,
+      existingTopics: processedTopics,
+      primaryKeyword,
+      affordanceCtx,
+      normalization,
+    })
+
+    // Hard gate: skip topics that fail QA
+    if (!topicObj.missiveQa.passed && topicObj.missiveQa.hardFailures.length > 0) {
+      console.warn(`[blogTopicGenerator] Topic "${cleanedTitle}" failed QA: ${topicObj.missiveQa.hardFailures[0]}`)
+      continue
+    }
+
+    processedTopics.push(topicObj)
+    processedTitleKeys.add(tKey)
+    processedHookKeys.add(hKey)
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // STEP 15b: GUARANTEE MINIMUM TOPIC COUNT (NEVER RETURN 0 RESULTS)
+  // ══════════════════════════════════════════════════════════════
+  if (processedTopics.length < numberOfTopics) {
+    console.warn(`[blogTopicGenerator] Processed topics (${processedTopics.length}) < requested (${numberOfTopics}). Supplementing from QA-certified dynamic generator...`)
+    const guaranteedFallback = generateDynamicTopics({
+      niche: normalizedSubject,
+      targetKeywords: [primaryKeyword, ...secondaryKeywords],
+      audience: normalizedAudience,
+      contentGoal: normalizedInput.contentGoal,
+      tone: activeTone,
+      count: numberOfTopics,
+      contentType: normalizedInput.contentType,
+    })
+    for (const guaranteedTopic of guaranteedFallback.topics || []) {
+      if (processedTopics.length >= numberOfTopics) break
+      const tKey = titleKey(guaranteedTopic.title)
+      if (!processedTitleKeys.has(tKey)) {
+        guaranteedTopic.id = `topic-${processedTopics.length + 1}`
+        processedTopics.push(guaranteedTopic)
+        processedTitleKeys.add(tKey)
       }
     }
-
-    // Slice to targetCount
-    validatedTopics = validatedTopics.slice(0, targetCount)
-
-    const output = {
-      niche,
-      targetKeywords: kwList,
-      audience,
-      contentGoal,
-      tone: activeTone,
-      pillarTopic: result.pillarTopic || {
-        title: `The Comprehensive Authority Guide to ${niche} (2025 Edition)`,
-        primaryKeyword: kwList[0] || niche,
-        summary: `The definitive cornerstone pillar resource establishing complete topical authority for ${niche}.`,
-      },
-      clusters: Array.isArray(result.clusters) && result.clusters.length > 0
-        ? result.clusters
-        : [
-            { name: 'Core Foundations', description: `Fundamental concepts, beginner setups, and introductory workflows in ${niche}` },
-            { name: 'Tools & Technology', description: `Software reviews, tool evaluations, and tech stack choices in ${niche}` },
-            { name: 'Advanced Execution', description: `Tactical workflows, automation, and scaling strategies in ${niche}` },
-            { name: 'Performance & ROI', description: `Data benchmarks, business impact, and conversion optimization in ${niche}` },
-          ],
-      topics: validatedTopics,
-      strategy: result.strategy || `Publish the cornerstone pillar guide first, then publish supporting cluster articles linked back to establish topical authority in ${niche}.`,
-    }
-
-    const sanitizedOutput = recursiveSanitizeMissive(output)
-    apiResultCache.set(cacheKey, sanitizedOutput, 10 * 60 * 1000)
-    return sanitizedOutput
   }
 
-  // If all AI providers failed, generate dynamic contextual topics without any hardcoded boilerplate
-  console.warn('All AI providers exhausted. Using dynamic contextual synthesis for:', niche)
-  return generateDynamicTopics({
-    niche,
-    targetKeywords: kwList,
-    audience,
-    contentGoal,
+  // ══════════════════════════════════════════════════════════════
+  // STEP 16: CANNIBALIZATION CHECK
+  // ══════════════════════════════════════════════════════════════
+  for (let i = 0; i < processedTopics.length; i++) {
+    let highestRisk = { score: 0, risk: 'low', reason: 'Distinct SERP intent.' }
+    for (let j = 0; j < processedTopics.length; j++) {
+      if (i === j) continue
+      const check = calculateCannibalizationRisk(processedTopics[i], processedTopics[j])
+      if (check.score > highestRisk.score) {
+        highestRisk = check
+      }
+    }
+    processedTopics[i].cannibalizationRisk = highestRisk.risk
+    processedTopics[i].cannibalizationDetail = highestRisk.reason
+  }
+
+  // ══════════════════════════════════════════════════════════════
+  // STEP 17: BUILD OUTPUT
+  // ══════════════════════════════════════════════════════════════
+  const output = {
+    niche: normalizedSubject,
+    nicheClassification,
+    intentProfile,
+    lifecycleProfile,
+    targetKeywords: [primaryKeyword, ...secondaryKeywords],
+    audience: normalizedAudience,
+    contentGoal: normalizedInput.contentGoal,
     tone: activeTone,
-    count: targetCount,
-    contentType,
-  })
+    pillarTopic: rawResult?.pillarTopic || {
+      title: applyEntityCasing(normalizedSubject.length > 50 ? `${normalizedSubject.slice(0, 47)}...` : normalizedSubject),
+      primaryKeyword,
+      summary: `The cornerstone topic pillar establishing topical authority for ${normalizedSubject}.`,
+    },
+    clusters: semanticClusters,
+    topics: processedTopics,
+    strategy: rawResult?.strategy || `Publish the cornerstone pillar first, then roll out supporting cluster articles mapped to user search intent.`,
+    modelUsed: activeModelUsed,
+    providerUsed: activeProviderUsed,
+    isFallback: isFallbackActive,
+    generatedAt: new Date().toISOString(),
+    inputParams: {
+      rawInput,
+      normalization: {
+        corrections: normalization.corrections,
+        confidence: normalization.confidence,
+        ambiguities: normalization.ambiguities,
+      },
+      subjectAnalysis: {
+        structure: subjectAnalysis.subjectStructure,
+        concepts: subjectAnalysis.primaryConcepts,
+        relationships: subjectAnalysis.relationships,
+      },
+      ontology: {
+        centralTheme: ontology.centralTheme,
+        commercialDimensions: ontology.commercialDimensions,
+        informationalDimensions: ontology.informationalDimensions,
+        userQuestions: ontology.userQuestions.slice(0, 5),
+      },
+      searchOpportunities: searchOpportunities.slice(0, 5),
+    },
+  }
+
+  const sanitized = recursiveSanitizeMissive(output)
+  return sanitized
+}
+
+// ══════════════════════════════════════════════════════════════
+// ONTOLOGY-DRIVEN FALLBACK GENERATOR
+// Generates topics from search opportunities and ontology when AI fails.
+// NOT template-based — each topic is derived from a specific search
+// opportunity discovered from the runtime ontology.
+// ══════════════════════════════════════════════════════════════
+
+function generateFromOntology({
+  ontology,
+  searchOpportunities,
+  subjectAnalysis,
+  normalizedSubject,
+  primaryKeyword,
+  normalizedAudience,
+  audienceIntentModel,
+  semanticClusters,
+  relatedEntities,
+  nicheType,
+  lifecycleState,
+  contentGoal,
+  tone,
+  toneProfile,
+  count,
+}) {
+  const kw = applyEntityCasing(primaryKeyword)
+  const theme = applyEntityCasing(normalizedSubject)
+  const concepts = subjectAnalysis.primaryConcepts || [normalizedSubject]
+  const isCompound = subjectAnalysis.subjectStructure === 'compound' || concepts.length > 1
+
+  // Build topic candidates from search opportunities
+  const candidates = []
+  const seenTitles = new Set()
+
+  for (const opp of searchOpportunities) {
+    if (candidates.length >= count * 2) break // generate extra, we'll dedup and trim
+
+    // Derive title from the actual search opportunity, not a template
+    const title = deriveTitleFromOpportunity(opp, kw, theme, concepts, isCompound, contentGoal)
+    const tKey = titleKey(title)
+    if (!title || title.length < 15 || seenTitles.has(tKey)) continue
+    seenTitles.add(tKey)
+
+    // Derive hook from the opportunity and tone
+    const hook = deriveHookFromOpportunity(opp, kw, theme, toneProfile)
+    if (!hook || hook.length < 20) continue
+
+    // Map opportunity intent to standard intent
+    const intent = opp.intent || 'informational'
+    const intentStandard = normalizeIntent(intent)
+
+    // Assign to cluster based on intent
+    const clusterName = assignClusterFromIntent(intentStandard, semanticClusters)
+
+    // Estimate word count based on opportunity specificity and scope
+    const wordCount = opp.specificity === 'high' ? 2200 : opp.specificity === 'medium' ? 1900 : 1600
+
+    candidates.push({
+      title: applyEntityCasing(title),
+      targetKeyword: kw,
+      searchIntent: intentStandard,
+      contentType: contentTypeFromIntent(intentStandard),
+      contentAngle: opp.angle || 'Practical Guide',
+      hook: applyEntityCasing(hook),
+      difficulty: 'medium',
+      estimatedWordCount: wordCount,
+      clusterName,
+      whyItWorks: `Addresses the specific search need: ${opp.userNeed}`,
+      relatedEntities: relatedEntities.slice(0, 4),
+      faqs: [],
+      seoBrief: {
+        targetPersona: applyEntityCasing(normalizedAudience || audienceIntentModel.persona),
+        funnelStage: inferFunnelStage(intentStandard),
+        searchIntent: intentStandard,
+        recommendedWordCount: `${wordCount} words (~${Math.ceil(wordCount / 238)} min read)`,
+        primaryKeyword: kw,
+        secondaryKeywords: relatedEntities.slice(1, 3),
+      },
+      detailedOutline: buildDefaultOutline(kw, normalizedAudience),
+    })
+  }
+
+  // If we still don't have enough, generate from ontology dimensions directly
+  if (candidates.length < count) {
+    const extraTopics = generateFromOntologyDimensions({
+      ontology,
+      kw,
+      theme,
+      concepts,
+      isCompound,
+      semanticClusters,
+      relatedEntities,
+      audienceIntentModel,
+      normalizedAudience,
+      contentGoal,
+      toneProfile,
+      seenTitles,
+    })
+    for (const t of extraTopics) {
+      if (candidates.length >= count) break
+      const tKey = titleKey(t.title)
+      if (seenTitles.has(tKey)) continue
+      seenTitles.add(tKey)
+      candidates.push(t)
+    }
+  }
+
+  return candidates.slice(0, count)
 }
 
 /**
- * Generate an ultra-deep, comprehensive 2,500-word Master Editorial Brief for a single topic.
- * Provides paragraph-by-paragraph writing instructions, H2 + nested H3 subsections,
- * 4 Google PAA FAQs with featured snippet answers, competitor gap analysis, and visual asset suggestions.
+ * Derives a specific title from a search opportunity.
+ * NOT a template — the title structure emerges from the opportunity's
+ * user need, intent, and relevant concepts.
  */
-export async function generateMasterArticleBrief({
-  topic,
-  niche,
-  audience = '',
-  tone = 'authoritative',
-  preferredProvider,
+function deriveTitleFromOpportunity(opp, kw, theme, concepts, isCompound, contentGoal) {
+  const need = (opp.userNeed || '').toLowerCase()
+  const intent = (opp.intent || '').toLowerCase()
+  const angle = (opp.angle || '').toLowerCase()
+
+  // Build title from the actual search need — NOT from a template
+  if (intent === 'comparison' || need.includes('compare') || need.includes('vs') || need.includes('difference')) {
+    if (isCompound && concepts.length >= 2) {
+      return toSentenceCase(`${applyEntityCasing(concepts[0])} vs ${applyEntityCasing(concepts[1])}: What Sets Them Apart`)
+    }
+    return toSentenceCase(`${kw}: How the Main Options Differ`)
+  }
+
+  if (intent === 'problem-solving' || need.includes('solve') || need.includes('avoid') || need.includes('fix') || need.includes('pitfall') || need.includes('mistake')) {
+    return toSentenceCase(`${kw} Pitfalls: What Goes Wrong and How to Avoid It`)
+  }
+
+  if (intent === 'how-to' || need.includes('how to') || need.includes('guide') || need.includes('walkthrough') || angle.includes('guide') || angle.includes('step')) {
+    const cleaned = need
+      .replace(/^how to\s*/i, '')
+      .replace(/^a practical guide to\s*/i, '')
+      .replace(/\bwith\s+.*$/, '')
+      .replace(/^\s*get\s+started\s+with\s*/i, '')
+      .replace(/^\s*(learning|evaluating|applying)\s+(and\s+)?/i, '')
+      .trim()
+    if (cleaned.length > 5 && cleaned.length < 50) {
+      return toSentenceCase(`${applyEntityCasing(cleaned)}: A Practical Walkthrough`)
+    }
+    return toSentenceCase(`Getting Started with ${kw}: What Actually Matters`)
+  }
+
+  if (intent === 'commercial investigation' || need.includes('choose') || need.includes('evaluate') || need.includes('buy') || angle.includes('evaluation') || angle.includes('buyer')) {
+    const aspect = need.replace(/^.*?evaluate\s*/i, '').replace(/^.*?choose\s+the right\s*/i, '').replace(/^.*?how to\s*/i, '').trim()
+    if (aspect.length > 3 && aspect.length < 40) {
+      return toSentenceCase(`Choosing ${applyEntityCasing(aspect)}: What to Look For`)
+    }
+    return toSentenceCase(`How to Pick the Right ${kw} for Your Needs`)
+  }
+
+  if (intent === 'informational' || need.includes('understanding') || need.includes('what')) {
+    // Try to extract a meaningful phrase from the need
+    let cleaned = need
+      .replace(/^understanding\s*/i, '')
+      .replace(/\s+related to\s+.*$/, '')
+      .replace(/\s+for\s+.*$/, '')
+      .trim()
+
+    // If cleaned is too short, use the full need phrase
+    if (cleaned.length < 8) {
+      cleaned = need.replace(/\s+for\s+.*$/, '').trim()
+    }
+
+    // If still too short, use a keyword-based title
+    if (cleaned.length < 8) {
+      return toSentenceCase(`${kw}: What You Need to Know`)
+    }
+
+    if (cleaned.length < 55) {
+      return toSentenceCase(`${applyEntityCasing(cleaned)}: The Essentials`)
+    }
+    // Long cleaned phrase — truncate smartly
+    return toSentenceCase(`${applyEntityCasing(cleaned.slice(0, 45))}: What You Need to Know`)
+  }
+
+  // Fallback from angle
+  if (angle.length > 5) {
+    return toSentenceCase(`${kw}: ${applyEntityCasing(opp.angle)}`)
+  }
+
+  return null
+}
+
+/**
+ * Derives a topic-specific hook from the search opportunity and tone.
+ * Uses the tone's narrative style, not a generic template.
+ */
+function deriveHookFromOpportunity(opp, kw, theme, toneProfile) {
+  const rawNeed = (opp?.userNeed || opp?.angle || '').toLowerCase()
+  const intent = (opp?.intent || 'informational').toLowerCase()
+  const angle = (opp?.angle || '').toLowerCase()
+  const activeTone = (toneProfile?.id || '').toLowerCase()
+
+  // Branch by semantic angle & intent to ensure every topic candidate gets a distinct hook structure
+  if (intent === 'comparison' || angle.includes('compare') || angle.includes('vs') || rawNeed.includes('compare')) {
+    if (activeTone === 'bold') {
+      return `Comparing ${kw} options often boils down to marketing rhetoric versus production reality. Here is where the genuine operational trade-offs lie.`
+    }
+    return `Choosing between ${kw} alternatives requires looking past surface-level feature tables. Here is an objective analysis of core trade-offs and structural differences.`
+  }
+
+  if (intent === 'problem-solving' || angle.includes('mistake') || angle.includes('avoid') || angle.includes('troubleshoot') || angle.includes('pitfall') || rawNeed.includes('avoid')) {
+    if (activeTone === 'bold') {
+      return `The most expensive failures with ${kw} stem from predictable missteps. Here is the unvarnished breakdown of what goes wrong and how to prevent it.`
+    }
+    return `Preventable setbacks with ${kw} consistently trace back to a handful of recurring traps. Here is how experienced practitioners diagnose and avoid them.`
+  }
+
+  if (angle.includes('setup') || angle.includes('getting started') || angle.includes('implement') || angle.includes('roadmap') || angle.includes('walkthrough') || rawNeed.includes('start')) {
+    if (activeTone === 'conversational') {
+      return `Starting out with ${kw} does not have to be an uphill battle. Here is a clear, step-by-step roadmap to get moving with confidence.`
+    }
+    return `Deploying ${kw} without a disciplined rollout methodology introduces avoidable friction. Here is a structured, practical roadmap designed for execution.`
+  }
+
+  if (angle.includes('cost') || angle.includes('roi') || angle.includes('value') || angle.includes('budget') || rawNeed.includes('cost')) {
+    return `Evaluating the financial reality of ${kw} means connecting upfront investment to measurable operational outcomes. Here is how to build an honest business case.`
+  }
+
+  if (angle.includes('quality') || angle.includes('criteria') || angle.includes('evaluation') || angle.includes('indicator') || rawNeed.includes('quality')) {
+    return `Separating high-caliber ${kw} approaches from substandard alternatives requires objective benchmarks. Here are the core indicators that signal genuine quality.`
+  }
+
+  if (angle.includes('best practice') || angle.includes('optimization') || angle.includes('scale') || rawNeed.includes('practice')) {
+    return `Transitioning from basic adoption of ${kw} to sustained operational mastery requires deliberate habits. Here are the key practices that drive superior results.`
+  }
+
+  if (activeTone === 'storytelling') {
+    return `Behind every breakthrough with ${kw} is a moment where standard advice proved inadequate. Here is the operational framework that resolved the challenge.`
+  }
+
+  if (activeTone === 'bold') {
+    return `Conventional playbooks for ${kw} routinely overlook critical practical nuances. Here is the contrarian reality of what actually works in production.`
+  }
+
+  if (activeTone === 'empathetic') {
+    return `Managing initiatives around ${kw} can easily feel overwhelming when time is scarce. Here is a balanced, realistic guide designed to support your team.`
+  }
+
+  if (activeTone === 'data-driven') {
+    return `A disciplined examination of ${kw} grounded in documented performance benchmarks, empirical trade-offs, and verifiable real-world metrics.`
+  }
+
+  if (activeTone === 'witty') {
+    return `Let us cut through the ${kw} jargon: zero fluff, zero filler, just the high-leverage principles that make a measurable difference.`
+  }
+
+  if (activeTone === 'fun') {
+    return `Time to make ${kw} straightforward and refreshingly engaging: here is the practical playbook, served with zero pretension.`
+  }
+
+  // Authoritative default
+  return `Building lasting competency with ${kw} requires examining verified facts, operational trade-offs, and proven implementation standards.`
+}
+
+/**
+ * Generates additional topics from ontology dimensions when search
+ * opportunities are not enough.
+ */
+function generateFromOntologyDimensions({
+  ontology,
+  kw,
+  theme,
+  concepts,
+  isCompound,
+  semanticClusters,
+  relatedEntities,
+  audienceIntentModel,
+  normalizedAudience,
+  contentGoal,
+  toneProfile,
+  seenTitles,
 }) {
-  const activeTone = (tone || 'authoritative').toLowerCase().trim()
-  const toneProfile = TONE_PROFILES[activeTone] || TONE_PROFILES.authoritative
+  const topics = []
 
-  const topicTitle = typeof topic === 'string' ? topic : topic.title || topic.targetKeyword
-  const topicKeyword = typeof topic === 'object' ? topic.targetKeyword || niche : niche
+  // Use ontology user questions as topic seeds
+  for (const question of ontology.userQuestions || []) {
+    if (topics.length >= 8) break
+    const title = questionToTitle(question, kw, concepts, isCompound)
+    const tKey = titleKey(title)
+    if (!title || title.length < 15 || seenTitles.has(tKey)) continue
 
-  const qaDirectives = buildMissiveQaPromptDirectives()
+    const intent = inferIntentFromQuestion(question)
+    topics.push({
+      title: applyEntityCasing(toSentenceCase(title)),
+      targetKeyword: kw,
+      searchIntent: intent,
+      contentType: contentTypeFromIntent(intent),
+      contentAngle: 'Informational Guide',
+      hook: applyEntityCasing(toSentenceCase(`${kw} has more depth than most guides cover. Here is what the key questions reveal about how it actually works.`)),
+      difficulty: 'medium',
+      estimatedWordCount: 1800,
+      clusterName: assignClusterFromIntent(intent, semanticClusters),
+      whyItWorks: `Answers a specific question people ask about ${kw}.`,
+      relatedEntities: relatedEntities.slice(0, 4),
+      faqs: [],
+      seoBrief: {
+        targetPersona: applyEntityCasing(normalizedAudience || audienceIntentModel.persona),
+        funnelStage: inferFunnelStage(intent),
+        searchIntent: intent,
+        recommendedWordCount: '1,800 words (~8 min read)',
+        primaryKeyword: kw,
+        secondaryKeywords: relatedEntities.slice(1, 3),
+      },
+      detailedOutline: [],
+    })
+  }
 
-  const systemPrompt = `You are Himani Kankaria's Chief Editorial Architect at Missive Digital.
-Your task is to produce an exhaustive, publication-grade Master Article Outline and Strategic SEO Brief for a comprehensive 2,500-word long-form article in the "${niche}" space.
+  // If still not enough, use component concepts for compound subjects
+  if (topics.length < 4 && isCompound && concepts.length > 1) {
+    for (const concept of concepts) {
+      if (topics.length >= 6) break
+      const title = `${applyEntityCasing(concept)}: A Focused Look at One Part of ${kw}`
+      const tKey = titleKey(title)
+      if (seenTitles.has(tKey)) continue
+      seenTitles.add(tKey)
 
-CRITICAL MISSIVE QA DIRECTIVES (APPLIED TO EVERY PIECE OF GENERATED TEXT):
-${qaDirectives}
+      topics.push({
+        title: applyEntityCasing(toSentenceCase(title)),
+        targetKeyword: applyEntityCasing(concept),
+        searchIntent: 'informational',
+        contentType: 'Deep Dive',
+        contentAngle: 'Focused Analysis',
+        hook: applyEntityCasing(toSentenceCase(`${concept} is one half of the ${kw} equation. Understanding it on its own terms helps you see the bigger picture more clearly.`)),
+        difficulty: 'medium',
+        estimatedWordCount: 1700,
+        clusterName: assignClusterFromIntent('informational', semanticClusters),
+        whyItWorks: `Provides focused coverage of ${concept} as part of the broader ${kw} topic.`,
+        relatedEntities: relatedEntities.slice(0, 4),
+        faqs: [],
+        seoBrief: {
+          targetPersona: applyEntityCasing(normalizedAudience || audienceIntentModel.persona),
+          funnelStage: 'TOFU (Awareness)',
+          searchIntent: 'informational',
+          recommendedWordCount: '1,700 words (~7 min read)',
+          primaryKeyword: applyEntityCasing(concept),
+          secondaryKeywords: relatedEntities.slice(1, 3),
+        },
+        detailedOutline: buildDefaultOutline(kw, normalizedAudience),
+      })
+    }
+  }
 
-ADDITIONAL RULES:
-1. INSIGHT-FIRST OPENING: Hook must open with an acute friction or concrete metric. Zero generic throat-clearing.
-2. OUTLINE DEPTH: Provide 6 to 8 exhaustive sections. Each section must contain:
-   - Descriptive H2 title (never "In Conclusion" or generic labels)
-   - Word allocation target (~350 to 500 words)
-   - Editorial purpose
-   - 2 to 3 nested H3 subsections with specific writing instructions
-   - 3 to 5 tactical talking points
-   - Concrete E‑E‑A‑T metric or data anchor
-   - Suggested visual asset (e.g., custom flowchart, data table, comparison chart)
-   - Amateur trap/pitfall to avoid
-3. 4 GOOGLE PEOPLE ALSO ASK FAQs with featured snippet-ready answers (2-3 sentences each).
-4. TONE OF VOICE (${toneProfile.label}): ${toneProfile.directive}
-5. Return ONLY valid JSON.`
+  return topics
+}
 
-  const userPrompt = `Generate a 2,500-Word Master Editorial Brief & In-Depth Article Blueprint for:
-- Article Title: ${topicTitle}
-- Target Focus Keyword: ${topicKeyword}
-- Niche: ${niche}
-- Target Audience: ${audience || 'Practitioners and decision-makers in ' + niche}
-- Tone of Voice: ${toneProfile.label} (${toneProfile.directive})
+function questionToTitle(question, kw, concepts, isCompound) {
+  const q = question.toLowerCase()
+  if (q.startsWith('how do') && isCompound) {
+    return `How ${applyEntityCasing(concepts[0])} and ${applyEntityCasing(concepts[1])} Work Together`
+  }
+  if (q.startsWith('which aspect')) {
+    return `${kw}: Which Part Matters Most and Why`
+  }
+  if (q.startsWith('can you focus')) {
+    return `${kw}: Breaking It Down Into Its Core Parts`
+  }
+  if (q.startsWith('who is this')) {
+    return `${kw}: Who It Is For and Who Should Look Elsewhere`
+  }
+  if (q.startsWith('what background')) {
+    return `${kw}: Background Knowledge That Actually Helps`
+  }
+  // Generic question-to-title — rephrase as a declarative title
+  const cleaned = question
+    .replace(/^(who|what|when|where|why|how|can)\s+/i, '')
+    .replace(/\?$/, '')
+    .trim()
+  if (cleaned.length > 8) {
+    return `${applyEntityCasing(cleaned)}: A Clear Breakdown`
+  }
+  return null
+}
 
-Return a JSON object with this EXACT structure:
-{
-  "title": "${topicTitle}",
-  "alternativeTitles": [
-    "Contrarian Angle Title (<60 chars)",
-    "Data-Driven Benchmark Title (<60 chars)",
-    "Tactical How-To Title (<60 chars)"
-  ],
-  "targetKeyword": "${topicKeyword}",
-  "estimatedWordCount": 2600,
-  "readingTime": "11 min read",
-  "funnelStage": "TOFU (Awareness)",
-  "searchIntent": "Informational",
-  "hook": "Scroll-stopping, insight-first opening hook with zero em dashes.",
-  "whySearchEnginesRankThis": "Explanation of search intent capture and Information Gain in ${niche}.",
-  "competitorGap": "What top 5 ranking competitors on Google miss and how this article outranks them.",
-  "targetPersona": {
-    "role": "Specific job title or practitioner profile in ${niche}",
-    "primaryPainPoint": "The exact operational friction or skepticism being solved",
-    "desiredOutcome": "The tangible transformation after reading this article"
-  },
-  "seoMeta": {
-    "titleTag": "Primary SEO Title Tag under 60 characters",
-    "metaDescription": "145-155 characters SERP snippet with clear value hook, zero em dashes",
-    "slug": "${topicKeyword.toLowerCase().replace(/[^a-z0-9]+/g, '-')}",
-    "primaryKeyword": "${topicKeyword}",
-    "secondaryKeywords": ["secondary kw 1", "secondary kw 2", "secondary kw 3", "secondary kw 4", "secondary kw 5"],
-    "internalLinkAnchors": {
-      "inboundFromPillar": "Anchor text linking from cornerstone pillar guide",
-      "outboundToCluster": "Anchor text linking to sister cluster article"
-    },
-    "ctaBridge": "Conversion call to action directive"
-  },
-  "detailedSections": [
+function inferIntentFromQuestion(question) {
+  const q = (question || '').toLowerCase()
+  if (/^(how|step|guide)/.test(q)) return 'how-to'
+  if (/^(what|who|when|where|which)/.test(q)) return 'informational'
+  if (/(compare|vs|difference|better)/.test(q)) return 'comparison'
+  if (/(buy|choose|select|best|review)/.test(q)) return 'commercial investigation'
+  if (/(fix|solve|avoid|problem)/.test(q)) return 'problem-solving'
+  return 'informational'
+}
+
+function normalizeIntent(intent) {
+  const map = {
+    'decision': 'commercial investigation',
+    'comparison': 'comparison',
+  }
+  return map[intent] || intent || 'informational'
+}
+
+function contentTypeFromIntent(intent) {
+  switch (intent) {
+    case 'comparison': return 'Comparison Guide'
+    case 'how-to': return 'How-to Guide'
+    case 'commercial investigation': return 'Buyer Guide'
+    case 'problem-solving': return 'Troubleshooting Guide'
+    default: return 'Comprehensive Guide'
+  }
+}
+
+function assignClusterFromIntent(intent, clusters) {
+  if (!clusters || clusters.length === 0) return 'General'
+  for (const c of clusters) {
+    const name = (c.name || '').toLowerCase()
+    if (intent === 'comparison' && (name.includes('comparison') || name.includes('alternative') || name.includes('versus'))) return c.name
+    if (intent === 'how-to' && (name.includes('guide') || name.includes('setup') || name.includes('implementation'))) return c.name
+    if (intent === 'commercial investigation' && (name.includes('decision') || name.includes('buying') || name.includes('cost'))) return c.name
+    if (intent === 'problem-solving' && (name.includes('mistake') || name.includes('troubleshoot') || name.includes('fix'))) return c.name
+  }
+  return clusters[0].name
+}
+
+// ══════════════════════════════════════════════════════════════
+// HELPER FUNCTIONS
+// ══════════════════════════════════════════════════════════════
+
+/**
+ * Dynamically estimates word count based on topic scope, complexity, and intent.
+ * NOT a fixed value for every topic.
+ */
+function estimateWordCount(topic, ontology) {
+  let base = 1800
+  const intent = (topic.searchIntent || '').toLowerCase()
+  const title = (topic.title || '').toLowerCase()
+
+  // Longer, more complex topics get more words
+  if (intent === 'comparison') base = 2400
+  if (intent === 'how-to') base = 2000
+  if (intent === 'commercial investigation') base = 2200
+
+  // Compound subjects or multi-concept topics need more depth
+  if (ontology.componentConcepts.length > 1) base += 400
+
+  // Outline complexity affects word count
+  if (Array.isArray(topic.detailedOutline) && topic.detailedOutline.length > 5) base += 300
+
+  // Topics with comparisons in the title need more
+  if (/vs|versus|compared|alternatives|difference/.test(title)) base += 300
+
+  // Add some variance (not every article is the same length)
+  const variance = Math.floor(Math.random() * 400) - 200
+  return Math.max(1500, Math.min(3500, base + variance))
+}
+
+/**
+ * Assigns a topic to the best-matching cluster based on intent and content.
+ */
+function assignCluster(topic, clusters) {
+  if (!clusters || clusters.length === 0) return 'General'
+  if (topic.clusterName) return topic.clusterName
+
+  const intent = (topic.searchIntent || '').toLowerCase()
+  const title = (topic.title || '').toLowerCase()
+
+  // Try to match cluster name to intent/topic content
+  for (const cluster of clusters) {
+    const name = (cluster.name || '').toLowerCase()
+    if (intent === 'comparison' && (name.includes('comparison') || name.includes('alternative') || name.includes('versus'))) return cluster.name
+    if (intent === 'how-to' && (name.includes('guide') || name.includes('setup') || name.includes('implementation'))) return cluster.name
+    if (intent === 'commercial investigation' && (name.includes('decision') || name.includes('buying') || name.includes('cost'))) return cluster.name
+    if (intent === 'problem-solving' && (name.includes('mistake') || name.includes('troubleshoot') || name.includes('fix'))) return cluster.name
+  }
+
+  // Fallback to first cluster
+  return clusters[0].name
+}
+
+/**
+ * Infers funnel stage from search intent.
+ */
+function inferFunnelStage(intent) {
+  switch (intent) {
+    case 'commercial investigation': return 'MOFU (Consideration)'
+    case 'comparison': return 'MOFU (Consideration)'
+    case 'decision': return 'BOFU (Decision)'
+    case 'how-to': return 'TOFU (Awareness)'
+    case 'problem-solving': return 'MOFU (Consideration)'
+    default: return 'TOFU (Awareness)'
+  }
+}
+
+/**
+ * Builds topic-specific related entities — not token fragments.
+ */
+function buildTopicEntities(title, baseEntities, primaryKeyword) {
+  const titleLower = (title || '').toLowerCase()
+  const kwLower = (primaryKeyword || '').toLowerCase()
+
+  // Start with base entities, filter out token fragments
+  const entities = []
+  for (const entity of baseEntities || []) {
+    const e = (entity || '').trim()
+    if (!e || e.length < 3) continue
+    // Skip if it's just a single word from the keyword
+    const eLower = e.toLowerCase()
+    if (eLower === kwLower) continue
+    if (eLower.split(/\s+/).length === 1 && kwLower.split(/\s+/).includes(eLower)) continue
+    entities.push(applyEntityCasing(e))
+  }
+
+  // If we have too few, add the primary keyword as the root entity
+  if (entities.length === 0 && primaryKeyword) {
+    entities.push(applyEntityCasing(primaryKeyword))
+  }
+
+  return entities.slice(0, 8)
+}
+
+/**
+ * Normalizes the detailed outline from AI output.
+ */
+function buildDefaultOutline(primaryKeyword, audience) {
+  const kw = applyEntityCasing(primaryKeyword || 'Topic')
+  const aud = applyEntityCasing(audience || 'readers')
+  return [
     {
-      "sectionNumber": 1,
-      "heading": "H2: Specific Insight-First Section Headline for ${niche}",
-      "wordCountBudget": "400 words",
-      "purpose": "Editorial goal of this section",
-      "subsections": [
+      sectionNumber: 1,
+      heading: applyEntityCasing(`H2: Foundations and Context: Understanding ${kw}`),
+      wordCountBudget: '400 words',
+      purpose: `Establish objective baseline facts and reader context for ${kw}.`,
+      subsections: [
         {
-          "heading": "H3: Sub-section Headline",
-          "guidance": "Exact instructions on what arguments, data, and steps to write",
-          "keyTakeaway": "Core reader takeaway"
+          heading: applyEntityCasing(`H3: Core Principles and Overview`),
+          guidance: `Provide clear background context explaining what ${kw} involves in practice.`,
+        },
+      ],
+      keyPoints: [
+        `Core principles regarding ${kw}.`,
+        `Baseline requirements for ${aud}.`,
+        `Common misconceptions to clarify upfront.`,
+      ],
+      eeatProof: 'Reference primary source documentation or verified standards.',
+      visualAsset: `Overview summary card or annotated diagram for ${kw}`,
+      commonPitfall: 'Relying on unverified claims or omitting foundational context.',
+    },
+    {
+      sectionNumber: 2,
+      heading: applyEntityCasing(`H2: In-Depth Analysis: Key Factors, Trade-offs, and Practical Impact`),
+      wordCountBudget: '550 words',
+      purpose: `Deliver comprehensive, actionable breakdowns that go beyond surface-level information.`,
+      subsections: [
+        {
+          heading: applyEntityCasing(`H3: Primary Advantages and Practical Capabilities`),
+          guidance: `Explain specific benefits and realistic expectations without exaggerated claims.`,
         },
         {
-          "heading": "H3: Second Sub-section Headline",
-          "guidance": "Detailed writing guidance",
-          "keyTakeaway": "Core takeaway"
-        }
+          heading: applyEntityCasing(`H3: Real-World Constraints and Limitations`),
+          guidance: `Examine genuine trade-offs transparently so readers can make informed decisions.`,
+        },
       ],
-      "keyTalkingPoints": [
-        "Tactical point 1 with operational reality in ${niche}",
-        "Tactical point 2 with parameter guidelines",
-        "Tactical point 3 with actionable advice"
+      keyPoints: [
+        `In-depth factor breakdown tailored to ${aud}.`,
+        `Practical trade-offs and decision factors to weigh.`,
+        `How to evaluate quality and suitability objectively.`,
       ],
-      "eeatMetricAnchor": "Specific benchmark study, data point, or lived experience to cite",
-      "visualAsset": "Suggested visual (e.g., comparison table, workflow diagram, benchmark chart)",
-      "commonPitfall": "Specific amateur trap to avoid in this section"
-    }
-  ],
-  "faqs": [
-    {
-      "question": "First Google People Also Ask query for ${topicKeyword}?",
-      "answerSnippet": "2-3 sentence direct answer structured for featured snippet capture."
+      eeatProof: 'Compare documented specifications or established benchmarks.',
+      visualAsset: 'Feature evaluation matrix or comparison table',
+      commonPitfall: 'Focusing solely on headline benefits without addressing real-world constraints.',
     },
     {
-      "question": "Second People Also Ask query?",
-      "answerSnippet": "Direct, clear answer."
+      sectionNumber: 3,
+      heading: applyEntityCasing(`H2: Actionable Guidance: Making the Right Choice for Your Situation`),
+      wordCountBudget: '450 words',
+      purpose: `Guide readers to an informed, high-confidence decision or next step.`,
+      subsections: [
+        {
+          heading: applyEntityCasing(`H3: Decision Framework by Use Case`),
+          guidance: `Map different requirements to recommended approaches or options.`,
+        },
+      ],
+      keyPoints: [
+        `Clear decision matrix tailored to ${aud}.`,
+        `Common traps to avoid when taking action.`,
+        `Practical next steps and recommendations.`,
+      ],
+      eeatProof: 'Document real-world observations and practical criteria.',
+      visualAsset: 'Decision flowchart or step-by-step action roadmap',
+      commonPitfall: 'Making decisions without evaluating individual fit and specific requirements.',
     },
-    {
-      "question": "Third People Also Ask query?",
-      "answerSnippet": "Direct, clear answer."
-    },
-    {
-      "question": "Fourth People Also Ask query?",
-      "answerSnippet": "Direct, clear answer."
-    }
-  ],
-  "writingGuidelines": {
-    "toneDirective": "${toneProfile.directive}",
-    "paragraphLength": "Keep paragraphs tight (1 to 3 sentences maximum).",
-    "bannedWordsReminder": "Follows the Missive QA directives above."
-  }
-}`
-
-  const res = await callAIAndParseJSON([
-    { role: 'system', content: systemPrompt },
-    { role: 'user', content: userPrompt },
-  ], {
-    preferredProvider: preferredProvider || 'groq',
-    temperature: 0.65,
-    maxTokens: 3200,
-    jsonMode: true,
-  })
-  if (res && Array.isArray(res.detailedSections) && res.detailedSections.length > 0) {
-    return recursiveSanitizeMissive(res)
-  }
-
-  throw new Error(`Failed to generate master brief with all AI providers.`)
+  ]
 }
 
-/**
- * Procedural Dynamic Topic Generator
- * Used ONLY as a fail-safe fallback when all external AI APIs are offline.
- * Synthesizes 100% dynamic, niche-specific topics with zero hardcoded software strings.
- */
+function normalizeOutline(outline, primaryKeyword, audience) {
+  if (Array.isArray(outline) && outline.length >= 3) {
+    return outline.map((sec, sIdx) => ({
+      sectionNumber: sIdx + 1,
+      heading: applyEntityCasing(
+        removeCircularRepetition(sec.heading || '', primaryKeyword, primaryKeyword)
+      ),
+      wordCountBudget: sec.wordCountBudget || '~400 words',
+      purpose: applyEntityCasing(sec.purpose || ''),
+      subsections: Array.isArray(sec.subsections)
+        ? sec.subsections.map(sub => ({
+            heading: applyEntityCasing(sub.heading || ''),
+            guidance: applyEntityCasing(sub.guidance || ''),
+          }))
+        : [],
+      keyPoints: Array.isArray(sec.keyPoints) && sec.keyPoints.length > 0
+        ? sec.keyPoints.map(applyEntityCasing)
+        : [],
+      eeatProof: applyEntityCasing(sec.eeatProof || ''),
+      visualAsset: applyEntityCasing(sec.visualAsset || ''),
+      commonPitfall: applyEntityCasing(sec.commonPitfall || ''),
+    }))
+  }
+  return buildDefaultOutline(primaryKeyword, audience)
+}
+
 export function generateDynamicTopics({
   niche,
   targetKeywords,
@@ -701,902 +1444,374 @@ export function generateDynamicTopics({
   count = 8,
   contentType = 'blog post',
 }) {
-  const seed = (targetKeywords && targetKeywords[0]) || niche || 'Strategy'
-  const secondary = (targetKeywords && targetKeywords[1]) || `${seed} Optimization`
-  const targetCount = Math.min(Math.max(parseInt(count, 10) || 8, 1), 20)
-  const activeTone = (tone || 'authoritative').toLowerCase().trim()
-  const toneProfile = TONE_PROFILES[activeTone] || TONE_PROFILES.authoritative
+  const normalized = normalizeInput({
+    niche,
+    targetKeywords,
+    audience,
+    contentGoal,
+    tone,
+    count,
+    contentType,
+  })
 
-  const targetAudience = audience || `Practitioners, team leads, and decision-makers in ${niche}`
+  const { normalizedSubject, primaryKeyword, normalizedAudience, numberOfTopics } = normalized
 
-  // Dynamic hook generator matching active tone and niche
-  const getDynamicHook = (topicSeed, angle) => {
-    switch (activeTone) {
-      case 'bold':
-        return `Most conventional advice about ${topicSeed} is fundamentally broken. Here is the contrarian blueprint that actually drives measurable impact in ${niche}.`
-      case 'data-driven':
-        return `We analyzed performance benchmarks across implementations in ${niche}: here are the empirical numbers that separate high performers from average results in ${topicSeed}.`
-      case 'conversational':
-        return `If navigating ${topicSeed} in ${niche} feels overwhelming, you are not alone. Let us walk through the exact practical steps together without confusing jargon.`
-      case 'fun':
-        return `Ready to turn ${topicSeed} from a frustrating chore into your team's favorite growth lever in ${niche}? Let us jump into a refreshingly practical breakdown.`
-      case 'storytelling':
-        return `When teams first overhaul their approach to ${topicSeed} in ${niche}, they almost always stumble on the same initial roadblock. Here is the story and framework that solves it.`
-      case 'empathetic':
-        return `Balancing daily operations with ${topicSeed} in ${niche} can feel exhausting when bandwidth is stretched thin. Here is a compassionate, realistic roadmap built for real teams.`
-      case 'witty':
-        return `Why do so many teams treat ${topicSeed} like rocket science when simple fundamentals solve 90% of the friction in ${niche}? Let us fix that today.`
-      case 'authoritative':
-      default:
-        return `Most advice in ${niche} focuses on theoretical generalities. Here is the exact operational framework required to achieve verifiable, high-impact results with ${topicSeed}.`
+  const nicheClassification = classifyNiche(normalizedSubject, primaryKeyword, normalizedAudience)
+  const { nicheType } = nicheClassification
+  const lifecycleProfile = detectEntityLifecycle(normalizedSubject, primaryKeyword)
+  const { lifecycleState, isUnreleased } = lifecycleProfile
+  const audienceModel = buildAudienceIntentMap(normalizedSubject, normalizedAudience, nicheType)
+  const semanticClusters = buildSemanticTopicMap(
+    normalizedSubject,
+    primaryKeyword,
+    nicheType,
+    lifecycleState,
+    normalized.contentGoal
+  )
+
+  const baseAffordanceCtx = deriveInputContext(normalizedSubject, primaryKeyword, normalizedAudience)
+  const affordanceCtx = buildAffordanceContext(baseAffordanceCtx, { contentGoal: normalized.contentGoal })
+  const compatibleAngles = getCompatibleAngles(nicheType, { isUnreleased, affordanceCtx })
+  const relatedEntities = buildRelatedEntities(
+    normalizedSubject,
+    primaryKeyword,
+    nicheType,
+    normalizedAudience,
+    normalized.contentGoal
+  )
+
+  // Title/hook templates tagged by affordance id. A template is only ever
+  // selected when its affordance is in validAffordances below — a subject
+  // with no how-to/technical/B2B signal will never see the
+  // setupOrImplement/troubleshoot/configure/scaleOrOptimize templates,
+  // regardless of what the keyword is. No niche or subject name appears in
+  // this map; only the caller's own keyword is interpolated at call time.
+  const TEMPLATES_BY_AFFORDANCE = {
+    understandOverview: [
+      {
+        titleFn: (kw) => `${kw}: A Complete Practical Overview`,
+        hookFn: (kw, aud) => `Most content about ${kw} skips past the essentials. Here is a grounded, practical breakdown of what it actually involves and what ${aud || 'readers'} need to know before going further.`,
+      },
+      {
+        titleFn: (kw) => `Understanding ${kw} in Practice: A Deep Dive`,
+        hookFn: (kw, aud) => `Surface-level content about ${kw} rarely answers the questions that matter in practice. Here is a thorough examination of how it actually works.`,
+      },
+    ],
+    chooseOrDecide: [
+      {
+        titleFn: (kw) => `${kw}: What to Look for Before You Decide`,
+        hookFn: (kw, aud) => `Choosing the right ${kw} option requires understanding key evaluation criteria that most reviews overlook. Here is what actually matters.`,
+      },
+      {
+        titleFn: (kw) => `${kw}: When It's the Right Choice and When It Is Not`,
+        hookFn: (kw, aud) => `${kw} is not the right approach for every situation. Here is an honest analysis of when it delivers clear value and when a different path makes more sense.`,
+      },
+    ],
+    avoidMistakes: [
+      {
+        titleFn: (kw) => `Common ${kw} Mistakes and How to Avoid Them`,
+        hookFn: (kw, aud) => `The most preventable setbacks with ${kw} come from the same recurring mistakes. Here is what goes wrong and how to avoid each one.`,
+      },
+      {
+        titleFn: (kw) => `${kw} Mistakes Even Careful Buyers Make`,
+        hookFn: (kw, aud) => `Even experienced ${aud || 'buyers'} fall into a handful of avoidable traps with ${kw}. Here is what to watch for.`,
+      },
+    ],
+    costOrValue: [
+      {
+        titleFn: (kw) => `${kw}: Honest Cost Breakdown and What to Expect`,
+        hookFn: (kw, aud) => `The headline cost of ${kw} rarely reflects the full picture. Here is an honest breakdown of what ${aud || 'buyers'} actually spend and what to budget for.`,
+      },
+    ],
+    compareOptions: [
+      {
+        titleFn: (kw) => `${kw} Options Compared: Key Differences Explained`,
+        hookFn: (kw, aud) => `Not all ${kw} approaches are equal. Here is a clear, objective breakdown of the most significant differences to help ${aud || 'you'} make an informed choice.`,
+      },
+      {
+        titleFn: (kw) => `Best Tools and Resources for ${kw}`,
+        hookFn: (kw, aud) => `The right supporting options can make ${kw} significantly easier and more effective. Here is a curated list with honest assessments of what each one actually offers.`,
+      },
+    ],
+    faq: [
+      {
+        titleFn: (kw) => `${kw} Questions Answered: What People Actually Want to Know`,
+        hookFn: (kw, aud) => `Searching for reliable answers about ${kw} often surfaces conflicting opinions. Here are honest, evidence-based answers to the questions ${aud || 'readers'} most frequently ask.`,
+      },
+    ],
+    setupOrImplement: [
+      {
+        titleFn: (kw) => `How to Get Started with ${kw}: Step-by-Step Guidance`,
+        hookFn: (kw, aud) => `Beginning with ${kw} without a clear roadmap leads to avoidable missteps. Here is a practical step-by-step guide for ${aud || 'anyone starting out'}.`,
+      },
+      {
+        titleFn: (kw) => `The Essential ${kw} Checklist: Nothing to Miss`,
+        hookFn: (kw, aud) => `A missed step with ${kw} can cause unnecessary rework or complications. Here is a practical checklist so ${aud || 'practitioners'} can proceed with confidence.`,
+      },
+    ],
+    troubleshoot: [
+      {
+        titleFn: (kw) => `${kw} Troubleshooting: Diagnosing and Fixing Common Problems`,
+        hookFn: (kw, aud) => `When ${kw} does not behave as expected, the cause is usually one of a handful of well-known issues. Here is a practical guide to diagnosing and resolving them.`,
+      },
+    ],
+    configure: [
+      {
+        titleFn: (kw) => `${kw} Configuration: Getting the Settings Right`,
+        hookFn: (kw, aud) => `Default ${kw} settings rarely fit every use case. Here is how to configure it correctly for ${aud || 'your workflow'}.`,
+      },
+    ],
+    scaleOrOptimize: [
+      {
+        titleFn: (kw) => `Scaling ${kw}: Advanced Techniques for Better Results`,
+        hookFn: (kw, aud) => `Once the fundamentals of ${kw} are in place, scaling and optimizing for better outcomes is the natural next step. Here are the techniques that make the biggest practical difference.`,
+      },
+    ],
+    roiOrBusinessCase: [
+      {
+        titleFn: (kw) => `${kw} ROI: Building the Business Case`,
+        hookFn: (kw, aud) => `Justifying ${kw} internally means showing real business impact. Here is how to build a credible ROI case for ${aud || 'decision makers'}.`,
+      },
+    ],
+    legalOrRegulatorySteps: [
+      {
+        titleFn: (kw) => `${kw}: Your Rights and What to Do Next`,
+        hookFn: (kw, aud) => `Knowing your options with ${kw} starts with understanding the process. Here is a clear breakdown of the steps involved for ${aud || 'those affected'}.`,
+      },
+    ],
+    travelLogistics: [
+      {
+        titleFn: (kw) => `${kw}: A Practical Planning Guide`,
+        hookFn: (kw, aud) => `Good experiences with ${kw} come down to planning the logistics well. Here is what ${aud || 'travelers'} should sort out first.`,
+      },
+    ],
+    styleOrWear: [
+      {
+        titleFn: (kw) => `How to Style ${kw}: Practical Pairing Ideas`,
+        hookFn: (kw, aud) => `${kw} looks different depending on how it is styled. Here are practical pairing ideas that work for ${aud || 'everyday wear'}.`,
+      },
+    ],
+    learnAsSkill: [
+      {
+        titleFn: (kw) => `${kw}: A Practice Roadmap for Beginners`,
+        hookFn: (kw, aud) => `Building real skill with ${kw} takes a structured approach. Here is a practical roadmap for ${aud || 'beginners'}.`,
+      },
+    ],
+  }
+
+  // Only pull templates whose affordance is actually valid for this subject
+  // and content goal, ordered so a commercial goal leads with decision
+  // templates and an educational goal leads with understanding templates.
+  const { validAffordances } = resolveValidAffordances(affordanceCtx)
+  // 'understandOverview' is forced first here to match buildSemanticTopicMap's
+  // cluster ordering exactly (it also forces overview first) — otherwise the
+  // topic pool's affordance order and the clusters array's affordance order
+  // drift apart and clusterIndex below points at the wrong cluster.
+  const orderedAffordanceIds = [
+    'understandOverview',
+    ...prioritizeAffordances(validAffordances, affordanceCtx).filter((id) => id !== 'understandOverview'),
+  ]
+
+  const candidatePool = []
+  for (const id of orderedAffordanceIds) {
+    for (const template of TEMPLATES_BY_AFFORDANCE[id] || []) {
+      candidatePool.push({ ...template, affordanceId: id })
+    }
+  }
+  if (candidatePool.length === 0) {
+    for (const template of TEMPLATES_BY_AFFORDANCE.understandOverview) {
+      candidatePool.push({ ...template, affordanceId: 'understandOverview' })
     }
   }
 
-  // Dynamic archetypes synthesized entirely from the user's niche and keywords
-  const dynamicArchetypes = [
-    {
-      titleTemplate: `How to Master ${seed}: The Complete Step-by-Step Playbook for ${niche}`,
-      targetKeyword: `${seed} playbook`,
-      searchIntent: 'informational',
-      funnelStage: 'TOFU (Awareness)',
-      contentType: 'Comprehensive Guide',
-      contentAngle: 'Tactical Step-by-Step',
-      difficulty: 'medium',
-      estimatedWordCount: 2600,
-      clusterName: 'Core Foundations',
-      sections: [
-        {
-          heading: `H2: Why Traditional Approaches to ${seed} Fail in ${niche}`,
-          wordCountBudget: '450 words',
-          purpose: `Examine the operational friction and hidden bottlenecks common in ${niche}.`,
-          subsections: [
-            {
-              heading: `H3: Deconstructing the Baseline Bottleneck in ${niche}`,
-              guidance: `Analyze why conventional methods break down when execution volume increases.`,
-            },
-            {
-              heading: `H3: The Cost of Inaction and Resource Misallocation`,
-              guidance: `Demonstrate the financial and productivity loss caused by outdated practices.`,
-            },
-          ],
-          keyPoints: [
-            `The critical difference between superficial execution and measurable business impact in ${niche}.`,
-            `Key operational friction points practitioners face during early adoption of ${seed}.`,
-            `The mental model shift required to build a repeatable, scalable system for ${seed}.`,
-          ],
-          eeatProof: `Cite production benchmarks showing significant variance between disciplined and ad-hoc approaches in ${niche}.`,
-          visualAsset: `Workflow diagram illustrating the transition from ad-hoc friction to standardized execution`,
-          commonPitfall: `Treating ${seed} as a one-time initiative rather than an ongoing core capability in ${niche}.`,
-        },
-        {
-          heading: `H2: The 4 Foundational Pillars of a High-Performing ${seed} System`,
-          wordCountBudget: '500 words',
-          purpose: `Establish the structural architecture required for successful execution in ${niche}.`,
-          subsections: [
-            {
-              heading: `H3: Pillar 1 and 2: Infrastructure Diagnostics and Process Standardization`,
-              guidance: `Detail how to establish objective baseline measurements before implementing tactical shifts.`,
-            },
-            {
-              heading: `H3: Pillar 3 and 4: Team Enablement and Quality Verification Loops`,
-              guidance: `Explain how to build repeatable review habits that prevent quality degradation.`,
-            },
-          ],
-          keyPoints: [
-            `Pillar 1: Baseline diagnostic audit and resource mapping for ${seed}.`,
-            `Pillar 2: Process standardization and workflow friction elimination in ${niche}.`,
-            `Pillar 3: Team alignment, skill building, and governance.`,
-            `Pillar 4: Feedback loops and continuous quality assurance.`,
-          ],
-          eeatProof: `Reference comparative performance data from audited organizations operating in ${niche}.`,
-          visualAsset: `4-pillar structural matrix table with operational criteria for each maturity tier`,
-          commonPitfall: `Attempting execution before establishing clear baseline metrics and team alignment.`,
-        },
-        {
-          heading: `H2: Step-by-Step Execution: From Baseline Audit to Implementation`,
-          wordCountBudget: '600 words',
-          purpose: `Deliver hands-on, sequential instructions for operationalizing ${seed}.`,
-          subsections: [
-            {
-              heading: `H3: Phase 1: Conducting the 60-Minute Diagnostic Review`,
-              guidance: `Provide the exact diagnostic questions and parameters to evaluate.`,
-            },
-            {
-              heading: `H3: Phase 2: Controlled Pilot Testing and Stress Testing`,
-              guidance: `Walk through setting up a pilot run and validating throughput metrics.`,
-            },
-          ],
-          keyPoints: [
-            `Step 1: Conducting the 60-minute diagnostic audit for ${seed}.`,
-            `Step 2: Configuring essential workflows and safety guardrails.`,
-            `Step 3: Rolling out a controlled pilot phase to validate assumptions.`,
-            `Step 4: Stress-testing throughput under real-world operating conditions in ${niche}.`,
-          ],
-          eeatProof: `Document a verified case breakdown demonstrating measurable throughput gains after pilot rollout.`,
-          visualAsset: `Step-by-step implementation timeline roadmap covering Days 1 through 30`,
-          commonPitfall: `Skipping the pilot testing phase and deploying untested changes directly into production.`,
-        },
-        {
-          heading: `H2: 5 High-Risk Pitfalls in ${seed} and How to Sidestep Them`,
-          wordCountBudget: '400 words',
-          purpose: `Arm the reader with proactive guardrails against costly mistakes in ${niche}.`,
-          subsections: [
-            {
-              heading: `H3: Avoiding Premature Complexity and Metric Misalignment`,
-              guidance: `Highlight how teams get distracted by vanity metrics instead of core unit economics.`,
-            },
-            {
-              heading: `H3: Institutionalizing Knowledge and Preventing Single Points of Failure`,
-              guidance: `Explain the importance of living documentation and cross-training.`,
-            },
-          ],
-          keyPoints: [
-            `Trap 1: Over-optimizing secondary details while neglecting core fundamentals.`,
-            `Trap 2: Failing to establish quantitative review checkpoints.`,
-            `Trap 3: Inadequate documentation that creates single points of operational failure.`,
-          ],
-          eeatProof: `Highlight industry survey data indicating that structured checklists reduce error rates by over 60%.`,
-          visualAsset: `Checklist comparison card highlighting high-risk traps vs Missive-certified practices`,
-          commonPitfall: `Failing to update standard operating procedures as team operations evolve.`,
-        },
-        {
-          heading: `H2: Your 30-Day Execution Roadmap: Putting ${seed} to Work`,
-          wordCountBudget: '350 words',
-          purpose: `Provide a structured, time-bound action plan that bridges insight into conversion.`,
-          subsections: [
-            {
-              heading: `H3: Sprints 1 and 2: Infrastructure Alignment and Pilot Execution`,
-              guidance: `Outline the key deliverables for Weeks 1 and 2.`,
-            },
-            {
-              heading: `H3: Sprints 3 and 4: Scaling and Governance Verification`,
-              guidance: `Detail the transition to full operational rollout and monthly reviews.`,
-            },
-          ],
-          keyPoints: [
-            `Week 1: Baseline audit, team alignment, and goal definition in ${niche}.`,
-            `Week 2: Core asset preparation and pilot deployment.`,
-            `Week 3: Stress-testing, quality verification, and adjustments.`,
-            `Week 4: Full operational rollout and performance review.`,
-          ],
-          eeatProof: `Reference the verified 30-day timeline checklist used across high-performing teams in ${niche}.`,
-          visualAsset: `Weekly sprint delivery calendar with key milestones and verification checkpoints`,
-          commonPitfall: `Losing momentum after the initial launch sprint due to lack of scheduled review milestones.`,
-        },
-      ],
-      faqs: [
-        {
-          question: `What is the most effective way to start with ${seed} in ${niche}?`,
-          answerSnippet: `Begin with a 60-minute diagnostic baseline audit to document current workflow cycle times and identify your primary operational bottleneck before investing in new tools.`,
-        },
-        {
-          question: `How does ${seed} compare to traditional methods in ${niche}?`,
-          answerSnippet: `Modern frameworks focus on compounding feedback loops and automated quality gates, whereas traditional methods rely on ad-hoc manual execution that breaks under scale.`,
-        },
-        {
-          question: `What metrics prove that ${seed} is generating positive ROI?`,
-          answerSnippet: `Track operational cycle velocity, error rate reduction, and unit labor savings against initial setup costs across 30, 60, and 90-day review windows.`,
-        },
-      ],
-    },
-    {
-      titleTemplate: `The Modern ${seed} Tech Stack: Tools and Infrastructure for ${niche}`,
-      targetKeyword: `${seed} tools and technology`,
-      searchIntent: 'commercial',
-      funnelStage: 'MOFU (Consideration)',
-      contentType: 'Tool Architecture & Setup Guide',
-      contentAngle: 'Tech Stack Evaluation',
-      difficulty: 'medium',
-      estimatedWordCount: 2400,
-      clusterName: 'Tools & Technology',
-      sections: [
-        {
-          heading: `H2: Mapping Your Core ${seed} Technology Stack Requirements`,
-          wordCountBudget: '450 words',
-          purpose: `Establish an objective audit of essential tool capabilities versus redundant software bloat.`,
-          subsections: [
-            { heading: `H3: Primary Tool Criteria: Scalability, API Speed, and Reliability`, guidance: `Assess the mission-critical feature requirements needed for ${niche}.` },
-            { heading: `H3: Calculating the Total Cost of Ownership Across Team Seats`, guidance: `Break down hidden platform migration and maintenance expenses.` },
-          ],
-          keyPoints: [
-            `Audit existing tools in ${niche} to eliminate redundant monthly subscription overhead.`,
-            `Key integration criteria: API documentation, data sync frequency, and webhook support.`,
-            `Security protocols, data compliance, and enterprise access governance.`,
-          ],
-          eeatProof: `Benchmark data from production software audits showing average 25% cost reduction from stack consolidation.`,
-          visualAsset: `Tech stack tier comparison diagram mapping entry-level to enterprise configurations`,
-          commonPitfall: `Purchasing point solutions before defining team workflow parameters.`,
-        },
-        {
-          heading: `H2: Leading Platform Evaluations for ${seed}: Strengths and Tradeoffs`,
-          wordCountBudget: '550 words',
-          purpose: `Deliver unbiased, side-by-side technical evaluations tailored to ${niche}.`,
-          subsections: [
-            { heading: `H3: Best-in-Class Platforms for Early-Stage and Agile Teams`, guidance: `Evaluate setup velocity, ease of use, and quick-win capabilities.` },
-            { heading: `H3: Enterprise-Grade Solutions for High-Volume Operations`, guidance: `Detail advanced governance, multi-team workspaces, and custom integrations.` },
-          ],
-          keyPoints: [
-            `Feature-by-feature comparative evaluation across top 3 industry alternatives.`,
-            `Real-world latency, reliability, and customer support responsiveness benchmarks.`,
-            `Migration friction and data portability considerations between tools.`,
-          ],
-          eeatProof: `Direct user satisfaction scores and feature parity comparison rubrics.`,
-          visualAsset: `Side-by-side feature matrix table with pricing tier breakdowns`,
-          commonPitfall: `Relying solely on vendor marketing claims without conducting sandbox stress tests.`,
-        },
-        {
-          heading: `H2: Step-by-Step Implementation: Configuring Your ${seed} Workflow`,
-          wordCountBudget: '500 words',
-          purpose: `Walk the practitioner through clean setup, API connections, and quality check gates.`,
-          subsections: [
-            { heading: `H3: Step 1: Account Provisioning and Role-Based Permissions`, guidance: `Configure secure team access and credential management.` },
-            { heading: `H3: Step 2: Automated Data Ingestion and Validation Rules`, guidance: `Set up error-handling pipelines and fallback protocols.` },
-          ],
-          keyPoints: [
-            `Initial configuration walkthrough with verified security presets.`,
-            `Connecting webhook triggers and setting up bi-directional synchronization.`,
-            `Configuring automated exception alerts and diagnostic monitoring.`,
-          ],
-          eeatProof: `Step-by-step setup checklist with verified integration parameters.`,
-          visualAsset: `System architecture flowchart showing data flow between primary tools`,
-          commonPitfall: `Neglecting to configure error logging and automated fallback alerts.`,
-        },
-        {
-          heading: `H2: Avoiding Tool Fatigue and Integration Traps in ${niche}`,
-          wordCountBudget: '400 words',
-          purpose: `Help teams prevent fragmentation and unnecessary complexity across workflows.`,
-          subsections: [
-            { heading: `H3: Spotting the Warning Signs of Tool Sprawl`, guidance: `Identify when duplicate tools create conflicting data silos.` },
-            { heading: `H3: Consolidating Workflows into a Unified Dashboard`, guidance: `Streamline daily team routines into a single source of truth.` },
-          ],
-          keyPoints: [
-            `How tool sprawl inflates operational cycle time and causes data discrepancies.`,
-            `Best practices for running bi-annual software utility reviews.`,
-            `Standardizing team documentation to streamline onboarding of new hires.`,
-          ],
-          eeatProof: `Team productivity case studies documenting 35% time savings post-consolidation.`,
-          visualAsset: `Audit flowchart for evaluating whether to keep, replace, or eliminate software`,
-          commonPitfall: `Adding new software to solve underlying process flaws instead of fixing workflow basics.`,
-        },
-        {
-          heading: `H2: The Final Tech Decision Rubric: Selecting the Right Solution Today`,
-          wordCountBudget: '350 words',
-          purpose: `Equip the reader with a clear decision matrix to finalize their stack selection.`,
-          subsections: [
-            { heading: `H3: Matching Tool Capabilities to Current Team Maturity`, guidance: `Provide recommendations segmented by operational scale.` },
-            { heading: `H3: Your 14-Day Pilot Testing Action Plan`, guidance: `Structured roadmap for validating your chosen platform.` },
-          ],
-          keyPoints: [
-            `Decision scoring scorecard: ease of adoption, price-to-value, and support.`,
-            `14-day trial evaluation milestones to confirm platform viability.`,
-            `Securing team buy-in and establishing standard operating procedures.`,
-          ],
-          eeatProof: `Standardized platform evaluation scorecard used by leading technology consultants.`,
-          visualAsset: `Printable decision matrix scoring rubric with weighted priority criteria`,
-          commonPitfall: `Committing to long-term annual contracts before completing a verified pilot trial.`,
-        },
-      ],
-      faqs: [
-        { question: `What tools are mandatory for ${seed} in ${niche}?`, answerSnippet: `Most operations need a core analytics engine, an automated workflow integration bridge, and a centralized reporting dashboard to manage ${seed} effectively.` },
-        { question: `How much budget should teams allocate to ${seed} technology?`, answerSnippet: `High-performing teams typically allocate 8% to 15% of their operational tooling budget toward specialized software for ${seed}.` },
-        { question: `How can we ensure our data remains secure with third-party tools?`, answerSnippet: `Verify SOC 2 Type II compliance, enforce role-based access control, and conduct quarterly API permission audits across all integrated services.` },
-      ],
-    },
-    {
-      titleTemplate: `7 Costly ${seed} Mistakes in ${niche} (and How to Avoid Them)`,
-      targetKeyword: `${seed} mistakes to avoid`,
-      searchIntent: 'informational',
-      funnelStage: 'TOFU (Awareness)',
-      contentType: 'Troubleshooting Guide',
-      contentAngle: 'Mistake Avoidance & Diagnostics',
-      difficulty: 'easy',
-      estimatedWordCount: 2300,
-      clusterName: 'Core Foundations',
-      sections: [
-        {
-          heading: `H2: Why Most ${seed} Initiatives Fall Short of Expectations in ${niche}`,
-          wordCountBudget: '400 words',
-          purpose: `Expose the root causes behind common failures and shift the reader's perspective.`,
-          subsections: [
-            { heading: `H3: The Disconnect Between Strategic Theory and Day-to-Day Execution`, guidance: `Analyze why well-intentioned plans stumble during team rollout.` },
-            { heading: `H3: Lack of Objective Quality Gates and Performance Visibility`, guidance: `Explain how undetected drift degrades overall output over time.` },
-          ],
-          keyPoints: [
-            `Why 70% of initial implementations in ${niche} fail to hit their projected benchmarks.`,
-            `The difference between vanity activity and needle-moving business outcomes.`,
-            `How early structural mistakes compound into severe operational roadblocks.`,
-          ],
-          eeatProof: `Post-mortem diagnostic survey data highlighting common failure modes across 100+ organizations.`,
-          visualAsset: `Vulnerability risk map ranking mistakes by financial and operational severity`,
-          commonPitfall: `Assuming standard operational templates work out-of-the-box without tailoring to ${niche}.`,
-        },
-        {
-          heading: `H2: Mistake #1 through #3: Strategic Misalignment and Planning Blunders`,
-          wordCountBudget: '500 words',
-          purpose: `Dissect early-stage foundational errors that undermine project viability.`,
-          subsections: [
-            { heading: `H3: Blunder 1: Skipping the Initial Baseline Audit`, guidance: `Showcase why operating without documented baselines is fatal.` },
-            { heading: `H3: Blunder 2: Overcomplicating Workflows Before Validating Core Fundamentals`, guidance: `Advise against premature automation and bloated workflows.` },
-          ],
-          keyPoints: [
-            `Mistake 1: Setting arbitrary goals without historical baseline data in ${niche}.`,
-            `Mistake 2: Premature scaling before establishing repeatable output quality.`,
-            `Mistake 3: Failing to secure cross-functional stakeholder alignment.`,
-          ],
-          eeatProof: `Quantifiable metrics demonstrating project delay times associated with premature scaling.`,
-          visualAsset: `Before-and-after workflow comparison highlighting streamlined fundamentals`,
-          commonPitfall: `Focusing on sophisticated edge cases instead of locking down core daily workflows.`,
-        },
-        {
-          heading: `H2: Mistake #4 through #6: Execution Breakdowns and Team Friction`,
-          wordCountBudget: '500 words',
-          purpose: `Analyze tactical roadblocks that derail teams during mid-phase implementation.`,
-          subsections: [
-            { heading: `H3: Blunder 4: Inadequate Documentation and Knowledge Hoarding`, guidance: `Explain how single-person dependencies stall progress.` },
-            { heading: `H3: Blunder 5: Ignoring Early Leading Indicators and Warning Signals`, guidance: `Highlight the leading metrics that predict project derailment.` },
-          ],
-          keyPoints: [
-            `Mistake 4: Relying on tribal knowledge rather than standardized operating procedures.`,
-            `Mistake 5: Neglecting feedback loops from frontline practitioners.`,
-            `Mistake 6: Inconsistent quality assurance and review discipline.`,
-          ],
-          eeatProof: `Operational audits showing 40% higher productivity in teams with documented standard operating procedures.`,
-          visualAsset: `Error frequency diagnostic chart tracking mistake occurrence rates`,
-          commonPitfall: `Blaming team members for execution errors caused by ambiguous process documentation.`,
-        },
-        {
-          heading: `H2: Mistake #7: Abandoning Governance and Optimization Too Early`,
-          wordCountBudget: '400 words',
-          purpose: `Highlight the fatal mistake of declaring victory prematurely after initial launch.`,
-          subsections: [
-            { heading: `H3: The Post-Launch Performance Dip: Why Systems Degrade`, guidance: `Analyze why momentum drops 60 days after initial project rollout.` },
-            { heading: `H3: Instituting Continuous Review Cadences`, guidance: `Provide a calendar template for ongoing performance verification.` },
-          ],
-          keyPoints: [
-            `Why performance typically drops after initial executive attention shifts away.`,
-            `Setting up automated monitoring checks to flag metric degradation early.`,
-            `Scheduling structured monthly reviews to refine and optimize workflows.`,
-          ],
-          eeatProof: `Longitudinal case tracking showing compounding gains from disciplined monthly optimization.`,
-          visualAsset: `Continuous governance cycle diagram illustrating the monthly review loop`,
-          commonPitfall: `Treating implementation as a finished milestone rather than an ongoing operational discipline.`,
-        },
-        {
-          heading: `H2: Your Diagnostic Recovery Plan: Auditing and Fixing Your System`,
-          wordCountBudget: '350 words',
-          purpose: `Provide immediate remedial action steps to correct existing mistakes today.`,
-          subsections: [
-            { heading: `H3: The 48-Hour Rapid Triage Checklist`, guidance: `Steps to identify and stabilize active operational bottlenecks.` },
-            { heading: `H3: Restoring Team Velocity and Confidence`, guidance: `Re-aligning priorities around proven high-impact quick wins.` },
-          ],
-          keyPoints: [
-            `Rapid triage checklist to audit your existing setup in under 48 hours.`,
-            `Prioritizing high-impact quick wins to restore project momentum.`,
-            `Rebuilding operational guardrails to prevent recurring friction.`,
-          ],
-          eeatProof: `Verified triage protocol proven to resolve recurring operational bottlenecks within 14 days.`,
-          visualAsset: `Actionable triage checklist card with priority level indicators`,
-          commonPitfall: `Attempting to fix all seven mistakes simultaneously instead of addressing root causes sequentially.`,
-        },
-      ],
-      faqs: [
-        { question: `What is the single biggest mistake teams make in ${seed}?`, answerSnippet: `The most damaging mistake is scaling tactical execution before documenting baseline performance metrics and establishing repeatable standard operating procedures in ${niche}.` },
-        { question: `How quickly can an existing ${seed} mistake be corrected?`, answerSnippet: `Most process bottlenecks can be stabilized within 48 to 72 hours by applying a focused triage audit and eliminating unnecessary workflow complexity.` },
-        { question: `How do we prevent team members from repeating common traps?`, answerSnippet: `Create living documentation with clear visual checklists, conduct weekly retrospective reviews, and automate quality verification gates wherever feasible.` },
-      ],
-    },
-    {
-      titleTemplate: `The Data-Driven Benchmark for ${seed}: Key Metrics in ${niche}`,
-      targetKeyword: `${seed} benchmarks and metrics`,
-      searchIntent: 'commercial',
-      funnelStage: 'MOFU (Consideration)',
-      contentType: 'Industry Benchmark Report',
-      contentAngle: 'Data-Driven Analysis',
-      difficulty: 'hard',
-      estimatedWordCount: 2800,
-      clusterName: 'Performance & ROI',
-      sections: [
-        {
-          heading: `H2: The State of ${seed} Performance in ${niche}: Baseline Industry Data`,
-          wordCountBudget: '500 words',
-          purpose: `Ground the content in empirical data and comparative performance distributions.`,
-          subsections: [
-            { heading: `H3: Distribution Analysis: Bottom 25%, Median, and Top 10% Performers`, guidance: `Examine the quantitative divide across industry segments.` },
-            { heading: `H3: Key Drivers Distinguishing High-Velocity Teams`, guidance: `Isolate the operational factors directly correlated with superior outcomes.` },
-          ],
-          keyPoints: [
-            `Comprehensive benchmark data compiled from verified practitioners across ${niche}.`,
-            `Key quantitative differences separating elite performers from industry averages.`,
-            `Macroeconomic and industry headwinds influencing performance expectations.`,
-          ],
-          eeatProof: `Primary dataset benchmarks citing statistical percentiles and sample sizes.`,
-          visualAsset: `Industry performance distribution bell curve with percentile benchmarks`,
-          commonPitfall: `Comparing internal performance against unverified self-reported case studies.`,
-        },
-        {
-          heading: `H2: The 5 Core Metrics Every ${seed} Leader Must Track`,
-          wordCountBudget: '550 words',
-          purpose: `Define the definitive metric scorecard with precise formulas and tracking intervals.`,
-          subsections: [
-            { heading: `H3: Leading Metrics: Predictors of Velocity and Throughput Consistency`, guidance: `Detail input metrics that give early visibility into outcomes.` },
-            { heading: `H3: Lagging Metrics: Definite Business Impact and Financial ROI`, guidance: `Explain revenue, retention, and bottom-line outcome calculations.` },
-          ],
-          keyPoints: [
-            `Metric 1: Operational Cycle Velocity - formula, target range, and review cadence.`,
-            `Metric 2: Output Quality Consistency - error rate benchmarks and tolerance thresholds.`,
-            `Metric 3: Unit Economics and Cost Efficiency per Deliverable.`,
-            `Metric 4: Team Throughput Capacity and Resource Utilization.`,
-            `Metric 5: Business Impact Contribution - attributable growth and retention impact.`,
-          ],
-          eeatProof: `Exact mathematical formulas and industry median thresholds for each metric.`,
-          visualAsset: `Executive KPI scorecard table displaying targets, formulas, and alert thresholds`,
-          commonPitfall: `Tracking dozens of vanity indicators while neglecting the core 5 unit economic metrics.`,
-        },
-        {
-          heading: `H2: Analyzing Your Gaps: How to Run an Internal Benchmark Audit`,
-          wordCountBudget: '500 words',
-          purpose: `Provide a step-by-step diagnostic rubric to measure where your team stands today.`,
-          subsections: [
-            { heading: `H3: Step 1: Gathering Clean Historical Performance Data`, guidance: `Eliminate reporting biases and normalize seasonal variations.` },
-            { heading: `H3: Step 2: Mapping Internal Numbers Against Industry Percentiles`, guidance: `Identify whether your biggest gap lies in velocity, quality, or cost.` },
-          ],
-          keyPoints: [
-            `Gathering clean, normalized operational data over a 90-day review period.`,
-            `Calculating your team's current efficiency percentile across key benchmarks.`,
-            `Identifying your single greatest point of leverage for immediate optimization.`,
-          ],
-          eeatProof: `Benchmark diagnostic rubric used in enterprise operations audits.`,
-          visualAsset: `Gap analysis radar chart visualizing internal metrics against industry top 10%`,
-          commonPitfall: `Calculating benchmarks over insufficient time periods with skewed sample sizes.`,
-        },
-        {
-          heading: `H2: Closing the Gap: Actionable Playbooks from Top 10% Performers`,
-          wordCountBudget: '500 words',
-          purpose: `Deconstruct the exact operational playbooks used by industry leaders.`,
-          subsections: [
-            { heading: `H3: Playbook 1: Automating Low-Leverage Repetitive Workflows`, guidance: `How top teams reclaim 20+ hours per week per practitioner.` },
-            { heading: `H3: Playbook 2: Instituting High-Standard Quality Check Gates`, guidance: `How error rates are driven down to near-zero levels under scale.` },
-          ],
-          keyPoints: [
-            `How top performers automate routine administrative tasks to boost throughput.`,
-            `Establishing rigorous peer review gates without creating approval bottlenecks.`,
-            `Aligning practitioner incentive structures with objective quality benchmarks.`,
-          ],
-          eeatProof: `Verified operational turnaround case studies demonstrating leap from 40th to 90th percentile.`,
-          visualAsset: `Operational acceleration matrix mapping effort vs benchmark impact`,
-          commonPitfall: `Attempting to match top 10% metrics without first building baseline infrastructure.`,
-        },
-        {
-          heading: `H2: Building Your Continuous Performance Dashboard: Next Steps`,
-          wordCountBudget: '350 words',
-          purpose: `Provide an immediate action plan to build persistent benchmark tracking.`,
-          subsections: [
-            { heading: `H3: Designing an Executive KPI Dashboard in Under a Week`, guidance: `Recommended dashboard templates and data visualization best practices.` },
-            { heading: `H3: Setting Up Automated Monthly Benchmark Reporting`, guidance: `Keeping executive stakeholders continuously aligned on progress.` },
-          ],
-          keyPoints: [
-            `Configuring automated KPI dashboards that update without manual data entry.`,
-            `Establishing quarterly benchmark review milestones with team leadership.`,
-            `Continuously raising performance targets as operational maturity improves.`,
-          ],
-          eeatProof: `Standardized reporting templates used by Fortune 500 operations teams.`,
-          visualAsset: `Executive dashboard mockup showing real-time metric gauges and trendlines`,
-          commonPitfall: `Relying on manual spreadsheet updates that become obsolete within weeks.`,
-        },
-      ],
-      faqs: [
-        { question: `What is considered a good benchmark for ${seed} in ${niche}?`, answerSnippet: `Top-quartile performers in ${niche} typically maintain an operational cycle velocity 40% faster than median, with an output error rate consistently below 3%.` },
-        { question: `How often should teams update their internal benchmarks?`, answerSnippet: `Conduct monthly performance reviews against trailing 90-day rolling averages, and update annual industry benchmark targets every quarter.` },
-        { question: `What tools are best suited for tracking ${seed} benchmarks?`, answerSnippet: `Modern teams combine centralized database dashboards with automated reporting tools to visualize real-time trendlines without manual overhead.` },
-      ],
-    },
-    {
-      titleTemplate: `Scaling ${seed}: Advanced Workflows for High-Growth ${niche} Teams`,
-      targetKeyword: `scaling ${seed}`,
-      searchIntent: 'informational',
-      funnelStage: 'MOFU (Consideration)',
-      contentType: 'Scaling Architecture Guide',
-      contentAngle: 'Advanced Scaling Playbook',
-      difficulty: 'hard',
-      estimatedWordCount: 3000,
-      clusterName: 'Advanced Execution',
-      sections: [
-        {
-          heading: `H2: The Breaking Point: Why Early ${seed} Workflows Fail at Scale`,
-          wordCountBudget: '500 words',
-          purpose: `Explain the mechanical friction that occurs when throughput demands double or triple.`,
-          subsections: [
-            { heading: `H3: The Bottleneck of Manual Approvals and Serial Reviews`, guidance: `Demonstrate how hierarchical approval chains choke team throughput.` },
-            { heading: `H3: Data Fragmentation and Cross-Team Communication Lag`, guidance: `Analyze how disconnected tools lead to conflicting operational priorities.` },
-          ],
-          keyPoints: [
-            `Why workflows that worked for 3 practitioners completely collapse at 15.`,
-            `Identifying the invisible latency tax paid during handoffs between teams.`,
-            `The shift from individual craftsmanship to institutional operating systems.`,
-          ],
-          eeatProof: `Throughput scaling regression models showing non-linear productivity loss without automation.`,
-          visualAsset: `Scaling friction diagram showing where workflow velocity drops as volume climbs`,
-          commonPitfall: `Attempting to scale output purely by adding headcount rather than upgrading processes.`,
-        },
-        {
-          heading: `H2: Building Modular Workflow Architecture for ${seed}`,
-          wordCountBudget: '600 words',
-          purpose: `Deliver the blueprint for modular, decoupled processes that scale independently.`,
-          subsections: [
-            { heading: `H3: Decoupling Strategy, Preparation, and Final Execution`, guidance: `Structure specialist roles that eliminate context-switching.` },
-            { heading: `H3: Standardizing Inputs and Outputs Across Every Workflow Stage`, guidance: `Define strict data contracts between upstream and downstream teams.` },
-          ],
-          keyPoints: [
-            `Deconstructing monolithic workflows into independent, specialized modules.`,
-            `Defining strict entry and exit criteria for every stage of execution.`,
-            `Creating standardized reusable templates and programmatic component libraries.`,
-          ],
-          eeatProof: `Case study from a high-growth organization in ${niche} that tripled output without expanding team size.`,
-          visualAsset: `Modular architecture schematic showing independent parallel execution tracks`,
-          commonPitfall: `Creating overly rigid workflows that stifle practitioner judgment and tactical adaptability.`,
-        },
-        {
-          heading: `H2: Automation Playbook: Eliminating 80% of Manual Friction`,
-          wordCountBudget: '600 words',
-          purpose: `Provide concrete automation recipes connecting APIs, webhooks, and AI assistants.`,
-          subsections: [
-            { heading: `H3: Automated Intake, Validation, and Routing`, guidance: `Eliminate manual data triage with rules-based routing.` },
-            { heading: `H3: Automated Quality Checks and Compliance Pre-Flight Gates`, guidance: `Implement algorithmic pre-checks that catch errors before human review.` },
-          ],
-          keyPoints: [
-            `Top 5 high-impact automation recipes specifically designed for ${seed}.`,
-            `Integrating automated pre-flight checks to catch formatting and data errors instantly.`,
-            `Maintaining human-in-the-loop oversight at critical strategic inflection points.`,
-          ],
-          eeatProof: `Automation efficiency benchmarks showing average 65% reduction in manual cycle lag.`,
-          visualAsset: `Automation logic diagram displaying trigger conditions, filters, and actions`,
-          commonPitfall: `Automating inefficient or broken processes before simplifying them manually first.`,
-        },
-        {
-          heading: `H2: Team Governance, Skill Distribution, and Quality Assurance at Scale`,
-          wordCountBudget: '500 words',
-          purpose: `Explain how to maintain elite craftsmanship and brand fidelity across a growing team.`,
-          subsections: [
-            { heading: `H3: Designing a Tiered Quality Assurance Review System`, guidance: `Combine automated rules with randomized spot audits.` },
-            { heading: `H3: Cross-Training and Preventing Single-Point Knowledge Dependencies`, guidance: `Institutionalize knowledge through structured internal playbooks.` },
-          ],
-          keyPoints: [
-            `Structuring peer review rubrics that enforce quality without delaying delivery.`,
-            `Conducting weekly sprint calibration sessions to align team evaluative standards.`,
-            `Building an internal training academy to onboard new contributors rapidly.`,
-          ],
-          eeatProof: `QA error rate tracking across 50,000+ scaled deliverables showing <1% defect rates.`,
-          visualAsset: `Governance hierarchy diagram illustrating escalation tiers and approval gates`,
-          commonPitfall: `Diluting quality standards during rapid scaling by lowering review thresholds.`,
-        },
-        {
-          heading: `H2: Your 60-Day Scaling Roadmap: Phased Transition to Enterprise Velocity`,
-          wordCountBudget: '400 words',
-          purpose: `Provide a structured, multi-phase plan to transition safely without operational disruption.`,
-          subsections: [
-            { heading: `H3: Phase 1 (Days 1-20): Foundation Hardening and Automation Pilots`, guidance: `Stabilize core workflows before introducing new capacity.` },
-            { heading: `H3: Phase 2 (Days 21-60): Full Rollout, Team Training, and Optimization`, guidance: `Scale execution volume while monitoring leading health metrics.` },
-          ],
-          keyPoints: [
-            `Phase 1: Workflow documentation, audit, and pilot automation deployment.`,
-            `Phase 2: Full team enablement, calibration, and capacity expansion.`,
-            `Phase 3: Automated monitoring, quarterly benchmarking, and continuous refinement.`,
-          ],
-          eeatProof: `Verified 60-day roadmap checklist successfully deployed across 40+ scaling organizations.`,
-          visualAsset: `Gantt-style scaling delivery timeline with key operational milestones`,
-          commonPitfall: `Attempting immediate organization-wide rollout without completing a controlled pilot phase.`,
-        },
-      ],
-      faqs: [
-        { question: `When is the right time to start scaling ${seed} workflows?`, answerSnippet: `Begin scaling once your core workflow delivers consistent output quality for at least 60 consecutive days with documented standard operating procedures.` },
-        { question: `What is the risk of scaling ${seed} too quickly?`, answerSnippet: `Premature scaling amplifies existing process defects, overwhelms review teams, and often results in a steep decline in overall deliverable quality.` },
-        { question: `How can we maintain brand fidelity when multiple team members contribute?`, answerSnippet: `Enforce standardized QA rubrics, utilize automated pre-flight validation tools, and conduct regular team calibration reviews to align standards.` },
-      ],
-    },
-    {
-      titleTemplate: `Why Conventional ${seed} Advice is Broken in ${niche}`,
-      targetKeyword: `${seed} strategy guide`,
-      searchIntent: 'informational',
-      funnelStage: 'TOFU (Awareness)',
-      contentType: 'Thought Leadership & Contrarian Analysis',
-      contentAngle: 'Contrarian Pattern-Interrupt',
-      difficulty: 'medium',
-      estimatedWordCount: 2500,
-      clusterName: 'Core Foundations',
-      sections: [
-        {
-          heading: `H2: The Conventional Wisdom Trap: Why the Standard Playbook Fails Today`,
-          wordCountBudget: '450 words',
-          purpose: `Challenge prevailing industry dogma with rigorous logic and empirical evidence.`,
-          subsections: [
-            { heading: `H3: The Obsession with Volume Over Verifiable Information Gain`, guidance: `Critique the widespread practice of churning out generic content.` },
-            { heading: `H3: The Hidden Decay of Audience Trust and Brand Authority`, guidance: `Explain how commoditized output destroys long-term organic leverage.` },
-          ],
-          keyPoints: [
-            `Why 90% of published advice in ${niche} repeats identical, surface-level generic tips.`,
-            `How search algorithm updates and audience skepticism have changed the rules.`,
-            `The commercial value of taking a defensible, insight-backed point of view.`,
-          ],
-          eeatProof: `Engagement and retention data showing 3x higher dwell time on contrarian, high-information-gain guides.`,
-          visualAsset: `Information Gain comparison matrix contrasting commodity advice with original insights`,
-          commonPitfall: `Echoing generic industry consensus to avoid controversy, leading to complete invisibility.`,
-        },
-        {
-          heading: `H2: Debunking the Top 3 Sacred Cows in ${seed}`,
-          wordCountBudget: '550 words',
-          purpose: `Methodically bust 3 popular myths with concrete counter-examples and data.`,
-          subsections: [
-            { heading: `H3: Myth 1: More Volume Automatically Leads to Compounding Results`, guidance: `Prove why targeted quality consistently outperforms superficial quantity.` },
-            { heading: `H3: Myth 2: Complex Frameworks Outperform Relentless Focus on Fundamentals`, guidance: `Demonstrate how unnecessary complexity disguises lack of strategic clarity.` },
-          ],
-          keyPoints: [
-            `Myth 1 Deconstructed: Why quality and depth consistently outrank high-volume superficial fluff.`,
-            `Myth 2 Deconstructed: How over-engineered processes create paralyzing organizational drag.`,
-            `Myth 3 Deconstructed: Why copying competitor tactics leads to secondary market positioning.`,
-          ],
-          eeatProof: `Empirical case studies showing traffic and conversion gains after cutting output volume by 50% and doubling depth.`,
-          visualAsset: `Myth vs Reality scorecard table highlighting the strategic difference in outcomes`,
-          commonPitfall: `Confusing contrarian thinking with ungrounded controversy; every stance must be backed by evidence.`,
-        },
-        {
-          heading: `H2: The Modern Mental Model: Compounding Authority Through Information Gain`,
-          wordCountBudget: '500 words',
-          purpose: `Introduce a superior conceptual framework tailored for modern market conditions.`,
-          subsections: [
-            { heading: `H3: Defining Information Gain: Giving Readers Novel Strategic Value`, guidance: `Explain how unique data and lived experience establish unassailable authority.` },
-            { heading: `H3: Building Defensible Content Moats That Cannot Be Cloned`, guidance: `Incorporate proprietary benchmarks, original case proof, and expert perspective.` },
-          ],
-          keyPoints: [
-            `The principles of Information Gain and how search engines reward original value.`,
-            `Grounding every piece of content in proprietary data, lived case studies, or empirical testing.`,
-            `Shifting from passive information distribution to definitive point-of-view leadership.`,
-          ],
-          eeatProof: `Patent analysis and search ranking correlations verifying the algorithmic advantage of unique entities.`,
-          visualAsset: `Defensible Content Moat model diagram illustrating the layers of informational advantage`,
-          commonPitfall: `Believing that superficial formatting tweaks constitute true information gain.`,
-        },
-        {
-          heading: `H2: Putting the Contrarian Framework into Practice: Tactical Shifts`,
-          wordCountBudget: '450 words',
-          purpose: `Translate high-level contrarian perspective into immediate tactical workflow adjustments.`,
-          subsections: [
-            { heading: `H3: Audit Your Current Output: Identifying Generic Commodity Traps`, guidance: `Conduct a ruthless audit of existing assets to eliminate boilerplate copy.` },
-            { heading: `H3: Rewriting Your Headlines and Hooks for Maximum Pattern-Interrupt`, guidance: `Craft compelling opening hooks that immediately communicate unique value.` },
-          ],
-          keyPoints: [
-            `Rewriting editorial guidelines to ban generic throat-clearing and cliché phrases.`,
-            `Injecting concrete metric benchmarks and real-world practitioner friction into every topic.`,
-            `Creating rigorous pre-publication check gates to verify distinct point-of-view clarity.`,
-          ],
-          eeatProof: `A/B testing CTR and conversion data showing 45% lift with pattern-interrupt framing.`,
-          visualAsset: `Headline and hook transformation rubric before and after contrarian refinement`,
-          commonPitfall: `Adopting aggressive contrarian tone without delivering actionable tactical substance.`,
-        },
-        {
-          heading: `H2: The 30-Day Transition Plan: Becoming the Definitive Voice in ${niche}`,
-          wordCountBudget: '350 words',
-          purpose: `Provide a realistic, phased roadmap to reposition your brand's editorial strategy.`,
-          subsections: [
-            { heading: `H3: Week 1-2: Identifying Your Proprietary Angles and Data Assets`, guidance: `Mine internal production data for novel industry benchmarks.` },
-            { heading: `H3: Week 3-4: Publishing Your First Definitive Pillar Manifesto`, guidance: `Launch a high-impact cornerstone asset that anchors your new perspective.` },
-          ],
-          keyPoints: [
-            `Audit existing library to upgrade top-performing assets with Information Gain.`,
-            `Publishing your first definitive cornerstone guide backed by original research.`,
-            `Measuring audience resonance through qualitative feedback and direct conversions.`,
-          ],
-          eeatProof: `Documented editorial turnaround roadmap showing 2x audience engagement within 60 days.`,
-          visualAsset: `Editorial repositioning roadmap calendar with weekly strategic milestones`,
-          commonPitfall: `Abandoning the new perspective after a single asset before compounding effects take hold.`,
-        },
-      ],
-      faqs: [
-        { question: `Why does traditional ${seed} advice fail to produce results today?`, answerSnippet: `Traditional advice relies on outdated high-volume playbooks that churn out generic, commoditized copy without original information gain or quantifiable empirical proof.` },
-        { question: `How can our team identify truly original angles in ${niche}?`, answerSnippet: `Mine your internal customer data, document proprietary workflows, and interview frontline practitioners to extract insights that competitors cannot replicate.` },
-        { question: `Does contrarian content alienate potential customers?`, answerSnippet: `When grounded in rigorous data and constructive frameworks, defensible points of view attract high-intent, sophisticated buyers while filtering out low-fit leads.` },
-      ],
-    },
-    {
-      titleTemplate: `Calculating the Real ROI of ${seed}: Unit Economics in ${niche}`,
-      targetKeyword: `${seed} ROI calculation`,
-      searchIntent: 'commercial',
-      funnelStage: 'BOFU (Decision)',
-      contentType: 'Business Case & Financial Modeling Guide',
-      contentAngle: 'Financial Modeling & ROI',
-      difficulty: 'hard',
-      estimatedWordCount: 2900,
-      clusterName: 'Performance & ROI',
-      sections: [
-        {
-          heading: `H2: The CFO's Lens: Why Most ${seed} Business Cases Get Rejected`,
-          wordCountBudget: '450 words',
-          purpose: `Examine the financial friction and skepticism executive stakeholders have toward operational investments.`,
-          subsections: [
-            { heading: `H3: The Flaw of Relying on Soft Metrics and Vanity KPIs`, guidance: `Explain why traffic and engagement numbers fail to secure budget approval.` },
-            { heading: `H3: Bridging the Translation Gap Between Operational Effort and Net Revenue`, guidance: `Showcase how to tie daily activities directly to EBITDA and margin expansion.` },
-          ],
-          keyPoints: [
-            `Why executive leadership rejects 65% of budget proposals for ${seed}.`,
-            `The critical difference between cost-center framing and profit-driver investment modeling.`,
-            `Understanding executive decision criteria: payback period, risk mitigation, and IRR.`,
-          ],
-          eeatProof: `Financial executive survey data indicating that 80% of approved proposals include quantitative unit economic models.`,
-          visualAsset: `Executive proposal evaluation flowchart illustrating approval vs rejection criteria`,
-          commonPitfall: `Presenting operational metrics to financial stakeholders without converting them into dollar impact.`,
-        },
-        {
-          heading: `H2: The 4 Core Financial Levers of ${seed} in ${niche}`,
-          wordCountBudget: '550 words',
-          purpose: `Deconstruct the 4 tangible mechanisms through which ${seed} drives bottom-line value.`,
-          subsections: [
-            { heading: `H3: Lever 1 and 2: Direct Customer Acquisition and Sales Velocity Acceleration`, guidance: `Calculate conversion lift and sales cycle compression values.` },
-            { heading: `H3: Lever 3 and 4: Unit Labor Reduction and Retention Expansion`, guidance: `Model labor savings and customer lifetime value improvements.` },
-          ],
-          keyPoints: [
-            `Lever 1: Direct Pipeline Contribution - inbound demand and conversion rate improvement.`,
-            `Lever 2: Sales Velocity Compression - shortening sales cycles by answering buyer objections early.`,
-            `Lever 3: Labor Efficiency and Cost Avoidance - automated systems reducing manual hourly overhead.`,
-            `Lever 4: Customer Retention and Lifetime Value Expansion - higher customer success satisfaction.`,
-          ],
-          eeatProof: `Verified financial model formulas demonstrating multi-lever compounding returns.`,
-          visualAsset: `4-lever financial return waterfall chart displaying cumulative revenue impact`,
-          commonPitfall: `Focusing solely on new acquisition while ignoring massive retention and labor savings.`,
-        },
-        {
-          heading: `H2: Building Your Comprehensive ${seed} ROI Financial Model: Step-by-Step`,
-          wordCountBudget: '600 words',
-          purpose: `Walk the reader through a spreadsheet-ready financial model with all necessary parameters.`,
-          subsections: [
-            { heading: `H3: Step 1: Documenting Fully Loaded Costs (Tooling, Labor, and Overhead)`, guidance: `Account for every internal and external expenditure honestly.` },
-            { heading: `H3: Step 2: Modeling Conservative, Moderate, and Aggressive Return Scenarios`, guidance: `Provide sensitivity analysis tables that build executive trust.` },
-          ],
-          keyPoints: [
-            `Calculating fully loaded investment costs: tooling, software, external advisory, and internal labor.`,
-            `Constructing conservative, expected, and aggressive scenario models with sensitivity tables.`,
-            `Determining your exact breakeven horizon and internal rate of return (IRR).`,
-          ],
-          eeatProof: `Standardized financial model template used in venture capital due diligence audits.`,
-          visualAsset: `Sensitivity table matrix displaying ROI variations across conversion and adoption rates`,
-          commonPitfall: `Presenting unrealistically optimistic return projections that damage credibility with leadership.`,
-        },
-        {
-          heading: `H2: Real-World Case Studies: Financial Payback Timelines in ${niche}`,
-          wordCountBudget: '500 words',
-          purpose: `Validate the financial model with documented historical performance breakdowns.`,
-          subsections: [
-            { heading: `H3: Case Study 1: Mid-Market Turnaround (4.2x ROI in 9 Months)`, guidance: `Detail the investment, execution timeline, and net financial gain.` },
-            { heading: `H3: Case Study 2: Enterprise Efficiency Transformation (Payback in 90 Days)`, guidance: `Highlight significant labor cost avoidance and output expansion.` },
-          ],
-          keyPoints: [
-            `Case 1: Mid-market organization achieving 4.2x ROI within 9 months through pipeline acceleration.`,
-            `Case 2: Enterprise team recovering initial platform investment within 90 days via labor savings.`,
-            `Key lessons learned and tactical adjustments that maximized financial return velocity.`,
-          ],
-          eeatProof: `Audited financial outcome metrics with verified pre- and post-implementation balance sheet data.`,
-          visualAsset: `Cumulative cash flow trajectory chart contrasting investment against returns over 24 months`,
-          commonPitfall: `Assuming financial payback is instantaneous; preparing stakeholders for the initial 60-day investment curve.`,
-        },
-        {
-          heading: `H2: Delivering the Proposal: Securing Executive Budget Approval`,
-          wordCountBudget: '400 words',
-          purpose: `Provide the exact presentation framework to pitch and win executive buy-in.`,
-          subsections: [
-            { heading: `H3: The 1-Page Executive Summary Deck Template`, guidance: `Structure an irresistible business proposal on a single page.` },
-            { heading: `H3: Preempting and Answering Common Executive Objections`, guidance: `Prepare airtight responses for security, budget, and bandwidth concerns.` },
-          ],
-          keyPoints: [
-            `Structuring the 1-page executive memo: problem, financial impact, solution, and timeline.`,
-            `Preempting CFO objections regarding bandwidth, risk mitigation, and technical feasibility.`,
-            `Securing phased milestone funding to reduce perceived risk for decision-makers.`,
-          ],
-          eeatProof: `Executive proposal template that achieved 92% approval rate across senior leadership boards.`,
-          visualAsset: `1-page executive memo layout template highlighting key financial summary metrics`,
-          commonPitfall: `Overwhelming leadership with technical operational jargon instead of clear financial outcomes.`,
-        },
-      ],
-      faqs: [
-        { question: `What is the average payback period for investments in ${seed}?`, answerSnippet: `Disciplined implementations in ${niche} typically reach full breakeven within 90 to 180 days, driven by labor efficiency gains and pipeline acceleration.` },
-        { question: `How do you measure attributable revenue from ${seed}?`, answerSnippet: `Utilize multi-touch attribution models and baseline cohort comparisons to measure incremental pipeline generated and closed sales velocity improvements.` },
-        { question: `What is the biggest financial risk when investing in ${seed}?`, answerSnippet: `The primary risk is incomplete implementation where software is licensed but teams fail to adopt standard operating procedures, resulting in sunk software costs without efficiency gains.` },
-      ],
-    },
-  ]
-
+  // Construct structured topic objects from the affordance-filtered pool.
+  // Cluster assignment uses the same ordered affordance list that produced
+  // the title, so title, cluster, and angle stay derived from one source
+  // instead of drifting apart the way index-modulo assignment used to.
   const selectedTopics = []
-  for (let i = 0; i < targetCount; i++) {
-    const arch = dynamicArchetypes[i % dynamicArchetypes.length]
+  for (let i = 0; i < numberOfTopics; i++) {
+    const bp = candidatePool[i % candidatePool.length]
     const topicId = `topic-${i + 1}`
-    const topicTitle = arch.titleTemplate
-    const hook = getDynamicHook(seed, arch.contentAngle)
+    const rawTitle = bp.titleFn(primaryKeyword, normalizedAudience)
+    const topicTitle = applyEntityCasing(
+      removeCircularRepetition(rawTitle, primaryKeyword, normalizedSubject)
+    )
+    const eeatOpportunity = buildEeatOpportunity(topicTitle, nicheType, lifecycleState)
+    const clusterIndex = Math.max(0, orderedAffordanceIds.indexOf(bp.affordanceId))
+    const clusterName = semanticClusters[Math.min(clusterIndex, semanticClusters.length - 1)]?.name || semanticClusters[0].name
 
-    const detailedOutline = arch.sections.map((sec, sIdx) => ({
-      sectionNumber: sIdx + 1,
-      heading: sec.heading,
-      wordCountBudget: sec.wordCountBudget || `~450 words`,
-      purpose: sec.purpose,
-      subsections: sec.subsections || [],
-      keyPoints: sec.keyPoints,
-      eeatProof: sec.eeatProof,
-      visualAsset: sec.visualAsset || `Workflow diagram for ${seed}`,
-      commonPitfall: sec.commonPitfall,
-    }))
+    const rawHook = bp.hookFn(primaryKeyword, normalizedAudience)
+    const hook = applyEntityCasing(
+      removeCircularRepetition(rawHook, primaryKeyword, normalizedSubject)
+    )
 
-    const outline = detailedOutline.map(d => d.heading)
+    const detailedOutline = [
+      {
+        sectionNumber: 1,
+        heading: applyEntityCasing(`H2: Foundations and Context: Understanding ${primaryKeyword}`),
+        wordCountBudget: '400 words',
+        purpose: `Establish objective baseline facts and reader context for ${primaryKeyword}.`,
+        subsections: [
+          {
+            heading: `H3: Core Concepts and Current State`,
+            guidance: `Provide clear, balanced background context that helps readers understand what ${primaryKeyword} actually involves.`,
+          },
+        ],
+        keyPoints: [
+          `Core principles and parameters regarding ${primaryKeyword}.`,
+          `Key prerequisites and baseline knowledge for ${normalizedAudience || 'readers'}.`,
+          `Common initial misconceptions to address upfront.`,
+        ],
+        eeatProof:
+          eeatOpportunity.recommendedEvidenceToCollect[0] ||
+          'Reference verifiable primary sources.',
+        visualAsset: `Overview summary card or annotated diagram for ${primaryKeyword}`,
+        commonPitfall: `Relying on unverified claims or skipping foundational context.`,
+      },
+      {
+        sectionNumber: 2,
+        heading: applyEntityCasing(
+          `H2: In-Depth Analysis: Key Factors, Trade-offs, and Practical Impact`
+        ),
+        wordCountBudget: '550 words',
+        purpose: `Deliver comprehensive, actionable breakdowns that go beyond surface-level information.`,
+        subsections: [
+          {
+            heading: `H3: Primary Advantages and Capabilities`,
+            guidance: `Explain specific benefits and realistic expectations without inventing unsupported claims.`,
+          },
+          {
+            heading: `H3: Real-World Constraints and Limitations`,
+            guidance: `Examine genuine trade-offs transparently so readers can make informed decisions.`,
+          },
+        ],
+        keyPoints: [
+          `In-depth factor breakdown tailored to ${normalizedAudience || 'readers'}.`,
+          `Practical trade-offs and decision factors to weigh.`,
+          `How to evaluate quality and suitability objectively.`,
+        ],
+        eeatProof:
+          eeatOpportunity.recommendedEvidenceToCollect[1] ||
+          'Compare documented specifications or established benchmarks.',
+        visualAsset: `Feature evaluation matrix or comparison table`,
+        commonPitfall: `Focusing solely on headline benefits without addressing real-world constraints.`,
+      },
+      {
+        sectionNumber: 3,
+        heading: applyEntityCasing(
+          `H2: Actionable Guidance: Making the Right Choice for Your Situation`
+        ),
+        wordCountBudget: '450 words',
+        purpose: `Guide readers to an informed, high-confidence decision or next step.`,
+        subsections: [
+          {
+            heading: `H3: Decision Framework by Use Case`,
+            guidance: `Map different user requirements and contexts to recommended approaches or options.`,
+          },
+        ],
+        keyPoints: [
+          `Clear decision matrix tailored to ${normalizedAudience || 'different user profiles'}.`,
+          `Common traps to avoid when making a final choice.`,
+          `Practical next steps and recommendations.`,
+        ],
+        eeatProof:
+          eeatOpportunity.recommendedEvidenceToCollect[2] ||
+          'Document real-world observations and cost breakdowns.',
+        visualAsset: `Decision flowchart or step-by-step action roadmap`,
+        commonPitfall: `Making a decision without evaluating individual fit and specific usage requirements.`,
+      },
+    ]
 
-    const seoBrief = {
-      targetPersona: targetAudience,
-      funnelStage: arch.funnelStage,
-      searchIntent: arch.searchIntent,
-      recommendedWordCount: `${arch.estimatedWordCount} words (~${Math.round(arch.estimatedWordCount / 220)} min read)`,
-      titleTag: topicTitle.length <= 58 ? topicTitle : `${topicTitle.slice(0, 55)}...`,
-      metaDescription: `Discover how to master ${arch.targetKeyword} in ${niche} with actionable frameworks, verified benchmarks, and step-by-step guidance.`,
-      competitorGap: `Competitor articles offer generic overviews; this guide provides quantifiable operational rubrics, step-by-step execution workflows, and verifiable data in ${niche}.`,
-      primaryKeyword: arch.targetKeyword,
-      secondaryKeywords: [
-        `${seed} in ${niche}`,
-        `${seed} best practices`,
-        `${seed} guide`,
-        `${seed} strategy`,
-      ],
-      internalLinkAnchors: [
-        `Cornerstone guide to ${niche}`,
-        `${arch.targetKeyword} playbook`,
-      ],
-      ctaBridge: `Download our complete diagnostic checklist and implementation guide for ${seed} in ${niche}.`,
-    }
+    // Intent + angle label both come from the same affordance id that
+    // produced this title, so they can never drift apart (rules #11/#12).
+    const affordanceMeta = AFFORDANCE_ANGLE_META[bp.affordanceId] || AFFORDANCE_ANGLE_META.understandOverview
+    const derivedIntent = affordanceMeta.intent || 'informational'
 
-    selectedTopics.push({
+    const topicObj = {
       id: topicId,
       title: topicTitle,
-      targetKeyword: arch.targetKeyword,
-      searchIntent: arch.searchIntent,
-      contentType: arch.contentType,
-      contentAngle: arch.contentAngle,
+      targetKeyword: primaryKeyword,
+      searchIntent: derivedIntent,
+      contentType: 'Comprehensive Guide',
+      contentAngle: affordanceMeta.label,
       hook,
-      difficulty: arch.difficulty,
-      estimatedWordCount: arch.estimatedWordCount,
-      clusterName: arch.clusterName,
+      difficulty: 'medium',
+      estimatedWordCount: 2400,
+      clusterName,
       detailedOutline,
-      outline,
-      seoBrief,
-      faqs: arch.faqs,
-      whyItWorks: `Addresses core search intent, satisfies curiosity gaps, and builds topical authority for ${arch.targetKeyword} in ${niche}.`,
-      relatedKeywords: seoBrief.secondaryKeywords,
-      missiveQa: {
-        passed: true,
-        score: 100,
-        badge: '100% Missive QA Certified',
-        checks: [
-          { name: 'Zero Em Dashes', status: 'Passed', detail: 'Strictly 0 em dashes found. Clean punctuation throughout.' },
-          { name: 'Zero Robotic Clichés', status: 'Passed', detail: '0 banned AI buzzwords detected.' },
-          { name: 'Insight-First Opening', status: 'Passed', detail: 'Immediate hook with zero generic throat-clearing.' },
-          { name: 'Quantifiable E‑E‑A‑T Anchors', status: 'Passed', detail: 'Every section anchored with empirical metrics or case proof.' },
-          { name: 'Outcome-Driven Conclusion', status: 'Passed', detail: 'Loop-closing conclusion with non-generic action heading.' },
-          { name: 'Tone of Voice Alignment', status: 'Passed', detail: `Embodying ${toneProfile.label}.` },
-        ],
+      outline: detailedOutline.map((d) => d.heading),
+      seoBrief: {
+        targetPersona: applyEntityCasing(audienceModel.persona),
+        funnelStage: derivedIntent === 'commercial investigation' ? 'MOFU (Consideration)' : 'TOFU (Awareness)',
+        searchIntent: derivedIntent,
+        recommendedWordCount: '2,400 words (~10 min read)',
+        titleTag: topicTitle.length <= 58 ? topicTitle : `${topicTitle.slice(0, 55)}...`,
+        metaDescription: `Discover key insights, practical advice, and verified guidance for ${primaryKeyword}.`,
+        competitorGap: `Delivers verified, actionable guidance without generic fluff or unverified claims.`,
+        primaryKeyword,
+        secondaryKeywords: relatedEntities.slice(1, 4),
+        internalLinkAnchors: [`Master guide to ${normalizedSubject}`, `${primaryKeyword} overview`],
+        ctaBridge: `Read our comprehensive guide to ${primaryKeyword}.`,
       },
+      faqs: [
+        {
+          question: `What should you consider before deciding on ${primaryKeyword}?`,
+          answerSnippet: `Evaluate your specific usage requirements, budget constraints, and whether the documented features address your primary needs before committing.`,
+        },
+        {
+          question: `How does ${primaryKeyword} compare to alternative options?`,
+          answerSnippet: `Comparing documented specifications, long-term durability, and real-world feedback ensures you choose the best fit for your specific situation.`,
+        },
+      ],
+      whyItWorks: `Directly satisfies ${derivedIntent} search intent with verified, actionable content specific to ${primaryKeyword}.`,
+      relatedEntities,
+      relatedKeywords: relatedEntities,
+      eeatOpportunity,
+      lifecycleState,
+    }
+
+    // Run Missive QA verification
+    topicObj.missiveQa = runMissiveQA(topicObj, {
+      nicheType,
+      lifecycleState,
+      existingTopics: selectedTopics,
+      primaryKeyword,
+      affordanceCtx,
     })
+
+    selectedTopics.push(topicObj)
+  }
+
+  // Calculate Cannibalization Risk
+  for (let i = 0; i < selectedTopics.length; i++) {
+    let highestRisk = { score: 0, risk: 'low', reason: 'Distinct SERP intent.' }
+    for (let j = 0; j < selectedTopics.length; j++) {
+      if (i === j) continue
+      const check = calculateCannibalizationRisk(selectedTopics[i], selectedTopics[j])
+      if (check.score > highestRisk.score) {
+        highestRisk = check
+      }
+    }
+    selectedTopics[i].cannibalizationRisk = highestRisk.risk
+    selectedTopics[i].cannibalizationDetail = highestRisk.reason
   }
 
   const output = {
-    niche,
-    targetKeywords: targetKeywords || [seed],
-    audience: targetAudience,
-    contentGoal,
-    tone: activeTone,
+    niche: normalizedSubject,
+    nicheClassification,
+    lifecycleProfile,
+    targetKeywords: [primaryKeyword],
+    audience: normalizedAudience,
+    contentGoal: normalized.contentGoal,
+    tone: tone.toLowerCase().trim(),
     pillarTopic: {
-      title: `The Master Blueprint to ${seed}: Modern Strategies, Workflows & Implementation in ${niche}`,
-      primaryKeyword: seed,
-      summary: `The cornerstone topic pillar establishing comprehensive authority across all sub-themes in the ${niche} landscape.`,
+      title: applyEntityCasing(`The Comprehensive Guide to ${primaryKeyword}`),
+      primaryKeyword,
+      summary: `The cornerstone topic pillar establishing comprehensive authority for ${normalizedSubject}.`,
     },
-    clusters: [
-      { name: 'Core Foundations', description: `Fundamental strategies, beginner playbooks, and introductory workflows in ${niche}` },
-      { name: 'Tools & Technology', description: `Software reviews, comparisons, and tool evaluations in ${niche}` },
-      { name: 'Advanced Execution', description: `Scaling frameworks, automation, and advanced tactics in ${niche}` },
-      { name: 'Performance & ROI', description: `Data benchmarks, business impact, and conversion optimization in ${niche}` },
-    ],
+    clusters: semanticClusters,
     topics: selectedTopics,
-    strategy: `Publish the cornerstone guide first (${seed}), then roll out supporting cluster posts linked back using exact semantic anchors to solidify topical authority in ${niche}.`,
+    strategy: `Publish the cornerstone pillar guide first, then roll out supporting cluster articles linked back to establish topical authority in ${normalizedSubject}.`,
   }
 
   return recursiveSanitizeMissive(output)
@@ -1605,6 +1820,11 @@ export function generateDynamicTopics({
 /**
  * Generate topic clusters specifically
  */
+
+// ══════════════════════════════════════════════════════════════
+// LEGACY EXPORTS (maintained for backward compatibility)
+// ══════════════════════════════════════════════════════════════
+
 export async function generateTopicClusters({
   niche,
   mainKeyword,
@@ -1626,15 +1846,14 @@ export async function generateTopicClusters({
     clusters: result.clusters.map((c, i) => ({
       name: c.name,
       description: c.description,
-      topics: result.topics.filter(t => t.clusterName === c.name || i === 0).slice(0, topicsPerCluster),
+      topics: result.topics
+        .filter(t => t.clusterName === c.name || i === 0)
+        .slice(0, topicsPerCluster),
     })),
     interlinkingStrategy: result.strategy,
   }
 }
 
-/**
- * Generate content calendar schedule
- */
 export function generateContentCalendar({ topics, postsPerWeek = 2, startDate = new Date() }) {
   const calendar = []
   let currentDate = new Date(startDate)
@@ -1654,4 +1873,82 @@ export function generateContentCalendar({ topics, postsPerWeek = 2, startDate = 
   })
 
   return calendar
+}
+
+export async function generateMasterArticleBrief({
+  topic,
+  niche,
+  audience = '',
+  tone = 'authoritative',
+  preferredProvider,
+}) {
+  const normalized = normalizeInput({ niche, audience, tone })
+  const activeTone = (tone || 'authoritative').toLowerCase().trim()
+  const toneProfile = TONE_PROFILES[activeTone] || TONE_PROFILES.authoritative
+
+  const topicTitle = typeof topic === 'string' ? topic : topic.title || topic.targetKeyword
+  const topicKeyword = typeof topic === 'object' ? topic.targetKeyword || normalized.primaryKeyword : normalized.primaryKeyword
+
+  const nicheClassification = classifyNiche(normalized.normalizedSubject, topicKeyword, normalized.normalizedAudience)
+  const lifecycleProfile = detectEntityLifecycle(normalized.normalizedSubject, topicKeyword)
+  const { lifecycleState, isUnreleased } = lifecycleProfile
+
+  const qaDirectives = buildMissiveQaPromptDirectives()
+
+  const systemPrompt = `You are Himani Kankaria's Chief Editorial Architect at Missive Digital.
+Produce an exhaustive, publication-grade Master Article Outline and Strategic SEO Brief for a comprehensive article in "${normalized.normalizedSubject}" (${nicheClassification.nicheType}).
+
+CRITICAL MISSIVE QA DIRECTIVES:
+${qaDirectives}
+
+FACTUAL SAFETY & LIFECYCLE RULES:
+- Zero fabricated statistics or invented percentages.
+- Product lifecycle: ${lifecycleState}.
+${isUnreleased ? '- Product is UNRELEASED. Forbid past-tense claims of hands-on testing.' : ''}
+- Tone: ${toneProfile.label} (${toneProfile.directive})`
+
+  const userPrompt = `Generate a Master Editorial Brief & Blueprint for:
+- Title: ${topicTitle}
+- Keyword: ${topicKeyword}
+- Niche: ${normalized.normalizedSubject} (${nicheClassification.nicheType})
+- Audience: ${normalized.normalizedAudience || 'Practitioners and interested readers'}
+
+Return JSON matching standard master brief schema with detailedSections, writingGuidelines, and FAQs.`
+
+  let res = null
+  try {
+    res = await callAIAndParseJSON(
+      [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      {
+        preferredProvider: preferredProvider || 'groq',
+        temperature: 0.6,
+        maxTokens: 3200,
+        jsonMode: true,
+      }
+    )
+  } catch (err) {
+    console.warn(`[masterBrief] AI generation failed: ${err.message}`)
+  }
+
+  if (res && Array.isArray(res.detailedSections) && res.detailedSections.length > 0) {
+    return recursiveSanitizeMissive(res)
+  }
+
+  // Minimal fallback — returns whatever the AI gave, or a bare-bones brief
+  return {
+    title: applyEntityCasing(topicTitle),
+    targetKeyword: topicKeyword,
+    searchIntent: 'informational',
+    hook: `Understanding ${topicKeyword} requires looking past marketing hype to examine the real-world trade-offs.`,
+    detailedSections: [],
+    faqs: [],
+    writingGuidelines: {
+      toneDirective: toneProfile.directive,
+      paragraphLength: 'Keep paragraphs tight (1 to 3 sentences maximum).',
+      bannedWordsReminder: 'Zero em dashes, zero robotic cliches, zero fabricated numbers.',
+    },
+  }
 }

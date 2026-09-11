@@ -1,4 +1,4 @@
-import { callAIAndParseJSON, apiResultCache } from '../utils/aiProvider.js'
+import { callAIAndParseJSON } from '../utils/aiProvider.js'
 
 /**
  * Safely fetch HTML with timeout
@@ -181,10 +181,6 @@ function extractBusinessSignals(html, url) {
  * Main analysis function
  */
 export async function analyzeBusinessCompetitor({ competitorUrl, companyName, industry, preferredProvider }) {
-  const cacheKey = apiResultCache.hashKey('business-competitor', { competitorUrl, companyName, industry, preferredProvider })
-  const cached = apiResultCache.get(cacheKey)
-  if (cached) return cached
-
   try {
     const html = await fetchHTML(competitorUrl)
     const signals = extractBusinessSignals(html, competitorUrl)
@@ -207,7 +203,6 @@ export async function analyzeBusinessCompetitor({ competitorUrl, companyName, in
       ...intelligence,
     }
 
-    apiResultCache.set(cacheKey, result, 20 * 60 * 1000)
     return result
   } catch (error) {
     console.error('Business competitor analysis error:', error.message)

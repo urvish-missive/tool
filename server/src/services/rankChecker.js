@@ -1,5 +1,5 @@
 import * as cheerio from 'cheerio'
-import { callAIAndParseJSON, apiResultCache } from '../utils/aiProvider.js'
+import { callAIAndParseJSON } from '../utils/aiProvider.js'
 
 const DESKTOP_UA =
   'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
@@ -530,12 +530,6 @@ export async function checkRank({
   const deviceType = device === 'mobile' ? 'mobile' : 'desktop'
   const isBrand = isBrandQuery(targetDomain, cleanKeyword)
 
-  const cacheKey = apiResultCache.hashKey('rank', { targetDomain, cleanKeyword, countryCode, deviceType, preferredProvider })
-  const cached = apiResultCache.get(cacheKey)
-  if (cached) {
-    return cached
-  }
-
   // Step 1: Attempt live SERP scrape (Google or Live Web search)
   let liveData = null
   try {
@@ -669,7 +663,6 @@ export async function checkRank({
     confidence: hasLiveData ? 96 : isBrand ? 92 : (aiData ? 70 : 'N/A'),
   }
 
-  apiResultCache.set(cacheKey, result, 10 * 60 * 1000)
   return result
 }
 

@@ -7,7 +7,20 @@ export const eeatSchema = z
     content: z.string().optional().default(''),
     title: z.string().max(300).optional().default(''),
     contentType: z
-      .enum(['auto', 'ymyl', 'review', 'b2b_saas', 'guide', 'news'])
+      .enum([
+        'auto',
+        'technical_commercial',
+        'product_review',
+        'high_sensitivity_ymyl',
+        'educational_guide',
+        'news_analysis',
+        // Legacy aliases
+        'b2b_saas',
+        'review',
+        'ymyl',
+        'guide',
+        'news',
+      ])
       .default('auto'),
     targetKeywords: z.string().max(500).optional().default(''),
   })

@@ -23,10 +23,34 @@ export default function UnifiedToolLoader({
   ],
   currentStepIdx,
   stepIntervalMs = 1600,
+  activeModel = null,
 }) {
   const [internalIdx, setInternalIdx] = useState(0)
   const [elapsedMs, setElapsedMs] = useState(0)
+  const [displayModel, setDisplayModel] = useState(activeModel || 'GROQ: openai/gpt-oss-120b')
   const startTimeRef = useRef(Date.now())
+
+  // Dynamic active model telemetry fetch
+  useEffect(() => {
+    if (activeModel) {
+      setDisplayModel(activeModel)
+      return
+    }
+
+    let isMounted = true
+    fetch('/api/ai/active-model')
+      .then((res) => res.json())
+      .then((data) => {
+        if (isMounted && data?.activeModelDisplay) {
+          setDisplayModel(data.activeModelDisplay)
+        }
+      })
+      .catch(() => {})
+
+    return () => {
+      isMounted = false
+    }
+  }, [activeModel])
 
   // Step advancement timer
   useEffect(() => {
@@ -83,6 +107,16 @@ export default function UnifiedToolLoader({
             <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 border border-slate-200/80 text-slate-700 text-xs font-mono font-semibold">
               <Clock className="w-3 h-3 text-slate-500" />
               {elapsedSeconds}s
+            </span>
+          </div>
+
+          {/* Temporary Active Model Debug Indicator */}
+          <div className="inline-flex flex-wrap items-center justify-center gap-2 px-3.5 py-1.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-950 text-xs font-medium mb-3 max-w-full">
+            <span className="px-1.5 py-0.5 rounded bg-amber-500 text-white font-mono text-[10px] font-bold uppercase tracking-wider shrink-0">
+              Temp Model Debug
+            </span>
+            <span className="font-mono text-xs text-amber-950 font-semibold">
+              Running Model: <strong className="font-bold">{displayModel}</strong>
             </span>
           </div>
 

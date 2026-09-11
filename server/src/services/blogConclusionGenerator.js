@@ -1,4 +1,4 @@
-import { callAIAndParseJSON, apiResultCache } from '../utils/aiProvider.js'
+import { callAIAndParseJSON } from '../utils/aiProvider.js'
 import { TONE_PROFILES } from './blogTopicGenerator.js'
 import { buildMissiveQaPromptDirectives } from '../utils/missiveQaRules.js'
 
@@ -208,24 +208,6 @@ export async function generateBlogConclusions({
   const activeTone = (tone || 'authoritative').toLowerCase().trim()
   const toneProfile = TONE_PROFILES[activeTone] || TONE_PROFILES.authoritative
 
-  const cacheKey = apiResultCache.hashKey('blog-conclusions', {
-    topic,
-    intro,
-    keyTakeaways,
-    ctaGoal,
-    ctaCustomText,
-    targetKeywords,
-    audience,
-    funnelStage,
-    tone: activeTone,
-    numVariations,
-    preferredProvider,
-  })
-  const cached = apiResultCache.get(cacheKey)
-  if (cached) {
-    return cached
-  }
-
   const cleanTopic = topic.trim()
   const cleanIntro = (intro || '').trim()
   const cleanTakeaways = (keyTakeaways || '').trim()
@@ -394,7 +376,6 @@ ${stagePlan.map((s, idx) => `Variation ${idx + 1}: ${CONCLUSION_FUNNEL_STAGES[s]
         conclusions: sanitized,
       }
 
-      apiResultCache.set(cacheKey, output, 10 * 60 * 1000)
       return output
     }
 

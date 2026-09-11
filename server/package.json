@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "node --watch-path=src src/app.js",
     "start": "node src/app.js",
+    "test": "node --test test/blogTopicGenerator.test.js",
+    "test:eeat": "node --test test/eeatRegression.test.mjs",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",

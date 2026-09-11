@@ -1,4 +1,4 @@
-import { callAIAndParseJSON, apiResultCache } from '../utils/aiProvider.js'
+import { callAIAndParseJSON } from '../utils/aiProvider.js'
 import { TONE_PROFILES } from './blogTopicGenerator.js'
 import { buildMissiveQaPromptDirectives, auditCaseStudyMissiveQa } from '../utils/missiveQaRules.js'
 
@@ -421,22 +421,6 @@ export async function generateCaseStudy({
   const effectiveMetrics = (metrics || '').trim() || '3.5x ROI and 40% reduction in customer acquisition cost'
   const effectiveAudience = (targetAudience || '').trim() || 'Senior leaders, practitioners, and key budget decision-makers'
 
-  const cacheKey = apiResultCache.hashKey('case-study-v2', {
-    client: effectiveClient,
-    niche: effectiveNiche,
-    challenge: effectiveChallenge,
-    solution: effectiveSolution,
-    metrics: effectiveMetrics,
-    audience: effectiveAudience,
-    tone: activeTone,
-    preferredProvider,
-  })
-
-  const cached = apiResultCache.get(cacheKey)
-  if (cached) {
-    return cached
-  }
-
   const qaDirectives = buildMissiveQaPromptDirectives()
 
   const systemPrompt = `You are Missive Digital's principal B2B case study strategist and commercial conversion architect.
@@ -701,9 +685,6 @@ OUTPUT JSON SCHEMA:
         wordCount: sanitizedResponse.caseStudy.fullMarkdown.split(/\s+/).filter(Boolean).length,
       },
     }
-
-    // Cache the verified result for 2 hours
-    apiResultCache.set(cacheKey, finalResult, 1000 * 60 * 120)
 
     return finalResult
   } catch (err) {

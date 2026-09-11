@@ -1,4 +1,4 @@
-import { callAIAndParseJSON, apiResultCache } from '../utils/aiProvider.js'
+import { callAIAndParseJSON } from '../utils/aiProvider.js'
 
 /**
  * Safely fetch HTML with timeout
@@ -152,12 +152,6 @@ function extractSEOData(html, url) {
  * Analyze competitor website and generate 10x outranking strategy
  */
 export async function analyzeCompetitor({ competitorUrl, yourUrl, targetKeywords, preferredProvider }) {
-  const cacheKey = apiResultCache.hashKey('competitor', { competitorUrl, yourUrl, targetKeywords, preferredProvider })
-  const cached = apiResultCache.get(cacheKey)
-  if (cached) {
-    return cached
-  }
-
   try {
     // 1. Fetch competitor HTML & your HTML concurrently
     const hasYourUrl = Boolean(yourUrl && yourUrl.trim())
@@ -189,7 +183,6 @@ export async function analyzeCompetitor({ competitorUrl, yourUrl, targetKeywords
       ...insights,
     }
 
-    apiResultCache.set(cacheKey, result, 15 * 60 * 1000)
     return result
   } catch (error) {
     console.error('Competitor analysis error:', error.message)

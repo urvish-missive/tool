@@ -294,12 +294,12 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
                 <span
                   className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full ${getScoreBadge(report.intent_score || 0)}`}
                 >
-                  {intent.type || 'Informational'}
+                  {intent.type || 'N/A'}
                 </span>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed">
                 {intent.explanation ||
-                  'Matches expected query format and resolves user intent directly.'}
+                  'No intent data available.'}
               </p>
             </div>
 
@@ -311,12 +311,12 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
                   <span>GEO / AI Citation</span>
                 </span>
                 <span className="text-xs font-extrabold px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 border border-purple-200">
-                  {report.geo_citation_score || 75}/100
+                  {report.geo_citation_score != null ? `${report.geo_citation_score}/100` : 'N/A'}
                 </span>
               </div>
               <p className="text-xs text-purple-800/80 leading-relaxed">
                 {aiSearch?.summary ||
-                  'Extractable soundbites and authoritative definition structures.'}
+                  'No GEO data available.'}
               </p>
             </div>
 
@@ -330,15 +330,15 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
                   <span>E‑E‑A‑T Trust Score</span>
                 </span>
                 <span
-                  className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full ${getScoreBadge(report.eeat_score || 72)}`}
+                  className={`text-xs font-extrabold px-2.5 py-0.5 rounded-full ${getScoreBadge(report.eeat_score ?? 0)}`}
                 >
-                  {report.eeat_score || 72}/100
+                  {report.eeat_score != null ? `${report.eeat_score}/100` : 'N/A'}
                 </span>
               </div>
               <p className="text-xs text-slate-600 leading-relaxed">
                 {eeatInsights.length > 0
                   ? eeatInsights[0]
-                  : 'First-hand experience & factual authority signals verified.'}
+                  : 'No E-E-A-T data available.'}
               </p>
             </div>
           </div>
@@ -617,7 +617,7 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
                 </div>
 
                 <span className="px-3.5 py-1 rounded-full bg-purple-50 text-purple-800 border border-purple-200 text-xs font-extrabold">
-                  Citation Score: {report.geo_citation_score || 75}/100
+                  Citation Score: {report.geo_citation_score != null ? `${report.geo_citation_score}/100` : 'N/A'}
                 </span>
               </div>
 
@@ -703,9 +703,9 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
               </div>
 
               <span
-                className={`px-3.5 py-1 rounded-full text-xs font-extrabold border ${getScoreBadge(report.eeat_score || 72)}`}
+                className={`px-3.5 py-1 rounded-full text-xs font-extrabold border ${getScoreBadge(report.eeat_score ?? 0)}`}
               >
-                Trust Score: {report.eeat_score || 72}/100
+                Trust Score: {report.eeat_score != null ? `${report.eeat_score}/100` : 'N/A'}
               </span>
             </div>
 
