@@ -8,6 +8,7 @@
     "start": "node src/app.js",
     "test": "node --test test/blogTopicGenerator.test.js",
     "test:eeat": "node --test test/eeatRegression.test.mjs",
+    "test:qa": "node --test test/contentQaRegression.test.mjs",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",

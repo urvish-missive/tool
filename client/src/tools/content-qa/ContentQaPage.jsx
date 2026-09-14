@@ -275,7 +275,12 @@ Here is how you can supercharge your content strategy:
 - Ensure your paragraphs are bite-sized and engaging.
 - Never settle for generic advice.`
 
-export default function ContentQaPage({ isEmbedded = false, onResultStateChange, resetSignal }) {
+export default function ContentQaPage({
+  isEmbedded = false,
+  onResultStateChange,
+  resetSignal,
+  onNewAudit,
+}) {
   const {
     register,
     handleSubmit,
@@ -292,6 +297,9 @@ export default function ContentQaPage({ isEmbedded = false, onResultStateChange,
       targetKeyword: '',
       platform: 'website',
       targetAudience: '',
+      contentTemplate: 'blog',
+      supportingLineMode: 'recommended',
+      insightFirstScope: 'DOCUMENT_INTRO',
     },
   })
 
@@ -741,15 +749,10 @@ export default function ContentQaPage({ isEmbedded = false, onResultStateChange,
     if (fileInputRef.current) {
       fileInputRef.current.value = ''
     }
-    if (isEmbedded) {
-      const toolEl = document.getElementById('tool')
-      if (toolEl) {
-        const navHeight = 90
-        const targetY = toolEl.getBoundingClientRect().top + window.pageYOffset - navHeight
-        window.scrollTo({ top: Math.max(0, targetY), behavior: 'smooth' })
-        return
-      }
+    if (typeof window !== 'undefined' && window.location.hash === '#results') {
+      window.history.replaceState(null, '', window.location.pathname)
     }
+    onResultStateChange?.(false)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
 
@@ -773,6 +776,17 @@ export default function ContentQaPage({ isEmbedded = false, onResultStateChange,
       onResultStateChange?.(false)
     }
   }, [report, onResultStateChange, isEmbedded])
+
+  // Support browser Back button to return from results to audit form
+  useEffect(() => {
+    const handlePopState = () => {
+      if (report) {
+        handleReset()
+      }
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [report])
 
   useEffect(() => {
     if (resetSignal > 0) {
@@ -834,12 +848,18 @@ export default function ContentQaPage({ isEmbedded = false, onResultStateChange,
         targetKeyword: parsed.data.targetKeyword,
         platform: parsed.data.platform,
         targetAudience: parsed.data.targetAudience,
+        contentTemplate: parsed.data.contentTemplate,
+        supportingLineMode: parsed.data.supportingLineMode,
+        insightFirstScope: parsed.data.insightFirstScope,
       }).unwrap()
 
       setReport(data.report)
       setQaId(data.qaId)
       if (data.report?.statuses) {
         setStatuses(data.report.statuses)
+      }
+      if (typeof window !== 'undefined' && window.history && window.history.pushState) {
+        window.history.pushState({ qaReportView: true }, '', window.location.pathname + '#results')
       }
     } catch (err) {
       setError(
@@ -898,47 +918,130 @@ export default function ContentQaPage({ isEmbedded = false, onResultStateChange,
     return 'pending'
   }
 
-  // Dynamic Live Score Calculation
+  // Dynamic Live Score Calculation — strictly respects canonical engine weights & consistency caps
   const scores = useMemo(() => {
-    if (!report) return { cats: {}, overall: 0, total: 0, passed: 0, failed: 0, warnings: 0 }
+    if (!report) return { cats: {}, overall: 0, total: 0, passed: 0, failed: 0, warnings: 0, manual: 0, unverifiable: 0, notApplicable: 0, overallAssessmentCoverage: 0 }
+
+    // Check if user has toggled any checklist items away from report.statuses
+    const hasUserToggled = Object.keys(statuses).some(
+      (k) => statuses[k] && statuses[k] !== report.statuses?.[k]
+    )
+
+    if (!hasUserToggled) {
+      return {
+        cats: report.categoryScores || report.catScores || {},
+        overall: typeof report.overallQualityScore === 'number'
+          ? report.overallQualityScore
+          : (typeof report.overall === 'number' ? report.overall : (report.overallScore || 0)),
+        total: report.total || report.counts?.totalRules || 35,
+        passed: report.statusCounts?.pass ?? (report.passed || report.counts?.pass || 0),
+        failed: report.statusCounts?.fail ?? (report.failed || report.counts?.fail || 0),
+        warnings: report.statusCounts?.warning ?? (report.warnings || report.counts?.warning || 0),
+        manual: report.statusCounts?.manual ?? (report.counts?.manual || 0),
+        unverifiable: report.statusCounts?.unverifiable ?? (report.counts?.unverifiable || 0),
+        notApplicable: report.statusCounts?.notApplicable ?? (report.counts?.notApplicable || 0),
+        overallAssessmentCoverage: report.overallAssessmentCoverage ?? 100,
+      }
+    }
+
+    // When user manually toggles statuses, calculate with canonical weights & consistency caps
+    const RULE_WEIGHTS = {
+      'ts-1': 1.2, 'ts-2': 1.5, 'ts-3': 2.0, 'ts-5': 1.5, 'ts-4': 1.2,
+      'ra-1': 1.2, 'ra-2': 1.0, 'ra-3': 1.2,
+      'aud-1': 1.0, 'aud-2': 1.2, 'aud-3': 1.0,
+      'eat-1': 1.5, 'eat-2': 1.2, 'eat-3': 1.0,
+      'ins-1': 1.5, 'ins-2': 1.2,
+      'mc-1': 1.2, 'mc-2': 1.4,
+      'off-1': 1.0, 'off-2': 1.0,
+      'bp-1': 1.0, 'bp-2': 1.2,
+      'str-1': 1.2, 'str-2': 1.0, 'str-3': 1.2, 'str-4': 1.0,
+      'sp-1': 1.2, 'sp-2': 1.0, 'sp-3': 1.2, 'sp-4': 1.0,
+      'comp-1': 2.0, 'comp-2': 1.5,
+      'vpf-1': 1.2, 'vpf-2': 1.2, 'vpf-3': 1.0,
+    }
+
     const catScores = {}
     let totalItems = 0
     let totalPass = 0
     let totalFail = 0
     let totalWarning = 0
+    let totalManual = 0
+    let totalUnverifiable = 0
+    let totalNotApplicable = 0
+    let totalEarnedWeight = 0
+    let totalResolvedWeight = 0
+    let totalPossibleWeight = 0
 
     for (const cat of HIMANI_CATEGORIES_DEF) {
-      let pass = 0,
-        fail = 0,
-        warning = 0
+      let pass = 0, fail = 0, warning = 0, manual = 0, unverifiable = 0, notApplicable = 0
+      let earnedCat = 0, resolvedCat = 0, possibleCat = 0
+
       for (const item of cat.items) {
         const s = getStatus(item)
-        if (s === 'pass') pass++
-        else if (s === 'fail') fail++
-        else if (s === 'warning') warning++
+        const w = RULE_WEIGHTS[item.id] ?? 1.0
+        possibleCat += w
+        totalPossibleWeight += w
+
+        if (s === 'pass') {
+          pass++
+          earnedCat += w
+          resolvedCat += w
+        } else if (s === 'warning') {
+          warning++
+          earnedCat += (w * 0.5)
+          resolvedCat += w
+        } else if (s === 'fail') {
+          fail++
+          resolvedCat += w
+        } else if (s === 'manual_review') {
+          manual++
+        } else if (s === 'not_verifiable') {
+          unverifiable++
+        } else if (s === 'not_applicable') {
+          notApplicable++
+        }
       }
-      const assessed = pass + fail + warning
-      const catVal = assessed > 0 ? Math.round(((pass + warning * 0.5) / assessed) * 100) : 100
+
+      let catVal = resolvedCat > 0 ? Math.round((earnedCat / resolvedCat) * 100) : null
+      // Score-finding consistency caps:
+      if (catVal !== null) {
+        if (fail > 0) catVal = Math.min(catVal, 80)
+        else if (warning > 0) catVal = Math.min(catVal, 90)
+        else if (manual > 0 || unverifiable > 0) catVal = Math.min(catVal, 90)
+      }
+
       catScores[cat.id] = catVal
-      totalItems += assessed
+      totalItems += (pass + fail + warning + manual + unverifiable + notApplicable)
       totalPass += pass
       totalFail += fail
       totalWarning += warning
+      totalManual += manual
+      totalUnverifiable += unverifiable
+      totalNotApplicable += notApplicable
+      totalEarnedWeight += earnedCat
+      totalResolvedWeight += resolvedCat
     }
 
-    const overall =
-      totalItems > 0
-        ? Math.round(
-            Object.values(catScores).reduce((a, b) => a + b, 0) / Object.keys(catScores).length
-          )
-        : 0
+    const overall = totalResolvedWeight > 0
+      ? Math.round((totalEarnedWeight / totalResolvedWeight) * 100)
+      : null
+
+    const overallAssessmentCoverage = totalPossibleWeight > 0
+      ? Math.round((totalResolvedWeight / totalPossibleWeight) * 100)
+      : 0
+
     return {
       cats: catScores,
-      overall,
+      overall: overall ?? 0,
+      overallQualityScore: overall,
+      overallAssessmentCoverage,
       total: totalItems,
       passed: totalPass,
       failed: totalFail,
       warnings: totalWarning,
+      manual: totalManual,
+      unverifiable: totalUnverifiable,
+      notApplicable: totalNotApplicable,
     }
   }, [report, statuses])
 
@@ -1110,7 +1213,7 @@ Audited with Missive Digital Content QA Tool.`
 
       {/* ── MAIN CONTENT CONTAINER ─────────────────────────────────── */}
       <section className={isEmbedded ? 'py-0' : 'py-10'}>
-        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+        <div className={isEmbedded ? 'max-w-6xl mx-auto px-0' : 'max-w-6xl mx-auto px-4 sm:px-6'}>
           {/* ── INPUT FORM ────────────────────────────────────────── */}
           {!report && !isAnalyzing && (
             <form
@@ -1126,7 +1229,7 @@ Audited with Missive Digital Content QA Tool.`
                     </label>
 
                     {/* Mode Switcher Tabs - Responsive 2x2 Grid on Mobile, Inline on Desktop */}
-                    <div className="w-full @min-[480px]:w-auto grid grid-cols-2 @min-[480px]:flex @min-[480px]:items-center p-1 bg-gray-100/90 rounded-2xl border border-gray-200/80 gap-1 text-xs font-semibold text-gray-600">
+                    <div className="w-full sm:w-auto grid grid-cols-2 sm:flex sm:items-center p-1 bg-gray-100/90 rounded-2xl border border-gray-200/80 gap-1 text-xs font-semibold text-gray-600">
                       <button
                         type="button"
                         onClick={() => {
@@ -1420,7 +1523,7 @@ Audited with Missive Digital Content QA Tool.`
               )}
 
               {/* Title & Target Keyword */}
-              <div className="grid @min-[460px]:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {isFieldEnabled('title') && (
                   <div>
                     <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
@@ -1451,7 +1554,7 @@ Audited with Missive Digital Content QA Tool.`
               </div>
 
               {/* Platform & Audience */}
-              <div className="grid @min-[460px]:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
                     Target Platform
@@ -1544,13 +1647,14 @@ Audited with Missive Digital Content QA Tool.`
           {report && !isAnalyzing && (
             <div id="himani-qa-results" className="space-y-8">
               {/* Top Navigation & Action Bar */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-gray-200 shadow-sm">
+              {/* Top Navigation & Action Bar */}
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-2xl border border-gray-200 shadow-sm">
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white flex items-center justify-center font-bold text-sm shadow-sm">
+                  <div className="w-9 h-9 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white flex items-center justify-center font-bold text-sm shadow-sm shrink-0">
                     HK
                   </div>
                   <div>
-                    <h2 className="text-base font-bold text-gray-900">Himani QA Report</h2>
+                    <h2 className="text-base font-bold text-gray-900 leading-tight">Himani QA Report</h2>
                     <p className="text-xs text-gray-500">12 Pillars • 35 Precision Checks</p>
                   </div>
                 </div>
@@ -1558,97 +1662,146 @@ Audited with Missive Digital Content QA Tool.`
                 <div className="flex flex-wrap items-center gap-2">
                   <button
                     onClick={handleReset}
-                    className="px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-xl transition-all cursor-pointer"
+                    className="flex-1 sm:flex-none justify-center px-3.5 py-2 text-xs font-semibold text-gray-700 hover:bg-gray-100 rounded-xl transition-all cursor-pointer text-center"
                   >
                     ← Audit New Content
                   </button>
                   <button
                     onClick={handleCopyActionPlan}
-                    className="px-3.5 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+                    className="flex-1 sm:flex-none justify-center px-3.5 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer text-center"
                   >
                     {copiedAction ? (
-                      <Check className="w-3.5 h-3.5 text-green-600" />
+                      <Check className="w-3.5 h-3.5 text-green-600 shrink-0" />
                     ) : (
-                      <Copy className="w-3.5 h-3.5" />
+                      <Copy className="w-3.5 h-3.5 shrink-0" />
                     )}
                     <span>{copiedAction ? 'Copied Plan!' : 'Copy Plan'}</span>
                   </button>
                   <button
                     onClick={handleExportPdf}
-                    className="px-3.5 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
+                    className="flex-1 sm:flex-none justify-center px-3.5 py-2 text-xs font-semibold text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl flex items-center gap-1.5 transition-all cursor-pointer text-center"
                   >
-                    <Download className="w-3.5 h-3.5" />
+                    <Download className="w-3.5 h-3.5 shrink-0" />
                     <span>Export PDF</span>
                   </button>
                   <button
                     onClick={runHimaniPolish}
                     disabled={isPolishing}
-                    className="px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:from-[#0D73D1] hover:to-[#E77771] rounded-xl flex items-center gap-1.5 transition-all shadow-sm cursor-pointer"
+                    className="w-full sm:w-auto justify-center px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:from-[#0D73D1] hover:to-[#E77771] rounded-xl flex items-center gap-1.5 transition-all shadow-sm cursor-pointer text-center"
                   >
-                    <Wand2 className="w-3.5 h-3.5" />
+                    <Wand2 className="w-3.5 h-3.5 shrink-0" />
                     <span>{isPolishing ? 'Polishing...' : 'One-Click Himani Polish'}</span>
                   </button>
                 </div>
               </div>
 
               {/* ── SCORE HERO CARD ─────────────────────────────────── */}
-              <div className="bg-white rounded-3xl border border-gray-200 p-6 sm:p-8 shadow-sm">
-                <div className="grid @min-[560px]:grid-cols-12 gap-6 items-center">
+              <div className="bg-white rounded-2xl sm:rounded-3xl border border-gray-200 p-4 sm:p-7 shadow-sm">
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
                   {/* Left Column: Overall Himani Score */}
-                  <div className="@min-[560px]:col-span-4 text-center md:text-left md:border-r md:border-gray-100 md:pr-6">
+                  <div className="lg:col-span-4 text-center lg:text-left lg:border-r lg:border-gray-100 lg:pr-6 pb-6 lg:pb-0 border-b border-gray-100 lg:border-b-0">
                     <span className="text-xs font-bold uppercase tracking-wider text-[#0C81F3]">
                       Overall Himani Score
                     </span>
-                    <div className="flex items-baseline justify-center md:justify-start gap-2 mt-2">
+                    <div className="flex items-baseline justify-center lg:justify-start gap-2 mt-2">
                       <span
-                        className={`text-6xl sm:text-7xl font-extrabold tracking-tight ${getScoreColor(scores.overall)}`}
+                        className={`text-5xl sm:text-6xl lg:text-7xl font-extrabold tracking-tight ${getScoreColor(scores.overall)}`}
                       >
                         {scores.overall}
                       </span>
-                      <span className="text-2xl font-bold text-gray-400">/100</span>
+                      <span className="text-xl sm:text-2xl font-bold text-gray-400">/100</span>
                     </div>
 
-                    <div className="mt-3">
+                    <div className="mt-3 flex flex-col items-center lg:items-start gap-2">
                       <span
                         className={`inline-block px-3 py-1 rounded-full text-xs font-bold border ${getScoreBg(scores.overall)}`}
                       >
                         {report.ai?.publicationReadiness ||
                           (scores.overall >= 80 ? 'Ready to Publish' : 'Minor Polish Needed')}
                       </span>
+
+                      {/* QA Certification Gate Status */}
+                      {report.isCertified || report.certified ? (
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300 shadow-2xs">
+                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          QA Certified (Publish Ready)
+                        </span>
+                      ) : (
+                        <span
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-800 border border-rose-200 text-center"
+                          title={
+                            Array.isArray(report.blockingCertificationReasons)
+                              ? report.blockingCertificationReasons.map((r) => (typeof r === 'string' ? r : r.issue)).join('; ')
+                              : 'Issues blocking certification'
+                          }
+                        >
+                          <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                          Certification Blocked ({report.blockingCertificationReasons?.length || scores.failed} issues)
+                        </span>
+                      )}
                     </div>
-                    <p className="text-xs text-gray-500 mt-2 font-medium">
-                      {scores.passed} passed • {scores.warnings + scores.failed} need action
-                    </p>
+                    <div className="text-xs text-gray-500 mt-2 font-medium flex flex-wrap items-center justify-center lg:justify-start gap-x-2 gap-y-1">
+                      <span className="text-emerald-700 font-semibold">{scores.passed} passed</span>
+                      <span>•</span>
+                      <span className={scores.warnings > 0 ? 'text-amber-700 font-semibold' : ''}>{scores.warnings} warning(s)</span>
+                      <span>•</span>
+                      <span className={scores.failed > 0 ? 'text-rose-700 font-semibold' : ''}>{scores.failed} fail(s)</span>
+                      {scores.manual > 0 && (
+                        <>
+                          <span>•</span>
+                          <span className="text-purple-700 font-semibold">{scores.manual} manual</span>
+                        </>
+                      )}
+                      {scores.unverifiable > 0 && (
+                        <>
+                          <span>•</span>
+                          <span className="text-gray-600 font-semibold">{scores.unverifiable} unverifiable</span>
+                        </>
+                      )}
+                      {scores.notApplicable > 0 && (
+                        <>
+                          <span>•</span>
+                          <span className="text-gray-400">{scores.notApplicable} n/a</span>
+                        </>
+                      )}
+                      <span className="text-gray-400 font-normal">({scores.overallAssessmentCoverage ?? report.overallAssessmentCoverage ?? 100}% assessed)</span>
+                    </div>
                   </div>
 
                   {/* Right Column: 4 Signature Quick Alert Cards */}
-                  <div className="@min-[560px]:col-span-8 grid @min-[420px]:grid-cols-2 gap-3.5">
+                  <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     {/* Em Dash & Colon Sentinel */}
                     <div
                       className={`p-4 rounded-2xl border ${(report.quickStats?.emDashesCount === 0 && (report.quickStats?.colonsCount || 0) === 0) ? 'bg-emerald-50/80 border-emerald-200' : 'bg-red-50/80 border-red-200'}`}
                     >
-                      <div className="flex items-center justify-between mb-1">
+                      <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
                         <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                          <Ban className="w-3.5 h-3.5 text-rose-500 shrink-0" /> Em Dashes & Colons
+                          <Ban className="w-3.5 h-3.5 text-rose-500 shrink-0" /> Em Dashes &amp; Colons
                         </span>
-                        <div className="flex items-center gap-1">
+                        <div className="flex flex-wrap items-center gap-1">
                           <span
-                            className={`text-xs font-extrabold px-1.5 py-0.5 rounded-full ${report.quickStats?.emDashesCount === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}
-                            title="Em Dashes"
+                            className={`text-[11px] sm:text-xs font-extrabold px-1.5 py-0.5 rounded-full ${report.quickStats?.emDashesCount === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}
+                            title="Em Dashes (Strict 0 requirement)"
                           >
                             {report.quickStats?.emDashesCount || 0} em
                           </span>
                           <span
-                            className={`text-xs font-extrabold px-1.5 py-0.5 rounded-full ${(report.quickStats?.colonsCount || 0) === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}
-                            title="Colons"
+                            className="text-[11px] sm:text-xs font-bold px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200"
+                            title="En Dashes (Legitimate ranges/attributes)"
+                          >
+                            {report.quickStats?.enDashesCount || 0} en
+                          </span>
+                          <span
+                            className={`text-[11px] sm:text-xs font-extrabold px-1.5 py-0.5 rounded-full ${(report.quickStats?.colonsCount || 0) === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}
+                            title="Colons (Forbidden in prose)"
                           >
                             {report.quickStats?.colonsCount || 0} colons
                           </span>
                         </div>
                       </div>
-                      <p className="text-[11px] text-gray-600">
+                      <p className="text-[11px] text-gray-600 leading-relaxed">
                         {report.quickStats?.emDashesCount === 0 && (report.quickStats?.colonsCount || 0) === 0
-                          ? 'Strict Himani rule satisfied: zero em dashes and zero colons.'
+                          ? 'Strict Himani rule satisfied: zero em dashes and zero colons in prose.'
                           : `Found ${report.quickStats?.emDashesCount || 0} em dash(es) and ${report.quickStats?.colonsCount || 0} colon(s). Replace with clean punctuation or sentence breaks.`}
                       </p>
                     </div>
@@ -1657,7 +1810,7 @@ Audited with Missive Digital Content QA Tool.`
                     <div
                       className={`p-4 rounded-2xl border ${report.quickStats?.aiPhrasesCount === 0 ? 'bg-emerald-50/80 border-emerald-200' : 'bg-amber-50/80 border-amber-200'}`}
                     >
-                      <div className="flex items-center justify-between mb-1">
+                      <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
                         <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
                           <Bot className="w-3.5 h-3.5 text-amber-600 shrink-0" /> Robotic AI Clichés
                         </span>
@@ -1667,26 +1820,38 @@ Audited with Missive Digital Content QA Tool.`
                           {report.quickStats?.aiPhrasesCount || 0}
                         </span>
                       </div>
-                      <p className="text-[11px] text-gray-600">
-                        {report.quickStats?.aiPhrasesCount === 0
-                          ? 'Clean human voice without detectable AI buzzwords.'
-                          : `Detected ${report.quickStats.aiPhrasesCount} robotic phrase(s) (e.g., "delve", "tapestry").`}
+                      <p className="text-[11px] text-gray-600 leading-relaxed">
+                        {report.quickStats?.aiPhrasesCount === 0 ? (
+                          'Clean human voice without detectable AI buzzwords.'
+                        ) : (
+                          (() => {
+                            const ts2Finding = report.debug?.canonicalFindings?.find((f) => f.ruleId === 'ts-2')
+                            const phrases = ts2Finding?.metadata?.distinctPhrases?.map((p) => `"${p.phrase}"`) ||
+                              report.highlights?.filter((h) => h.type === 'ai-cliche').map((h) => `"${h.text}"`) || []
+                            const unique = [...new Set(phrases)].slice(0, 3)
+                            return unique.length > 0
+                              ? `Detected ${report.quickStats.aiPhrasesCount} robotic phrase occurrence(s): ${unique.join(', ')}.`
+                              : `Detected ${report.quickStats.aiPhrasesCount} robotic phrase occurrence(s).`
+                          })()
+                        )}
+                      </p>
+                      <p className="text-[10px] text-gray-400 mt-1">
+                        Rule checks for patterns like &quot;delve&quot;, &quot;tapestry&quot;, &quot;game-changer&quot;, etc.
                       </p>
                     </div>
 
                     {/* Read Aloud Cadence & Speech Time */}
                     <div className="p-4 rounded-2xl border bg-purple-50/80 border-purple-200">
-                      <div className="flex items-center justify-between mb-1">
+                      <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
                         <span className="text-xs font-bold text-purple-900 flex items-center gap-1.5">
-                          <Volume2 className="w-3.5 h-3.5 text-purple-600 shrink-0" /> Read Aloud
-                          Cadence
+                          <Volume2 className="w-3.5 h-3.5 text-purple-600 shrink-0" /> Read Aloud Cadence
                         </span>
                         <span className="text-xs font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
                           ~{Math.ceil((report.quickStats?.estimatedReadAloudTimeSec || 60) / 60)}{' '}
                           min speech
                         </span>
                       </div>
-                      <p className="text-[11px] text-purple-800/80">
+                      <p className="text-[11px] text-purple-800/80 leading-relaxed">
                         Flesch Ease: <strong>{report.quickStats?.fleschScore || 65}/100</strong>.
                         Test audio flow in the studio tab.
                       </p>
@@ -1696,10 +1861,9 @@ Audited with Missive Digital Content QA Tool.`
                     <div
                       className={`p-4 rounded-2xl border ${report.statuses?.['ins-1'] === 'pass' ? 'bg-emerald-50/80 border-emerald-200' : 'bg-blue-50/80 border-blue-200'}`}
                     >
-                      <div className="flex items-center justify-between mb-1">
+                      <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
                         <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                          <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" /> Insight-First
-                          Opening
+                          <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" /> Insight-First Opening
                         </span>
                         <span
                           className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${report.statuses?.['ins-1'] === 'pass' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}`}
@@ -1707,7 +1871,7 @@ Audited with Missive Digital Content QA Tool.`
                           {report.statuses?.['ins-1'] === 'pass' ? 'Passed' : 'Needs Polish'}
                         </span>
                       </div>
-                      <p className="text-[11px] text-gray-600">
+                      <p className="text-[11px] text-gray-600 leading-relaxed">
                         {report.statuses?.['ins-1'] === 'pass'
                           ? 'Opens directly with a punchy hook or observation.'
                           : 'Intro has throat-clearing setup. Start with the core insight.'}
@@ -1718,10 +1882,10 @@ Audited with Missive Digital Content QA Tool.`
 
                 {/* AI Executive Summary & Pro Tips */}
                 {report.ai && (
-                  <div className="mt-6 pt-6 border-t border-gray-100 grid @min-[520px]:grid-cols-2 gap-4">
+                  <div className="mt-6 pt-6 border-t border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="bg-blue-50/40 rounded-2xl p-4 border border-blue-100/80">
                       <h4 className="text-xs font-bold text-blue-900 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                        <Sparkles className="w-3.5 h-3.5 text-[#0C81F3]" />
+                        <Sparkles className="w-3.5 h-3.5 text-[#0C81F3] shrink-0" />
                         Himani's Executive Assessment
                       </h4>
                       <p className="text-xs text-gray-700 leading-relaxed">
@@ -1732,7 +1896,7 @@ Audited with Missive Digital Content QA Tool.`
 
                     <div className="bg-rose-50/40 rounded-2xl p-4 border border-rose-100/80">
                       <h4 className="text-xs font-bold text-rose-900 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
-                        <AlertCircle className="w-3.5 h-3.5 text-[#EB8988]" />
+                        <AlertCircle className="w-3.5 h-3.5 text-[#EB8988] shrink-0" />
                         Top Priority Fixes
                       </h4>
                       <ul className="space-y-1.5">
@@ -1785,13 +1949,13 @@ Audited with Missive Digital Content QA Tool.`
               </div>
 
               {/* ── MULTI-VIEW TAB NAVIGATION ────────────────────────── */}
-              <div className="border-b border-gray-200">
-                <div className="flex flex-wrap gap-2 sm:gap-4">
+              <div className="border-b border-gray-200 overflow-x-auto no-scrollbar">
+                <div className="flex gap-2 sm:gap-4 min-w-max pb-px">
                   <button
                     onClick={() => setActiveTab('grid')}
-                    className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all ${activeTab === 'grid' ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-gray-500 hover:text-gray-900'} cursor-pointer`}
+                    className={`pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-all ${activeTab === 'grid' ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-gray-500 hover:text-gray-900'} cursor-pointer`}
                   >
-                    <ClipboardCheck className="w-4 h-4" />
+                    <ClipboardCheck className="w-4 h-4 shrink-0" />
                     <span>
                       12-Pillar Checklist ({scores.passed}/{scores.total})
                     </span>
@@ -1799,17 +1963,17 @@ Audited with Missive Digital Content QA Tool.`
 
                   <button
                     onClick={() => setActiveTab('inspector')}
-                    className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all ${activeTab === 'inspector' ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-gray-500 hover:text-gray-900'} cursor-pointer`}
+                    className={`pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-all ${activeTab === 'inspector' ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-gray-500 hover:text-gray-900'} cursor-pointer`}
                   >
-                    <Eye className="w-4 h-4" />
+                    <Eye className="w-4 h-4 shrink-0" />
                     <span>Live Content Inspector ({report.highlights?.length || 0} flags)</span>
                   </button>
 
                   <button
                     onClick={() => setActiveTab('read_aloud')}
-                    className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all ${activeTab === 'read_aloud' ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-gray-500 hover:text-gray-900'} cursor-pointer`}
+                    className={`pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-all ${activeTab === 'read_aloud' ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-gray-500 hover:text-gray-900'} cursor-pointer`}
                   >
-                    <Volume2 className="w-4 h-4" />
+                    <Volume2 className="w-4 h-4 shrink-0" />
                     <span>Read Aloud Audio Studio</span>
                   </button>
 
@@ -1818,9 +1982,9 @@ Audited with Missive Digital Content QA Tool.`
                       if (!polishedResult && !isPolishing) runHimaniPolish()
                       else setActiveTab('polish')
                     }}
-                    className={`pb-3 px-3 text-sm font-bold border-b-2 flex items-center gap-2 transition-all ${activeTab === 'polish' ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-gray-500 hover:text-gray-900'} cursor-pointer`}
+                    className={`pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-all ${activeTab === 'polish' ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-gray-500 hover:text-gray-900'} cursor-pointer`}
                   >
-                    <Wand2 className="w-4 h-4 text-[#EB8988]" />
+                    <Wand2 className="w-4 h-4 text-[#EB8988] shrink-0" />
                     <span>One-Click Himani Polish</span>
                   </button>
                 </div>
@@ -1833,7 +1997,7 @@ Audited with Missive Digital Content QA Tool.`
                 <div className="space-y-6">
                   {/* Filter Pills */}
                   <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">
                         Filter:
                       </span>
@@ -1849,7 +2013,7 @@ Audited with Missive Digital Content QA Tool.`
                         <button
                           key={f.id}
                           onClick={() => setFilterMode(f.id)}
-                          className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${filterMode === f.id ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'} cursor-pointer`}
+                          className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${filterMode === f.id ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-sm' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'} cursor-pointer`}
                         >
                           {f.label}
                         </button>
@@ -1858,9 +2022,10 @@ Audited with Missive Digital Content QA Tool.`
                   </div>
 
                   {/* 2-Column Responsive Card Grid — all cards visible, equal height */}
-                  <div className="grid @min-[560px]:grid-cols-2 gap-5">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                     {filteredCategories.map((cat) => {
-                      const catScore = scores.cats[cat.id] ?? 100
+                      const catScore = scores.cats[cat.id] !== undefined ? scores.cats[cat.id] : (report.categoryScores?.[cat.id] ?? null)
+                      const catCoverage = report.categories?.[cat.id]?.assessmentCoverage ?? report.debug?.pillarCalculations?.[cat.id]?.assessmentCoverage
                       const aiCat = report.ai?.categories?.[cat.id]
 
                       return (
@@ -1870,17 +2035,17 @@ Audited with Missive Digital Content QA Tool.`
                         >
                           <div className="flex-1 flex flex-col">
                             {/* Card Header */}
-                            <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-100">
-                              <div className="flex items-center gap-3">
+                            <div className="flex flex-wrap items-center justify-between p-3.5 sm:p-5 border-b border-gray-100 gap-2">
+                              <div className="flex items-center gap-3 min-w-0">
                                 <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
                                   {cat.icon}
                                 </div>
-                                <div>
+                                <div className="min-w-0">
                                   <div className="flex items-center gap-2">
-                                    <span className="text-xs font-bold text-gray-400">
+                                    <span className="text-xs font-bold text-gray-400 shrink-0">
                                       #{cat.number}
                                     </span>
-                                    <h3 className="text-sm font-bold text-gray-900">{cat.label}</h3>
+                                    <h3 className="text-sm font-bold text-gray-900 truncate">{cat.label}</h3>
                                   </div>
                                   <p className="text-[11px] text-gray-500">
                                     {cat.items.length} quality checks
@@ -1888,15 +2053,31 @@ Audited with Missive Digital Content QA Tool.`
                                 </div>
                               </div>
 
-                              <span
-                                className={`text-xs font-extrabold px-2.5 py-1 rounded-full border ${getScoreBg(catScore)}`}
-                              >
-                                {catScore}%
-                              </span>
+                              {catScore === null ? (
+                                <span className="text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-800 border border-amber-200 shrink-0">
+                                  Pending Review (0%)
+                                </span>
+                              ) : (
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  <span
+                                    className={`text-xs font-extrabold px-2.5 py-1 rounded-full border ${getScoreBg(catScore)}`}
+                                  >
+                                    {catScore}%
+                                  </span>
+                                  {typeof catCoverage === 'number' && catCoverage < 100 && (
+                                    <span
+                                      className="text-[10px] font-semibold text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded"
+                                      title="Automated Assessment Coverage"
+                                    >
+                                      {catCoverage}% assessed
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </div>
 
                             {/* Checklist Items */}
-                            <div className="px-4 pb-3 border-t border-gray-100 pt-3 flex-1 flex flex-col gap-2.5">
+                            <div className="px-3 sm:px-4 pb-3 border-t border-gray-100 pt-3 flex-1 flex flex-col gap-2.5">
                               {cat.items.map((item) => {
                                 const st = getStatus(item)
                                 const evidenceText = report.evidence?.[item.id]
@@ -1912,24 +2093,44 @@ Audited with Missive Digital Content QA Tool.`
                                         <CheckCircle2 className="w-4 h-4 text-emerald-600" />
                                       ) : st === 'warning' ? (
                                         <AlertTriangle className="w-4 h-4 text-amber-500" />
-                                      ) : (
+                                      ) : st === 'fail' ? (
                                         <XCircle className="w-4 h-4 text-rose-500" />
+                                      ) : st === 'not_verifiable' ? (
+                                        <Eye className="w-4 h-4 text-gray-400" />
+                                      ) : (
+                                        <AlertCircle className="w-4 h-4 text-purple-400" />
                                       )}
                                     </div>
 
-                                    <div className="flex-1">
-                                      <div className="flex items-center justify-between gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      <div className="flex items-start justify-between gap-2">
                                         <span
-                                          className={`text-xs leading-snug ${st === 'pass' ? 'text-gray-800 font-medium' : st === 'warning' ? 'text-amber-900 font-semibold' : 'text-rose-900 font-semibold'}`}
+                                          className={`text-xs leading-snug break-words ${
+                                            st === 'pass'
+                                              ? 'text-gray-800 font-medium'
+                                              : st === 'warning'
+                                              ? 'text-amber-900 font-semibold'
+                                              : st === 'fail'
+                                              ? 'text-rose-900 font-semibold'
+                                              : 'text-gray-600 font-medium'
+                                          }`}
                                         >
                                           {item.label}
                                         </span>
-                                        {item.auto ? (
+                                        {st === 'not_verifiable' ? (
+                                          <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-amber-50 text-amber-700 font-bold shrink-0">
+                                            NOT VERIFIABLE
+                                          </span>
+                                        ) : st === 'not_applicable' ? (
+                                          <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-gray-100 text-gray-400 font-bold shrink-0">
+                                            N/A
+                                          </span>
+                                        ) : item.auto ? (
                                           <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-blue-50 text-blue-700 font-bold shrink-0">
                                             AUTO
                                           </span>
                                         ) : (
-                                          <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 font-bold shrink-0">
+                                          <span className="text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-purple-50 text-purple-700 font-bold shrink-0">
                                             MANUAL
                                           </span>
                                         )}
@@ -1937,7 +2138,7 @@ Audited with Missive Digital Content QA Tool.`
 
                                       {/* Programmatic Evidence */}
                                       {evidenceText && (
-                                        <p className="text-[11px] text-gray-500 mt-0.5 italic">
+                                        <p className="text-[11px] text-gray-500 mt-0.5 italic break-words">
                                           {evidenceText}
                                         </p>
                                       )}
@@ -2250,7 +2451,7 @@ Audited with Missive Digital Content QA Tool.`
                                     {group.label}
                                   </span>
                                   {group.text && (
-                                    <code className="text-xs px-2.5 py-0.5 rounded-md bg-white border border-gray-300 font-mono font-bold text-gray-900 shadow-2xs">
+                                    <code className="text-xs px-2.5 py-0.5 rounded-md bg-white border border-gray-300 font-mono font-bold text-gray-900 shadow-2xs max-w-full break-all inline-block">
                                       "{group.text}"
                                     </code>
                                   )}
@@ -2401,10 +2602,10 @@ Audited with Missive Digital Content QA Tool.`
                   <p className="text-sm text-gray-600 mb-4">
                     Listen to your content to check cadence and flow.
                   </p>
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-4">
                     <button
                       onClick={handleToggleSpeech}
-                      className="px-5 py-2.5 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-sm font-semibold flex items-center gap-2 cursor-pointer"
+                      className="w-full sm:w-auto px-5 py-2.5 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer shadow-sm"
                     >
                       {isPlayingAudio ? (
                         <VolumeX className="w-4 h-4" />
@@ -2422,9 +2623,9 @@ Audited with Missive Digital Content QA Tool.`
                         step="0.1"
                         value={speechRate}
                         onChange={(e) => setSpeechRate(parseFloat(e.target.value))}
-                        className="w-24"
+                        className="w-28 sm:w-36"
                       />
-                      <span className="text-xs text-gray-500">{speechRate}x</span>
+                      <span className="text-xs text-gray-500 font-medium">{speechRate}x</span>
                     </div>
                   </div>
                 </div>
@@ -2484,7 +2685,7 @@ Audited with Missive Digital Content QA Tool.`
 
                         return (
                           <div className="space-y-4 mt-6 pt-6 border-t border-white/10">
-                            <div className="grid grid-cols-2 @min-[440px]:grid-cols-3 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                               <div className="bg-white/10 rounded-2xl p-3.5 text-center">
                                 <span className="text-[11px] font-semibold text-slate-300 uppercase">
                                   Original Score
@@ -2501,7 +2702,7 @@ Audited with Missive Digital Content QA Tool.`
                                   {newScore} <span className="text-xs text-slate-400">/ 100</span>
                                 </p>
                               </div>
-                              <div className="col-span-2 sm:col-span-1 bg-emerald-500/20 border border-emerald-400/30 rounded-2xl p-3.5 text-center flex flex-col justify-center">
+                              <div className="bg-emerald-500/20 border border-emerald-400/30 rounded-2xl p-3.5 text-center flex flex-col justify-center">
                                 <span className="text-[11px] font-semibold text-emerald-200 uppercase">
                                   Total Quality Lift
                                 </span>
@@ -2632,7 +2833,7 @@ Audited with Missive Digital Content QA Tool.`
 
                         {Array.isArray(polishedResult.improvementsMade) &&
                           polishedResult.improvementsMade.length > 0 && (
-                            <ul className="grid @min-[440px]:grid-cols-2 gap-2 text-xs text-emerald-950">
+                            <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-emerald-950">
                               {polishedResult.improvementsMade.map((imp, idx) => (
                                 <li key={idx} className="flex items-start gap-2">
                                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
@@ -2644,24 +2845,23 @@ Audited with Missive Digital Content QA Tool.`
                       </div>
 
                       {/* Content Card with Interactive View Mode Switcher */}
-                      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-5">
-                        {/* Title Header & View Switcher Bar */}
+                      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-4 sm:p-8 space-y-5">
                         {/* Title Header & View Switcher Bar */}
                         <div className="pb-4 border-b border-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                          <div>
+                          <div className="min-w-0">
                             <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                               Polished Headline (Hook-First)
                             </span>
-                            <h4 className="text-lg sm:text-xl font-black text-slate-900 mt-0.5">
+                            <h4 className="text-lg sm:text-xl font-black text-slate-900 mt-0.5 break-words">
                               {polishedResult.polishedTitle || 'Polished Content Blueprint'}
                             </h4>
                           </div>
 
                           {/* View Mode Toggle */}
-                          <div className="flex items-center gap-1.5 p-1 bg-slate-100 rounded-2xl border border-slate-200 shrink-0 self-start lg:self-auto">
+                          <div className="flex flex-wrap sm:flex-nowrap items-center gap-1.5 p-1 bg-slate-100 rounded-2xl border border-slate-200 w-full sm:w-auto shrink-0">
                             <button
                               onClick={() => setPolishViewMode('split')}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                              className={`flex-1 sm:flex-none justify-center px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                                 polishViewMode === 'split'
                                   ? 'bg-white text-[#0C81F3] shadow-xs'
                                   : 'text-slate-600 hover:text-slate-900'
@@ -2672,7 +2872,7 @@ Audited with Missive Digital Content QA Tool.`
                             </button>
                             <button
                               onClick={() => setPolishViewMode('diff')}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                              className={`flex-1 sm:flex-none justify-center px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                                 polishViewMode === 'diff'
                                   ? 'bg-white text-[#0C81F3] shadow-xs'
                                   : 'text-slate-600 hover:text-slate-900'
@@ -2683,7 +2883,7 @@ Audited with Missive Digital Content QA Tool.`
                             </button>
                             <button
                               onClick={() => setPolishViewMode('clean')}
-                              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                              className={`flex-1 sm:flex-none justify-center px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                                 polishViewMode === 'clean'
                                   ? 'bg-white text-[#0C81F3] shadow-xs'
                                   : 'text-slate-600 hover:text-slate-900'
@@ -2696,7 +2896,7 @@ Audited with Missive Digital Content QA Tool.`
                         </div>
 
                         {/* Visual Editorial Diffs Legend Bar (Always Side-by-Side) */}
-                        <div className="grid grid-cols-1 @min-[420px]:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 text-xs">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-3.5 rounded-2xl bg-slate-50 border border-slate-200/90 text-xs">
                           <div className="flex items-center gap-2.5 p-2 rounded-xl bg-white border border-rose-200/70 shadow-2xs">
                             <del className="bg-rose-100 text-rose-900 line-through rounded px-2 py-0.5 font-bold decoration-rose-600 decoration-2 shrink-0">
                               red strikethrough
@@ -2717,7 +2917,7 @@ Audited with Missive Digital Content QA Tool.`
 
                         {/* VIEW 1: SIDE-BY-SIDE SPLIT WITH HIGHLIGHTS (DEFAULT) */}
                         {polishViewMode === 'split' && (
-                          <div className="grid @min-[640px]:grid-cols-2 gap-5">
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
                             {/* Original Draft Column (Left) */}
                             <div className="space-y-2">
                               <div className="flex items-center justify-between p-2.5 bg-rose-50/70 rounded-xl border border-rose-200/80 text-xs font-bold text-rose-950">
@@ -2729,7 +2929,7 @@ Audited with Missive Digital Content QA Tool.`
                                   {content.length} chars
                                 </span>
                               </div>
-                              <div className="bg-white rounded-2xl p-5 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-wrap font-sans border border-rose-200 shadow-2xs min-h-[380px] max-h-[540px] overflow-y-auto">
+                              <div className="bg-white rounded-2xl p-4 sm:p-5 text-xs sm:text-sm text-slate-700 leading-relaxed whitespace-pre-wrap break-words font-sans border border-rose-200 shadow-2xs min-h-[280px] sm:min-h-[380px] max-h-[540px] overflow-y-auto">
                                 {polishDiff.map((chunk, idx) => {
                                   if (chunk.type === 'removed') {
                                     return (
@@ -2764,7 +2964,7 @@ Audited with Missive Digital Content QA Tool.`
                                   chars
                                 </span>
                               </div>
-                              <div className="bg-white rounded-2xl p-5 text-xs sm:text-sm text-slate-900 leading-relaxed whitespace-pre-wrap font-sans border border-emerald-300 shadow-2xs min-h-[380px] max-h-[540px] overflow-y-auto">
+                              <div className="bg-white rounded-2xl p-4 sm:p-5 text-xs sm:text-sm text-slate-900 leading-relaxed whitespace-pre-wrap break-words font-sans border border-emerald-300 shadow-2xs min-h-[280px] sm:min-h-[380px] max-h-[540px] overflow-y-auto">
                                 {polishDiff.map((chunk, idx) => {
                                   if (chunk.type === 'added') {
                                     return (
@@ -2798,7 +2998,7 @@ Audited with Missive Digital Content QA Tool.`
                               return (
                                 <div
                                   key={block.id}
-                                  className={`p-4 rounded-2xl border transition-all ${
+                                  className={`p-3.5 sm:p-4 rounded-2xl border transition-all ${
                                     isAdded
                                       ? 'bg-emerald-50/50 border-emerald-200 border-l-4 border-l-emerald-500'
                                       : isRemoved
@@ -2846,7 +3046,7 @@ Audited with Missive Digital Content QA Tool.`
                                   </div>
 
                                   {/* Text Content with Word-Level Diffs */}
-                                  <div className="text-xs sm:text-sm text-slate-800 leading-relaxed font-sans whitespace-pre-wrap">
+                                  <div className="text-xs sm:text-sm text-slate-800 leading-relaxed font-sans whitespace-pre-wrap break-words">
                                     {block.words.map((chunk, idx) => {
                                       if (chunk.type === 'removed') {
                                         return (
@@ -2881,7 +3081,7 @@ Audited with Missive Digital Content QA Tool.`
 
                         {/* VIEW 3: CLEAN POLISHED PROSE */}
                         {polishViewMode === 'clean' && (
-                          <div className="bg-slate-50 rounded-2xl p-5 sm:p-6 text-sm text-slate-800 leading-relaxed whitespace-pre-wrap font-sans border border-slate-200/80 max-h-[520px] overflow-y-auto">
+                          <div className="bg-slate-50 rounded-2xl p-4 sm:p-6 text-sm text-slate-800 leading-relaxed whitespace-pre-wrap break-words font-sans border border-slate-200/80 max-h-[520px] overflow-y-auto">
                             {typeof polishedResult === 'string'
                               ? polishedResult
                               : polishedResult.polishedContent || ''}
@@ -2889,12 +3089,12 @@ Audited with Missive Digital Content QA Tool.`
                         )}
 
                         {/* Action Bar with Google Docs Export & Downloads */}
-                        <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-100">
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-slate-100">
                           <div className="flex flex-wrap items-center gap-2">
                             {/* Export to Google Docs */}
                             <button
                               onClick={handleExportToGoogleDocs}
-                              className="px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#0A6ECF] hover:opacity-95 text-white text-xs font-bold shadow-md transition-all flex items-center gap-2 cursor-pointer"
+                              className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#0A6ECF] hover:opacity-95 text-white text-xs font-bold shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
                               title="Opens docs.new in Google Docs and copies formatted text to clipboard"
                             >
                               <ExternalLink className="w-3.5 h-3.5" />
@@ -2912,7 +3112,7 @@ Audited with Missive Digital Content QA Tool.`
                                 setCopiedPolish(true)
                                 setTimeout(() => setCopiedPolish(false), 2000)
                               }}
-                              className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
+                              className="flex-1 sm:flex-none justify-center px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5 cursor-pointer"
                             >
                               {copiedPolish ? (
                                 <Check className="w-3.5 h-3.5 text-emerald-400" />
@@ -2920,7 +3120,7 @@ Audited with Missive Digital Content QA Tool.`
                                 <Copy className="w-3.5 h-3.5" />
                               )}
                               <span>
-                                {copiedPolish ? 'Copied to Clipboard!' : 'Copy Polished Content'}
+                                {copiedPolish ? 'Copied!' : 'Copy Polished Content'}
                               </span>
                             </button>
 
@@ -2936,7 +3136,7 @@ Audited with Missive Digital Content QA Tool.`
                                   setValue('title', polishedResult.polishedTitle)
                                 setActiveTab('grid')
                               }}
-                              className="px-3.5 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0C81F3] border border-blue-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
+                              className="flex-1 sm:flex-none justify-center px-3.5 py-2.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#0C81F3] border border-blue-200 text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer"
                             >
                               <Edit3 className="w-3.5 h-3.5" />
                               <span>Apply to Editor</span>
@@ -2944,11 +3144,11 @@ Audited with Missive Digital Content QA Tool.`
                           </div>
 
                           {/* Download Buttons */}
-                          <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-2 w-full sm:w-auto">
                             {/* Download .doc (Word / Google Docs compatible) */}
                             <button
                               onClick={handleDownloadDocx}
-                              className="px-3.5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                              className="flex-1 sm:flex-none justify-center px-3.5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
                               title="Download Microsoft Word / Google Docs compatible .doc file"
                             >
                               <Download className="w-3.5 h-3.5 text-blue-600" />
@@ -2970,7 +3170,7 @@ Audited with Missive Digital Content QA Tool.`
                                 a.click()
                                 URL.revokeObjectURL(url)
                               }}
-                              className="px-3.5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
+                              className="flex-1 sm:flex-none justify-center px-3.5 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-semibold flex items-center gap-1.5 cursor-pointer"
                             >
                               <Download className="w-3.5 h-3.5" />
                               <span>Download .md</span>

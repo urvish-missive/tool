@@ -471,7 +471,7 @@ ${d.aiSearchReadiness?.keyQuotableBlocks?.map((b) => `> ${b}`).join('\n\n') || `
                     Auto-detects format, subject, and evidentiary threshold across any topic
                   </span>
                 </div>
-                <div className="grid grid-cols-2 @min-[480px]:grid-cols-3 @min-[760px]:grid-cols-6 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
                   {FRAMEWORK_PRESETS.map((type) => {
                     const isSelected = contentTypeValue === type.id
                     const Icon = type.icon
@@ -512,7 +512,7 @@ ${d.aiSearchReadiness?.keyQuotableBlocks?.map((b) => `> ${b}`).join('\n\n') || `
               </div>
 
               {/* Target Keywords Row */}
-              <div className="grid grid-cols-1 @min-[420px]:grid-cols-2 gap-3 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                 <div>
                   <label
                     htmlFor="eeat-keywords"
@@ -588,25 +588,6 @@ ${d.aiSearchReadiness?.keyQuotableBlocks?.map((b) => `> ${b}`).join('\n\n') || `
         {/* Results Section */}
         {dataResult && !isLoading && (
           <div id="eeat-results" className="space-y-6 sm:space-y-7 animate-fade-in pt-1">
-            {/* TEMPORARY MODEL INDICATOR (Will be removed later) */}
-            <div className="flex items-center justify-between p-3.5 px-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-950 text-xs sm:text-sm font-medium shadow-xs">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white font-mono text-[10px] font-extrabold uppercase tracking-wider">
-                  Temporary Model Info
-                </span>
-                <span>
-                  Audited by Model: <strong className="font-mono text-amber-950 font-bold">{dataResult.modelUsed || dataResult.data?.modelUsed || (dataResult.isFallback ? 'Document Heuristics Engine (Fallback)' : 'Gemini 3.5 Flash')}</strong>
-                </span>
-                {(dataResult.providerUsed || dataResult.data?.providerUsed) && (
-                  <span className="text-amber-800 text-xs font-mono">
-                    (Provider: {dataResult.providerUsed || dataResult.data?.providerUsed})
-                  </span>
-                )}
-              </div>
-              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold font-mono ${dataResult.isFallback ? 'bg-amber-200 text-amber-900 border border-amber-300' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'}`}>
-                {dataResult.isFallback ? 'Fallback Engine' : 'Live AI Response'}
-              </span>
-            </div>
 
             {/* Partial Fallback Banner (If model-based analysis was unavailable) */}
             {dataResult.analysisStatus === 'partial' && (
@@ -742,7 +723,7 @@ ${d.aiSearchReadiness?.keyQuotableBlocks?.map((b) => `> ${b}`).join('\n\n') || `
                   <span className="text-[11px] text-slate-400">Click any pillar to inspect observable evidence</span>
                 </div>
 
-                <div className="grid grid-cols-2 @min-[540px]:grid-cols-4 gap-2 sm:gap-2.5">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
                   {/* 1. Experience */}
                   <div
                     onClick={() => setActivePillarTab('experience')}
@@ -886,7 +867,7 @@ ${d.aiSearchReadiness?.keyQuotableBlocks?.map((b) => `> ${b}`).join('\n\n') || `
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 @min-[520px]:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* Strengths */}
                 <div className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-200 space-y-2">
                   <div className="text-xs font-bold text-emerald-800 flex items-center gap-1.5 uppercase tracking-wider">
@@ -963,7 +944,7 @@ ${d.aiSearchReadiness?.keyQuotableBlocks?.map((b) => `> ${b}`).join('\n\n') || `
                 </div>
 
                 {/* Citability 4-Factor Grid */}
-                <div className="grid grid-cols-2 @min-[540px]:grid-cols-4 gap-2.5">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                   <div className="p-3 rounded-xl bg-slate-50 border border-slate-200/70">
                     <span className="text-[10px] font-bold text-slate-500 uppercase">Direct Answers</span>
                     <p className="text-xs font-semibold text-slate-800 mt-1">{dataResult.aiSearchReadiness.citabilityFactors?.directAnswers || 'N/A'}</p>
@@ -986,7 +967,7 @@ ${d.aiSearchReadiness?.keyQuotableBlocks?.map((b) => `> ${b}`).join('\n\n') || `
                 {dataResult.aiSearchReadiness.keyQuotableBlocks?.length > 0 && (
                   <div className="space-y-2 pt-1">
                     <span className="text-xs font-bold text-slate-700">Quotable Direct-Answer Blocks:</span>
-                    <div className="grid grid-cols-1 @min-[540px]:grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       {dataResult.aiSearchReadiness.keyQuotableBlocks.map((block, idx) => (
                         <div key={idx} className="p-3 rounded-xl bg-blue-50/40 border border-blue-100 text-xs text-slate-800 font-mono leading-relaxed">
                           "{block}"
@@ -1016,9 +997,9 @@ ${d.aiSearchReadiness?.keyQuotableBlocks?.map((b) => `> ${b}`).join('\n\n') || `
 
                 <div className="space-y-2">
                   {dataResult.claims.map((c, i) => (
-                    <div key={i} className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col @min-[480px]:flex-row @min-[480px]:items-center justify-between gap-2.5">
+                    <div key={i} className="p-3 rounded-xl bg-slate-50 border border-slate-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                       <div className="space-y-0.5 flex-1 min-w-0">
-                        <p className="text-xs font-semibold text-slate-800 leading-snug">"{c.claim}"</p>
+                        <p className="text-xs font-semibold text-slate-800 leading-snug break-words">"{c.claim}"</p>
                         <div className="flex items-center gap-2 text-[11px] text-slate-500">
                           <span className="capitalize font-mono bg-white px-1.5 py-0.5 rounded border border-slate-200">{c.claimType} Claim</span>
                           <span>•</span>
@@ -1058,7 +1039,7 @@ ${d.aiSearchReadiness?.keyQuotableBlocks?.map((b) => `> ${b}`).join('\n\n') || `
 
                 <div className="space-y-2.5">
                   {dataResult.recommendations.map((rec, idx) => (
-                    <div key={idx} className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col @min-[540px]:flex-row @min-[540px]:items-start justify-between gap-3">
+                    <div key={idx} className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 flex flex-col sm:flex-row sm:items-start justify-between gap-3">
                       <div className="space-y-1 flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wide border ${
@@ -1095,7 +1076,7 @@ ${d.aiSearchReadiness?.keyQuotableBlocks?.map((b) => `> ${b}`).join('\n\n') || `
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 @min-[520px]:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {/* 1. Experience Booster */}
                 <div className="p-4 rounded-xl border border-sky-200 bg-sky-50/40 space-y-2">
                   <div className="flex items-center justify-between">

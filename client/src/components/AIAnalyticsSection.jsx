@@ -358,7 +358,7 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
       </div>
 
       {/* ── INTERACTIVE TAB NAVIGATION ─────────────────────────────────── */}
-      <div className="flex flex-wrap items-center gap-2 bg-slate-100/90 p-2 rounded-2xl border border-slate-200/80">
+      <div className="flex items-center gap-2 bg-slate-100/90 p-2 rounded-2xl border border-slate-200/80 overflow-x-auto no-scrollbar">
         {[
           { id: 'scores', label: '8-Pillar Score Grid', icon: Layers },
           {
@@ -376,7 +376,7 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer shrink-0 ${
                 isActive
                   ? 'bg-slate-900 text-white shadow-md'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-white/70'

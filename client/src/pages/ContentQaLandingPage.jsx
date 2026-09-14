@@ -298,7 +298,7 @@ function GradientButton({ onClick, children }) {
   return (
     <button
       onClick={onClick}
-      className="group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white px-9 py-[18px] text-base font-semibold tracking-[-0.01em] hover:bg-gradient-to-l transition-all duration-300 shadow-[0_32px_53px_rgba(52,124,156,0.36)] cursor-pointer"
+      className="group inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white px-9 py-[12px] text-base font-semibold tracking-[-0.01em] hover:bg-gradient-to-l transition-all duration-300 shadow-[0_32px_53px_rgba(52,124,156,0.36)] cursor-pointer"
     >
       {children}
     </button>
@@ -331,20 +331,21 @@ function BannedTicker() {
 }
 
 /* ─────────────── Hero ─────────────── */
-function QaHero({ onCta, toolRef, onResultStateChange, hideHeroCopy, resetSignal }) {
-  const ref = useScrollReveal()
+function QaHero({ onCta, toolRef, onResultStateChange, hideHeroCopy, resetSignal, onNewAudit }) {
   return (
     <section
-      className={`relative bg-[#F9F7F6] overflow-hidden ${hideHeroCopy ? 'py-4 sm:py-6' : 'py-20 sm:py-28'}`}
+      className={`relative bg-[#F9F7F6] overflow-hidden ${hideHeroCopy ? 'pt-24 sm:pt-28 pb-12' : 'py-20 sm:py-28'}`}
     >
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute -top-24 -right-24 w-[480px] h-[480px] bg-[#DAD0FF]/50 rounded-full blur-3xl lp-float-slow" />
-        <div className="absolute -bottom-28 -left-24 w-[420px] h-[420px] bg-[#D8FFD8]/60 rounded-full blur-3xl lp-float-reverse" />
-      </div>
+      {!hideHeroCopy && (
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-24 -right-24 w-[480px] h-[480px] bg-[#DAD0FF]/50 rounded-full blur-3xl lp-float-slow" />
+          <div className="absolute -bottom-28 -left-24 w-[420px] h-[420px] bg-[#D8FFD8]/60 rounded-full blur-3xl lp-float-reverse" />
+        </div>
+      )}
 
       <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
         {!hideHeroCopy && (
-          <div ref={ref} className="lp-reveal max-w-2xl mx-auto text-center mb-10 sm:mb-12">
+          <div className="max-w-2xl mx-auto text-center mb-10 sm:mb-12 transition-all duration-300">
             <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white px-5 py-2 text-[13px] font-semibold tracking-[-0.01em] shadow-[0_18px_40px_rgba(12,129,243,0.25)] mb-7">
               <ShieldCheck className="w-4 h-4" />
               Missive Digital
@@ -380,34 +381,48 @@ function QaHero({ onCta, toolRef, onResultStateChange, hideHeroCopy, resetSignal
               </button>
             </div>
             <div className="mt-9 flex flex-wrap justify-center gap-2.5">
-              {['Zero em dashes & colons', 'Zero buzzwords', 'Score + diff', 'PDF report'].map((t) => (
-                <span
-                  key={t}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-white border border-[#DEDEDE] text-[#292929] px-3.5 py-1.5 text-[13px] font-medium"
-                >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-[#0C81F3]" /> {t}
-                </span>
-              ))}
+              {['Zero em dashes & colons', 'Zero buzzwords', 'Score + diff', 'PDF report'].map(
+                (t) => (
+                  <span
+                    key={t}
+                    className="inline-flex items-center gap-1.5 rounded-full bg-white border border-[#DEDEDE] text-[#292929] px-3.5 py-1.5 text-[13px] font-medium"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5 text-[#0C81F3]" /> {t}
+                  </span>
+                )
+              )}
             </div>
           </div>
         )}
 
         <div ref={toolRef} id="tool" className="relative scroll-mt-24">
-          <div className="rounded-[36px] bg-white border border-white/80 shadow-[0_33px_44px_rgba(0,0,0,0.04)] overflow-hidden">
-            <div className="flex items-center justify-between px-6 sm:px-7 py-4 border-b border-[#EEE9E5] bg-[#F9F7F6]">
-              <span className="flex items-center gap-2 text-[13px] font-semibold text-[#292929]">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                {hideHeroCopy ? 'Content QA Inspection Workspace & Results' : 'Live QA Terminal'}
-              </span>
-              <span className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-[#292929] bg-white border border-[#DEDEDE] rounded-full px-3 py-1.5">
+          <div className="rounded-[24px] sm:rounded-[36px] bg-white border border-white/80 shadow-[0_33px_44px_rgba(0,0,0,0.04)] overflow-hidden">
+            <div className="flex flex-wrap items-center justify-between px-4 sm:px-7 py-3 sm:py-4 border-b border-[#EEE9E5] bg-[#F9F7F6] gap-2">
+              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+                <span className="flex items-center gap-2 text-[12px] sm:text-[13px] font-semibold text-[#292929]">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  {hideHeroCopy ? 'Content QA Inspection Workspace & Results' : 'Live QA Terminal'}
+                </span>
+                {hideHeroCopy && (
+                  <button
+                    type="button"
+                    onClick={onNewAudit}
+                    className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#0C81F3] hover:text-[#0a6ecf] bg-blue-50/90 hover:bg-blue-100 px-2.5 py-1 rounded-full transition-colors cursor-pointer border border-blue-200/60"
+                  >
+                    ← Back to Hero &amp; Form
+                  </button>
+                )}
+              </div>
+              <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-[12px] font-semibold text-[#292929] bg-white border border-[#DEDEDE] rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5">
                 <BadgeCheck className="w-3.5 h-3.5 text-[#0C81F3]" /> No Sign-Up
               </span>
             </div>
-            <div className="p-5 sm:p-7">
+            <div className="p-3 sm:p-7">
               <ContentQaPage
                 isEmbedded={true}
                 onResultStateChange={onResultStateChange}
                 resetSignal={resetSignal}
+                onNewAudit={onNewAudit}
               />
             </div>
           </div>
@@ -770,13 +785,13 @@ export default function ContentQaLandingPage() {
       <div
         className={`landing-page min-h-screen bg-[#F9F7F6] font-sans ${hasResults ? 'pt-20' : ''}`}
       >
-
         <QaHero
           onCta={scrollToTool}
           toolRef={toolRef}
           onResultStateChange={setHasResults}
           hideHeroCopy={hasResults}
           resetSignal={resetSignal}
+          onNewAudit={handleNewAudit}
         />
         {!hasResults && (
           <>

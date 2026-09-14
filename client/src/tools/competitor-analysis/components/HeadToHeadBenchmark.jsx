@@ -113,12 +113,12 @@ export default function HeadToHeadBenchmark({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         {/* Competitor Score Card */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-gray-100">
             <div className="space-y-1">
               <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200">
                 Competitor Target
               </span>
-              <h4 className="font-bold text-gray-900 text-base truncate max-w-[240px] sm:max-w-xs" title={competitorSeo?.title}>
+              <h4 className="font-bold text-gray-900 text-base truncate max-w-full sm:max-w-xs" title={competitorSeo?.title}>
                 {competitorSeo?.title || competitorUrl}
               </h4>
               <p className="text-xs text-gray-400 truncate max-w-xs font-mono">{competitorUrl}</p>
@@ -151,12 +151,12 @@ export default function HeadToHeadBenchmark({
 
         {/* Your Score / Industry Target Card */}
         <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-3 border-b border-gray-100">
             <div className="space-y-1">
               <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
                 {hasYourData ? 'Your Page Data' : 'Position #1 Industry Benchmark'}
               </span>
-              <h4 className="font-bold text-gray-900 text-base truncate max-w-[240px] sm:max-w-xs" title={yourSeo ? yourSeo.title : 'Top 1% SERP Standard'}>
+              <h4 className="font-bold text-gray-900 text-base truncate max-w-full sm:max-w-xs" title={yourSeo ? yourSeo.title : 'Top 1% SERP Standard'}>
                 {hasYourData ? yourSeo.title : 'High-Authority Benchmark'}
               </h4>
               <p className="text-xs text-gray-400 truncate max-w-xs font-mono">

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useMemo } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import {
   Bot,
   Smartphone,
@@ -393,14 +393,40 @@ export default function Navbar() {
       .filter((col) => col.items.length > 0)
   }
 
+  const location = useLocation()
+
+  // Auto-close mobile menu and dropdowns on route changes
+  useEffect(() => {
+    setMobileOpen(false)
+    setMobileExpanded(null)
+    setActiveDropdown(null)
+  }, [location.pathname])
+
+  // Prevent background scrolling when mobile menu is open
+  useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [mobileOpen])
+
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (navRef.current && !navRef.current.contains(e.target)) {
         setActiveDropdown(null)
+        setMobileOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
+    document.addEventListener('touchstart', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener('touchstart', handleClickOutside)
+    }
   }, [])
 
   const handleMouseEnter = (idx) => {
@@ -415,13 +441,22 @@ export default function Navbar() {
   return (
     <div className="fixed top-0 left-0 right-0 z-50 px-4 sm:px-6 lg:px-8 pt-4" ref={navRef}>
       <nav
-        className="max-w-6xl mx-auto bg-white/90 backdrop-blur-xl rounded-2xl shadow-[0_2px_20px_rgba(0,0,0,0.08)] border border-white/60 px-4 sm:px-6"
+        className={`max-w-6xl mx-auto bg-white rounded-2xl shadow-[0_2px_20px_rgba(0,0,0,0.08)] border border-slate-200/80 px-4 sm:px-6 transition-all duration-200 ${
+          mobileOpen ? 'flex flex-col max-h-[calc(100dvh-2rem)]' : ''
+        }`}
         role="navigation"
         aria-label="Main navigation"
       >
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-16 shrink-0">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 shrink-0 group">
+          <Link
+            to="/"
+            onClick={() => {
+              setMobileOpen(false)
+              setMobileExpanded(null)
+            }}
+            className="flex items-center gap-2.5 shrink-0 group"
+          >
             <img src="/logo.png" alt="Missive Digital" className="h-8 w-auto" />
           </Link>
 
@@ -569,18 +604,22 @@ export default function Navbar() {
 
         {/* Mobile menu */}
         {mobileOpen && (
-          <div className="lg:hidden border-t border-gray-100 py-3 space-y-1">
+          <div className="lg:hidden border-t border-gray-100 py-3 space-y-1 overflow-y-auto overscroll-contain flex-1 pr-1">
             {NAV_ITEMS.map((item, idx) => (
               <div key={item.label}>
                 {item.dropdown ? (
                   <>
                     <button
                       onClick={() => setMobileExpanded(mobileExpanded === idx ? null : idx)}
-                      className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl cursor-pointer"
+                      className={`w-full flex items-center justify-between px-4 py-3 text-sm font-medium rounded-xl cursor-pointer transition-colors ${
+                        mobileExpanded === idx
+                          ? 'bg-blue-50/70 text-[#0C81F3] font-semibold'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      }`}
                     >
                       {item.label}
                       <svg
-                        className={`w-4 h-4 text-gray-400 transition-transform ${mobileExpanded === idx ? 'rotate-180' : ''}`}
+                        className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${mobileExpanded === idx ? 'rotate-180 text-[#0C81F3]' : ''}`}
                         fill="none"
                         viewBox="0 0 24 24"
                         strokeWidth={2}
@@ -599,11 +638,11 @@ export default function Navbar() {
                         if (visibleCols.length === 0) return null
 
                         return (
-                          <div className="pl-4 pb-2 space-y-3">
+                          <div className="pl-3 pr-1 py-2 my-1 space-y-2 bg-gray-50/70 rounded-xl border border-gray-100">
                             {visibleCols.map((col, cIdx) => (
-                              <div key={cIdx} className="space-y-1">
+                              <div key={cIdx} className="space-y-0.5">
                                 {col.title && (
-                                  <div className="text-[11px] font-extrabold uppercase tracking-wider text-gray-400 px-4 pt-2">
+                                  <div className="text-[10px] font-black uppercase tracking-wider text-gray-400 px-3 pt-1.5 pb-0.5">
                                     {col.title}
                                   </div>
                                 )}
@@ -618,17 +657,17 @@ export default function Navbar() {
                                         setMobileOpen(false)
                                         setMobileExpanded(null)
                                       }}
-                                      className="flex items-center gap-2.5 px-4 py-2 text-sm text-gray-600 hover:text-gray-900 rounded-lg hover:bg-gray-50"
+                                      className="flex items-center gap-2.5 px-3 py-2 text-xs sm:text-sm text-gray-600 hover:text-gray-900 rounded-lg hover:bg-white hover:shadow-2xs transition-all"
                                     >
                                       {sub.icon && (
-                                        <span className="text-sm w-5 h-5 flex items-center justify-center shrink-0">
-                                          <sub.icon className="w-4 h-4 text-gray-500" />
+                                        <span className="text-sm w-4 h-4 flex items-center justify-center shrink-0">
+                                          <sub.icon className="w-3.5 h-3.5 text-gray-500" />
                                         </span>
                                       )}
                                       <span className="truncate">{sub.label}</span>
                                       {sub.badge && (
                                         <span
-                                          className={`ml-auto text-[10px] font-bold px-1.5 py-0.5 rounded-full ${sub.badgeColor || 'bg-gray-100 text-gray-800'}`}
+                                          className={`ml-auto text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${sub.badgeColor || 'bg-gray-200/80 text-gray-800'}`}
                                         >
                                           {sub.badge}
                                         </span>
@@ -645,6 +684,10 @@ export default function Navbar() {
                 ) : (
                   <a
                     href={item.href}
+                    onClick={() => {
+                      setMobileOpen(false)
+                      setMobileExpanded(null)
+                    }}
                     className="block px-4 py-3 text-sm font-medium text-gray-700 hover:bg-gray-50 rounded-xl"
                   >
                     {item.label}
@@ -652,9 +695,13 @@ export default function Navbar() {
                 )}
               </div>
             ))}
-            <div className="px-4 pt-2">
+            <div className="px-4 pt-3 pb-4">
               <a
                 href="https://calendly.com/missivedigital/30min"
+                onClick={() => {
+                  setMobileOpen(false)
+                  setMobileExpanded(null)
+                }}
                 className="flex items-center justify-center gap-2 w-full text-center rounded-full bg-gray-900 px-5 py-3 text-sm font-semibold text-white hover:bg-gray-800 transition-colors shadow-sm"
               >
                 <Calendar className="w-4 h-4 text-[#EB8988]" />

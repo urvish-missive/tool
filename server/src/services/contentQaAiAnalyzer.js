@@ -74,12 +74,23 @@ Output Requirements:
 - Be razor-sharp, constructive, and cite exact phrases from the text.`
 
 function buildUserPrompt(content, title, targetKeyword, platform, targetAudience, programmaticData) {
-  const excerpt = content.length > 6000
-    ? (content.substring(0, 3500) + '\n\n[...middle content...]\n\n' + content.substring(content.length - 2500))
-    : content
+  // Preserve complete structural blocks without arbitrary middle-slice truncation
+  let excerpt = content
+  if (content.length > 15000) {
+    const safeBreak = content.lastIndexOf('\n\n', 15000)
+    excerpt = content.substring(0, safeBreak > 5000 ? safeBreak : 15000) + '\n\n[Document continues - audit evaluated on primary sections]'
+  }
 
-  return `Perform a comprehensive 12-Pillar QA Audit based on Himani Kankaria's Content QA Checklist.
-Keep feedback concise, high-impact, and fast: maximum 1 specific quote issue and 1 actionable fix per category (under 25 words each).
+  const findingsSummary = programmaticData?.canonicalAudit?.debug?.canonicalFindings
+    ? programmaticData.canonicalAudit.debug.canonicalFindings
+        .filter((f) => f.status !== 'PASS')
+        .map((f) => `Rule [${f.ruleId}]: ${f.status} - ${f.message}`)
+        .join('\n')
+    : ''
+
+  return `Perform an executive editorial review based on the 12-Pillar Content QA framework.
+Analyze the actual text provided. Never invent or hallucinate phrases that do not appear in the text.
+Keep feedback concise, actionable, and strictly quote real sentences from the content.
 
 ## Content Details
 Title: ${title || 'Not provided'}
@@ -89,21 +100,22 @@ Target Audience / Voice: ${targetAudience || 'General / Professional'}
 
 ## Programmatic Pre-Check Findings
 Word Count: ${programmaticData?.meta?.wordCount || 0}
-Sentences: ${programmaticData?.meta?.sentenceCount || 0}
-Flesch Score: ${programmaticData?.meta?.flesch || 0}
+Flesch Reading Ease: ${programmaticData?.meta?.flesch || 0}
 Em Dashes Found: ${programmaticData?.quickStats?.emDashesCount || 0}
 Colons Found: ${programmaticData?.quickStats?.colonsCount || 0}
-AI Cliches Detected: ${programmaticData?.quickStats?.aiPhrasesCount || 0}
-Programmatic Overall: ${programmaticData?.overall || 0}%
+Robotic Phrases Found: ${programmaticData?.quickStats?.aiPhrasesCount || 0}
+Overall Quality Score: ${programmaticData?.overall || 0}%
 
-## Content to Audit
+## Active Findings to Refine
+${findingsSummary || 'No major blockers detected programmatically.'}
+
+## Content to Review
 ${excerpt}
 
 ---
 
 Return a JSON object adhering to this schema:
 {
-  "overallScore": 0-100,
   "publicationReadiness": "Ready to Publish" | "Minor Polish Needed" | "Needs Revision" | "Major QA Overhaul Required",
   "summary": "2-3 sentence executive assessment summarizing overall tone, strengths, and primary weaknesses.",
   "topFixes": [
@@ -121,84 +133,72 @@ Return a JSON object adhering to this schema:
   ],
   "categories": {
     "tone_style_ai": {
-      "score": 0-100,
       "status": "pass" | "warning" | "fail",
       "verdict": "One sentence summary for this pillar",
       "issues": ["specific issues with quotes from text"],
       "suggestions": ["actionable recommendations"]
     },
     "read_aloud": {
-      "score": 0-100,
       "status": "pass" | "warning" | "fail",
       "verdict": "One sentence summary for this pillar",
       "issues": ["lines that sound awkward or wordy when spoken"],
       "suggestions": ["shortening suggestions"]
     },
     "audience_alignment": {
-      "score": 0-100,
       "status": "pass" | "warning" | "fail",
       "verdict": "One sentence summary for this pillar",
       "issues": ["audience disconnects"],
       "suggestions": ["alignment tweaks"]
     },
     "eeat_check": {
-      "score": 0-100,
       "status": "pass" | "warning" | "fail",
       "verdict": "One sentence summary for this pillar",
       "issues": ["lack of lived experience / generic claims"],
       "suggestions": ["where to inject proof or experience"]
     },
     "insight_first": {
-      "score": 0-100,
       "status": "pass" | "warning" | "fail",
       "verdict": "One sentence summary for this pillar",
       "issues": ["throat-clearing or slow opening"],
       "suggestions": ["suggested opening hook"]
     },
     "meaning_crispness": {
-      "score": 0-100,
       "status": "pass" | "warning" | "fail",
       "verdict": "One sentence summary for this pillar",
       "issues": ["filler sentences or fluff"],
       "suggestions": ["lines to delete or tighten"]
     },
     "zero_offensiveness": {
-      "score": 0-100,
       "status": "pass" | "warning" | "fail",
       "verdict": "One sentence summary for this pillar",
       "issues": ["any questionable remarks"],
       "suggestions": ["respectful reframing"]
     },
     "brand_positioning": {
-      "score": 0-100,
       "status": "pass" | "warning" | "fail",
       "verdict": "One sentence summary for this pillar",
       "issues": ["brand voice drift or salesy tone"],
       "suggestions": ["authority-building adjustments"]
     },
     "structure_check": {
-      "score": 0-100,
       "status": "pass" | "warning" | "fail",
       "verdict": "One sentence summary for this pillar",
       "issues": ["flow gaps, past-tense overuse, weak headline"],
       "suggestions": ["headline / structural improvements"]
     },
     "no_direct_sales_pitches": {
-      "score": 0-100,
       "status": "pass" | "warning" | "fail",
       "verdict": "One sentence summary for this pillar",
       "issues": ["milestone bragging or pushy CTAs"],
       "suggestions": ["subtle storytelling adjustments"]
     },
     "compliance_risk": {
-      "score": 0-100,
       "status": "pass" | "warning" | "fail",
       "verdict": "One sentence summary for this pillar",
       "issues": ["compliance or risk triggers"],
       "suggestions": ["safe compliant wording"]
     },
     "visual_platform_fit": {
-      "score": 0-100,
       "status": "pass" | "warning" | "fail",
       "verdict": "One sentence summary for this pillar",
       "issues": ["formatting walls of text or missing visuals"],
@@ -213,7 +213,6 @@ Return a JSON object adhering to this schema:
 }
 
 function validateReport(report) {
-  const clamp = (v) => Math.min(100, Math.max(0, typeof v === 'number' ? v : 65))
   const toArray = (v) => Array.isArray(v) ? v : []
   const validStatus = (s) => ['pass', 'warning', 'fail'].includes(s) ? s : 'warning'
 
@@ -227,7 +226,6 @@ function validateReport(report) {
   for (const key of pillarKeys) {
     const raw = report?.categories?.[key] || {}
     categories[key] = {
-      score: clamp(raw.score),
       status: validStatus(raw.status),
       verdict: typeof raw.verdict === 'string' ? raw.verdict : 'Audited for quality and alignment.',
       issues: toArray(raw.issues),
@@ -247,8 +245,7 @@ function validateReport(report) {
     : []
 
   return {
-    overallScore: clamp(report?.overallScore),
-    publicationReadiness: report?.publicationReadiness || (report?.overallScore >= 80 ? 'Ready to Publish' : 'Minor Polish Needed'),
+    publicationReadiness: report?.publicationReadiness || 'Minor Polish Needed',
     summary: typeof report?.summary === 'string' ? report.summary : 'Analysis completed against Himani Kankaria\'s Content QA framework.',
     topFixes: toArray(report?.topFixes),
     dynamicBuzzwords,

@@ -12,6 +12,18 @@ export const contentQaSchema = z.object({
     .enum(['website', 'linkedin', 'newsletter', 'landing_page', 'social'])
     .default('website'),
   targetAudience: z.string().trim().max(200).optional().or(z.literal('')),
+  contentTemplate: z
+    .enum(['blog', 'landing_page', 'social', 'newsletter'])
+    .default('blog')
+    .optional(),
+  supportingLineMode: z
+    .enum(['recommended', 'required', 'not_applicable'])
+    .default('recommended')
+    .optional(),
+  insightFirstScope: z
+    .enum(['DOCUMENT_INTRO', 'SECTION_INTROS', 'ALL_OPENINGS'])
+    .default('DOCUMENT_INTRO')
+    .optional(),
 })
 
 export function parseContentQaForm(data) {
@@ -27,6 +39,9 @@ export function parseContentQaForm(data) {
       title: result.data.title || undefined,
       targetKeyword: result.data.targetKeyword || undefined,
       targetAudience: result.data.targetAudience || undefined,
+      contentTemplate: result.data.contentTemplate || 'blog',
+      supportingLineMode: result.data.supportingLineMode || 'recommended',
+      insightFirstScope: result.data.insightFirstScope || 'DOCUMENT_INTRO',
     },
   }
 }

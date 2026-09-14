@@ -9,8 +9,8 @@ export default function ScoreRing({ score, size = 120, strokeWidth = 8, label })
 
   return (
     <div className="flex flex-col items-center gap-2">
-      <div className="relative" style={{ width: size, height: size }}>
-        <svg width={size} height={size} className="-rotate-90">
+      <div className="relative max-w-full" style={{ width: size, height: size }}>
+        <svg width={size} height={size} className="-rotate-90 w-full h-full">
           <circle
             cx={size / 2}
             cy={size / 2}

@@ -444,7 +444,7 @@ export default function BlogIntroGeneratorPage({
                 <label className="block text-xs sm:text-sm font-bold text-slate-800 mb-1.5">
                   Select Funnel Stage Focus
                 </label>
-                <div className="grid grid-cols-1 @min-[380px]:grid-cols-2 @min-[620px]:grid-cols-4 gap-2 sm:gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-2.5">
                   {FUNNEL_OPTIONS.map((opt) => {
                     const isSelected = selectedFunnel === opt.id
                     const Icon = opt.icon
@@ -470,21 +470,22 @@ export default function BlogIntroGeneratorPage({
                                 : 'bg-white text-slate-500 border border-slate-200'
                             }`}
                           >
-                            <Icon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                            <Icon className="w-4 h-4" />
                           </div>
-                          {opt.badge && (
-                            <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-[#0C81F3] text-white">
-                              {opt.badge}
-                            </span>
+                          {isSelected && (
+                            <span className="w-2 h-2 rounded-full bg-[#0C81F3] animate-pulse" />
                           )}
                         </div>
                         <div>
-                          <p className="text-xs sm:text-sm font-bold text-slate-900 leading-tight">
+                          <div className="text-xs sm:text-sm font-bold text-slate-900 flex items-center gap-1">
                             {opt.label}
-                          </p>
-                          <p className="text-[10px] sm:text-[11px] text-slate-500 mt-1 leading-snug">
-                            {opt.sub}
-                          </p>
+                            <span className="text-[10px] font-bold text-slate-400">
+                              ({opt.code})
+                            </span>
+                          </div>
+                          <div className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
+                            {opt.desc}
+                          </div>
                         </div>
                       </button>
                     )
@@ -493,7 +494,7 @@ export default function BlogIntroGeneratorPage({
               </div>
 
               {/* Keywords & Target Audience Row */}
-              <div className="grid grid-cols-1 @min-[420px]:grid-cols-2 gap-3 sm:gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
                   <label
                     htmlFor="keywords-input"
@@ -530,7 +531,7 @@ export default function BlogIntroGeneratorPage({
               </div>
 
               {/* Tone of Voice & Count Row */}
-              <div className="grid grid-cols-1 @min-[420px]:grid-cols-2 gap-3 sm:gap-4 pt-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 pt-1">
                 <div>
                   <label
                     htmlFor="tone-select"
@@ -562,7 +563,7 @@ export default function BlogIntroGeneratorPage({
                         : `${countValue} for ${selectedFunnel.toUpperCase()}`}
                     </span>
                   </div>
-                  <div className="grid grid-cols-2 @min-[880px]:grid-cols-4 gap-1.5 sm:gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2">
                     {[
                       { n: 6, sub: '2 / stage' },
                       { n: 9, sub: '3 / stage', badge: 'Ideal' },
@@ -731,7 +732,7 @@ export default function BlogIntroGeneratorPage({
               </div>
 
               {/* Funnel Distribution Badges */}
-              <div className="grid grid-cols-2 @min-[520px]:grid-cols-4 gap-2 sm:gap-2.5">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-2.5">
                 <div className="p-2.5 sm:p-3 rounded-xl bg-sky-50/70 border border-sky-200">
                   <div className="text-[10px] sm:text-[11px] font-bold text-sky-700 uppercase tracking-wider">
                     TOFU Awareness
@@ -770,7 +771,7 @@ export default function BlogIntroGeneratorPage({
                   <div className="text-xl sm:text-2xl font-black text-purple-900 mt-0.5">
                     {favCount}
                   </div>
-                  <div className="text-[10px] text-purple-600">Saved Favorites</div>
+                  <div className="text-[10px] text-purple-600">Starred Intros</div>
                 </div>
               </div>
 
@@ -787,34 +788,35 @@ export default function BlogIntroGeneratorPage({
             </div>
 
             {/* Filter Tabs */}
-            <div className="flex flex-wrap items-center gap-1.5 sm:gap-2 border-b border-slate-200 pb-2.5">
-              <span className="text-xs font-bold text-slate-400 mr-1 flex items-center gap-1">
-                <Filter className="w-3.5 h-3.5" /> Filter:
-              </span>
+            <div className="overflow-x-auto no-scrollbar pb-2.5 border-b border-slate-200">
+              <div className="flex items-center gap-1.5 sm:gap-2 min-w-max">
+                <span className="text-xs font-bold text-slate-400 mr-1 flex items-center gap-1">
+                  <Filter className="w-3.5 h-3.5" /> Filter:
+                </span>
 
-              <button
-                type="button"
-                onClick={() => setActiveFilterTab('all')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  activeFilterTab === 'all'
-                    ? 'bg-slate-900 text-white shadow-xs'
-                    : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
-                }`}
-              >
-                All ({dataResult.introductions.length})
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveFilterTab('all')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    activeFilterTab === 'all'
+                      ? 'bg-slate-900 text-white shadow-xs'
+                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                  }`}
+                >
+                  All ({dataResult.introductions.length})
+                </button>
 
-              <button
-                type="button"
-                onClick={() => setActiveFilterTab('tofu')}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                  activeFilterTab === 'tofu'
-                    ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-xs'
-                    : 'bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200'
-                }`}
-              >
-                TOFU ({tofuCount})
-              </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveFilterTab('tofu')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                    activeFilterTab === 'tofu'
+                      ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-xs'
+                      : 'bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200'
+                  }`}
+                >
+                  TOFU ({tofuCount})
+                </button>
 
               <button
                 type="button"
@@ -854,6 +856,7 @@ export default function BlogIntroGeneratorPage({
                   <span>Saved ({favCount})</span>
                 </button>
               )}
+              </div>
             </div>
 
             {/* Introductions Cards Grid */}
@@ -960,7 +963,7 @@ export default function BlogIntroGeneratorPage({
                             <span>{isCopiedHook ? 'Copied!' : 'Copy Hook'}</span>
                           </button>
                         </div>
-                        <p className="text-sm sm:text-base font-bold text-slate-900 leading-snug">
+                        <p className="text-sm sm:text-base font-bold text-slate-900 leading-snug break-words">
                           "{intro.hookLine}"
                         </p>
                       </div>
@@ -970,7 +973,7 @@ export default function BlogIntroGeneratorPage({
                         <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
                           Full Introduction Paragraph
                         </span>
-                        <div className="text-slate-800 text-xs sm:text-sm leading-relaxed whitespace-pre-line bg-slate-50/60 p-3 sm:p-4 rounded-xl border border-slate-200">
+                        <div className="text-slate-800 text-xs sm:text-sm leading-relaxed whitespace-pre-line bg-slate-50/60 p-3 sm:p-4 rounded-xl border border-slate-200 break-words">
                           {intro.fullIntro}
                         </div>
                       </div>
@@ -979,7 +982,7 @@ export default function BlogIntroGeneratorPage({
                       {intro.transition && (
                         <div className="p-2.5 sm:p-3 rounded-xl bg-white border border-slate-200 flex items-start gap-2 text-xs">
                           <ArrowRight className="w-3.5 h-3.5 text-[#0C81F3] shrink-0 mt-0.5" />
-                          <div>
+                          <div className="break-words min-w-0">
                             <span className="font-bold text-slate-700">Bridge to First H2: </span>
                             <span className="text-slate-600 italic">"{intro.transition}"</span>
                           </div>

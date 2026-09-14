@@ -1,4 +1,4 @@
-import { Sparkles, Zap, TrendingUp, Check } from 'lucide-react'
+import { Sparkles, Zap, TrendingUp, Check, ArrowLeft } from 'lucide-react'
 import useScrollReveal from './useScrollReveal'
 
 /**
@@ -17,6 +17,7 @@ export default function LandingHero({
   toolLabel = 'Try It Live • No Sign-Up',
   toolRef,
   hideHeroCopy = false,
+  onReset,
 }) {
   const heroRef = useScrollReveal({ threshold: 0.1 })
 
@@ -43,24 +44,26 @@ export default function LandingHero({
   if (toolSlot) {
     return (
       <section
-        className={`relative border-b border-slate-200/60 bg-gradient-to-b from-white via-slate-50/40 to-white transition-all overflow-hidden ${
+        className={`relative border-b border-slate-200/60 transition-all overflow-hidden ${
           hideHeroCopy
-            ? 'pt-4 sm:pt-6 pb-12'
-            : 'pt-28 xs:pt-32 sm:pt-36 lg:pt-40 pb-14 sm:pb-20 lg:pb-24'
+            ? 'bg-white pt-24 sm:pt-28 pb-12'
+            : 'bg-gradient-to-b from-white via-slate-50/40 to-white pt-28 xs:pt-32 sm:pt-36 lg:pt-40 pb-14 sm:pb-20 lg:pb-24'
         }`}
       >
-        {/* Background ambient lighting isolated in overflow-hidden container */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div
-            className="absolute inset-0"
-            style={{
-              background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)',
-              opacity: 0.05,
-            }}
-          />
-          <div className="absolute top-0 right-0 w-[550px] h-[550px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 lp-float" />
-          <div className="absolute bottom-0 left-0 w-[450px] h-[450px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 lp-float-delay" />
-        </div>
+        {/* Background ambient lighting isolated in overflow-hidden container - only in hero form mode */}
+        {!hideHeroCopy && (
+          <div className="absolute inset-0 overflow-hidden pointer-events-none">
+            <div
+              className="absolute inset-0"
+              style={{
+                background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)',
+                opacity: 0.05,
+              }}
+            />
+            <div className="absolute top-0 right-0 w-[550px] h-[550px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 lp-float" />
+            <div className="absolute bottom-0 left-0 w-[450px] h-[450px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 lp-float-delay" />
+          </div>
+        )}
 
         {!hideHeroCopy && (
           <div className="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-20">
@@ -147,27 +150,40 @@ export default function LandingHero({
         <div
           ref={toolRef}
           id="tool"
-          className={`relative z-20 mx-auto px-4 sm:px-6 lg:px-8 scroll-mt-28 transition-all ${
-            hideHeroCopy ? 'max-w-[1400px] mt-2' : 'max-w-6xl mt-10 sm:mt-12'
+          className={`relative z-20 mx-auto px-2 xs:px-4 sm:px-6 lg:px-8 scroll-mt-28 transition-all ${
+            hideHeroCopy ? 'max-w-[1400px] mt-0' : 'max-w-6xl mt-10 sm:mt-12'
           }`}
         >
-          <div className="absolute -inset-3 bg-gradient-to-br from-[#0C81F3]/15 to-[#EB8988]/15 rounded-[32px] blur-xl pointer-events-none" />
+          {!hideHeroCopy && (
+            <div className="absolute -inset-3 bg-gradient-to-br from-[#0C81F3]/15 to-[#EB8988]/15 rounded-[32px] blur-xl pointer-events-none" />
+          )}
           <div className="relative rounded-3xl bg-white border border-slate-200/80 shadow-2xl shadow-slate-300/40 overflow-hidden transition-shadow hover:shadow-[0_35px_60px_-15px_rgba(12,129,243,0.25)]">
             <div className="h-1 bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] lp-shimmer" />
-            <div className="flex items-center gap-2 px-4 sm:px-5 py-3 border-b border-slate-100 bg-slate-50/80">
-              <span className="relative flex h-2.5 w-2.5">
+            <div className="flex items-center gap-2 px-3.5 sm:px-5 py-3 border-b border-slate-100 bg-slate-50/80">
+              <span className="relative flex h-2.5 w-2.5 shrink-0">
                 <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75 animate-ping" />
                 <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
               </span>
-              <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-700">
+              <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-slate-700 truncate">
                 {toolLabel}
               </span>
-              <span className="ml-auto hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-gradient-to-r from-[#0C81F3]/10 to-[#EB8988]/10 text-[#0C81F3]">
-                <Zap className="w-3 h-3" />
-                Free
-              </span>
+              {onReset ? (
+                <button
+                  type="button"
+                  onClick={onReset}
+                  className="ml-auto inline-flex items-center gap-1 px-3 py-1 rounded-full bg-white hover:bg-slate-100 text-slate-700 text-xs font-bold border border-slate-200 shadow-2xs transition-all cursor-pointer shrink-0"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>← Back to Form</span>
+                </button>
+              ) : (
+                <span className="ml-auto hidden sm:inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold bg-gradient-to-r from-[#0C81F3]/10 to-[#EB8988]/10 text-[#0C81F3] shrink-0">
+                  <Zap className="w-3 h-3" />
+                  Free
+                </span>
+              )}
             </div>
-            <div className="p-4 sm:p-6 lg:p-8">{toolSlot}</div>
+            <div className="p-3 sm:p-6 lg:p-8">{toolSlot}</div>
           </div>
         </div>
       </section>

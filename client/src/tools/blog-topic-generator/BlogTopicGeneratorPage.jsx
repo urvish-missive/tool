@@ -470,9 +470,9 @@ export default function BlogTopicGeneratorPage({
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto shrink-0">
             {activeMaster ? (
-              <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-bold">
+              <div className="inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-bold w-full sm:w-auto">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
                 <span>Master Blueprint Active</span>
               </div>
@@ -480,7 +480,7 @@ export default function BlogTopicGeneratorPage({
               <button
                 onClick={() => handleDeepenBrief(topic, topicKey)}
                 disabled={isDeepening}
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:opacity-95 text-white text-xs font-bold transition-all shadow-md shadow-[#0C81F3]/20 cursor-pointer disabled:opacity-50"
+                className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:opacity-95 text-white text-xs font-bold transition-all shadow-md shadow-[#0C81F3]/20 cursor-pointer disabled:opacity-50 w-full sm:w-auto text-center"
                 title="Generate paragraph-by-paragraph master instructions, alternative angles, competitor gap analysis, and 4 Google PAA FAQs"
               >
                 {isDeepening ? (
@@ -502,26 +502,26 @@ export default function BlogTopicGeneratorPage({
                   setFullScreenTopicData({ topic, topicKey })
                   setFullScreenTab(activeTab)
                 }}
-                className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
+                className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors cursor-pointer flex-1 sm:flex-none"
                 title="Expand into full-screen master view"
               >
                 <Maximize2 className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Full Screen</span>
+                <span className="sm:inline">Full Screen</span>
               </button>
             )}
 
             <button
               onClick={() => downloadSingleTopicBrief(topic, topicKey)}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors cursor-pointer flex-1 sm:flex-none"
               title="Export complete editorial brief as Markdown file"
             >
               <Download className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Export .md</span>
+              <span className="sm:inline">Export .md</span>
             </button>
 
             <button
               onClick={() => triggerCopy(briefMarkdown, `brief-${topicKey}`)}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:opacity-95 text-white text-xs font-bold transition-all shadow-md shadow-[#0C81F3]/20 cursor-pointer"
+              className="inline-flex items-center justify-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:opacity-95 text-white text-xs font-bold transition-all shadow-md shadow-[#0C81F3]/20 cursor-pointer w-full sm:w-auto"
             >
               {copiedKey === `brief-${topicKey}` ? (
                 <Check className="w-3.5 h-3.5 text-white" />
@@ -534,63 +534,65 @@ export default function BlogTopicGeneratorPage({
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-950/80 border border-slate-800 text-xs overflow-x-auto">
-          <button
-            onClick={() => setActiveTab('outline')}
-            className={`px-3.5 py-2 rounded-lg font-bold flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer ${
-              activeTab === 'outline'
-                ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md shadow-[#0C81F3]/20'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-            }`}
-          >
-            <Layers className="w-3.5 h-3.5" />
-            <span>Article Outline & Blueprint</span>
-            <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-slate-900/80 font-mono">
-              {detailedSections.length}
-            </span>
-          </button>
+        <div className="overflow-x-auto no-scrollbar pb-1">
+          <div className="flex items-center gap-1.5 p-1 rounded-xl bg-slate-950/80 border border-slate-800 text-xs min-w-max">
+            <button
+              onClick={() => setActiveTab('outline')}
+              className={`px-3.5 py-2 rounded-lg font-bold flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer ${
+                activeTab === 'outline'
+                  ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md shadow-[#0C81F3]/20'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              <span>Article Outline & Blueprint</span>
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-slate-900/80 font-mono">
+                {detailedSections.length}
+              </span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('seo')}
-            className={`px-3.5 py-2 rounded-lg font-bold flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer ${
-              activeTab === 'seo'
-                ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md shadow-[#0C81F3]/20'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-            }`}
-          >
-            <Globe className="w-3.5 h-3.5" />
-            <span>Strategic SEO & SERP</span>
-          </button>
+            <button
+              onClick={() => setActiveTab('seo')}
+              className={`px-3.5 py-2 rounded-lg font-bold flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer ${
+                activeTab === 'seo'
+                  ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md shadow-[#0C81F3]/20'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+              }`}
+            >
+              <Target className="w-3.5 h-3.5" />
+              <span>SEO Directives</span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('faqs')}
-            className={`px-3.5 py-2 rounded-lg font-bold flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer ${
-              activeTab === 'faqs'
-                ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md shadow-[#0C81F3]/20'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-            }`}
-          >
-            <HelpCircle className="w-3.5 h-3.5" />
-            <span>Google PAA FAQs</span>
-            <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-slate-900/80 font-mono">
-              {faqs.length}
-            </span>
-          </button>
+            <button
+              onClick={() => setActiveTab('faq')}
+              className={`px-3.5 py-2 rounded-lg font-bold flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer ${
+                activeTab === 'faq'
+                  ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md shadow-[#0C81F3]/20'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+              }`}
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              <span>Google PAA FAQs</span>
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-slate-900/80 font-mono">
+                {faqs.length}
+              </span>
+            </button>
 
-          <button
-            onClick={() => setActiveTab('qa')}
-            className={`px-3.5 py-2 rounded-lg font-bold flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer ${
-              activeTab === 'qa'
-                ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md shadow-[#0C81F3]/20'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
-            }`}
-          >
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
-            <span>12-Pillar Missive QA</span>
-            <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-950 text-emerald-300 font-mono font-bold">
-              100/100
-            </span>
-          </button>
+            <button
+              onClick={() => setActiveTab('qa')}
+              className={`px-3.5 py-2 rounded-lg font-bold flex items-center gap-2 whitespace-nowrap transition-all cursor-pointer ${
+                activeTab === 'qa'
+                  ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white shadow-md shadow-[#0C81F3]/20'
+                  : 'text-slate-400 hover:text-slate-200 hover:bg-slate-800'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+              <span>12-Pillar Missive QA</span>
+              <span className="px-1.5 py-0.5 rounded-full text-[10px] bg-emerald-950 text-emerald-300 font-mono font-bold">
+                100/100
+              </span>
+            </button>
+          </div>
         </div>
 
         {/* TAB 1: OUTLINE & BLUEPRINT */}
@@ -1519,7 +1521,7 @@ export default function BlogTopicGeneratorPage({
                   <label htmlFor="count" className="block text-sm font-bold text-slate-800 mb-2">
                     Number of Topics
                   </label>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     {[6, 8, 12, 16].map((num) => (
                       <button
                         key={num}
@@ -1597,29 +1599,10 @@ export default function BlogTopicGeneratorPage({
         {/* Results Section */}
         {results && (
           <div id="blog-topic-results" className="space-y-6 animate-fade-in">
-            {/* TEMPORARY MODEL INDICATOR (Will be removed later) */}
-            <div className="flex items-center justify-between p-3.5 px-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-950 text-xs sm:text-sm font-medium shadow-xs">
-              <div className="flex items-center gap-2 flex-wrap">
-                <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white font-mono text-[10px] font-extrabold uppercase tracking-wider">
-                  Temporary Model Info
-                </span>
-                <span>
-                  Generated by Model: <strong className="font-mono text-amber-950 font-bold">{results.modelUsed || results.providerUsed || 'Rule-Based Semantic Pipeline'}</strong>
-                </span>
-                {results.providerUsed && (
-                  <span className="text-amber-800 text-xs font-mono">
-                    (Provider: {results.providerUsed})
-                  </span>
-                )}
-              </div>
-              <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-bold font-mono ${results.isFallback ? 'bg-amber-200 text-amber-900 border border-amber-300' : 'bg-emerald-100 text-emerald-800 border border-emerald-200'}`}>
-                {results.isFallback ? 'Fallback Engine' : 'Live AI Response'}
-              </span>
-            </div>
 
             {/* Cornerstone Pillar Card */}
             {pillarTopic && (
-              <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border border-slate-800 text-white rounded-3xl p-6 sm:p-8 shadow-xl relative overflow-hidden">
+              <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-slate-950 border border-slate-800 text-white rounded-3xl p-4 sm:p-8 shadow-xl relative overflow-hidden">
                 <div className="flex flex-col lg:flex-row items-start justify-between gap-6 pb-6 border-b border-white/10">
                   <div>
                     <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-[#0C81F3]/20 to-[#EB8988]/20 text-white border border-[#0C81F3]/40 text-xs font-bold uppercase tracking-wider mb-3">
@@ -1646,17 +1629,17 @@ export default function BlogTopicGeneratorPage({
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0 w-full sm:w-auto">
                     <button
                       onClick={exportCSV}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold transition-colors cursor-pointer"
+                      className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white text-xs font-bold transition-colors cursor-pointer flex-1 sm:flex-none"
                     >
                       <Calendar className="w-4 h-4" />
                       <span>Export CSV</span>
                     </button>
                     <button
                       onClick={exportFullMarkdown}
-                      className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:opacity-95 text-white text-xs font-bold shadow-md shadow-[#0C81F3]/20 transition-all cursor-pointer"
+                      className="inline-flex items-center justify-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:opacity-95 text-white text-xs font-bold shadow-md shadow-[#0C81F3]/20 transition-all cursor-pointer flex-1 sm:flex-none"
                     >
                       <Download className="w-4 h-4" />
                       <span>Download Plan (.md)</span>
@@ -1752,8 +1735,8 @@ export default function BlogTopicGeneratorPage({
                     key={topicKey}
                     className={`bg-white rounded-2xl border transition-all space-y-4 ${
                       isBriefOpen
-                        ? 'border-[#0C81F3]/40 shadow-md ring-1 ring-[#0C81F3]/20 p-6 sm:p-7'
-                        : 'border-slate-200 p-6 shadow-sm hover:shadow-md'
+                        ? 'border-[#0C81F3]/40 shadow-md ring-1 ring-[#0C81F3]/20 p-4 sm:p-7'
+                        : 'border-slate-200 p-4 sm:p-6 shadow-sm hover:shadow-md'
                     }`}
                   >
                     {/* Header line */}

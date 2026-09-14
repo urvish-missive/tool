@@ -67,6 +67,13 @@ const PROVIDERS = {
     headerName: 'Authorization',
     headerPrefix: 'Bearer ',
   },
+  'groq-20b': {
+    url: 'https://api.groq.com/openai/v1/chat/completions',
+    model: 'openai/gpt-oss-20b',
+    key: process.env.GROQ_API_KEY,
+    headerName: 'Authorization',
+    headerPrefix: 'Bearer ',
+  },
   'qwen-3.8': {
     url: 'https://api.groq.com/openai/v1/chat/completions',
     model: 'qwen/qwen3.8-27b',
@@ -224,40 +231,29 @@ export function getLastModelInvocation() {
   return { ...lastModelInvocation }
 }
 
-export function getActiveModelInfo() {
-  const configured = QUALITY_PROVIDER_ORDER.filter((p) => PROVIDERS[p]?.key)
-  const primaryProvider = configured[0] || 'groq'
-  const primaryModel = PROVIDERS[primaryProvider]?.model || 'openai/gpt-oss-120b'
-  return {
-    primaryProvider,
-    primaryModel,
-    activeModelDisplay: `${primaryProvider.toUpperCase()}: ${primaryModel}`,
-    lastInvocation: getLastModelInvocation(),
-  }
-}
-
 /* ── High-Level Call with Auto-Rotation ────────────────────────── */
 
-// Providers ordered by quality (best/latest first). The primary provider rotates
-// for every request so token usage is spread across models while staying on the
-// best available results, falling back down the list if the primary fails.
 // Providers ordered by speed and quality (fastest & most reliable first).
 const QUALITY_PROVIDER_ORDER = [
   'groq',
-  'qwen-3.8',
   'gemini-3.5-flash-lite',
+  'zen',
+  'groq-20b',
   'gemini-3.5-flash',
   'gemini',
   'zen-mimo',
-  'zen',
+  'qwen-3.8',
   'north-mini',
   'openrouter',
 ]
 
-// Only these are fast enough to hit the 10s result target. Rotation for load
-// spreading happens only within this pool; everything else in QUALITY_PROVIDER_ORDER
-// stays fallback-only so a slow provider never becomes the first attempt.
-const FAST_PROVIDER_POOL = ['groq', 'qwen-3.8']
+// All verified high-capacity & ultra-fast providers in active round-robin rotation
+const FAST_PROVIDER_POOL = [
+  'groq',
+  'gemini-3.5-flash-lite',
+  'zen',
+  'groq-20b',
+]
 
 let rotationIndex = -1
 
@@ -271,6 +267,25 @@ function getRotationProviderOrder() {
   const rotatedFast = [...pool.slice(startIndex), ...pool.slice(0, startIndex)]
   const rest = configured.filter((p) => !rotatedFast.includes(p))
   return [...rotatedFast, ...rest]
+}
+
+export function getActiveModelInfo() {
+  const configured = QUALITY_PROVIDER_ORDER.filter((p) => PROVIDERS[p]?.key)
+  const fastPool = FAST_PROVIDER_POOL.filter((p) => configured.includes(p))
+  const pool = fastPool.length > 0 ? fastPool : configured
+
+  // Predict the next model in rotation for the loader UI:
+  const nextIndex = (rotationIndex + 1) % pool.length
+  const nextProvider = pool[nextIndex] || configured[0] || 'groq'
+  const nextModel = PROVIDERS[nextProvider]?.model || 'openai/gpt-oss-120b'
+
+  return {
+    primaryProvider: nextProvider,
+    primaryModel: nextModel,
+    activeModelDisplay: `${nextProvider.toUpperCase()}: ${nextModel}`,
+    lastInvocation: getLastModelInvocation(),
+    rotationPool: pool.map((p) => ({ provider: p, model: PROVIDERS[p]?.model })),
+  }
 }
 
 /**
