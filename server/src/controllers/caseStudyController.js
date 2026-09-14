@@ -60,7 +60,11 @@ export async function generateCaseStudyHandler(req, res) {
 
     return res.json({
       success: true,
-      data: result,
+      data: {
+        ...result,
+        caseStudy: result.caseStudy || result,
+        result: result.caseStudy || result,
+      },
     })
   } catch (error) {
     console.error('Case Study Generation Handler Error:', error)

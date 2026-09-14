@@ -22,7 +22,6 @@ import {
   ClipboardList,
   Check,
   ArrowUpRight,
-  ArrowLeft,
 } from 'lucide-react'
 import {
   LandingHero,

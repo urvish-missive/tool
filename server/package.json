@@ -7,6 +7,7 @@
     "dev": "node --watch-path=src src/app.js",
     "start": "node src/app.js",
     "test": "node --test test/blogTopicGenerator.test.js",
+    "test:auth": "node --test test/adminAuth.test.mjs",
     "test:eeat": "node --test test/eeatRegression.test.mjs",
     "test:qa": "node --test test/contentQaRegression.test.mjs",
     "db:generate": "prisma generate",

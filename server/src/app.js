@@ -145,7 +145,7 @@ async function seedDefaults() {
     const bcrypt = await import('bcryptjs')
     const hash = await bcrypt.default.hash('admin123', 12)
     await prisma.admin.create({
-      data: { email: 'admin@missivedigital.com', passwordHash: hash, name: 'Admin' },
+      data: { email: 'admin@missivedigital.com', passwordHash: hash, name: 'Admin', isActive: true },
     })
     console.log('[OK] Default admin created: admin@missivedigital.com / admin123')
   }

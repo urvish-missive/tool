@@ -4,8 +4,8 @@
  */
 
 const RAW_API_URL =
-  import.meta.env.VITE_API_URL ||
-  (import.meta.env.DEV ? '/api' : 'https://tool-2jmg.onrender.com/api')
+  (typeof import.meta !== 'undefined' && import.meta.env?.VITE_API_URL) ||
+  (typeof import.meta !== 'undefined' && import.meta.env?.DEV ? '/api' : 'https://tool-2jmg.onrender.com/api')
 
 // Ensure no trailing slash and ends with /api
 export const API_BASE_URL = RAW_API_URL.replace(/\/+$/, '')

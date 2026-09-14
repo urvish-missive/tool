@@ -21,8 +21,12 @@ export async function login(req, res) {
       return res.status(401).json({ success: false, error: 'Invalid credentials' })
     }
 
+    if (admin.isActive === false) {
+      return res.status(403).json({ success: false, error: 'Account has been disabled' })
+    }
+
     const token = signAdminToken(admin)
-    res.json({ success: true, token, admin: { id: admin.id, email: admin.email, name: admin.name, role: admin.role } })
+    res.json({ success: true, token, admin: { id: admin.id, email: admin.email, name: admin.name, role: admin.role, isActive: admin.isActive !== false } })
   } catch (err) {
     console.error('Admin login error:', err.message)
     res.status(500).json({ success: false, error: 'Login failed' })
@@ -43,7 +47,7 @@ export async function createAdmin(req, res) {
 
     const passwordHash = await bcrypt.hash(password, 12)
     const admin = await prisma.admin.create({
-      data: { email: email.toLowerCase(), passwordHash, name },
+      data: { email: email.toLowerCase(), passwordHash, name, isActive: true },
     })
 
     res.json({ success: true, admin: { id: admin.id, email: admin.email, name: admin.name } })
@@ -57,7 +61,7 @@ export async function getProfile(req, res) {
   try {
     const admin = await prisma.admin.findUnique({
       where: { id: req.admin.id },
-      select: { id: true, email: true, name: true, role: true, createdAt: true },
+      select: { id: true, email: true, name: true, role: true, isActive: true, createdAt: true },
     })
     if (!admin) return res.status(404).json({ success: false, error: 'Admin not found' })
     res.json({ success: true, admin })
@@ -314,7 +318,7 @@ export async function seedAdmin(req, res) {
 
     const passwordHash = await bcrypt.hash(password, 12)
     const admin = await prisma.admin.create({
-      data: { email: email.toLowerCase(), passwordHash, name: name || 'Admin' },
+      data: { email: email.toLowerCase(), passwordHash, name: name || 'Admin', isActive: true },
     })
 
     res.json({ success: true, message: 'Admin created', admin: { email: admin.email, name: admin.name } })

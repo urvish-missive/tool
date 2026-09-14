@@ -332,6 +332,19 @@ export const apiSlice = createApi({
         method: 'POST',
         body: payload,
       }),
+      transformResponse: (response) => {
+        if (!response) return response
+        const data = response.data || response
+        const caseStudy = data.caseStudy || data.result?.caseStudy || data.result
+        return {
+          ...response,
+          data: {
+            ...data,
+            caseStudy,
+            result: data.result || caseStudy,
+          },
+        }
+      },
     }),
 
     // GET /api/health

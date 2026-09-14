@@ -321,7 +321,13 @@ export default function CaseStudyGeneratorPage({
     try {
       const response = await generateCaseStudyMutation(formData).unwrap()
       if (response?.data) {
-        setDataResult(response.data)
+        const payload = response.data
+        const caseStudy = payload.caseStudy || payload.result?.caseStudy || payload.result
+        setDataResult({
+          ...payload,
+          caseStudy,
+          result: payload.result || caseStudy,
+        })
         setActiveTab('case-study')
         setTimeout(() => {
           const el = document.getElementById('case-study-results')

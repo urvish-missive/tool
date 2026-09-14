@@ -390,6 +390,7 @@ model Admin {
   passwordHash String
   name         String
   role         String   @default("admin")
+  isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
 }
 
