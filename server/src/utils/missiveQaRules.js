@@ -35,7 +35,7 @@ export const MISSIVE_QA_PILLARS = [
     id: 'tone_style_ai',
     number: 1,
     name: 'Tone, Style & AI Check',
-    directive: 'Human, crisp, conversational. Strictly ZERO em dashes ("—", "--") and ZERO colons (":"). Zero robotic buzzwords (delve, tapestry, beacon, game-changer, testament). Sentences clear, complete, never abrupt.',
+    directive: 'Human, crisp, conversational. Strictly zero use of the em dash character or double-hyphen as punctuation, and zero colons. Zero robotic buzzwords (delve, tapestry, beacon, game-changer, testament). Sentences clear, complete, never abrupt.',
   },
   {
     id: 'read_aloud',
@@ -110,7 +110,7 @@ export const MISSIVE_QA_PILLARS = [
  */
 export function buildMissiveQaPromptDirectives() {
   return `MISSIVE DIGITAL 12-PILLAR QA RULES (MANDATORY & NON-NEGOTIABLE):
-1. ZERO EM DASHES & ZERO COLONS: You are strictly forbidden from using em dashes ("—" or "--") and colons (":"). Use clean separate sentences, commas, or hyphens with spaces (" - ").
+1. ZERO EM DASHES & ZERO COLONS: You are strictly forbidden from using the em dash character, a double hyphen used as punctuation, or a colon anywhere in your output, including the title. Do not type the em dash character under any circumstance. Use clean separate sentences, commas, or a single hyphen surrounded by spaces instead.
 2. ZERO ROBOTIC BUZZWORDS: Never use robotic clichés. Treat words like "delve", "tapestry", "beacon", "game-changer", "testament", "plethora", "revolutionize", "unleash", "in today's fast-paced world", "look no further" as EXAMPLES. You are strictly forbidden from using these or ANY similar robotic AI hallmarks (e.g., "multifaceted", "bespoke", "intertwined", "elucidate", "leverage", "paramount", "myriad", "dive deep", "seamlessly") and empty corporate hype.
 3. INSIGHT FIRST: Open immediately with the high-stakes friction or concrete metric. No throat-clearing backstories.
 4. E‑E‑A‑T PROOF: Back every claim with concrete metrics (percentages, dollar amounts, timeframes, conversion rates). Explain HOW and WHY the methodology worked.

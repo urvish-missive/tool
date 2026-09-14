@@ -1,6 +1,26 @@
 import { callAIAndParseJSON } from '../utils/aiProvider.js'
 import { TONE_PROFILES } from './blogTopicGenerator.js'
 import { buildMissiveQaPromptDirectives } from '../utils/missiveQaRules.js'
+import { validateFactSafety } from './factValidator.js'
+
+/**
+ * Fact-safety pass applied to every intro (AI-generated or fallback) before
+ * it's returned. Neither the AI prompt nor the fallback templates are
+ * fact-checked anywhere else in this file, unlike blogTopicGenerator.js and
+ * qaService.js, which both run generated text through validateFactSafety.
+ * Without this, unverifiable numbers ("Over 70% of initiatives stall out",
+ * "cuts wasted effort in half") ship as if they were sourced data.
+ */
+function applyFactSafety(hookLine, body, transition) {
+  const hookCheck = validateFactSafety(hookLine)
+  const bodyCheck = validateFactSafety(body)
+  const transitionCheck = validateFactSafety(transition)
+  return {
+    hookLine: hookCheck.safe ? hookLine : hookCheck.sanitizedText,
+    body: bodyCheck.safe ? body : bodyCheck.sanitizedText,
+    transition: transitionCheck.safe ? transition : transitionCheck.sanitizedText,
+  }
+}
 
 /**
  * Funnel stage definitions and characteristics
@@ -47,16 +67,16 @@ const FALLBACK_TEMPLATES = {
       formula: 'The Contrarian Myth-Buster',
       trigger: 'Curiosity & Pattern-Interrupt',
       why: 'Challenges conventional wisdom right out of the gate, forcing readers to question their current assumptions.',
-      hook: (t, a, kw) => `Most advice you hear about ${t} is not just outdated—it is actively holding your results back.`,
-      body: (t, a, kw) => `Every week, thousands of ${a} double down on traditional playbooks hoping for a breakthrough. Yet the data shows that the top 5% approach ${kw} with an entirely different mental model that cuts wasted effort in half.`,
+      hook: (t, a, kw) => `Most advice you hear about ${t} is not just outdated. It is actively holding your results back.`,
+      body: (t, a, kw) => `Every week, thousands of ${a} double down on traditional playbooks hoping for a breakthrough. Yet the highest performers approach ${kw} with an entirely different mental model that cuts wasted effort dramatically.`,
       transition: (t, a, kw) => `In this guide, we break down exactly what top performers are doing differently, and how you can replicate their playbook step-by-step.`,
     },
     {
       formula: 'The Startling Statistic Hook',
       trigger: 'Data-Driven Validation',
       why: 'Uses hard numbers to ground the problem in reality, creating urgency while establishing immediate credibility.',
-      hook: (t, a, kw) => `Over 70% of initiatives focused on ${t} stall out before ever delivering tangible ROI.`,
-      body: (t, a, kw) => `It is not because the goals are unrealistic—it is because most teams lack a clear framework to bridge the gap between initial strategy and day-to-day execution. Understanding the core mechanics of ${kw} is the single fastest way to flip those odds in your favor.`,
+      hook: (t, a, kw) => `Most initiatives focused on ${t} stall out before ever delivering tangible ROI.`,
+      body: (t, a, kw) => `It is not because the goals are unrealistic. It is because most teams lack a clear framework to bridge the gap between initial strategy and day-to-day execution. Understanding the core mechanics of ${kw} is the single fastest way to flip those odds in your favor.`,
       transition: (t, a, kw) => `Let's dive into the foundational principles you need to know before taking your next step.`,
     },
     {
@@ -73,7 +93,7 @@ const FALLBACK_TEMPLATES = {
       why: "Uses storytelling to hook the brain's natural curiosity for resolution.",
       hook: (t, a, kw) => `Six months ago, a growth team told us they were ready to abandon ${t} entirely.`,
       body: (t, a, kw) => `They were burnt out, under budget pressure, and seeing zero momentum from their existing setup. But once they made one fundamental tweak to how they approached ${kw}, their metrics doubled in ninety days.`,
-      transition: (t, a, kw) => `Here is the exact story—and the simple playbook you can borrow today.`,
+      transition: (t, a, kw) => `Here is the exact story, and the simple playbook you can borrow today.`,
     },
     {
       formula: 'The "What Everyone Gets Wrong" Angle',
@@ -98,7 +118,7 @@ const FALLBACK_TEMPLATES = {
       trigger: 'Agitated Pain & Relief',
       why: 'Validates decision fatigue and positions your article as the ultimate clarity tool.',
       hook: (t, a, kw) => `You already know that mastering ${t} is critical, but choosing the right approach feels like navigating a minefield.`,
-      body: (t, a, kw) => `With endless options, conflicting opinions, and shrinking timelines, picking the wrong strategy does not just cost money—it wastes months of momentum that you can never get back. You do not need more generic theories; you need an objective blueprint for evaluating your best options.`,
+      body: (t, a, kw) => `With endless options, conflicting opinions, and shrinking timelines, picking the wrong strategy does not just cost money. It wastes months of momentum that you can never get back. You do not need more generic theories; you need an objective blueprint for evaluating your best options.`,
       transition: (t, a, kw) => `Below, we compare the leading methodologies for ${kw} so you can confidently pick the right path forward.`,
     },
     {
@@ -106,14 +126,14 @@ const FALLBACK_TEMPLATES = {
       trigger: 'Visionary Relief & Aspiration',
       why: 'Paints a visceral contrast between the current chaotic state and the ideal future state, making your guide the logical bridge.',
       hook: (t, a, kw) => `Right now, executing ${t} probably feels fragmented, manual, and unpredictably slow.`,
-      body: (t, a, kw) => `Imagine having a streamlined, battle-tested system where every element of ${kw} works seamlessly, generating predictable results without firefighting. The bridge between where you are today and that outcome is not working harder—it is implementing the right operational framework.`,
+      body: (t, a, kw) => `Imagine having a streamlined, battle-tested system where every element of ${kw} works seamlessly, generating predictable results without firefighting. The bridge between where you are today and that outcome is not working harder. It is implementing the right operational framework.`,
       transition: (t, a, kw) => `Here is our detailed walkthrough of how that transformation works in practice.`,
     },
     {
       formula: 'The Framework / Blueprint Teaser',
       trigger: 'Systematic Certainty',
       why: 'Appeals to analytical evaluators looking for structured methodologies.',
-      hook: (t, a, kw) => `Most successful teams do not execute ${t} through sheer guesswork—they follow a repeatable 4-step framework.`,
+      hook: (t, a, kw) => `Most successful teams do not execute ${t} through sheer guesswork. They follow a repeatable 4-step framework.`,
       body: (t, a, kw) => `When you break down ${kw} into systematic stages, the complexity disappears. Instead of reinventing the wheel on every cycle, you gain a structured engine designed for continuous compounding.`,
       transition: (t, a, kw) => `Let's walk through each stage of the framework and how to deploy it in your workflow.`,
     },
@@ -122,7 +142,7 @@ const FALLBACK_TEMPLATES = {
       trigger: 'Risk Mitigation & Due Diligence',
       why: 'Captures consideration-stage readers seeking to de-risk their strategic decisions.',
       hook: (t, a, kw) => `Before you commit budget or resources to ${t}, there are three fatal traps you must actively avoid.`,
-      body: (t, a, kw) => `Over 80% of evaluating teams trip over the exact same hidden pitfalls when scaling ${kw}. Identifying these traps early is the difference between an expensive setback and a runaway success.`,
+      body: (t, a, kw) => `Most evaluating teams trip over the exact same hidden pitfalls when scaling ${kw}. Identifying these traps early is the difference between an expensive setback and a runaway success.`,
       transition: (t, a, kw) => `Here is what to look out for and how to steer clear from day one.`,
     },
     {
@@ -139,7 +159,7 @@ const FALLBACK_TEMPLATES = {
       why: 'Focuses on operational leverage and eliminating wasted hours.',
       hook: (t, a, kw) => `How many hours is your team currently burning each week trying to manage ${t}?`,
       body: (t, a, kw) => `If you are like most ${a}, the answer is far too many. Modern workflows around ${kw} should accelerate your velocity, not bog you down in endless administrative friction.`,
-      transition: (t, a, kw) => `Let's examine how top teams cut execution time by 60% with modern tooling.`,
+      transition: (t, a, kw) => `Let's examine how top teams cut execution time dramatically with modern tooling.`,
     },
   ],
   bofu: [
@@ -147,7 +167,7 @@ const FALLBACK_TEMPLATES = {
       formula: 'The Direct ROI & Bottom-Line Hook',
       trigger: 'Executive Certainty & High Conviction',
       why: 'Speaks directly to the decision-maker who has zero patience for fluff and wants hard evaluation criteria.',
-      hook: (t, a, kw) => `If you are evaluating how to implement ${t} this quarter, you need clear ROI figures—not marketing fluff.`,
+      hook: (t, a, kw) => `If you are evaluating how to implement ${t} this quarter, you need clear ROI figures, not marketing fluff.`,
       body: (t, a, kw) => `When budget, executive buy-in, and measurable revenue are on the line, every decision around ${kw} carries real weight. You need to know what delivers immediate payback, where hidden bottlenecks lurk, and which partner or tooling aligns with your specific goals.`,
       transition: (t, a, kw) => `Here is the comprehensive breakdown to help you make an executive-ready decision today.`,
     },
@@ -156,7 +176,7 @@ const FALLBACK_TEMPLATES = {
       trigger: 'Action-Oriented Urgency',
       why: 'Directly validates that the reader is ready to build or buy, cutting straight to action.',
       hook: (t, a, kw) => `You have done the preliminary research on ${t}, and now it is time to execute.`,
-      body: (t, a, kw) => `The problem is that most implementation plans overcomplicate the rollout and stall before launch. To get maximum velocity from ${kw}, you only need to focus on the top 20% of actions that drive 80% of the commercial results.`,
+      body: (t, a, kw) => `The problem is that most implementation plans overcomplicate the rollout and stall before launch. To get maximum velocity from ${kw}, you only need to focus on the small set of actions that drive most of the commercial results.`,
       transition: (t, a, kw) => `Let's jump straight into the exact step-by-step checklist to launch without friction.`,
     },
     {
@@ -188,7 +208,7 @@ const FALLBACK_TEMPLATES = {
       trigger: 'Fiscal Responsibility & Payback',
       why: 'Provides bulletproof financial rationale for budget approval.',
       hook: (t, a, kw) => `At the end of the day, your choice for ${t} comes down to two numbers: total cost of ownership and expected pipeline yield.`,
-      body: (t, a, kw) => `If the mathematics of your ${kw} investment do not clearly pencil out to at least a 3x return within 90 days, you are using the wrong model. Let's look at the financial realities behind each option.`,
+      body: (t, a, kw) => `If the mathematics of your ${kw} investment do not clearly pencil out to a strong return within a reasonable timeframe, you are using the wrong model. Let's look at the financial realities behind each option.`,
       transition: (t, a, kw) => `Here is the financial scorecard and payback calculation to present to your CFO.`,
     },
   ],
@@ -203,9 +223,12 @@ function getFallbackIntroForStage(stage, index, topic, audience = 'readers', tar
   const tmpl = templates[index % templates.length]
   const stageInfo = FUNNEL_STAGES[stage] || FUNNEL_STAGES.tofu
 
-  const hookLine = tmpl.hook(topic, audience, kw)
-  const body = tmpl.body(topic, audience, kw)
-  const transition = tmpl.transition(topic, audience, kw)
+  const safe = applyFactSafety(
+    tmpl.hook(topic, audience, kw),
+    tmpl.body(topic, audience, kw),
+    tmpl.transition(topic, audience, kw)
+  )
+  const { hookLine, body, transition } = safe
   const fullIntro = `${hookLine}\n\n${body}\n\n${transition}`
 
   const wordCount = fullIntro.split(/\s+/).filter(Boolean).length
@@ -317,21 +340,29 @@ export async function generateBlogIntroductions({
 
   const requestedCount = Math.min(Math.max(parseInt(count) || 6, 3), 18)
 
+  // Single source of truth for formula names per stage — the fallback
+  // templates are the authoritative, complete list (6 per stage). Deriving
+  // the prompt guidance from them (instead of separately hardcoded lists)
+  // keeps the AI's available formulas in sync with what the fallback path
+  // actually uses.
+  const formulaNamesForStage = (stg) =>
+    (FALLBACK_TEMPLATES[stg] || []).map((t) => t.formula).join(', ')
+
   let stageGuidance = ''
   let targetCounts = { tofu: 0, mofu: 0, bofu: 0 }
 
   if (funnelStage === 'tofu') {
     targetCounts.tofu = requestedCount
     stageGuidance = `All ${requestedCount} intros must be TOFU (Top of Funnel - Awareness).
-Formulas to use: Contrarian Myth-Buster, Startling Statistic, Relatable Story, Empathetic Pain-Point, "What Everyone Gets Wrong" Angle, Industry Shift Awakening.`
+Formulas to use, one "formula" value per item, matched genuinely to that item's actual hook style, not copied from another item: ${formulaNamesForStage('tofu')}.`
   } else if (funnelStage === 'mofu') {
     targetCounts.mofu = requestedCount
     stageGuidance = `All ${requestedCount} intros must be MOFU (Middle of Funnel - Consideration).
-Formulas to use: Problem-Agitate-Solve (PAS), Before-After-Bridge (BAB), Framework Teaser, Cautionary Mistake Hook, Solution Comparison Matrix, Efficiency Test.`
+Formulas to use, one "formula" value per item, matched genuinely to that item's actual hook style, not copied from another item: ${formulaNamesForStage('mofu')}.`
   } else if (funnelStage === 'bofu') {
     targetCounts.bofu = requestedCount
     stageGuidance = `All ${requestedCount} intros must be BOFU (Bottom of Funnel - Decision & Conversion).
-Formulas to use: Direct ROI & Payback Hook, Cut-The-Fluff Action Hook, Proof-Driven Winner Verdict, Strategic Buyer Checklist, Implementation Fast-Track, Decision Framework.`
+Formulas to use, one "formula" value per item, matched genuinely to that item's actual hook style, not copied from another item: ${formulaNamesForStage('bofu')}.`
   } else {
     const basePerStage = Math.floor(requestedCount / 3)
     const remainder = requestedCount % 3
@@ -341,10 +372,10 @@ Formulas to use: Direct ROI & Payback Hook, Cut-The-Fluff Action Hook, Proof-Dri
 
     stageGuidance = `MANDATORY STAGE DISTRIBUTION:
 You MUST generate intros across all 3 funnel stages in this exact count:
-- Exactly ${targetCounts.tofu} items with "stage": "tofu"
-- Exactly ${targetCounts.mofu} items with "stage": "mofu"
-- Exactly ${targetCounts.bofu} items with "stage": "bofu"
-Total must be exactly ${requestedCount} items.`
+- Exactly ${targetCounts.tofu} items with "stage": "tofu". Formulas available for tofu: ${formulaNamesForStage('tofu')}.
+- Exactly ${targetCounts.mofu} items with "stage": "mofu". Formulas available for mofu: ${formulaNamesForStage('mofu')}.
+- Exactly ${targetCounts.bofu} items with "stage": "bofu". Formulas available for bofu: ${formulaNamesForStage('bofu')}.
+Total must be exactly ${requestedCount} items. Each item's "formula" must be one of the formulas listed for its own stage, genuinely matched to that item's actual hook style, not copied from another item.`
   }
 
   const qaDirectives = buildMissiveQaPromptDirectives()
@@ -361,13 +392,15 @@ COPYWRITING RULES:
 3. Body: Exactly 2 tight sentences building the tension or stakes in this voice.
 4. Bridge Line: Exactly 1 smooth transition sentence pulling the reader directly into the article.
 5. Target Audiences: Accurately identify 4-5 key audience segments / personas for this topic.
-6. Return strictly valid JSON only.`
+6. Zero Fabricated Statistics: Never invent a specific percentage, multiplier, or benchmark number ("40% higher", "3x ROI", "70% of teams") unless it is a widely-known, verifiable fact. Make the stakes vivid through concrete scenarios and consequences instead of invented numbers.
+7. Formula Accuracy: The "formula" field for each item must genuinely match the formula name provided in the distribution requirements below, not be copied from a different item.
+8. Return strictly valid JSON only.`
 
   const userPrompt = `Generate exactly ${requestedCount} blog post introductions for:
 TOPIC: "${topic}"
 KEYWORDS: "${keywordsList || topic}"
 AUDIENCE: "${userAudience ? userAudience : 'Identify the top 4-5 relevant target audience segments for this topic'}"
-TONE OF VOICE: "${toneProfile.label}" — ${toneProfile.directive}
+TONE OF VOICE: "${toneProfile.label}". ${toneProfile.directive}
 
 DISTRIBUTION REQUIREMENTS:
 ${stageGuidance}
@@ -383,8 +416,8 @@ OUTPUT FORMAT (strictly JSON):
   "recommendedHook": "1 crisp sentence advising which hook to test first for this topic",
   "intros": [
     {
-      "stage": "tofu",
-      "formula": "The Contrarian Myth-Buster",
+      "stage": "tofu | mofu | bofu, matching this item's own funnel stage",
+      "formula": "The exact formula name this item genuinely uses, chosen from the formulas listed for ITS stage above. Never repeat the same formula name across items.",
       "hook": "Single punchy sentence opening hook.",
       "body": "2 sentences agitating the core challenge.",
       "transition": "1 sentence bridging into the post.",
@@ -435,10 +468,15 @@ OUTPUT FORMAT (strictly JSON):
         const validStage = ['tofu', 'mofu', 'bofu'].includes(stageRaw) ? stageRaw : 'tofu'
         const stageInfo = FUNNEL_STAGES[validStage]
 
-        const hookLine = (item.hook || item.hookLine || '').trim()
-        const body = (item.body || '').trim()
-        const transition = (item.transition || '').trim()
-        const fullIntro = (item.fullIntro || `${hookLine}\n\n${body}\n\n${transition}`).trim()
+        const rawHookLine = (item.hook || item.hookLine || '').trim()
+        const rawBody = (item.body || '').trim()
+        const rawTransition = (item.transition || '').trim()
+        // AI-generated hooks/stats are not fact-checked anywhere upstream,
+        // so an unverifiable claim ("40% higher open rates") can ship as if
+        // it were sourced data. Rebuild fullIntro from the sanitized parts
+        // rather than trusting the AI's own concatenated fullIntro field.
+        const { hookLine, body, transition } = applyFactSafety(rawHookLine, rawBody, rawTransition)
+        const fullIntro = `${hookLine}\n\n${body}\n\n${transition}`.trim()
 
         const wordCount = item.wordCount || fullIntro.split(/\s+/).filter(Boolean).length
         const readingTimeSeconds = item.readingTimeSeconds || Math.max(Math.round(wordCount / 3.5), 10)

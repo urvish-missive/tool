@@ -39,6 +39,19 @@ function isNumericColon(text, index) {
 }
 
 /**
+ * Check if an en dash at index is a legitimate tight numeric range (10-15,
+ * 1-2, 30-50) rather than a spaced/word-adjacent dash used as an em dash
+ * substitute. Only a digit immediately on both sides counts as a range;
+ * anything else (a space, a word character) is the em-dash-style usage the
+ * "zero em dash" rule exists to catch.
+ */
+export function isNumericRangeDash(text, index) {
+  const charBefore = text[index - 1] || ''
+  const charAfter = text[index + 1] || ''
+  return /\d/.test(charBefore) && /\d/.test(charAfter)
+}
+
+/**
  * Extract context snippet centered around index
  */
 function extractEvidenceContext(fullText, startOffset, length) {
@@ -110,8 +123,13 @@ export function detectEmDashes(blocks, rawContent) {
 }
 
 /**
- * Detect En Dashes in eligible blocks
- * En dashes (U+2013) are structurally distinct from Em dashes!
+ * Detect En Dashes used as em-dash substitutes in eligible blocks.
+ * En dashes (U+2013) are structurally distinct from Em dashes, and have one
+ * legitimate prose use: a tight numeric range (10-15, 1-2, 30-50) with no
+ * surrounding whitespace. Any other en dash, most commonly a spaced dash
+ * used to join a heading fragment or clause ("Headline – An SEO Gold
+ * Mine", "Build trust – empathy helps..."), is doing the exact same
+ * clause-connecting job an em dash would and is flagged the same way.
  * @param {Array<Object>} blocks
  * @param {string} rawContent
  * @returns {Object} { count, evidence }
@@ -128,13 +146,15 @@ export function detectEnDashes(blocks, rawContent) {
 
     EN_DASH_PATTERN.lastIndex = 0
     while ((match = EN_DASH_PATTERN.exec(text)) !== null) {
+      if (isNumericRangeDash(text, match.index)) continue
+
       count++
       const startOffset = block.startOffset + match.index
       const charLen = match[0].length
 
       evidence.push({
         text: match[0],
-        charName: 'EN DASH (U+2013)',
+        charName: 'EN DASH (U+2013) used as em dash substitute',
         startOffset,
         endOffset: startOffset + charLen,
         blockId: block.blockId,

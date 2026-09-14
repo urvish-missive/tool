@@ -96,23 +96,28 @@ export function executeContentQaAudit(input = {}) {
   const enDashResult = detectEnDashes(blocks, rawContent)
   const colonResult = detectColons(blocks, rawContent)
 
-  // TS-3: Zero Em Dashes
+  // TS-3: Zero Em Dashes (and em-dash-style en dashes, which do the exact
+  // same clause-connecting job and are just as much of an AI/editorial
+  // tell — see detectEnDashes()). A tight numeric range like "10-15" is
+  // excluded upstream and never reaches this count.
   const rTS3 = getRuleDef('ts-3')
+  const dashViolationCount = emDashResult.count + enDashResult.count
+  const dashEvidence = [...emDashResult.evidence, ...enDashResult.evidence]
   findingsStore.addFinding(new Finding({
     ruleId: 'ts-3',
     pillarId: 'tone_style_ai',
-    status: emDashResult.count === 0 ? 'PASS' : 'FAIL',
-    severity: emDashResult.count === 0 ? 'info' : rTS3.severityOnFailure || 'high',
+    status: dashViolationCount === 0 ? 'PASS' : 'FAIL',
+    severity: dashViolationCount === 0 ? 'info' : rTS3.severityOnFailure || 'high',
     confidence: 1.0,
     weight: rTS3.weight || 1.0,
     affectsScore: true,
-    evidence: emDashResult.evidence,
-    explanation: emDashResult.count === 0
-      ? 'Zero em dashes detected in editorial prose.'
-      : `Detected ${emDashResult.count} em dash(es) in editorial prose.`,
-    recommendation: emDashResult.count === 0
+    evidence: dashEvidence,
+    explanation: dashViolationCount === 0
+      ? 'Zero em dashes (or em-dash-style en dashes) detected in editorial prose.'
+      : `Detected ${emDashResult.count} em dash(es) and ${enDashResult.count} em-dash-style en dash(es) in editorial prose.`,
+    recommendation: dashViolationCount === 0
       ? ''
-      : 'Replace em dashes with commas, periods, or clean sentence breaks.',
+      : 'Replace em dashes and spaced en dashes with commas, periods, or clean sentence breaks.',
     assessmentType: 'AUTOMATED',
     scope: 'DOCUMENT',
   }))

@@ -5,6 +5,7 @@
 
 import { callAIAndParseJSON, getConfiguredProviders } from '../utils/aiProvider.js'
 import { buildMissiveQaPromptDirectives, MISSIVE_BANNED_WORDS } from '../utils/missiveQaRules.js'
+import { isNumericRangeDash } from './contentQa/punctuationDetector.js'
 
 const SYSTEM_PROMPT = `You are Himani Kankaria's AI Content QA Auditor. You evaluate content strictly against Himani Kankaria's 12-Pillar Content QA Checklist:
 
@@ -13,7 +14,7 @@ const SYSTEM_PROMPT = `You are Himani Kankaria's AI Content QA Auditor. You eval
    - No robotic phrases, no fluff, no clichés.
      * Reference examples of robotic/AI buzzwords to eliminate: ${MISSIVE_BANNED_WORDS.map((w) => `"${w}"`).join(', ')}.
      * DYNAMIC BUZZWORD DETECTION: Treat the above list as EXAMPLES, not an exhaustive limit. Dynamically detect and extract ANY word or phrase in the text that matches this robotic, hyperbolic, or overused AI nature (e.g., "multifaceted", "intertwined", "elucidate", "bespoke", "paramount", "leverage", "paradigm", "testament", "dive deep", "seamlessly", "spearhead", "foster").
-   - Strictly ZERO em dashes ("—", "--") and ZERO colons (":").
+   - Strictly zero use of the em dash character or double-hyphen as punctuation, and zero colons.
    - Sentences clear, complete, not abrupt.
 
 2. Read Aloud Test:
@@ -292,11 +293,26 @@ function generateAlgorithmicHimaniPolish(content, title, _targetKeyword) {
   let polished = content
   const dynamicChanges = []
 
-  // Check em dashes
-  const emMatches = content.match(/[—–]|--|&mdash;|&#8212;/g) || []
-  if (emMatches.length > 0) {
-    polished = polished.replace(/[—–]/g, ', ').replace(/--/g, ', ')
-    dynamicChanges.push(`Eliminated ${emMatches.length} em dash(es) in favor of crisp commas and sentence stops.`)
+  // Check em dashes (and en dashes used the same way — a tight numeric
+  // range like "10-15" is left untouched via isNumericRangeDash, matching
+  // what the scoring engine treats as a genuine violation). Consumes the
+  // surrounding whitespace so "word – word" becomes "word, word", not
+  // "word , word".
+  let dashViolationCount = 0
+  polished = polished
+    .replace(/\s*([—–])\s*/g, (match, dashChar, offset, string) => {
+      if (dashChar === '–' && match.length === 1 && isNumericRangeDash(string, offset)) {
+        return dashChar
+      }
+      dashViolationCount++
+      return ', '
+    })
+    .replace(/\s*(?<![<>-])-{2,}(?!>)\s*/g, () => {
+      dashViolationCount++
+      return ', '
+    })
+  if (dashViolationCount > 0) {
+    dynamicChanges.push(`Eliminated ${dashViolationCount} em dash(es)/em-dash-style dash(es) in favor of crisp commas and sentence stops.`)
   }
 
   // Check colons (excluding URLs and timestamps)
@@ -362,8 +378,10 @@ function generateAlgorithmicHimaniPolish(content, title, _targetKeyword) {
   }
 
   return {
-    polishedTitle: title ? `How to Master ${title}: A Direct Practitioner Blueprint` : 'The Practitioner Content Blueprint',
-    polishedContent: polished,
+    polishedTitle: title
+      ? enforceZeroEmDashAndColon(`How to Master ${title}, A Direct Practitioner Blueprint`)
+      : 'The Practitioner Content Blueprint',
+    polishedContent: enforceZeroEmDashAndColon(polished),
     improvementsMade: dynamicChanges,
   }
 }
@@ -377,33 +395,45 @@ export function generateDynamicImprovements(beforeAnalysis, afterAnalysis, aiImp
   const statsBefore = beforeAnalysis?.quickStats || {}
   const statsAfter = afterAnalysis?.quickStats || {}
 
-  // 1. Em Dashes
-  const emBefore = statsBefore.emDashesCount ?? (originalText.match(/[—–]|--|&mdash;|&#8212;/g) || []).length
-  const emAfter = statsAfter.emDashesCount ?? (polishedText.match(/[—–]|--|&mdash;|&#8212;/g) || []).length
-  if (emBefore > 0) {
-    const eliminated = Math.max(1, emBefore - emAfter)
-    dynamicList.push(`Eliminated ${eliminated} em dash(es) ("—") in favor of clean commas and strong sentence stops.`)
+  // 1. Em Dashes (and em-dash-style en dashes, e.g. "Headline – Subtitle",
+  // which the scoring engine now counts as the same violation — see
+  // detectEnDashes()) — only claim what was actually measured as removed.
+  // Never report a positive "eliminated" count when the after-text did not
+  // actually improve (that previously produced messages like "Eliminated 2
+  // em dashes" next to a verified stat showing the count went up).
+  const emBefore = (statsBefore.emDashesCount ?? 0) + (statsBefore.enDashesCount ?? 0)
+  const emAfter = (statsAfter.emDashesCount ?? 0) + (statsAfter.enDashesCount ?? 0)
+  if (emBefore > 0 && emAfter < emBefore) {
+    dynamicList.push(`Eliminated ${emBefore - emAfter} em dash(es)/em-dash-style dash(es) in favor of clean commas and strong sentence stops.`)
+  } else if (emAfter > 0) {
+    dynamicList.push(`${emAfter} em dash(es)/em-dash-style dash(es) still remain and need a manual pass.`)
   }
 
-  // 1b. Colons
+  // 1b. Colons — same verified-delta rule as em dashes above.
   const colonBefore = statsBefore.colonsCount ?? (originalText.replace(/https?:\/\/[^\s]+/g, '').replace(/\b\d{1,2}:\d{2}\b/g, '').match(/:/g) || []).length
   const colonAfter = statsAfter.colonsCount ?? (polishedText.replace(/https?:\/\/[^\s]+/g, '').replace(/\b\d{1,2}:\d{2}\b/g, '').match(/:/g) || []).length
-  if (colonBefore > 0) {
-    const eliminatedColons = Math.max(1, colonBefore - colonAfter)
-    dynamicList.push(`Eliminated ${eliminatedColons} colon(s) (":") in favor of clean commas and strong sentence stops.`)
+  if (colonBefore > 0 && colonAfter < colonBefore) {
+    dynamicList.push(`Eliminated ${colonBefore - colonAfter} colon(s) (":") in favor of clean commas and strong sentence stops.`)
+  } else if (colonAfter > 0) {
+    dynamicList.push(`${colonAfter} colon(s) still remain and need a manual pass.`)
   }
 
-  // 2. Robotic AI Clichés
+  // 2. Robotic AI Clichés — claim only the verified before/after delta,
+  // not the raw before-count (which previously overstated the result,
+  // e.g. claiming "Removed 3" when the after-text still had 1 remaining).
   const aiBefore = statsBefore.aiPhrasesCount || 0
+  const aiAfter = statsAfter.aiPhrasesCount || 0
   const foundAiWords = (beforeAnalysis?.highlights || [])
     .filter(h => h.type === 'ai-cliche')
     .map(h => `"${h.text}"`)
   const uniqueAiWords = Array.from(new Set(foundAiWords))
 
-  if (aiBefore > 0 || uniqueAiWords.length > 0) {
-    const count = aiBefore || uniqueAiWords.length
+  if (aiBefore > 0 && aiAfter < aiBefore) {
+    const removedCount = aiBefore - aiAfter
     const sampleWords = uniqueAiWords.slice(0, 3).join(', ')
-    dynamicList.push(`Removed ${count} robotic AI cliché(s)${sampleWords ? ` (${sampleWords})` : ''} and replaced with direct conversational phrasing.`)
+    dynamicList.push(`Removed ${removedCount} robotic AI cliché(s)${sampleWords ? ` (${sampleWords})` : ''} and replaced with direct conversational phrasing.`)
+  } else if (aiAfter > 0) {
+    dynamicList.push(`${aiAfter} robotic AI cliché(s) still remain and need a manual pass.`)
   }
 
   // 3. Filler & Throat-clearing Fluff
@@ -416,8 +446,8 @@ export function generateDynamicImprovements(beforeAnalysis, afterAnalysis, aiImp
   }
 
   // 4. Word Count & Tightness
-  const wordsBefore = statsBefore.wordsCount || originalText.split(/\s+/).filter(Boolean).length
-  const wordsAfter = statsAfter.wordsCount || polishedText.split(/\s+/).filter(Boolean).length
+  const wordsBefore = statsBefore.wordCount || originalText.split(/\s+/).filter(Boolean).length
+  const wordsAfter = statsAfter.wordCount || polishedText.split(/\s+/).filter(Boolean).length
   if (wordsBefore > wordsAfter + 5) {
     const trimmed = wordsBefore - wordsAfter
     dynamicList.push(`Trimmed ${trimmed} words of redundant padding (streamlined from ${wordsBefore} to ${wordsAfter} words).`)
@@ -634,6 +664,51 @@ Return a JSON object:
 }
 
 /**
+ * Final safety net applied to every polish output regardless of path.
+ * Per-chunk AI rewrites run in parallel with no cross-chunk visibility, so
+ * the model does not always honor "zero em dashes / zero colons" on every
+ * single chunk. Rather than trust the AI's self-reported claim that it
+ * removed them, this mechanically guarantees the promise actually holds in
+ * the text that gets returned and re-scored, using the same replacement
+ * style ("hyphens with spaces", clean sentence breaks) already sanctioned
+ * by buildMissiveQaPromptDirectives().
+ */
+function enforceZeroEmDashAndColon(text) {
+  if (!text) return text
+  let out = text
+
+  // Em dashes and em-dash-style en dashes (spaced, or word-adjacent) become
+  // a clean spaced hyphen. A tight numeric range (10-15) is left alone,
+  // using the same isNumericRangeDash rule the scoring engine uses, so
+  // "10-15" isn't mangled into "10 - 15" while the analyzer treats it as
+  // fine.
+  out = out.replace(/\s*([—–])\s*/g, (match, dashChar, offset, string) => {
+    if (dashChar === '–' && match.length === 1 && isNumericRangeDash(string, offset)) {
+      return dashChar
+    }
+    return ' - '
+  })
+  // Match a whole run of 2+ hyphens (not just exactly 2) so a markdown
+  // horizontal rule ("---") the AI sometimes appends as a trailing divider
+  // collapses into one clean hyphen instead of leaving a dangling stray
+  // hyphen behind (e.g. "resonates---" was becoming "resonates - -").
+  out = out.replace(/\s*(?<![<>-])-{2,}(?!>)\s*/g, ' - ')
+
+  // Colons: prefer a sentence break before a capitalized clause, a comma
+  // before a lowercase clause, otherwise a spaced hyphen. Skips URLs
+  // (http://, https://) and numeric timestamps/ratios (10:30, 4:3).
+  out = out
+    .replace(/(\b[a-zA-Z0-9]+)\s*:\s+([A-Z])/g, '$1. $2')
+    .replace(/(\b[a-zA-Z0-9]+)\s*:\s+([a-z])/g, '$1, $2')
+    .replace(/(?<!https?)(?<!\d):(?!\/\/)(?!\d)/g, ' - ')
+
+  return out
+    .replace(/,\s*,/g, ',')
+    .replace(/\s{2,}/g, ' ')
+    .trim()
+}
+
+/**
  * AI-powered One-Click "Himani Polish" Rewriter
  * Rewrites content to achieve 100% compliance with all 12 checklist points
  * while strictly preserving the complete length and all sections of long drafts.
@@ -659,18 +734,32 @@ export async function polishContentWithHimaniRules(content, title, targetKeyword
     const results = await Promise.all(chunkPromises)
 
     const polishedSections = results.map(r => r.polishedSection).filter(Boolean)
-    const polishedContent = polishedSections.join('\n\n')
+    const joinedContent = polishedSections.join('\n\n')
+    const polishedContent = enforceZeroEmDashAndColon(joinedContent || cleanContent)
 
-    // Aggregate improvements
+    // Aggregate improvements. Punctuation/count claims are dropped here —
+    // the controller derives verified em-dash/colon counts from the actual
+    // before/after text via analyzeContentQA, which is authoritative. An
+    // AI chunk claiming "removed em dashes" is not trustworthy on its own:
+    // it can be wrong about its own output, or another chunk can introduce
+    // a dash the claim never accounted for.
     const allImprovements = []
     results.forEach(r => {
       if (Array.isArray(r.improvementsMade)) {
         allImprovements.push(...r.improvementsMade)
       }
     })
-    const uniqueImprovements = Array.from(new Set(allImprovements)).slice(0, 6)
+    const qualitativeImprovements = allImprovements.filter(
+      (imp) => typeof imp === 'string' && !/em dash|colon/i.test(imp)
+    )
+    const uniqueImprovements = Array.from(new Set(qualitativeImprovements)).slice(0, 6)
 
-    const polishedTitle = results[0]?.polishedTitle || title
+    // Titles go through the same mechanical safety net as the body. The AI
+    // self-reports "zero em dashes" per chunk, but the title comes from a
+    // single chunk's own JSON field and was previously never re-checked here,
+    // so a dash the model slipped into a "punchy" title leaked straight
+    // through into the re-scored "after" text.
+    const polishedTitle = enforceZeroEmDashAndColon(results[0]?.polishedTitle || title)
 
     console.log(`[Himani Polish] Completed: Original ${cleanContent.length} chars → Polished ${polishedContent.length} chars`)
 
@@ -679,9 +768,7 @@ export async function polishContentWithHimaniRules(content, title, targetKeyword
       polishedContent: polishedContent || cleanContent,
       improvementsMade: uniqueImprovements.length > 0
         ? uniqueImprovements
-        : ['Converted robotic cliches to conversational prose', 'Removed em dashes and colons', 'Preserved full document depth and scannability'],
-      himaniScoreBefore: options.himaniScoreBefore || 60,
-      himaniScoreAfter: 98,
+        : ['Converted robotic cliches to conversational prose', 'Preserved full document depth and scannability'],
     }
   } catch (err) {
     console.warn('AI Himani polish failed, using algorithmic rewriter fallback:', err.message)

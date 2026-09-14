@@ -14,9 +14,8 @@ import {
   Gauge,
   BadgeCheck,
   CircleDot,
-  ArrowRight,
 } from 'lucide-react'
-import { LandingLiveDemo, LandingFAQ } from '../components/landing'
+import { LandingHero, LandingLiveDemo, LandingFAQ } from '../components/landing'
 import ContentQaPage from '../tools/content-qa/ContentQaPage'
 
 /* ─────────────── SEO Structured Data (JSON-LD) ─────────────── */
@@ -330,107 +329,7 @@ function BannedTicker() {
   )
 }
 
-/* ─────────────── Hero ─────────────── */
-function QaHero({ onCta, toolRef, onResultStateChange, hideHeroCopy, resetSignal, onNewAudit }) {
-  return (
-    <section
-      className={`relative bg-[#F9F7F6] overflow-hidden ${hideHeroCopy ? 'pt-2 sm:pt-3 md:pt-4 pb-6 sm:pb-8' : 'py-20 sm:py-28'}`}
-    >
-      {!hideHeroCopy && (
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-24 -right-24 w-[480px] h-[480px] bg-[#DAD0FF]/50 rounded-full blur-3xl lp-float-slow" />
-          <div className="absolute -bottom-28 -left-24 w-[420px] h-[420px] bg-[#D8FFD8]/60 rounded-full blur-3xl lp-float-reverse" />
-        </div>
-      )}
 
-      <div className="relative max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
-        {!hideHeroCopy && (
-          <div className="max-w-2xl mx-auto text-center mb-10 sm:mb-12 transition-all duration-300">
-            <span className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white px-5 py-2 text-[13px] font-semibold tracking-[-0.01em] shadow-[0_18px_40px_rgba(12,129,243,0.25)] mb-7">
-              <ShieldCheck className="w-4 h-4" />
-              Missive Digital
-            </span>
-            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-display font-semibold tracking-[-0.03em] text-[#292929] leading-[1.05]">
-              Publish Copy That{' '}
-              <span className="bg-gradient-to-r from-[#0C81F3] to-[#EB8988] bg-clip-text text-transparent">
-                Passes Inspection
-              </span>{' '}
-              On The First Run
-            </h1>
-            <p className="mt-7 max-w-xl mx-auto text-[17px] leading-relaxed text-[#54595F]">
-              Run every draft through an automated 12-pillar quality gate. Catch em dashes, kill
-              robotic buzzwords, score the whole piece, and ship clean copy with confidence.
-            </p>
-            <div className="mt-9 flex flex-col sm:flex-row items-center justify-center gap-3">
-              <GradientButton onClick={onCta}>
-                Run The QA Scan
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-              </GradientButton>
-              <button
-                type="button"
-                onClick={() => {
-                  const el = document.getElementById('checksheet')
-                  if (el) {
-                    const top = el.getBoundingClientRect().top + window.pageYOffset - 90
-                    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
-                  }
-                }}
-                className="w-full sm:w-auto rounded-full border-2 border-slate-300 bg-white/90 backdrop-blur-xs px-6 py-3 text-xs sm:text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all cursor-pointer shadow-xs"
-              >
-                See 12 Quality Pillars ↓
-              </button>
-            </div>
-            <div className="mt-9 flex flex-wrap justify-center gap-2.5">
-              {['Zero em dashes & colons', 'Zero buzzwords', 'Score + diff', 'PDF report'].map(
-                (t) => (
-                  <span
-                    key={t}
-                    className="inline-flex items-center gap-1.5 rounded-full bg-white border border-[#DEDEDE] text-[#292929] px-3.5 py-1.5 text-[13px] font-medium"
-                  >
-                    <CheckCircle2 className="w-3.5 h-3.5 text-[#0C81F3]" /> {t}
-                  </span>
-                )
-              )}
-            </div>
-          </div>
-        )}
-
-        <div ref={toolRef} id="tool" className="relative scroll-mt-24">
-          <div className="rounded-[24px] sm:rounded-[36px] bg-white border border-white/80 shadow-[0_33px_44px_rgba(0,0,0,0.04)] overflow-hidden">
-            <div className="flex flex-wrap items-center justify-between px-4 sm:px-7 py-3 sm:py-4 border-b border-[#EEE9E5] bg-[#F9F7F6] gap-2">
-              <div className="flex flex-wrap items-center gap-2 sm:gap-3">
-                <span className="flex items-center gap-2 text-[12px] sm:text-[13px] font-semibold text-[#292929]">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  {hideHeroCopy ? 'Content QA Inspection Workspace & Results' : 'Live QA Terminal'}
-                </span>
-                {hideHeroCopy && (
-                  <button
-                    type="button"
-                    onClick={onNewAudit}
-                    className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#0C81F3] hover:text-[#0a6ecf] bg-blue-50/90 hover:bg-blue-100 px-2.5 py-1 rounded-full transition-colors cursor-pointer border border-blue-200/60"
-                  >
-                    ← Back to Hero &amp; Form
-                  </button>
-                )}
-              </div>
-              <span className="inline-flex items-center gap-1.5 text-[11px] sm:text-[12px] font-semibold text-[#292929] bg-white border border-[#DEDEDE] rounded-full px-2.5 sm:px-3 py-1 sm:py-1.5">
-                <BadgeCheck className="w-3.5 h-3.5 text-[#0C81F3]" /> No Sign-Up
-              </span>
-            </div>
-            <div className={hideHeroCopy ? 'p-3 sm:p-5 md:p-6' : 'p-3 sm:p-7'}>
-              <ContentQaPage
-                isEmbedded={true}
-                onResultStateChange={onResultStateChange}
-                resetSignal={resetSignal}
-                onNewAudit={onNewAudit}
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
 
 /* ─────────────── Check Sheet Section ─────────────── */
 function CheckSheet() {
@@ -783,15 +682,52 @@ export default function ContentQaLandingPage() {
       </Helmet>
 
       <div
-        className={`landing-page min-h-screen bg-[#F9F7F6] font-sans ${hasResults ? 'pt-20' : ''}`}
+        className={`landing-page min-h-screen bg-white font-sans ${hasResults ? 'pt-20' : ''}`}
       >
-        <QaHero
-          onCta={scrollToTool}
-          toolRef={toolRef}
-          onResultStateChange={setHasResults}
+        {/* 1. Hero with embedded tool */}
+        <LandingHero
           hideHeroCopy={hasResults}
-          resetSignal={resetSignal}
-          onNewAudit={handleNewAudit}
+          badge="Missive's SEO Tools • Missive Digital"
+          title={[
+            { text: 'Publish Copy That ' },
+            { text: 'Passes Inspection', gradient: true },
+            { text: ' on the First Run' },
+          ]}
+          subtitle="Audit any draft against the 12-Pillar Missive QA Framework. Catch robotic AI fluff, eliminate em dashes and forbidden colons, score readability, and polish weak copy with one click."
+          ctaLabel="Run The QA Scan Free"
+          ctaOnClick={scrollToTool}
+          secondaryCta={{
+            label: 'See 12 Quality Pillars ↓',
+            onClick: () => {
+              const el = document.getElementById('checksheet')
+              if (el) {
+                const top = el.getBoundingClientRect().top + window.pageYOffset - 90
+                window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' })
+              }
+            },
+          }}
+          trustBadges={[
+            '12 Quality Pillars',
+            'Zero Em Dashes & Colons',
+            'Zero Buzzwords & AI Clichés',
+            'Instant 1-Click Polish',
+            'PDF Report Included',
+          ]}
+          toolRef={toolRef}
+          toolLabel={
+            hasResults
+              ? 'Content QA Inspection Workspace & Results'
+              : "Himani Kankaria's 12-Pillar QA Terminal • Live"
+          }
+          onReset={hasResults ? handleNewAudit : null}
+          toolSlot={
+            <ContentQaPage
+              isEmbedded={true}
+              onResultStateChange={setHasResults}
+              resetSignal={resetSignal}
+              onNewAudit={handleNewAudit}
+            />
+          }
         />
         {!hasResults && (
           <>

@@ -28,6 +28,8 @@ import deviceRoutes from './routes/deviceRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 
 import { toolAccess } from './middleware/toolAccess.js'
+import { getJwtSecret } from './middleware/adminAuth.js'
+import { seedAdminUser } from './utils/seedAdmin.js'
 import prisma from './utils/prisma.js'
 import { getActiveModelInfo } from './utils/aiProvider.js'
 
@@ -36,13 +38,19 @@ const PORT = process.env.PORT || 5000
 
 // Security
 app.use(helmet({ crossOriginResourcePolicy: false }))
-const allowedOrigins = process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',').map(s => s.trim()) : ['*']
+const defaultDevOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000']
+const allowedOrigins = process.env.CLIENT_URL
+  ? process.env.CLIENT_URL.split(',').map(s => s.trim())
+  : (process.env.NODE_ENV === 'production' ? [] : defaultDevOrigins)
+
 app.use(cors({
   origin: (origin, callback) => {
-    if (!origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+    // Allow requests with no origin (e.g. same-origin, curl, server-to-server)
+    if (!origin) return callback(null, true)
+    if (allowedOrigins.includes(origin)) {
       return callback(null, true)
     }
-    return callback(null, true)
+    return callback(null, false)
   },
   credentials: true,
 }))
@@ -123,6 +131,9 @@ app.use((err, req, res, _next) => {
 
 async function start() {
   try {
+    // Validate security configuration fail-fast
+    getJwtSecret()
+
     await prisma.$connect()
     console.log('[OK] Database connected successfully')
 
@@ -139,16 +150,8 @@ async function start() {
 }
 
 async function seedDefaults() {
-  // Seed default admin if none exists
-  const adminCount = await prisma.admin.count()
-  if (adminCount === 0) {
-    const bcrypt = await import('bcryptjs')
-    const hash = await bcrypt.default.hash('admin123', 12)
-    await prisma.admin.create({
-      data: { email: 'admin@missivedigital.com', passwordHash: hash, name: 'Admin', isActive: true },
-    })
-    console.log('[OK] Default admin created: admin@missivedigital.com / admin123')
-  }
+  // Seed initial admin safely
+  await seedAdminUser()
 
   // Seed default tool configs
   const toolCount = await prisma.toolConfig.count()

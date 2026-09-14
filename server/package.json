@@ -10,6 +10,7 @@
     "test:auth": "node --test test/adminAuth.test.mjs",
     "test:eeat": "node --test test/eeatRegression.test.mjs",
     "test:qa": "node --test test/contentQaRegression.test.mjs",
+    "seed:admin": "node src/utils/seedAdmin.js",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",

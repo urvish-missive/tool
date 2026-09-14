@@ -234,7 +234,7 @@ export function evaluateInsightFirst(blocks, rawContent, scope = 'DOCUMENT_INTRO
       status: 'WARNING',
       classification: 'NO_PROSE',
       message: 'No introductory prose paragraphs detected.',
-      evidence: [],
+      findings: [],
       scope,
     }
   }

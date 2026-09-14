@@ -4,8 +4,15 @@
  * fake case studies, and premature confirmation of unreleased product features.
  */
 
-// Regex patterns that detect fabricated statistical or empirical claims
-const NUMERIC_CLAIM_REGEX = /\b(\d+(?:\.\d+)?)\s*(%|percent|x\s+roi|fold increase|lift)\b/gi
+// Regex patterns that detect fabricated statistical or empirical claims.
+// The trailing \b is scoped per word-based alternative (percent/roi/lift),
+// not the "%" symbol itself — "%" is not a word character, so a \b placed
+// right after it can never match (no word/non-word transition exists
+// between "%" and the space or punctuation that follows), which silently
+// let every "42%"-style claim skip detection entirely.
+// "x\b" (not the narrower "x\s+roi\b") so bare multiplier claims like
+// "3x improvements" or "3x faster" are caught too, not just "3x roi".
+const NUMERIC_CLAIM_REGEX = /\b\d+(?:\.\d+)?\s*(?:%|percent\b|x\b|fold\s+increase\b|lift\b)/gi
 const FABRICATED_RESEARCH_REGEX = /\b(according to a (?:recent )?(?:study|survey|report|benchmark)|apple reported|google confirmed that \d+|testing proved that \d+|data shows that \d+%)\b/gi
 const PREMATURE_EXPERIENCE_REGEX = /\b(owners experienced|users saw a \d+|in our testing we found that \d+|customers achieved \d+|field tests proved)\b/gi
 

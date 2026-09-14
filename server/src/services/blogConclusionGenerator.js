@@ -1,6 +1,44 @@
 import { callAIAndParseJSON } from '../utils/aiProvider.js'
 import { TONE_PROFILES } from './blogTopicGenerator.js'
 import { buildMissiveQaPromptDirectives } from '../utils/missiveQaRules.js'
+import { validateFactSafety } from './factValidator.js'
+
+/**
+ * Removes any sentence containing an unverifiable factual claim (per
+ * validateFactSafety) instead of patching just the number in place.
+ * A word-level swap ("the top measurable improvements approach X") reads as
+ * broken grammar and still ships a sentence built around a claim that no
+ * longer makes sense once the number is gone. Dropping the whole sentence
+ * costs at most one sentence of a paragraph, which is a far smaller problem
+ * than a false or garbled claim reaching the reader.
+ */
+function stripUnsafeSentences(text) {
+  if (!text) return text
+  const paragraphs = text.split(/\n\s*\n/)
+  const rebuilt = paragraphs.map((para) => {
+    const sentences = para.match(/[^.!?]+[.!?]+(?=\s|$)|[^.!?]+$/g) || [para]
+    const kept = sentences
+      .map((s) => s.trim())
+      .filter(Boolean)
+      .filter((s) => validateFactSafety(s).safe)
+    return kept.join(' ')
+  })
+  return rebuilt.filter(Boolean).join('\n\n').trim()
+}
+
+/**
+ * Fact-safety pass applied to every AI-generated conclusion before it's
+ * returned, as a backstop against the model inventing an unverifiable
+ * claim (a statistic, a benchmark, a client result) the EVIDENCE SAFETY
+ * RULE in the prompt already forbids.
+ */
+function applyFactSafety(hookClosure, body, ctaPrompt) {
+  return {
+    hookClosure: stripUnsafeSentences(hookClosure),
+    body: stripUnsafeSentences(body),
+    ctaPrompt: stripUnsafeSentences(ctaPrompt),
+  }
+}
 
 /**
  * Funnel stage definitions and conversion intent for conclusions
@@ -38,155 +76,28 @@ export const CONCLUSION_FUNNEL_STAGES = {
   },
 }
 
+// Default button copy intentionally avoids specifics the tool has no way
+// to verify for an arbitrary caller (trial length, "no CC required",
+// consultation duration, a named asset type). Those are commercial details
+// only the user's own ctaCustomText can supply — see the EVIDENCE SAFETY
+// RULE in the prompt below.
 export const CTA_GOALS = {
-  demo: { label: 'Book a Demo / Strategy Call', defaultButton: 'Book Your Free 30-Min Strategy Call →' },
-  trial: { label: 'Start Free Trial / Sign Up', defaultButton: 'Start Your 14-Day Free Trial (No CC Required) →' },
-  lead_magnet: { label: 'Download Checklist / Template / Guide', defaultButton: 'Download the Complete Implementation Checklist →' },
-  internal_link: { label: 'Read Next Related Article', defaultButton: 'Read Next: The Advanced Implementation Guide →' },
+  demo: { label: 'Book a Demo / Strategy Call', defaultButton: 'Book a Strategy Call →' },
+  trial: { label: 'Start Free Trial / Sign Up', defaultButton: 'Start Your Free Trial →' },
+  lead_magnet: { label: 'Download Checklist / Template / Guide', defaultButton: 'Get the Free Resource →' },
+  internal_link: { label: 'Read Next Related Article', defaultButton: 'Read the Next Article →' },
   comment: { label: 'Leave a Comment / Join Community Discussion', defaultButton: 'Drop Your Thoughts in the Comments Below ↓' },
   custom: { label: 'Custom Call to Action', defaultButton: 'Take the Next Step Today →' },
 }
 
 /**
- * Fallback conclusions for high availability
- */
-function getFallbackConclusions(
-  topic,
-  intro = '',
-  audience = 'professionals',
-  targetKeywords = [],
-  count = 6,
-  stagePlan = ['tofu', 'tofu', 'mofu', 'mofu', 'bofu', 'bofu'],
-  defaultCtaBtn = 'Get Started Today →'
-) {
-  const kw = targetKeywords.length ? targetKeywords[0] : topic
-  const hasIntro = Boolean(intro && intro.trim().length > 15)
-
-  const stageTemplates = {
-    tofu: [
-      {
-        title: `The Verdict: Turning ${topic} Into Your Lasting Competitive Advantage`,
-        framework: 'The Perspective Shift & Open Loop Closer',
-        hookClosure: hasIntro
-          ? `Remember the question we started with? Mastering ${topic} isn't about chasing every new tactic—it is about mastering the underlying fundamentals.`
-          : `Mastering ${topic} isn't about chasing every new tactic—it is about mastering the core fundamentals that compound over time.`,
-        body: `Throughout this guide, we explored how top-performing ${audience} build sustainable traction with ${kw}. By shifting your focus from short-term reactive fixes to deliberate, repeatable systems, you eliminate wasted effort and unlock compounding results.\n\nThe difference between teams that struggle and those that dominate isn't resources; it's consistency in execution.`,
-        ctaPrompt: `Where will your team focus your efforts first? Choose one high-impact principle from this article and put it into practice this week.`,
-        ctaButton: 'Explore More Growth Insights →',
-        why: 'Synthesizes high-level value into an inspiring takeaway while strictly avoiding generic conclusion clichés.',
-      },
-      {
-        title: `Where Does Your Strategy Go From Here? Beyond ${topic}`,
-        framework: 'The Big-Picture Horizon & Low-Friction Step',
-        hookClosure: hasIntro
-          ? `The friction we highlighted in the opening isn't unique to your team—it's the natural inflection point every growing organization encounters.`
-          : `Growth rarely comes from working harder at outdated playbooks. It comes from recognizing when the rules of ${kw} have changed.`,
-        body: `As search algorithms and customer expectations evolve, having a clear mental model around ${topic} separates industry leaders from those playing catch-up.\n\nTake a step back, audit your baseline, and commit to one systemic upgrade this quarter.`,
-        ctaPrompt: `Join our community of forward-thinking ${audience} receiving our weekly strategic breakdown.`,
-        ctaButton: 'Subscribe to Weekly Strategy Memo →',
-        why: 'Opens a forward-looking horizon and invites low-friction ongoing engagement.',
-      },
-      {
-        title: `The Unspoken Reality of ${topic} in Today's Market`,
-        framework: 'The Contrarian Challenge & Next Thought',
-        hookClosure: `The conventional playbook for ${kw} is broken, but that creates an unprecedented window of opportunity for teams willing to adapt.`,
-        body: `Most competitors will continue relying on superficial shortcuts. By investing in depth, authoritative execution, and customer-first value, your brand creates an unassailable moat.\n\nTrue market leadership belongs to those who build before the trend becomes mandatory.`,
-        ctaPrompt: `Read our companion deep-dive on advanced content architecture next.`,
-        ctaButton: 'Read Next: Advanced Architecture Guide →',
-        why: 'Uses pattern-interrupt psychology to challenge standard industry assumptions.',
-      },
-    ],
-    mofu: [
-      {
-        title: `Your Implementation Blueprint: Putting ${topic} to Work`,
-        framework: 'The Execution Blueprint & Resource Download',
-        hookClosure: `The concepts we broke down aren't theoretical—they represent the exact playbook needed to execute ${kw} with confidence.`,
-        body: `As you evaluate your next steps, remember that speed of implementation matters just as much as strategy. The teams seeing 3x improvements are those that audit their current bottlenecks, align their tools, and measure iterative benchmarks.\n\nDon't let analysis paralysis stall your momentum. Start with a structured audit of your highest-priority workflow before scaling across the organization.`,
-        ctaPrompt: `To make execution effortless, download our step-by-step checklist containing all frameworks, formulas, and benchmarks covered in this guide.`,
-        ctaButton: 'Download the Complete Implementation Checklist →',
-        why: 'Provides a clear transition from understanding to execution, creating high desire for an actionable download.',
-      },
-      {
-        title: `The 3-Part Decision Framework for Scaling ${topic}`,
-        framework: 'The Comparison Verdict & Practical Roadmap',
-        hookClosure: `Choosing how to execute ${kw} comes down to balancing internal bandwidth against time-to-value.`,
-        body: `You don't need to overhaul everything overnight. Prioritize your roadmap into quick wins (Week 1–2), architectural stabilization (Month 1), and automated scale (Month 2+).\n\nMeasuring the right leading indicators keeps your stakeholders aligned and supports positive compounding.`,
-        ctaPrompt: `Use our free Decision Matrix template to score your team's readiness across each stage.`,
-        ctaButton: 'Get the Free Decision Matrix Template →',
-        why: 'Helps consideration-stage buyers evaluate trade-offs and structure their rollout plan.',
-      },
-      {
-        title: `The Most Expensive Trap in ${topic} (And How to Avoid It)`,
-        framework: 'The Common Pitfall Warning & Action Step',
-        hookClosure: `The biggest risk isn't trying something new with ${kw}—it is repeating invisible mistakes that silently drain budget.`,
-        body: `Too many teams invest months into execution only to realize their foundation lacked indexation guards or semantic cohesion. By benchmarking your process against industry standards early, you bypass costly course corrections.\n\nProtect your investment with verified guardrails.`,
-        ctaPrompt: `Download our pre-flight QA checklist to verify your setup before going live.`,
-        ctaButton: 'Download the Pre-Flight QA Checklist →',
-        why: 'Capitalizes on loss-aversion by highlighting preventable mistakes.',
-      },
-    ],
-    bofu: [
-      {
-        title: `The Bottom Line: Don't Let Inaction Delay Your ${topic} Results`,
-        framework: 'The Definitive ROI Verdict & Free Trial',
-        hookClosure: `Every month your team delays modernizing your approach to ${topic}, the compounding cost of inaction quietly increases.`,
-        body: `You now have the exact methodology required to eliminate operational drag, outpace competitors, and unlock measurable ROI from ${kw}. The only remaining decision is whether to spend months piecing together disjointed manual processes or leverage proven infrastructure from day one.\n\nTop performers choose momentum. With the right platform supporting your workflow, you can begin seeing validated impact in as little as 14 days.`,
-        ctaPrompt: `Ready to see how much faster your team can execute? Test drive our platform today and unlock full access with zero commitments.`,
-        ctaButton: defaultCtaBtn || 'Start Your 14-Day Free Trial (No CC Required) →',
-        why: 'Builds sharp urgency around the cost of delay and positions the CTA as the logical, frictionless next step.',
-      },
-      {
-        title: `The Cost of Inaction: Why Now Is the Time to Modernize ${topic}`,
-        framework: 'The Cost of Inaction & Demo Booking',
-        hookClosure: `While competitors scramble to respond to shifting market dynamics, you have a direct path to capture disproportionate share.`,
-        body: `Manual execution does not scale. To achieve predictable pipeline growth without inflating headcount, high-growth teams invest in purpose-built tooling designed specifically for ${kw}.\n\nThe ROI is quantifiable, and the implementation curve is measured in days, not quarters.`,
-        ctaPrompt: `Book a 1-on-1 strategy session with our senior engineers to map out your tailored solution.`,
-        ctaButton: 'Book Your Custom Strategy Call →',
-        why: 'Directly addresses executive decision-makers with bottom-line economic arguments.',
-      },
-      {
-        title: `Your Next Move: Accelerate Your ${topic} Results Today`,
-        framework: 'The Fast-Track Implementation Pitch',
-        hookClosure: `The roadmap is clear, the benchmarks are proven, and the infrastructure is ready when you are.`,
-        body: `Stop letting operational bottlenecks dictate your team's growth ceiling. Join hundreds of industry leaders who have streamlined ${kw} into an automated competitive advantage.\n\nStart small, validate fast, and scale with total confidence.`,
-        ctaPrompt: `Get started in under two minutes with full access to all enterprise features.`,
-        ctaButton: 'Claim Your Free Account & Launch →',
-        why: 'Focuses on immediate speed-to-value and eliminates friction for direct conversions.',
-      },
-    ],
-  }
-
-  const stageCounters = { tofu: 0, mofu: 0, bofu: 0 }
-
-  return stagePlan.slice(0, count).map((stageKey, idx) => {
-    const list = stageTemplates[stageKey] || stageTemplates.tofu
-    const templateIndex = stageCounters[stageKey] % list.length
-    stageCounters[stageKey]++
-    const tmpl = list[templateIndex]
-
-    const fullMarkdown = `## ${tmpl.title}\n\n${tmpl.hookClosure ? `${tmpl.hookClosure}\n\n` : ''}${tmpl.body}\n\n**Next Action:** ${tmpl.ctaPrompt}\n\n[${tmpl.ctaButton}]`
-    const words = fullMarkdown.split(/\s+/).filter(Boolean).length
-
-    return {
-      id: `conclusion-fallback-${idx + 1}`,
-      specificH2Title: tmpl.title,
-      funnelStage: stageKey,
-      funnelLabel: CONCLUSION_FUNNEL_STAGES[stageKey]?.label || stageKey.toUpperCase(),
-      framework: tmpl.framework,
-      hookClosure: tmpl.hookClosure,
-      body: tmpl.body,
-      ctaPrompt: tmpl.ctaPrompt,
-      ctaButtonText: tmpl.ctaButton,
-      fullConclusion: fullMarkdown,
-      wordCount: words,
-      readingTimeSeconds: Math.ceil(words / 3.5),
-      whyItWorks: tmpl.why,
-    }
-  })
-}
-
-/**
  * Main Blog Conclusion Generator
+ *
+ * No template fallback: every conclusion is generated fresh from the AI
+ * based on the caller's actual topic, intro, audience, and CTA goal. If the
+ * AI call fails, or returns fewer conclusions than requested, this throws
+ * rather than substituting canned template text, so a caller never receives
+ * generic output silently presented as personalized.
  */
 export async function generateBlogConclusions({
   topic,
@@ -229,6 +140,21 @@ export async function generateBlogConclusions({
     stagePlan = Array(count).fill(funnelStage)
   }
 
+  // Deterministically assign one framework per variation, cycling through
+  // that stage's defined list. This removes the AI's freedom to invent a
+  // framework name or repeat one across consecutive same-stage items —
+  // the AI is told exactly which name to copy into each item, and the
+  // sanitization step below overrides whatever it actually returns with
+  // this same assignment, so the field is correct even if the AI ignores
+  // the instruction.
+  const stageAssignCounters = { tofu: 0, mofu: 0, bofu: 0 }
+  const assignedFrameworks = stagePlan.map((s) => {
+    const stageMeta = CONCLUSION_FUNNEL_STAGES[s] || CONCLUSION_FUNNEL_STAGES.tofu
+    const idx = stageAssignCounters[s] || 0
+    stageAssignCounters[s] = idx + 1
+    return stageMeta.frameworks[idx % stageMeta.frameworks.length]
+  })
+
   const qaDirectives = buildMissiveQaPromptDirectives()
 
   const systemPrompt = `You are Missive Digital's Principal Content Strategist and Conversion Copywriter.
@@ -251,6 +177,17 @@ CRITICAL RULES (NON-NEGOTIABLE):
 5. **TONE OF VOICE MANDATE (${toneProfile.label})**:
    - ${toneProfile.directive}
    - Ensure the specific H2 titles, loop closure, body arguments, and CTA transitions authentically embody this tone.
+6. **FRAMEWORK ACCURACY**: The "framework" field for each item must be copied exactly, character for character, from the list of frameworks given for that item's own funnel stage in the variations below. Never invent a new framework name, and never repeat the same framework name across two items in the same stage.
+7. **EVIDENCE SAFETY RULE (STRICT, NON-NEGOTIABLE)**:
+   - The conclusion must be based exclusively on information contained in the Main Topic / Title, Existing Blog Introduction, Key Takeaways, Target Audience, and Primary CTA Goal supplied in the context below. Do not invent or introduce factual evidence to make the conclusion more persuasive.
+   - Never generate unsupported: statistics, percentages, benchmarks, research findings, study results, client results, revenue figures, ROI, CAC improvements, conversion improvements, rankings, time-to-result claims, payback periods, implementation timelines, customer counts, or monetary values.
+   - Never claim that "brands", "clients", "companies", "studies", "research", "data", or "industry reports" produced a particular result unless that evidence was explicitly supplied in the context below.
+   - Do not invent commercial details such as: free trials, trial duration, free consultations, consultation duration, pricing, discounts, guarantees, dashboards, audits, programs, checklists, guides, templates, or downloadable assets. Preserve the CTA Goal and Default Button Copy given below exactly as framed, without adding invented commercial specifics to it.
+   - If quantitative evidence is unavailable, use qualitative strategic language instead.
+   - BAD: "Brands using this strategy increased organic revenue 35% in six months."
+   - GOOD: "This approach can help build a stronger foundation for sustainable organic visibility."
+   - If you catch yourself about to state an unsupported factual claim, rewrite the ENTIRE sentence around a qualitative statement. Never patch only the unsupported number or detail with generic filler text (such as "measurable improvement") while leaving the rest of the sentence built around it.
+   - This rule applies with no exceptions regardless of topic, industry, or niche — it is not limited to any specific business type.
 
 RETURN JSON STRICTLY IN THIS FORMAT (NO PREAMBLE, NO CODEBLOCKS):
 {
@@ -260,14 +197,11 @@ RETURN JSON STRICTLY IN THIS FORMAT (NO PREAMBLE, NO CODEBLOCKS):
       "specificH2Title": "The Specific Creative H2 Headline (NO Conclusion Word)",
       "funnelStage": "tofu",
       "funnelLabel": "TOFU (Awareness)",
-      "framework": "The Perspective Shift & Open Loop Closer",
+      "framework": "Copied exactly from the framework list given for this item's own stage below, never invented",
       "hookClosure": "1-2 punchy sentences resolving the open loop from the intro.",
       "body": "2 short, impactful paragraphs synthesizing value and momentum.",
       "ctaPrompt": "1-2 sentences persuasively framing the next action.",
       "ctaButtonText": "Action-oriented button text (e.g. Download the Audit Checklist →)",
-      "fullConclusion": "Full Markdown with ## [specificH2Title], body paragraphs, and bold CTA.",
-      "wordCount": 120,
-      "readingTimeSeconds": 32,
       "whyItWorks": "Why this specific conclusion framework converts for this audience."
     }
   ]
@@ -283,8 +217,8 @@ ${cleanTakeaways ? `- Key Takeaways Covered in Article:\n"""\n${cleanTakeaways.s
 - Desired Tone: ${toneProfile.label} (${toneProfile.directive})
 
 VARIATIONS TO GENERATE:
-Generate an array of exactly ${count} items corresponding to these funnel stages:
-${stagePlan.map((s, idx) => `Variation ${idx + 1}: ${CONCLUSION_FUNNEL_STAGES[s].label} - Stage Intent: ${CONCLUSION_FUNNEL_STAGES[s].intent}`).join('\n')}`
+Generate an array of exactly ${count} items corresponding to these funnel stages. Each variation is pre-assigned an exact "framework" value: copy it into that item's "framework" field verbatim, do not substitute a different one.
+${stagePlan.map((s, idx) => `Variation ${idx + 1}: ${CONCLUSION_FUNNEL_STAGES[s].label} - Stage Intent: ${CONCLUSION_FUNNEL_STAGES[s].intent} - Assigned framework: "${assignedFrameworks[idx]}"`).join('\n')}`
 
   try {
     const messages = [
@@ -295,7 +229,14 @@ ${stagePlan.map((s, idx) => `Variation ${idx + 1}: ${CONCLUSION_FUNNEL_STAGES[s]
     const result = await callAIAndParseJSON(messages, {
       preferredProvider: preferredProvider || 'groq',
       temperature: 0.72,
-      maxTokens: Math.min(Math.max(count * 350, 2200), 3600),
+      // Without a template fallback, a truncated response is now a hard
+      // failure (see the length check below), so this budget has to be
+      // generous rather than tight. Dropping fullConclusion/wordCount/
+      // readingTimeSeconds from the requested schema (they were computed
+      // locally and never read from the AI's response anyway) already cuts
+      // a large redundant chunk of output; the raised ceiling is headroom
+      // on top of that.
+      maxTokens: Math.min(Math.max(count * 450, 2600), 6000),
       timeout: 14000,
     })
 
@@ -312,15 +253,17 @@ ${stagePlan.map((s, idx) => `Variation ${idx + 1}: ${CONCLUSION_FUNNEL_STAGES[s]
           cleanH2 = `The Next Step: Putting ${cleanTopic} Into Action`
         }
 
-        const body = (item.body || '').trim()
-        const hookClosure = (item.hookClosure || '').trim()
-        const ctaPrompt = (item.ctaPrompt || '').trim()
+        // Fact-check before rebuilding fullMarkdown so an unverifiable claim
+        // never survives into the concatenated output.
+        const safe = applyFactSafety(
+          (item.hookClosure || '').trim(),
+          (item.body || '').trim(),
+          (item.ctaPrompt || '').trim()
+        )
+        const { hookClosure, body, ctaPrompt } = safe
         const ctaButtonText = (item.ctaButtonText || defaultCtaBtn).trim()
 
-        const fullMarkdown =
-          item.fullConclusion && !item.fullConclusion.toLowerCase().includes('## conclusion')
-            ? item.fullConclusion.trim()
-            : `## ${cleanH2}\n\n${hookClosure ? `${hookClosure}\n\n` : ''}${body}\n\n**Next Step:** ${ctaPrompt}\n\n[${ctaButtonText}]`
+        const fullMarkdown = `## ${cleanH2}\n\n${hookClosure ? `${hookClosure}\n\n` : ''}${body}\n\n**Next Step:** ${ctaPrompt}\n\n[${ctaButtonText}]`
 
         const words = fullMarkdown.split(/\s+/).filter(Boolean).length
 
@@ -329,7 +272,13 @@ ${stagePlan.map((s, idx) => `Variation ${idx + 1}: ${CONCLUSION_FUNNEL_STAGES[s]
           specificH2Title: cleanH2,
           funnelStage: stageKey,
           funnelLabel: stageMeta.label,
-          framework: item.framework || stageMeta.frameworks[index % stageMeta.frameworks.length],
+          // Never trust item.framework directly — the AI has been observed
+          // inventing framework names that don't exist in any stage's list
+          // (e.g. "Framework Recap & Operational Checklist") and repeating
+          // the same one across consecutive items. assignedFrameworks is
+          // the deterministic ground truth already computed above.
+          framework:
+            assignedFrameworks[index] || stageMeta.frameworks[index % stageMeta.frameworks.length],
           hookClosure,
           body,
           ctaPrompt,
@@ -343,31 +292,16 @@ ${stagePlan.map((s, idx) => `Variation ${idx + 1}: ${CONCLUSION_FUNNEL_STAGES[s]
         }
       })
 
-      // Top up to exact count if AI returned fewer items
+      // No template top-up: if the AI returned fewer conclusions than
+      // requested (e.g. a truncated response), fail loudly rather than
+      // padding the gap with canned text.
       if (sanitized.length < count) {
-        const fallbacks = getFallbackConclusions(
-          cleanTopic,
-          cleanIntro,
-          audience,
-          targetKeywords,
-          count,
-          stagePlan,
-          defaultCtaBtn
+        throw new Error(
+          `AI only returned ${sanitized.length} of ${count} requested conclusions. Please try again.`
         )
-        const existingTitles = new Set(sanitized.map((s) => s.specificH2Title.toLowerCase()))
-        for (const fb of fallbacks) {
-          if (sanitized.length >= count) break
-          if (!existingTitles.has(fb.specificH2Title.toLowerCase())) {
-            sanitized.push({
-              ...fb,
-              id: `conclusion-${sanitized.length + 1}`,
-            })
-            existingTitles.add(fb.specificH2Title.toLowerCase())
-          }
-        }
       }
 
-      const output = {
+      return {
         success: true,
         topic: cleanTopic,
         funnelFilter: funnelStage,
@@ -375,30 +309,15 @@ ${stagePlan.map((s, idx) => `Variation ${idx + 1}: ${CONCLUSION_FUNNEL_STAGES[s]
         totalGenerated: sanitized.length,
         conclusions: sanitized,
       }
-
-      return output
     }
 
     throw new Error('AI returned an unexpected response structure')
   } catch (err) {
-    console.warn('[BlogConclusionGenerator] Primary AI failed, falling back to heuristic engine:', err.message)
-    const fallbacks = getFallbackConclusions(
-      cleanTopic,
-      cleanIntro,
-      audience,
-      targetKeywords,
-      count,
-      stagePlan,
-      defaultCtaBtn
+    console.error('[BlogConclusionGenerator] Generation failed:', err.message)
+    throw new Error(
+      err.message?.startsWith('AI only returned') || err.message === 'AI returned an unexpected response structure'
+        ? `${err.message} No fallback template is used, so please retry.`
+        : `Failed to generate blog conclusions: ${err.message}. Please try again.`
     )
-    return {
-      success: true,
-      topic: cleanTopic,
-      funnelFilter: funnelStage,
-      tone: activeTone,
-      totalGenerated: fallbacks.length,
-      conclusions: fallbacks,
-      isFallback: true,
-    }
   }
 }

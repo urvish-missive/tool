@@ -59,7 +59,7 @@ import {
 } from '../../services/apiSlice'
 import { contentQaSchema, parseContentQaForm } from '../../schemas/contentQa.schema'
 import { getScoreColor, getScoreBg } from '../../utils/scoreHelpers'
-import { computeWordDiff, computeParagraphDiff, computePolishMetrics } from '../../utils/textDiff'
+import { computeWordDiff, computeParagraphDiff } from '../../utils/textDiff'
 
 // ── 12 PILLARS DEFINITION (Matching Himani Kankaria's Checklist) ────
 const HIMANI_CATEGORIES_DEF = [
@@ -353,14 +353,36 @@ export default function ContentQaPage({
     return computeParagraphDiff(oldText, newText)
   }, [content, polishedResult])
 
+  // Derived from the backend's verified before/after quickStats (the same
+  // 12-pillar engine used for scoring), not an independent client-side
+  // regex recount. A separate client-side count previously disagreed with
+  // the server's numbers (e.g. showing "2 eliminated" next to a verified
+  // "0 -> 1" em dash stat) because it used a different regex over the raw
+  // text and never distinguished em dashes from en dashes.
   const polishMetrics = useMemo(() => {
-    if (!polishedResult) return null
-    const oldText = (content || '').trim()
-    const newText = (
-      typeof polishedResult === 'string' ? polishedResult : polishedResult.polishedContent || ''
-    ).trim()
-    return computePolishMetrics(oldText, newText)
-  }, [content, polishedResult])
+    if (!polishedResult || typeof polishedResult === 'string') return null
+    const statsBefore = polishedResult.statsBefore || {}
+    const statsAfter = polishedResult.statsAfter || {}
+    // "Em dash" here means what the ts-3 rule actually gates on: literal em
+    // dashes plus en dashes used the same way (a spaced/word-adjacent dash
+    // standing in for one, not a legitimate tight numeric range like
+    // "10-15", which the backend already excludes from enDashesCount). Using
+    // emDashesCount alone here previously showed "0 -> 0" next to a polish
+    // summary claiming "Eliminated 11 em dash(es)" for content that had 11
+    // en-dash violations and zero literal em dashes.
+    const dashesBefore = (statsBefore.emDashesCount || 0) + (statsBefore.enDashesCount || 0)
+    const dashesAfter = (statsAfter.emDashesCount || 0) + (statsAfter.enDashesCount || 0)
+    return {
+      emDashesRemoved: Math.max(0, dashesBefore - dashesAfter),
+      emDashesRemaining: dashesAfter,
+      clichesRemoved: Math.max(
+        0,
+        (statsBefore.aiPhrasesCount || 0) - (statsAfter.aiPhrasesCount || 0)
+      ),
+      wordCountBefore: statsBefore.wordCount || 0,
+      wordCountAfter: statsAfter.wordCount || 0,
+    }
+  }, [polishedResult])
 
   // Speech Synthesizer State
   const [isPlayingAudio, setIsPlayingAudio] = useState(false)
@@ -439,7 +461,9 @@ export default function ContentQaPage({
             : type === 'colon'
               ? 'Colon Detected'
               : type === 'ai-cliche'
-                ? (isDynamic ? 'Dynamic AI Buzzword' : 'Robotic AI Cliché')
+                ? isDynamic
+                  ? 'Dynamic AI Buzzword'
+                  : 'Robotic AI Cliché'
                 : type === 'filler'
                   ? 'Filler / Fluff Transition'
                   : type === 'superlative'
@@ -870,7 +894,7 @@ export default function ContentQaPage({
     }
   }
 
-  // One-click Himani Polish
+  // One-Click Missive Polish
   const runHimaniPolish = async () => {
     setPolishError(null)
     const textToPolish = (content || '').trim()
@@ -920,7 +944,19 @@ export default function ContentQaPage({
 
   // Dynamic Live Score Calculation — strictly respects canonical engine weights & consistency caps
   const scores = useMemo(() => {
-    if (!report) return { cats: {}, overall: 0, total: 0, passed: 0, failed: 0, warnings: 0, manual: 0, unverifiable: 0, notApplicable: 0, overallAssessmentCoverage: 0 }
+    if (!report)
+      return {
+        cats: {},
+        overall: 0,
+        total: 0,
+        passed: 0,
+        failed: 0,
+        warnings: 0,
+        manual: 0,
+        unverifiable: 0,
+        notApplicable: 0,
+        overallAssessmentCoverage: 0,
+      }
 
     // Check if user has toggled any checklist items away from report.statuses
     const hasUserToggled = Object.keys(statuses).some(
@@ -930,9 +966,12 @@ export default function ContentQaPage({
     if (!hasUserToggled) {
       return {
         cats: report.categoryScores || report.catScores || {},
-        overall: typeof report.overallQualityScore === 'number'
-          ? report.overallQualityScore
-          : (typeof report.overall === 'number' ? report.overall : (report.overallScore || 0)),
+        overall:
+          typeof report.overallQualityScore === 'number'
+            ? report.overallQualityScore
+            : typeof report.overall === 'number'
+              ? report.overall
+              : report.overallScore || 0,
         total: report.total || report.counts?.totalRules || 35,
         passed: report.statusCounts?.pass ?? (report.passed || report.counts?.pass || 0),
         failed: report.statusCounts?.fail ?? (report.failed || report.counts?.fail || 0),
@@ -946,18 +985,41 @@ export default function ContentQaPage({
 
     // When user manually toggles statuses, calculate with canonical weights & consistency caps
     const RULE_WEIGHTS = {
-      'ts-1': 1.2, 'ts-2': 1.5, 'ts-3': 2.0, 'ts-5': 1.5, 'ts-4': 1.2,
-      'ra-1': 1.2, 'ra-2': 1.0, 'ra-3': 1.2,
-      'aud-1': 1.0, 'aud-2': 1.2, 'aud-3': 1.0,
-      'eat-1': 1.5, 'eat-2': 1.2, 'eat-3': 1.0,
-      'ins-1': 1.5, 'ins-2': 1.2,
-      'mc-1': 1.2, 'mc-2': 1.4,
-      'off-1': 1.0, 'off-2': 1.0,
-      'bp-1': 1.0, 'bp-2': 1.2,
-      'str-1': 1.2, 'str-2': 1.0, 'str-3': 1.2, 'str-4': 1.0,
-      'sp-1': 1.2, 'sp-2': 1.0, 'sp-3': 1.2, 'sp-4': 1.0,
-      'comp-1': 2.0, 'comp-2': 1.5,
-      'vpf-1': 1.2, 'vpf-2': 1.2, 'vpf-3': 1.0,
+      'ts-1': 1.2,
+      'ts-2': 1.5,
+      'ts-3': 2.0,
+      'ts-5': 1.5,
+      'ts-4': 1.2,
+      'ra-1': 1.2,
+      'ra-2': 1.0,
+      'ra-3': 1.2,
+      'aud-1': 1.0,
+      'aud-2': 1.2,
+      'aud-3': 1.0,
+      'eat-1': 1.5,
+      'eat-2': 1.2,
+      'eat-3': 1.0,
+      'ins-1': 1.5,
+      'ins-2': 1.2,
+      'mc-1': 1.2,
+      'mc-2': 1.4,
+      'off-1': 1.0,
+      'off-2': 1.0,
+      'bp-1': 1.0,
+      'bp-2': 1.2,
+      'str-1': 1.2,
+      'str-2': 1.0,
+      'str-3': 1.2,
+      'str-4': 1.0,
+      'sp-1': 1.2,
+      'sp-2': 1.0,
+      'sp-3': 1.2,
+      'sp-4': 1.0,
+      'comp-1': 2.0,
+      'comp-2': 1.5,
+      'vpf-1': 1.2,
+      'vpf-2': 1.2,
+      'vpf-3': 1.0,
     }
 
     const catScores = {}
@@ -973,8 +1035,15 @@ export default function ContentQaPage({
     let totalPossibleWeight = 0
 
     for (const cat of HIMANI_CATEGORIES_DEF) {
-      let pass = 0, fail = 0, warning = 0, manual = 0, unverifiable = 0, notApplicable = 0
-      let earnedCat = 0, resolvedCat = 0, possibleCat = 0
+      let pass = 0,
+        fail = 0,
+        warning = 0,
+        manual = 0,
+        unverifiable = 0,
+        notApplicable = 0
+      let earnedCat = 0,
+        resolvedCat = 0,
+        possibleCat = 0
 
       for (const item of cat.items) {
         const s = getStatus(item)
@@ -988,7 +1057,7 @@ export default function ContentQaPage({
           resolvedCat += w
         } else if (s === 'warning') {
           warning++
-          earnedCat += (w * 0.5)
+          earnedCat += w * 0.5
           resolvedCat += w
         } else if (s === 'fail') {
           fail++
@@ -1011,7 +1080,7 @@ export default function ContentQaPage({
       }
 
       catScores[cat.id] = catVal
-      totalItems += (pass + fail + warning + manual + unverifiable + notApplicable)
+      totalItems += pass + fail + warning + manual + unverifiable + notApplicable
       totalPass += pass
       totalFail += fail
       totalWarning += warning
@@ -1022,13 +1091,11 @@ export default function ContentQaPage({
       totalResolvedWeight += resolvedCat
     }
 
-    const overall = totalResolvedWeight > 0
-      ? Math.round((totalEarnedWeight / totalResolvedWeight) * 100)
-      : null
+    const overall =
+      totalResolvedWeight > 0 ? Math.round((totalEarnedWeight / totalResolvedWeight) * 100) : null
 
-    const overallAssessmentCoverage = totalPossibleWeight > 0
-      ? Math.round((totalResolvedWeight / totalPossibleWeight) * 100)
-      : 0
+    const overallAssessmentCoverage =
+      totalPossibleWeight > 0 ? Math.round((totalResolvedWeight / totalPossibleWeight) * 100) : 0
 
     return {
       cats: catScores,
@@ -1105,7 +1172,7 @@ ${report.ai?.summary || 'Audited against 12 Himani QA Pillars.'}
 ${topFixes}
 
 ## Key Metrics
-- Em Dashes Detected: ${report.quickStats?.emDashesCount || 0} (Himani Rule: 0 allowed)
+- Em Dashes Detected: ${(report.quickStats?.emDashesCount || 0) + (report.quickStats?.enDashesCount || 0)} (Himani Rule: 0 allowed)
 - AI Clichés Found: ${report.quickStats?.aiPhrasesCount || 0}
 - Flesch Reading Ease: ${report.quickStats?.fleschScore || 0}/100
 - Checks Passed: ${scores.passed}/${scores.total}
@@ -1157,53 +1224,63 @@ Audited with Missive Digital Content QA Tool.`
 
       {/* ── HERO BANNER (ONLY SHOWN WHEN NOT EMBEDDED) ──── */}
       {!isEmbedded && (
-        <section className="relative overflow-hidden !pt-20 sm:!pt-28 lg:!pt-36 py-16 sm:py-20 lg:py-24">
+        <section className="relative overflow-hidden !pt-20 sm:!pt-28 lg:!pt-36 py-16 sm:py-20 lg:py-24 bg-gradient-to-b from-slate-50 to-white border-b border-slate-200">
           <div
-            className="absolute inset-0"
+            className="absolute inset-0 pointer-events-none"
             style={{
               background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)',
               opacity: 0.08,
             }}
           />
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-bl from-[#A7D2FF]/40 to-[#F7B7B3]/40 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-gradient-to-tr from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
+          <div className="absolute top-0 right-0 w-[450px] h-[450px] bg-gradient-to-bl from-[#A7D2FF]/30 to-[#F7B7B3]/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4 pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-[350px] h-[350px] bg-gradient-to-tr from-[#A7D2FF]/20 to-[#F7B7B3]/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/4 pointer-events-none" />
 
           <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
-            <span className="inline-block px-4 py-1.5 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-xs font-bold rounded-full mb-5 tracking-wide uppercase shadow-sm">
-              Free QA Tool
-            </span>
+            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[11px] sm:text-xs font-bold rounded-full mb-3 tracking-wide uppercase shadow-2xs whitespace-nowrap shrink-0">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Missive's SEO Tools • Missive Digital</span>
+            </div>
 
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] flex items-center justify-center text-white font-bold text-xs shadow-sm">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <div className="w-6 h-6 rounded-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] flex items-center justify-center text-white font-bold text-[10px] shadow-2xs">
                 HK
               </div>
-              <span className="text-xs sm:text-sm font-semibold text-gray-700 tracking-wide">
+              <span className="text-xs sm:text-sm font-semibold text-slate-700 tracking-wide">
                 Himani Kankaria's Content QA Framework
               </span>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-gray-900 leading-[1.15]">
-              <span className="text-gray-900">Content </span>
+            <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight">
+              <span>Content </span>
               <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
                 QA Checklist
               </span>
             </h1>
-            <p className="mt-4 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-              QA every piece of content written for your brand the way Himani does.
-              <span className="block text-sm text-gray-500 font-medium mt-1">
-                12 Pillars • 35 Precision Checks • Zero AI Fluff, Zero Em Dashes & Zero Colons
-              </span>
+            <p className="mt-2.5 text-xs sm:text-sm md:text-base text-slate-600 max-w-2xl mx-auto leading-relaxed">
+              QA every piece of content written for your brand against Himani Kankaria's 12-Pillar Framework. Catch robotic AI fluff, eliminate em dashes and forbidden colons, score readability, and polish weak copy with one click.
             </p>
 
+            <div className="flex flex-wrap items-center justify-center gap-1.5 sm:gap-2.5 mt-3">
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-blue-50 text-[#0C81F3] border border-blue-200/60 whitespace-nowrap shrink-0">
+                <CheckCircle2 className="w-3 h-3 text-[#0C81F3]" /> 12 Quality Pillars
+              </span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-purple-50 text-purple-700 border border-purple-200/60 whitespace-nowrap shrink-0">
+                <Sparkles className="w-3 h-3 text-purple-600" /> Zero Em Dashes &amp; Colons
+              </span>
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/60 whitespace-nowrap shrink-0">
+                <ShieldCheck className="w-3 h-3 text-emerald-600" /> Zero AI Fluff &amp; Buzzwords
+              </span>
+            </div>
+
             {!report && !isAnalyzing && (
-              <div className="mt-5 flex justify-center gap-3">
+              <div className="mt-4 flex items-center justify-center gap-2">
                 <button
                   type="button"
                   onClick={handleLoadSample}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold text-[#0C81F3] bg-blue-50/90 hover:bg-blue-100 border border-blue-200/60 transition-all shadow-sm cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#0C81F3] bg-blue-50/90 hover:bg-blue-100 border border-blue-200/80 transition-all shadow-2xs cursor-pointer active:scale-95"
                 >
-                  <BookOpen className="w-3.5 h-3.5" />
-                  Load Sample Content
+                  <BookOpen className="w-3.5 h-3.5 text-[#0C81F3]" />
+                  <span>Load Sample Content</span>
                 </button>
               </div>
             )}
@@ -1654,7 +1731,9 @@ Audited with Missive Digital Content QA Tool.`
                     HK
                   </div>
                   <div>
-                    <h2 className="text-base font-bold text-gray-900 leading-tight">Himani QA Report</h2>
+                    <h2 className="text-base font-bold text-gray-900 leading-tight">
+                      Himani QA Report
+                    </h2>
                     <p className="text-xs text-gray-500">12 Pillars • 35 Precision Checks</p>
                   </div>
                 </div>
@@ -1690,7 +1769,7 @@ Audited with Missive Digital Content QA Tool.`
                     className="w-full sm:w-auto justify-center px-4 py-2 text-xs font-bold text-white bg-gradient-to-r from-[#0C81F3] to-[#EB8988] hover:from-[#0D73D1] hover:to-[#E77771] rounded-xl flex items-center gap-1.5 transition-all shadow-sm cursor-pointer text-center"
                   >
                     <Wand2 className="w-3.5 h-3.5 shrink-0" />
-                    <span>{isPolishing ? 'Polishing...' : 'One-Click Himani Polish'}</span>
+                    <span>{isPolishing ? 'Polishing...' : 'One-Click Missive Polish'}</span>
                   </button>
                 </div>
               </div>
@@ -1731,31 +1810,42 @@ Audited with Missive Digital Content QA Tool.`
                           className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-rose-50 text-rose-800 border border-rose-200 text-center"
                           title={
                             Array.isArray(report.blockingCertificationReasons)
-                              ? report.blockingCertificationReasons.map((r) => (typeof r === 'string' ? r : r.issue)).join('; ')
+                              ? report.blockingCertificationReasons
+                                  .map((r) => (typeof r === 'string' ? r : r.issue))
+                                  .join('; ')
                               : 'Issues blocking certification'
                           }
                         >
                           <AlertCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                          Certification Blocked ({report.blockingCertificationReasons?.length || scores.failed} issues)
+                          Certification Blocked (
+                          {report.blockingCertificationReasons?.length || scores.failed} issues)
                         </span>
                       )}
                     </div>
                     <div className="text-xs text-gray-500 mt-2 font-medium flex flex-wrap items-center justify-center lg:justify-start gap-x-2 gap-y-1">
                       <span className="text-emerald-700 font-semibold">{scores.passed} passed</span>
                       <span>•</span>
-                      <span className={scores.warnings > 0 ? 'text-amber-700 font-semibold' : ''}>{scores.warnings} warning(s)</span>
+                      <span className={scores.warnings > 0 ? 'text-amber-700 font-semibold' : ''}>
+                        {scores.warnings} warning(s)
+                      </span>
                       <span>•</span>
-                      <span className={scores.failed > 0 ? 'text-rose-700 font-semibold' : ''}>{scores.failed} fail(s)</span>
+                      <span className={scores.failed > 0 ? 'text-rose-700 font-semibold' : ''}>
+                        {scores.failed} fail(s)
+                      </span>
                       {scores.manual > 0 && (
                         <>
                           <span>•</span>
-                          <span className="text-purple-700 font-semibold">{scores.manual} manual</span>
+                          <span className="text-purple-700 font-semibold">
+                            {scores.manual} manual
+                          </span>
                         </>
                       )}
                       {scores.unverifiable > 0 && (
                         <>
                           <span>•</span>
-                          <span className="text-gray-600 font-semibold">{scores.unverifiable} unverifiable</span>
+                          <span className="text-gray-600 font-semibold">
+                            {scores.unverifiable} unverifiable
+                          </span>
                         </>
                       )}
                       {scores.notApplicable > 0 && (
@@ -1764,47 +1854,67 @@ Audited with Missive Digital Content QA Tool.`
                           <span className="text-gray-400">{scores.notApplicable} n/a</span>
                         </>
                       )}
-                      <span className="text-gray-400 font-normal">({scores.overallAssessmentCoverage ?? report.overallAssessmentCoverage ?? 100}% assessed)</span>
+                      <span className="text-gray-400 font-normal">
+                        (
+                        {scores.overallAssessmentCoverage ??
+                          report.overallAssessmentCoverage ??
+                          100}
+                        % assessed)
+                      </span>
                     </div>
                   </div>
 
                   {/* Right Column: 4 Signature Quick Alert Cards */}
                   <div className="lg:col-span-8 grid grid-cols-1 sm:grid-cols-2 gap-3.5">
                     {/* Em Dash & Colon Sentinel */}
-                    <div
-                      className={`p-4 rounded-2xl border ${(report.quickStats?.emDashesCount === 0 && (report.quickStats?.colonsCount || 0) === 0) ? 'bg-emerald-50/80 border-emerald-200' : 'bg-red-50/80 border-red-200'}`}
-                    >
-                      <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
-                        <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                          <Ban className="w-3.5 h-3.5 text-rose-500 shrink-0" /> Em Dashes &amp; Colons
-                        </span>
-                        <div className="flex flex-wrap items-center gap-1">
-                          <span
-                            className={`text-[11px] sm:text-xs font-extrabold px-1.5 py-0.5 rounded-full ${report.quickStats?.emDashesCount === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}
-                            title="Em Dashes (Strict 0 requirement)"
-                          >
-                            {report.quickStats?.emDashesCount || 0} em
-                          </span>
-                          <span
-                            className="text-[11px] sm:text-xs font-bold px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200"
-                            title="En Dashes (Legitimate ranges/attributes)"
-                          >
-                            {report.quickStats?.enDashesCount || 0} en
-                          </span>
-                          <span
-                            className={`text-[11px] sm:text-xs font-extrabold px-1.5 py-0.5 rounded-full ${(report.quickStats?.colonsCount || 0) === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}
-                            title="Colons (Forbidden in prose)"
-                          >
-                            {report.quickStats?.colonsCount || 0} colons
-                          </span>
+                    {(() => {
+                      // enDashesCount from the backend already excludes legitimate
+                      // tight numeric ranges (e.g. "10-15") — every en dash counted
+                      // here is one used as an em-dash substitute, which the ts-3
+                      // rule treats as the same violation as a literal em dash.
+                      const emCount = report.quickStats?.emDashesCount || 0
+                      const enCount = report.quickStats?.enDashesCount || 0
+                      const colonCount = report.quickStats?.colonsCount || 0
+                      const dashCount = emCount + enCount
+                      const clean = dashCount === 0 && colonCount === 0
+                      return (
+                        <div
+                          className={`p-4 rounded-2xl border ${clean ? 'bg-emerald-50/80 border-emerald-200' : 'bg-red-50/80 border-red-200'}`}
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
+                            <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
+                              <Ban className="w-3.5 h-3.5 text-rose-500 shrink-0" /> Em Dashes &amp;
+                              Colons
+                            </span>
+                            <div className="flex flex-wrap items-center gap-1">
+                              <span
+                                className={`text-[11px] sm:text-xs font-extrabold px-1.5 py-0.5 rounded-full ${emCount === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}
+                                title="Em Dashes (Strict 0 requirement)"
+                              >
+                                {emCount} em
+                              </span>
+                              <span
+                                className={`text-[11px] sm:text-xs font-extrabold px-1.5 py-0.5 rounded-full ${enCount === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}
+                                title="En Dashes used as em-dash substitutes (also forbidden; legitimate numeric ranges like 10-15 are excluded)"
+                              >
+                                {enCount} en
+                              </span>
+                              <span
+                                className={`text-[11px] sm:text-xs font-extrabold px-1.5 py-0.5 rounded-full ${colonCount === 0 ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}`}
+                                title="Colons (Forbidden in prose)"
+                              >
+                                {colonCount} colons
+                              </span>
+                            </div>
+                          </div>
+                          <p className="text-[11px] text-gray-600 leading-relaxed">
+                            {clean
+                              ? 'Strict Himani rule satisfied: zero em dashes (including em-dash-style en dashes) and zero colons in prose.'
+                              : `Found ${dashCount} em dash(es)/em-dash-style dash(es) and ${colonCount} colon(s). Replace with clean punctuation or sentence breaks.`}
+                          </p>
                         </div>
-                      </div>
-                      <p className="text-[11px] text-gray-600 leading-relaxed">
-                        {report.quickStats?.emDashesCount === 0 && (report.quickStats?.colonsCount || 0) === 0
-                          ? 'Strict Himani rule satisfied: zero em dashes and zero colons in prose.'
-                          : `Found ${report.quickStats?.emDashesCount || 0} em dash(es) and ${report.quickStats?.colonsCount || 0} colon(s). Replace with clean punctuation or sentence breaks.`}
-                      </p>
-                    </div>
+                      )
+                    })()}
 
                     {/* AI Cliches & Buzzwords */}
                     <div
@@ -1821,22 +1931,29 @@ Audited with Missive Digital Content QA Tool.`
                         </span>
                       </div>
                       <p className="text-[11px] text-gray-600 leading-relaxed">
-                        {report.quickStats?.aiPhrasesCount === 0 ? (
-                          'Clean human voice without detectable AI buzzwords.'
-                        ) : (
-                          (() => {
-                            const ts2Finding = report.debug?.canonicalFindings?.find((f) => f.ruleId === 'ts-2')
-                            const phrases = ts2Finding?.metadata?.distinctPhrases?.map((p) => `"${p.phrase}"`) ||
-                              report.highlights?.filter((h) => h.type === 'ai-cliche').map((h) => `"${h.text}"`) || []
-                            const unique = [...new Set(phrases)].slice(0, 3)
-                            return unique.length > 0
-                              ? `Detected ${report.quickStats.aiPhrasesCount} robotic phrase occurrence(s): ${unique.join(', ')}.`
-                              : `Detected ${report.quickStats.aiPhrasesCount} robotic phrase occurrence(s).`
-                          })()
-                        )}
+                        {report.quickStats?.aiPhrasesCount === 0
+                          ? 'Clean human voice without detectable AI buzzwords.'
+                          : (() => {
+                              const ts2Finding = report.debug?.canonicalFindings?.find(
+                                (f) => f.ruleId === 'ts-2'
+                              )
+                              const phrases =
+                                ts2Finding?.metadata?.distinctPhrases?.map(
+                                  (p) => `"${p.phrase}"`
+                                ) ||
+                                report.highlights
+                                  ?.filter((h) => h.type === 'ai-cliche')
+                                  .map((h) => `"${h.text}"`) ||
+                                []
+                              const unique = [...new Set(phrases)].slice(0, 3)
+                              return unique.length > 0
+                                ? `Detected ${report.quickStats.aiPhrasesCount} robotic phrase occurrence(s): ${unique.join(', ')}.`
+                                : `Detected ${report.quickStats.aiPhrasesCount} robotic phrase occurrence(s).`
+                            })()}
                       </p>
                       <p className="text-[10px] text-gray-400 mt-1">
-                        Rule checks for patterns like &quot;delve&quot;, &quot;tapestry&quot;, &quot;game-changer&quot;, etc.
+                        Rule checks for patterns like &quot;delve&quot;, &quot;tapestry&quot;,
+                        &quot;game-changer&quot;, etc.
                       </p>
                     </div>
 
@@ -1844,7 +1961,8 @@ Audited with Missive Digital Content QA Tool.`
                     <div className="p-4 rounded-2xl border bg-purple-50/80 border-purple-200">
                       <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
                         <span className="text-xs font-bold text-purple-900 flex items-center gap-1.5">
-                          <Volume2 className="w-3.5 h-3.5 text-purple-600 shrink-0" /> Read Aloud Cadence
+                          <Volume2 className="w-3.5 h-3.5 text-purple-600 shrink-0" /> Read Aloud
+                          Cadence
                         </span>
                         <span className="text-xs font-extrabold px-2 py-0.5 rounded-full bg-purple-100 text-purple-800">
                           ~{Math.ceil((report.quickStats?.estimatedReadAloudTimeSec || 60) / 60)}{' '}
@@ -1863,7 +1981,8 @@ Audited with Missive Digital Content QA Tool.`
                     >
                       <div className="flex flex-wrap items-center justify-between gap-1.5 mb-1.5">
                         <span className="text-xs font-bold text-gray-800 flex items-center gap-1.5">
-                          <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" /> Insight-First Opening
+                          <Zap className="w-3.5 h-3.5 text-amber-500 shrink-0" /> Insight-First
+                          Opening
                         </span>
                         <span
                           className={`text-xs font-extrabold px-2 py-0.5 rounded-full ${report.statuses?.['ins-1'] === 'pass' ? 'bg-emerald-100 text-emerald-800' : 'bg-blue-100 text-blue-800'}`}
@@ -1914,9 +2033,12 @@ Audited with Missive Digital Content QA Tool.`
                             ))
                           : (() => {
                               const fallbackFixes = []
-                              if (report.quickStats?.emDashesCount > 0)
+                              const dashCount =
+                                (report.quickStats?.emDashesCount || 0) +
+                                (report.quickStats?.enDashesCount || 0)
+                              if (dashCount > 0)
                                 fallbackFixes.push(
-                                  `Remove all ${report.quickStats.emDashesCount} em dash(es) — replace with commas or sentence breaks.`
+                                  `Remove all ${dashCount} em dash(es)/em-dash-style dash(es), replace with commas or sentence breaks.`
                                 )
                               if (report.quickStats?.aiPhrasesCount > 0)
                                 fallbackFixes.push(
@@ -1985,7 +2107,7 @@ Audited with Missive Digital Content QA Tool.`
                     className={`pb-3 px-3 text-xs sm:text-sm font-bold border-b-2 flex items-center gap-2 whitespace-nowrap transition-all ${activeTab === 'polish' ? 'border-[#0C81F3] text-[#0C81F3]' : 'border-transparent text-gray-500 hover:text-gray-900'} cursor-pointer`}
                   >
                     <Wand2 className="w-4 h-4 text-[#EB8988] shrink-0" />
-                    <span>One-Click Himani Polish</span>
+                    <span>One-Click Missive Polish</span>
                   </button>
                 </div>
               </div>
@@ -2024,8 +2146,13 @@ Audited with Missive Digital Content QA Tool.`
                   {/* 2-Column Responsive Card Grid — all cards visible, equal height */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
                     {filteredCategories.map((cat) => {
-                      const catScore = scores.cats[cat.id] !== undefined ? scores.cats[cat.id] : (report.categoryScores?.[cat.id] ?? null)
-                      const catCoverage = report.categories?.[cat.id]?.assessmentCoverage ?? report.debug?.pillarCalculations?.[cat.id]?.assessmentCoverage
+                      const catScore =
+                        scores.cats[cat.id] !== undefined
+                          ? scores.cats[cat.id]
+                          : (report.categoryScores?.[cat.id] ?? null)
+                      const catCoverage =
+                        report.categories?.[cat.id]?.assessmentCoverage ??
+                        report.debug?.pillarCalculations?.[cat.id]?.assessmentCoverage
                       const aiCat = report.ai?.categories?.[cat.id]
 
                       return (
@@ -2045,7 +2172,9 @@ Audited with Missive Digital Content QA Tool.`
                                     <span className="text-xs font-bold text-gray-400 shrink-0">
                                       #{cat.number}
                                     </span>
-                                    <h3 className="text-sm font-bold text-gray-900 truncate">{cat.label}</h3>
+                                    <h3 className="text-sm font-bold text-gray-900 truncate">
+                                      {cat.label}
+                                    </h3>
                                   </div>
                                   <p className="text-[11px] text-gray-500">
                                     {cat.items.length} quality checks
@@ -2109,10 +2238,10 @@ Audited with Missive Digital Content QA Tool.`
                                             st === 'pass'
                                               ? 'text-gray-800 font-medium'
                                               : st === 'warning'
-                                              ? 'text-amber-900 font-semibold'
-                                              : st === 'fail'
-                                              ? 'text-rose-900 font-semibold'
-                                              : 'text-gray-600 font-medium'
+                                                ? 'text-amber-900 font-semibold'
+                                                : st === 'fail'
+                                                  ? 'text-rose-900 font-semibold'
+                                                  : 'text-gray-600 font-medium'
                                           }`}
                                         >
                                           {item.label}
@@ -2188,48 +2317,49 @@ Audited with Missive Digital Content QA Tool.`
                                   )}
                                   {hasSuggestions && (
                                     <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-blue-50 text-[#0C81F3] border border-blue-200">
-                                      {[...new Set(allSuggestions)].length} Fix{[...new Set(allSuggestions)].length > 1 ? 'es' : ''}
+                                      {[...new Set(allSuggestions)].length} Fix
+                                      {[...new Set(allSuggestions)].length > 1 ? 'es' : ''}
                                     </span>
                                   )}
                                 </div>
                                 <div className="bg-blue-50/60 m-3 mt-0 p-4 rounded-xl border border-blue-100 text-xs space-y-2.5">
-                                {hasIssues && (
-                                  <div>
-                                    <span className="font-bold text-rose-700 block mb-1">
-                                      Detected Issues:
-                                    </span>
-                                    {allIssues.map((issue, idx) => (
-                                      <p
-                                        key={idx}
-                                        className="text-gray-700 text-[11px] mb-1 flex items-start gap-1"
-                                      >
-                                        <span className="text-rose-500">•</span>
-                                        <span>{issue}</span>
-                                      </p>
-                                    ))}
-                                  </div>
-                                )}
-                                {hasSuggestions && (
-                                  <div>
-                                    <span className="font-bold text-[#0C81F3] block mb-1">
-                                      Himani's Suggestions:
-                                    </span>
-                                    {[...new Set(allSuggestions)].map((s, idx) => (
-                                      <p
-                                        key={idx}
-                                        className="text-gray-700 text-[11px] mb-1 flex items-start gap-1"
-                                      >
-                                        <span className="text-[#0C81F3]">→</span>
-                                        <span>{s}</span>
-                                      </p>
-                                    ))}
-                                  </div>
-                                )}
-                                {aiCat?.verdict && (
-                                  <p className="text-[11px] text-gray-500 italic pt-2 border-t border-blue-200/60 mt-1">
-                                    {aiCat.verdict}
-                                  </p>
-                                )}
+                                  {hasIssues && (
+                                    <div>
+                                      <span className="font-bold text-rose-700 block mb-1">
+                                        Detected Issues:
+                                      </span>
+                                      {allIssues.map((issue, idx) => (
+                                        <p
+                                          key={idx}
+                                          className="text-gray-700 text-[11px] mb-1 flex items-start gap-1"
+                                        >
+                                          <span className="text-rose-500">•</span>
+                                          <span>{issue}</span>
+                                        </p>
+                                      ))}
+                                    </div>
+                                  )}
+                                  {hasSuggestions && (
+                                    <div>
+                                      <span className="font-bold text-[#0C81F3] block mb-1">
+                                        Himani's Suggestions:
+                                      </span>
+                                      {[...new Set(allSuggestions)].map((s, idx) => (
+                                        <p
+                                          key={idx}
+                                          className="text-gray-700 text-[11px] mb-1 flex items-start gap-1"
+                                        >
+                                          <span className="text-[#0C81F3]">→</span>
+                                          <span>{s}</span>
+                                        </p>
+                                      ))}
+                                    </div>
+                                  )}
+                                  {aiCat?.verdict && (
+                                    <p className="text-[11px] text-gray-500 italic pt-2 border-t border-blue-200/60 mt-1">
+                                      {aiCat.verdict}
+                                    </p>
+                                  )}
                                 </div>
                               </div>
                             )
@@ -2632,7 +2762,7 @@ Audited with Missive Digital Content QA Tool.`
               )}
 
               {/* ═════════════════════════════════════════════════════ */}
-              {/* TAB 4: ONE-CLICK HIMANI POLISH                     */}
+              {/* TAB 4: One-Click Missive Polish                     */}
               {/* ═════════════════════════════════════════════════════ */}
               {activeTab === 'polish' && (
                 <div className="space-y-6">
@@ -2671,12 +2801,19 @@ Audited with Missive Digital Content QA Tool.`
                           polishedResult.himaniScoreBefore ??
                           (scores.overall > 0 ? scores.overall : 60)
                         const newScore = polishedResult.himaniScoreAfter ?? 98
-                        const lift = polishedResult.qualityLift ?? Math.max(0, newScore - origScore)
+                        const lift = polishedResult.qualityLift ?? newScore - origScore
+                        // Combines em dashes with em-dash-style en dashes, matching what
+                        // the ts-3 rule actually gates on (see polishMetrics above).
                         const beforeEmDashes =
-                          polishedResult.statsBefore?.emDashesCount ??
-                          report?.quickStats?.emDashesCount ??
-                          0
-                        const afterEmDashes = polishedResult.statsAfter?.emDashesCount ?? 0
+                          (polishedResult.statsBefore?.emDashesCount ??
+                            report?.quickStats?.emDashesCount ??
+                            0) +
+                          (polishedResult.statsBefore?.enDashesCount ??
+                            report?.quickStats?.enDashesCount ??
+                            0)
+                        const afterEmDashes =
+                          (polishedResult.statsAfter?.emDashesCount ?? 0) +
+                          (polishedResult.statsAfter?.enDashesCount ?? 0)
                         const beforeCliches =
                           polishedResult.statsBefore?.aiPhrasesCount ??
                           report?.quickStats?.aiPhrasesCount ??
@@ -2702,12 +2839,25 @@ Audited with Missive Digital Content QA Tool.`
                                   {newScore} <span className="text-xs text-slate-400">/ 100</span>
                                 </p>
                               </div>
-                              <div className="bg-emerald-500/20 border border-emerald-400/30 rounded-2xl p-3.5 text-center flex flex-col justify-center">
-                                <span className="text-[11px] font-semibold text-emerald-200 uppercase">
+                              <div
+                                className={`rounded-2xl p-3.5 text-center flex flex-col justify-center border ${
+                                  lift > 0
+                                    ? 'bg-emerald-500/20 border-emerald-400/30'
+                                    : lift < 0
+                                      ? 'bg-red-500/20 border-red-400/30'
+                                      : 'bg-white/10 border-white/10'
+                                }`}
+                              >
+                                <span
+                                  className={`text-[11px] font-semibold uppercase ${lift < 0 ? 'text-red-200' : 'text-emerald-200'}`}
+                                >
                                   Total Quality Lift
                                 </span>
-                                <p className="text-xl sm:text-2xl font-black text-emerald-400 mt-0.5">
-                                  +{lift} pts
+                                <p
+                                  className={`text-xl sm:text-2xl font-black mt-0.5 ${lift < 0 ? 'text-red-400' : 'text-emerald-400'}`}
+                                >
+                                  {lift > 0 ? '+' : ''}
+                                  {lift} pts
                                 </p>
                               </div>
                             </div>
@@ -2813,10 +2963,18 @@ Audited with Missive Digital Content QA Tool.`
                           {/* Metric Badges */}
                           {polishMetrics && (
                             <div className="flex flex-wrap items-center gap-2 text-[11px] font-bold">
-                              <span className="px-2.5 py-1 rounded-full bg-emerald-200/70 text-emerald-900 border border-emerald-300 inline-flex items-center gap-1">
-                                <Check className="w-3 h-3" /> {polishMetrics.emDashesRemoved}{' '}
-                                Em-Dashes Eliminated
-                              </span>
+                              {polishMetrics.emDashesRemoved > 0 && (
+                                <span className="px-2.5 py-1 rounded-full bg-emerald-200/70 text-emerald-900 border border-emerald-300 inline-flex items-center gap-1">
+                                  <Check className="w-3 h-3" /> {polishMetrics.emDashesRemoved}{' '}
+                                  Em-Dashes Eliminated
+                                </span>
+                              )}
+                              {polishMetrics.emDashesRemaining > 0 && (
+                                <span className="px-2.5 py-1 rounded-full bg-red-100 text-red-900 border border-red-200 inline-flex items-center gap-1">
+                                  <Ban className="w-3 h-3" /> {polishMetrics.emDashesRemaining}{' '}
+                                  Em-Dash(es) Still Remain
+                                </span>
+                              )}
                               {polishMetrics.clichesRemoved > 0 && (
                                 <span className="px-2.5 py-1 rounded-full bg-blue-100 text-blue-900 border border-blue-200 inline-flex items-center gap-1">
                                   <Check className="w-3 h-3" /> {polishMetrics.clichesRemoved} AI
@@ -3119,9 +3277,7 @@ Audited with Missive Digital Content QA Tool.`
                               ) : (
                                 <Copy className="w-3.5 h-3.5" />
                               )}
-                              <span>
-                                {copiedPolish ? 'Copied!' : 'Copy Polished Content'}
-                              </span>
+                              <span>{copiedPolish ? 'Copied!' : 'Copy Polished Content'}</span>
                             </button>
 
                             {/* Apply to Content Editor */}

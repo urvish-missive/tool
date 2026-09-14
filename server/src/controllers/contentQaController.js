@@ -334,9 +334,13 @@ export async function polishContentQAHandler(req, res) {
       contextOptions
     )
 
+    // Report the REAL measured scores. Do not floor scoreAfter at scoreBefore —
+    // that used to mask genuine regressions (e.g. the AI polish introducing a
+    // new em dash while rewriting) behind an artificial "+0 pts" instead of
+    // surfacing the true delta, which could even be negative.
     const scoreBefore = beforeAnalysis.overall
-    const scoreAfter = Math.min(100, Math.max(scoreBefore, afterAnalysis.overall))
-    const qualityLift = Math.max(0, scoreAfter - scoreBefore)
+    const scoreAfter = Math.min(100, Math.max(0, afterAnalysis.overall))
+    const qualityLift = scoreAfter - scoreBefore
 
     // 4. Dynamically compute genuine editorial improvements based on real before vs after delta
     const dynamicImprovements = generateDynamicImprovements(
