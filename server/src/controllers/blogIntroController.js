@@ -1,4 +1,5 @@
 import { generateBlogIntroductions } from '../services/blogIntroGenerator.js'
+import prisma from '../utils/prisma.js'
 
 /**
  * Handler for generating multiple blog post introductions (TOFU, MOFU, BOFU)
@@ -60,8 +61,26 @@ export async function generateBlogIntrosHandler(req, res) {
       preferredProvider,
     })
 
+    // Persist so a lead captured after viewing this result (via the
+    // pre-use popup + link-result pattern) can be linked to it, and so a
+    // client-side generated PDF can be stored here for later sending.
+    let blogIntroId = null
+    try {
+      const saved = await prisma.blogIntro.create({
+        data: {
+          topic: topic.trim(),
+          audience: targetAudience?.trim() || null,
+          introsJson: JSON.stringify(result.introductions || []),
+        },
+      })
+      blogIntroId = saved.id
+    } catch (dbErr) {
+      console.error('BlogIntro save failed (non-fatal):', dbErr.message)
+    }
+
     res.json({
       success: true,
+      blogIntroId,
       summary: result.summary,
       targetAudiences: result.targetAudiences || result.summary?.targetAudiences || [],
       introductions: result.introductions,

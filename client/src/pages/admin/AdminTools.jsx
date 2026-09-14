@@ -38,6 +38,24 @@ import {
   EyeOff,
 } from 'lucide-react'
 
+// Tools wired into the "store PDF at generation, send automatic or manual"
+// pipeline (see server/src/utils/pdfSendResultTypes.js — keep in sync).
+const PDF_SEND_CAPABLE_TOOLS = [
+  'content-qa',
+  'blog-conclusion-generator',
+  'seo-audit',
+  'blog-topics',
+  'blog-intro-generator',
+  'faq-generator',
+  'competitor-analyzer',
+  'eeat-analyzer',
+  'case-study-generator',
+  'keyword-research',
+  'seo-roi',
+  'ai-content-writer',
+  'business-competitor-analytics',
+]
+
 // Default field definitions per tool slug
 const TOOL_FIELDS = {
   'content-analyzer': [
@@ -637,6 +655,37 @@ export default function AdminTools() {
                           />
                         </button>
                       </div>
+
+                      {PDF_SEND_CAPABLE_TOOLS.includes(tool.slug) && (
+                        <div className="mt-3 pt-3 border-t border-gray-200">
+                          <div className="flex items-center justify-between gap-3">
+                            <div className="min-w-0 flex-1 pr-2">
+                              <p className="text-xs font-semibold text-gray-800">
+                                PDF Delivery Mode
+                              </p>
+                              <p className="text-[10px] text-gray-500">
+                                Automatic: email the report the moment a lead is captured. Manual: an admin sends it later from Leads.
+                              </p>
+                            </div>
+                            <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 p-0.5 shrink-0">
+                              {['manual', 'automatic'].map((mode) => (
+                                <button
+                                  key={mode}
+                                  type="button"
+                                  onClick={() => updateTool(tool.id, { pdfSendMode: mode })}
+                                  className={`px-2.5 py-1 rounded-md text-[11px] font-semibold capitalize transition-colors cursor-pointer ${
+                                    (tool.pdfSendMode || 'manual') === mode
+                                      ? 'bg-[#0C81F3] text-white'
+                                      : 'text-gray-500 hover:text-gray-800'
+                                  }`}
+                                >
+                                  {mode}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
 
                       {tool.showLeadPopup && (
                         <div className="mt-3 pt-3 border-t border-gray-200 space-y-2.5">

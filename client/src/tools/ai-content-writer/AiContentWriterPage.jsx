@@ -1,7 +1,14 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useGenerateContentMutation } from '../../services/apiSlice'
+import {
+  useGenerateContentMutation,
+  useStoreResultPdfMutation,
+  useLinkLeadToResultMutation,
+} from '../../services/apiSlice'
+import { useLeadPopup } from '../../components/useLeadPopup'
+import LeadCaptureModal from '../../components/LeadCaptureModal'
+import DynamicLeadForm from '../../components/DynamicLeadForm'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import {
   aiContentWriterSchema,
@@ -124,6 +131,8 @@ export default function AiContentWriterPage() {
 
   const keyword = watch('keyword')
   const [generateContent, { isLoading, reset: resetMutation }] = useGenerateContentMutation()
+  const [storeResultPdf] = useStoreResultPdfMutation()
+  const [linkLeadToResult] = useLinkLeadToResultMutation()
 
   const [dataResult, setDataResult] = useState(null)
   const [error, setError] = useState('')
@@ -131,6 +140,15 @@ export default function AiContentWriterPage() {
   const [activeTab, setActiveTab] = useState('content')
   const [headingsExpanded, setHeadingsExpanded] = useState(true)
   const [faqExpanded, setFaqExpanded] = useState({})
+
+  const { showPopup, handlePopupSubmit, handlePopupClose, triggerPopup, popupEnabled } =
+    useLeadPopup('ai-content-writer')
+  const [pendingForm, setPendingForm] = useState(null)
+  // Captured from LeadCaptureModal when this tool's pre-use popup gate is
+  // enabled (ToolConfig.showLeadPopup) — that popup fires BEFORE generation
+  // runs, so this lead has no result yet at capture time; linked to the
+  // result once it exists (see the store-pdf effect below).
+  const [popupLeadId, setPopupLeadId] = useState(null)
 
   const headings = dataResult?.headings || []
   const faqs = dataResult?.faqSection || []
@@ -142,22 +160,17 @@ export default function AiContentWriterPage() {
     : null
   const seoScore = dataResult?.seoScore || null
 
-  const onFormValid = (formData) => {
-    const parsed = parseAiContentWriterForm(formData)
-    if (!parsed.success) {
-      setError(parsed.error)
-      return
-    }
+  const executeGeneration = (parsedData) => {
     setError('')
     setDataResult(null)
 
     generateContent({
-      keyword: parsed.data.keyword,
-      contentType: parsed.data.contentType,
-      tone: parsed.data.tone,
-      wordCount: Number(parsed.data.wordCount),
-      targetAudience: parsed.data.targetAudience,
-      secondaryKeywords: parsed.data.secondaryKeywords,
+      keyword: parsedData.keyword,
+      contentType: parsedData.contentType,
+      tone: parsedData.tone,
+      wordCount: Number(parsedData.wordCount),
+      targetAudience: parsedData.targetAudience,
+      secondaryKeywords: parsedData.secondaryKeywords,
     })
       .unwrap()
       .then((result) => {
@@ -174,6 +187,22 @@ export default function AiContentWriterPage() {
       })
   }
 
+  const onFormValid = (formData) => {
+    const parsed = parseAiContentWriterForm(formData)
+    if (!parsed.success) {
+      setError(parsed.error)
+      return
+    }
+
+    if (popupEnabled) {
+      setPendingForm(parsed.data)
+      triggerPopup()
+      return
+    }
+
+    executeGeneration(parsed.data)
+  }
+
   const handleReset = () => {
     resetForm()
     setDataResult(null)
@@ -182,6 +211,44 @@ export default function AiContentWriterPage() {
     resetMutation()
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
+
+  // Stash the PDF on the result at generation time, independent of whether
+  // the user ever submits a lead form — this is what makes both automatic
+  // send-on-capture and a later manual admin send possible without a live
+  // browser session (see server/src/utils/pdfSendResultTypes.js).
+  const pdfStoredForIdRef = useRef(null)
+  useEffect(() => {
+    if (!dataResult?.contentId) return
+    if (pdfStoredForIdRef.current === dataResult.contentId) return
+    pdfStoredForIdRef.current = dataResult.contentId
+
+    ;(async () => {
+      try {
+        const { generateContentWriterPdf } = await import('../../utils/generateContentWriterPdf')
+        const doc = generateContentWriterPdf(dataResult)
+        const dataUri = doc.output('datauristring')
+        const pdfBase64 = dataUri.split(',')[1]
+        if (pdfBase64) {
+          await storeResultPdf({ model: 'contentWriter', id: dataResult.contentId, pdfBase64 }).unwrap()
+        }
+      } catch (err) {
+        console.warn('Could not store PDF report for later sending:', err)
+      }
+
+      // This tool's lead popup (showLeadPopup) fires BEFORE generation, so
+      // the lead created there has no result to link at capture time —
+      // createLeadHandler's automatic-send check finds nothing. Now that the
+      // result (and its PDF, stored above) exists, attach it to that same
+      // lead and re-check automatic send at this point instead.
+      if (popupLeadId) {
+        try {
+          await linkLeadToResult({ id: popupLeadId, contentWriterId: dataResult.contentId }).unwrap()
+        } catch (err) {
+          console.warn('Could not link result to lead:', err)
+        }
+      }
+    })()
+  }, [dataResult])
 
   const triggerCopy = (text, key) => {
     navigator.clipboard.writeText(text)
@@ -265,6 +332,21 @@ export default function AiContentWriterPage() {
 
   return (
     <div className="min-h-screen bg-slate-50/50 pb-20">
+      {/* Lead Capture Modal */}
+      <LeadCaptureModal
+        show={showPopup}
+        onClose={handlePopupClose}
+        onSubmit={(leadId) => {
+          setPopupLeadId(leadId)
+          handlePopupSubmit()
+          if (pendingForm) executeGeneration(pendingForm)
+          setPendingForm(null)
+        }}
+        toolSlug="ai-content-writer"
+        title="Unlock Free AI SEO Content Writer"
+        subtitle="Enter your details to generate publication-ready, SEO-optimized content."
+      />
+
       {/* Hero Header */}
       <section className="relative overflow-hidden !pt-20 sm:!pt-28 lg:!pt-36 py-16 sm:py-20 lg:py-24">
         <div
@@ -982,6 +1064,19 @@ export default function AiContentWriterPage() {
                   </button>
                 </div>
               </div>
+            )}
+
+            {/* Lead Form — skipped when the pre-use popup already captured
+                this visitor's email (popupLeadId); that lead gets linked to
+                the result instead (see the store-pdf effect above). */}
+            {!popupLeadId && (
+              <DynamicLeadForm
+                toolSlug="ai-content-writer"
+                relatedIdField="contentWriterId"
+                relatedIdValue={dataResult.contentId}
+                title="Get Your Free Content Strategy"
+                subtitle="Our team will review your generated content and share ideas to strengthen your SEO."
+              />
             )}
           </div>
         )}

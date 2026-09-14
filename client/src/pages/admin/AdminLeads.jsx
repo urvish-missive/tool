@@ -1,6 +1,10 @@
 import { useState } from 'react'
-import { Download, Users } from 'lucide-react'
-import { useGetAdminLeadsQuery, useDeleteAdminLeadMutation } from '../../services/apiSlice'
+import { Download, Users, CheckCircle2, XCircle, Send, Loader2 } from 'lucide-react'
+import {
+  useGetAdminLeadsQuery,
+  useDeleteAdminLeadMutation,
+  useSendAdminLeadPdfMutation,
+} from '../../services/apiSlice'
 import ConfirmModal from '../../components/ConfirmModal'
 import TablePagination from '../../components/TablePagination'
 
@@ -10,11 +14,34 @@ const SOURCES = [
   'seo-audit',
   'keyword-research',
   'blog-topics',
+  'content-qa',
+  'blog-conclusion-generator',
   'logo-maker',
   'seo-roi',
   'ai-content-writer',
   'business-competitor-analytics',
 ]
+
+// Mirrors server/src/utils/pdfSendResultTypes.js's leadField list — every
+// Lead field that links to a tool result wired into the PDF send pipeline.
+// A lead has a "Send PDF" action available whenever any one of these is set.
+const LEAD_RESULT_FIELDS = [
+  'contentQaId',
+  'blogConclusionId',
+  'auditId',
+  'blogTopicId',
+  'researchId',
+  'roiCalculationId',
+  'contentWriterId',
+  'businessCompetitorId',
+  'faqId',
+  'competitorAnalysisId',
+  'eeatAnalysisId',
+  'caseStudyId',
+  'blogIntroId',
+]
+
+const hasLinkedResult = (lead) => LEAD_RESULT_FIELDS.some((field) => lead[field])
 
 export default function AdminLeads() {
   const [search, setSearch] = useState('')
@@ -23,6 +50,13 @@ export default function AdminLeads() {
   const [page, setPage] = useState(1)
   const [pageSize, setPageSize] = useState(25)
   const [leadToDelete, setLeadToDelete] = useState(null)
+  const [toast, setToast] = useState(null)
+  const [sendingLeadId, setSendingLeadId] = useState(null)
+
+  const showToast = (msg, type = 'success') => {
+    setToast({ msg, type })
+    setTimeout(() => setToast(null), 3500)
+  }
 
   const queryParams = {
     page,
@@ -33,6 +67,21 @@ export default function AdminLeads() {
 
   const { data, isLoading, refetch } = useGetAdminLeadsQuery(queryParams)
   const [deleteAdminLead, { isLoading: isDeleting }] = useDeleteAdminLeadMutation()
+  const [sendAdminLeadPdf] = useSendAdminLeadPdfMutation()
+
+  const handleSendPdf = async (lead) => {
+    setSendingLeadId(lead.id)
+    try {
+      const res = await sendAdminLeadPdf(lead.id).unwrap()
+      showToast(`PDF sent successfully to ${res.sentTo || lead.email}`, 'success')
+      refetch()
+    } catch (err) {
+      showToast(err?.data?.error || `Failed to send PDF to ${lead.email}`, 'error')
+      refetch()
+    } finally {
+      setSendingLeadId(null)
+    }
+  }
 
   const leads = data?.leads || []
   const pagination = data?.pagination || { page: 1, pages: 1, total: 0 }
@@ -78,6 +127,22 @@ export default function AdminLeads() {
 
   return (
     <div className="space-y-6">
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-xl text-sm animate-fade-in ${
+            toast.type === 'error' ? 'bg-red-600 text-white' : 'bg-gray-900 text-white'
+          }`}
+        >
+          {toast.type === 'error' ? (
+            <XCircle className="w-4 h-4 text-white shrink-0" />
+          ) : (
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          )}
+          <span>{toast.msg}</span>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div>
           <h2 className="text-lg font-semibold text-gray-900">Leads</h2>
@@ -147,6 +212,7 @@ export default function AdminLeads() {
                   <th className="text-left px-4 py-3 text-gray-500 font-medium">Company</th>
                   <th className="text-left px-4 py-3 text-gray-500 font-medium">Source</th>
                   <th className="text-left px-4 py-3 text-gray-500 font-medium">Date</th>
+                  <th className="text-left px-4 py-3 text-gray-500 font-medium">PDF Status</th>
                   <th className="text-right px-4 py-3 text-gray-500 font-medium">Actions</th>
                 </tr>
               </thead>
@@ -178,13 +244,55 @@ export default function AdminLeads() {
                         minute: '2-digit',
                       })}
                     </td>
+                    <td className="px-4 py-3">
+                      {lead.pdfSendStatus === 'sent' ? (
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-medium"
+                          title={
+                            lead.pdfSentAt
+                              ? `Sent ${new Date(lead.pdfSentAt).toLocaleString()} (${lead.pdfSendTriggeredBy || 'manual'})`
+                              : undefined
+                          }
+                        >
+                          <CheckCircle2 className="w-3 h-3" /> Sent
+                        </span>
+                      ) : lead.pdfSendStatus === 'failed' ? (
+                        <span
+                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-full text-xs font-medium"
+                          title={lead.pdfSendError || 'Send failed'}
+                        >
+                          <XCircle className="w-3 h-3" /> Failed
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
+                          Not Sent
+                        </span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => setLeadToDelete(lead)}
-                        className="text-xs text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
-                      >
-                        Delete
-                      </button>
+                      <div className="flex items-center justify-end gap-3">
+                        {hasLinkedResult(lead) && (
+                          <button
+                            onClick={() => handleSendPdf(lead)}
+                            disabled={sendingLeadId === lead.id}
+                            className="inline-flex items-center gap-1 text-xs text-[#0C81F3] hover:text-[#0969C3] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Send the PDF report to this lead's email"
+                          >
+                            {sendingLeadId === lead.id ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <Send className="w-3 h-3" />
+                            )}
+                            {lead.pdfSendStatus === 'sent' ? 'Resend' : 'Send'}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => setLeadToDelete(lead)}
+                          className="text-xs text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}

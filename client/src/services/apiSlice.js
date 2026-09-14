@@ -79,6 +79,30 @@ export const apiSlice = createApi({
       invalidatesTags: ['Lead', 'Device'],
     }),
 
+    // PATCH /api/leads/:id/link-result — attach a result generated after
+    // the lead was captured (e.g. via a pre-use popup gate), and re-check
+    // automatic PDF send at that point
+    linkLeadToResult: builder.mutation({
+      query: ({ id, ...resultIds }) => ({
+        url: `/leads/${id}/link-result`,
+        method: 'PATCH',
+        body: resultIds,
+      }),
+      invalidatesTags: ['Lead'],
+    }),
+
+    // POST /api/results/:model/:id/store-pdf — generic "stash the
+    // client-generated PDF on this result" used by every tool wired into
+    // the PDF send pipeline (see server/src/utils/pdfSendResultTypes.js)
+    // instead of a bespoke mutation per tool.
+    storeResultPdf: builder.mutation({
+      query: ({ model, id, pdfBase64 }) => ({
+        url: `/results/${model}/${id}/store-pdf`,
+        method: 'POST',
+        body: { pdfBase64 },
+      }),
+    }),
+
     // POST /api/audit
     runAudit: builder.mutation({
       query: (payload) => ({
@@ -169,6 +193,16 @@ export const apiSlice = createApi({
         url: '/content-qa/analyze',
         method: 'POST',
         body: payload,
+      }),
+    }),
+
+    // POST /api/content-qa/:id/store-pdf — stash the generated PDF on the
+    // result so it can be (re)sent later without a live browser session
+    storeContentQaPdf: builder.mutation({
+      query: ({ id, pdfBase64 }) => ({
+        url: `/content-qa/${id}/store-pdf`,
+        method: 'POST',
+        body: { pdfBase64 },
       }),
     }),
 
@@ -307,6 +341,15 @@ export const apiSlice = createApi({
       }),
     }),
 
+    // POST /api/blog-conclusion/:id/store-pdf
+    storeBlogConclusionPdf: builder.mutation({
+      query: ({ id, pdfBase64 }) => ({
+        url: `/blog-conclusion/${id}/store-pdf`,
+        method: 'POST',
+        body: { pdfBase64 },
+      }),
+    }),
+
     // POST /api/eeat/analyze
     analyzeEeat: builder.mutation({
       query: (payload) => ({
@@ -411,10 +454,29 @@ export const apiSlice = createApi({
         headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
       }),
     }),
+    getAdminClients: builder.query({
+      query: (params = {}) => ({
+        url: `/admin/clients?${new URLSearchParams(params)}`,
+        headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+      }),
+    }),
+    getAdminClientActivity: builder.query({
+      query: (email) => ({
+        url: `/admin/clients/${encodeURIComponent(email)}/activity`,
+        headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+      }),
+    }),
     deleteAdminLead: builder.mutation({
       query: (id) => ({
         url: `/admin/leads/${id}`,
         method: 'DELETE',
+        headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+      }),
+    }),
+    sendAdminLeadPdf: builder.mutation({
+      query: (id) => ({
+        url: `/admin/leads/${id}/send-pdf`,
+        method: 'POST',
         headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
       }),
     }),
@@ -511,6 +573,7 @@ export const {
   useGenerateFaqsMutation,
   useAnalyzeCompetitorMutation,
   useAnalyzeContentQaMutation,
+  useStoreContentQaPdfMutation,
   usePolishContentQaMutation,
   useImportContentQaMutation,
   useGenerateLogoVariationsMutation,
@@ -524,6 +587,9 @@ export const {
   useGenerateContentMutation,
   useGenerateBlogIntrosMutation,
   useGenerateBlogConclusionsMutation,
+  useStoreBlogConclusionPdfMutation,
+  useLinkLeadToResultMutation,
+  useStoreResultPdfMutation,
   useAnalyzeEeatMutation,
   useAnalyzeBusinessCompetitorMutation,
   useGenerateCaseStudyMutation,
@@ -536,7 +602,10 @@ export const {
   useGetAdminToolsQuery,
   useUpdateAdminToolMutation,
   useGetAdminLeadsQuery,
+  useGetAdminClientsQuery,
+  useGetAdminClientActivityQuery,
   useDeleteAdminLeadMutation,
+  useSendAdminLeadPdfMutation,
   useGetAdminActivityQuery,
   useGetAdminDevicesQuery,
   useResetDeviceLimitMutation,

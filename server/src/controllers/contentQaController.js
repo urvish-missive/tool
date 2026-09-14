@@ -408,6 +408,33 @@ export async function importContentQAHandler(req, res) {
 }
 
 /**
+ * Store the client-generated PDF for a Content QA result as soon as it's
+ * rendered — independent of whether the user ever submits their email. This
+ * is what makes both automatic send-on-capture and a later manual admin send
+ * possible without needing a live browser session at send time.
+ */
+export async function storeContentQaPdfHandler(req, res) {
+  try {
+    const { id } = req.params
+    const { pdfBase64 } = req.body
+
+    if (!pdfBase64 || typeof pdfBase64 !== 'string') {
+      return res.status(400).json({ success: false, error: 'PDF content is missing.' })
+    }
+
+    await prisma.contentQA.update({
+      where: { id },
+      data: { pdfBase64 },
+    })
+
+    res.json({ success: true })
+  } catch (err) {
+    console.error('storeContentQaPdfHandler error:', err.message)
+    res.status(500).json({ success: false, error: 'Failed to store PDF report.' })
+  }
+}
+
+/**
  * Merge AI category insights with programmatic fallback data
  * AI insights take priority; programmatic evidence fills any gaps
  * Canonical category scores from Findings Store are strictly preserved

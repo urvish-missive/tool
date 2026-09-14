@@ -1,4 +1,5 @@
 import { analyzeEeat, EEAT_CONTENT_TYPES } from '../services/eeatAnalyzer.js'
+import prisma from '../utils/prisma.js'
 
 /**
  * Handler for E‑E‑A‑T and AI Search Authority Audit
@@ -42,11 +43,31 @@ export async function analyzeEeatHandler(req, res) {
 
     const isDev = process.env.NODE_ENV !== 'production'
 
+    // Persist so a lead captured after viewing this result can be linked to
+    // it, and so a client-side generated PDF can be stored here for later
+    // sending.
+    let eeatAnalysisId = null
+    try {
+      const saved = await prisma.eeatAnalysis.create({
+        data: {
+          content: hasContent ? content.trim() : '',
+          targetKeyword: targetKeywords?.trim() || null,
+          url: hasUrl ? url.trim() : null,
+          overallScore: Number.isFinite(result.overallScore) ? Math.round(result.overallScore) : 0,
+          reportJson: JSON.stringify(result),
+        },
+      })
+      eeatAnalysisId = saved.id
+    } catch (dbErr) {
+      console.error('EeatAnalysis save failed (non-fatal):', dbErr.message)
+    }
+
     return res.json({
       success: true,
       analysisStatus: result.analysisStatus || 'complete',
       isFallback: Boolean(result.isFallback),
       errors: result.isFallback && result.diagnostic?.fallbackReason ? [result.diagnostic.fallbackReason] : [],
+      eeatAnalysisId,
       data: {
         ...result,
         modelUsed: result.modelUsed || (result.isFallback ? 'Deterministic Document Heuristics Engine' : 'Gemini 3.5 Flash'),

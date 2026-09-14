@@ -1,9 +1,11 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import {
   useGenerateBlogTopicsMutation,
   useGenerateMasterBriefMutation,
+  useStoreResultPdfMutation,
 } from '../../services/apiSlice'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
+import DynamicLeadForm from '../../components/DynamicLeadForm'
 import {
   Sparkles,
   BookOpen,
@@ -100,6 +102,7 @@ export default function BlogTopicGeneratorPage({
   const [contentType, setContentType] = useState(CONTENT_TYPES[0])
   const [count, setCount] = useState(8)
   const [generateBlogTopics, { isLoading, reset: resetMutation }] = useGenerateBlogTopicsMutation()
+  const [storeResultPdf] = useStoreResultPdfMutation()
   const [generateMasterBrief, { isLoading: isMasterBriefLoading }] =
     useGenerateMasterBriefMutation()
   const [results, setResults] = useState(null)
@@ -180,6 +183,31 @@ export default function BlogTopicGeneratorPage({
       setError(err?.data?.error || 'Failed to generate topics. Please try again.')
     }
   }
+
+  // Stash the PDF on the result at generation time, independent of whether
+  // the user ever submits a lead form — this is what makes both automatic
+  // send-on-capture and a later manual admin send possible without a live
+  // browser session (see server/src/utils/pdfSendResultTypes.js).
+  const pdfStoredForIdRef = useRef(null)
+  useEffect(() => {
+    if (!results?.topicsId) return
+    if (pdfStoredForIdRef.current === results.topicsId) return
+    pdfStoredForIdRef.current = results.topicsId
+
+    ;(async () => {
+      try {
+        const { generateBlogTopicPdf } = await import('../../utils/generateBlogTopicPdf')
+        const doc = generateBlogTopicPdf(results, { niche, contentGoal })
+        const dataUri = doc.output('datauristring')
+        const pdfBase64 = dataUri.split(',')[1]
+        if (pdfBase64) {
+          await storeResultPdf({ model: 'blogTopic', id: results.topicsId, pdfBase64 }).unwrap()
+        }
+      } catch (err) {
+        console.warn('Could not store PDF report for later sending:', err)
+      }
+    })()
+  }, [results])
 
   const handleDeepenBrief = async (topic, topicKey) => {
     try {
@@ -1913,6 +1941,16 @@ export default function BlogTopicGeneratorPage({
                 )
               })}
             </div>
+
+            {/* Lead Form — linked to this result so the PDF can be sent to
+                whoever submits, automatically or by an admin later. */}
+            <DynamicLeadForm
+              toolSlug="blog-topics"
+              relatedIdField="blogTopicId"
+              relatedIdValue={results.topicsId}
+              title="Get Your Free Content Strategy"
+              subtitle="Our team will review your topic cluster and share ideas to strengthen your content plan."
+            />
           </div>
         )}
       </div>

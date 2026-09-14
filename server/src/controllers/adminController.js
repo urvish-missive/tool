@@ -1,6 +1,7 @@
 import prisma from '../utils/prisma.js'
 import bcrypt from 'bcryptjs'
 import { signAdminToken } from '../middleware/adminAuth.js'
+import { sendStoredPdfForLead, LEAD_RESULT_FIELDS } from '../utils/pdfSendResultTypes.js'
 
 // ─── Auth ────────────────────────────────────────────────
 
@@ -212,6 +213,9 @@ export async function updateTool(req, res) {
     if (requirePhone !== undefined) data.requirePhone = requirePhone
     if (requireCompany !== undefined) data.requireCompany = requireCompany
     if (showLeadPopup !== undefined) data.showLeadPopup = showLeadPopup
+    if (req.body.pdfSendMode !== undefined) {
+      data.pdfSendMode = req.body.pdfSendMode === 'automatic' ? 'automatic' : 'manual'
+    }
     if (req.body.deviceLimit !== undefined) {
       data.deviceLimit = Math.max(0, parseInt(req.body.deviceLimit) || 0)
     }
@@ -271,6 +275,8 @@ export async function getLeads(req, res) {
         select: {
           id: true, name: true, email: true, company: true, website: true, phone: true,
           source: true, createdAt: true,
+          pdfSendStatus: true, pdfSentAt: true, pdfSendError: true, pdfSendTriggeredBy: true,
+          ...Object.fromEntries(LEAD_RESULT_FIELDS.map((field) => [field, true])),
         },
       }),
       prisma.lead.count({ where }),
@@ -299,6 +305,129 @@ export async function deleteLead(req, res) {
     res.json({ success: true })
   } catch (err) {
     res.status(500).json({ success: false, error: 'Failed to delete lead' })
+  }
+}
+
+/**
+ * Unique clients, deduplicated by email, aggregated from Lead records —
+ * one row per person instead of one row per tool submission (that's what
+ * /admin/leads already shows). Leads are fetched newest-first and folded in
+ * application code (capped at 5000 rows) rather than via a MongoDB
+ * aggregation pipeline: Prisma's groupBy can't pick "this group's most
+ * recent name/company/phone" in one query, and at this app's realistic
+ * lead volume a plain fetch-and-fold is simpler and correct.
+ */
+export async function getClients(req, res) {
+  try {
+    const { page = 1, limit = 20, search } = req.query
+
+    const where = {}
+    if (search) {
+      where.OR = [
+        { name: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } },
+        { company: { contains: search, mode: 'insensitive' } },
+      ]
+    }
+
+    const leads = await prisma.lead.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: 5000,
+      select: {
+        name: true, email: true, company: true, phone: true, website: true,
+        source: true, createdAt: true,
+      },
+    })
+
+    const byEmail = new Map()
+    for (const lead of leads) {
+      const key = lead.email.toLowerCase()
+      const existing = byEmail.get(key)
+      if (!existing) {
+        // Leads are sorted newest-first, so the first row seen for an email
+        // is already its most recent submission — keep those field values.
+        byEmail.set(key, {
+          email: lead.email,
+          name: lead.name,
+          company: lead.company,
+          phone: lead.phone,
+          website: lead.website,
+          sources: new Set(lead.source ? [lead.source] : []),
+          submissions: 1,
+          firstSeen: lead.createdAt,
+          lastSeen: lead.createdAt,
+        })
+      } else {
+        existing.submissions += 1
+        if (lead.source) existing.sources.add(lead.source)
+        if (lead.createdAt < existing.firstSeen) existing.firstSeen = lead.createdAt
+      }
+    }
+
+    const allClients = Array.from(byEmail.values()).map((c) => ({ ...c, sources: Array.from(c.sources) }))
+    const total = allClients.length
+    const start = (parseInt(page) - 1) * parseInt(limit)
+    const clients = allClients.slice(start, start + parseInt(limit))
+
+    res.json({
+      success: true,
+      clients,
+      stats: { totalClients: total },
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / parseInt(limit)) || 1,
+      },
+    })
+  } catch (err) {
+    console.error('Get clients error:', err.message)
+    res.status(500).json({ success: false, error: 'Failed to fetch clients' })
+  }
+}
+
+/**
+ * One client's submission history (which tools, when) — their "log".
+ */
+export async function getClientActivity(req, res) {
+  try {
+    const { email } = req.params
+    const leads = await prisma.lead.findMany({
+      where: { email: { equals: email, mode: 'insensitive' } },
+      orderBy: { createdAt: 'desc' },
+      select: { id: true, source: true, createdAt: true, pdfSendStatus: true },
+    })
+    res.json({ success: true, activity: leads })
+  } catch (err) {
+    console.error('Get client activity error:', err.message)
+    res.status(500).json({ success: false, error: 'Failed to fetch client activity' })
+  }
+}
+
+/**
+ * Manually send the PDF report already stored for this lead's linked result
+ * (see the automatic-send path in leadController.js for the same logic used
+ * right after lead capture). Reads the previously-generated PDF from the
+ * result record — e.g. ContentQA.pdfBase64 — rather than requiring a live
+ * browser session, so this works for a lead captured at any point in the past.
+ */
+export async function sendLeadPdf(req, res) {
+  try {
+    const { id } = req.params
+    const lead = await prisma.lead.findUnique({ where: { id } })
+    if (!lead) {
+      return res.status(404).json({ success: false, error: 'Lead not found.' })
+    }
+
+    const result = await sendStoredPdfForLead(lead, 'manual')
+    if (!result.success) {
+      return res.status(result.status === 'failed' ? 502 : 400).json(result)
+    }
+    return res.json(result)
+  } catch (err) {
+    console.error('sendLeadPdf error:', err.message)
+    res.status(500).json({ success: false, error: 'Failed to send PDF report.' })
   }
 }
 

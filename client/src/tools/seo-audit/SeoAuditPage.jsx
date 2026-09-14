@@ -1,7 +1,8 @@
-import { useState, useEffect, useMemo } from 'react'
-import { useRunAuditMutation, useSubmitLeadMutation } from '../../services/apiSlice'
+import { useState, useEffect, useMemo, useRef } from 'react'
+import { useRunAuditMutation, useSubmitLeadMutation, useStoreResultPdfMutation } from '../../services/apiSlice'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
 import { useLeadPopup } from '../../components/useLeadPopup'
+import DynamicLeadForm from '../../components/DynamicLeadForm'
 import AuditForm from './AuditForm'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import { generateAuditPdf } from '../../utils/generateAuditPdf'
@@ -520,6 +521,7 @@ export default function SeoAuditPage() {
   const [runAudit, { isLoading, isError, error, data, reset: resetMutation }] =
     useRunAuditMutation()
   const [submitLead] = useSubmitLeadMutation()
+  const [storeResultPdf] = useStoreResultPdfMutation()
 
   const { popupEnabled, showPopup, setShowPopup } = useLeadPopup('seo-audit')
   const [showSendPdfModal, setShowSendPdfModal] = useState(false)
@@ -543,6 +545,30 @@ export default function SeoAuditPage() {
       }, 100)
     }
   }, [data])
+
+  // Stash the PDF on the result at generation time, independent of whether
+  // the user ever submits a lead form — this is what makes both automatic
+  // send-on-capture and a later manual admin send possible without a live
+  // browser session (see server/src/utils/pdfSendResultTypes.js).
+  const pdfStoredForIdRef = useRef(null)
+  useEffect(() => {
+    if (!auditId || !report) return
+    if (pdfStoredForIdRef.current === auditId) return
+    pdfStoredForIdRef.current = auditId
+
+    ;(async () => {
+      try {
+        const doc = generateAuditPdf(report)
+        const dataUri = doc.output('datauristring')
+        const pdfBase64 = dataUri.split(',')[1]
+        if (pdfBase64) {
+          await storeResultPdf({ model: 'audit', id: auditId, pdfBase64 }).unwrap()
+        }
+      } catch (err) {
+        console.warn('Could not store PDF report for later sending:', err)
+      }
+    })()
+  }, [auditId, report])
 
   const handleReset = () => {
     setReport(null)
@@ -2322,6 +2348,16 @@ export default function SeoAuditPage() {
                 ))}
               </div>
             )}
+
+            {/* Lead Form — linked to this result so the PDF can be sent to
+                whoever submits, automatically or by an admin later. */}
+            <DynamicLeadForm
+              toolSlug="seo-audit"
+              relatedIdField="auditId"
+              relatedIdValue={auditId}
+              title="Get Your Free SEO Strategy Session"
+              subtitle="Our team will review your audit and share a prioritized action plan."
+            />
           </div>
         )}
       </div>

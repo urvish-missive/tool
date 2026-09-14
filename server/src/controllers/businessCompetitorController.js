@@ -39,6 +39,7 @@ export const analyzeBusinessCompetitorSite = async (req, res) => {
     })
 
     // Save to DB (non-fatal)
+    let businessCompetitorId = null
     try {
       const saved = await prisma.businessCompetitor.create({
         data: {
@@ -48,6 +49,7 @@ export const analyzeBusinessCompetitorSite = async (req, res) => {
           reportJson: JSON.stringify(result),
         },
       })
+      businessCompetitorId = saved.id
 
       // Save lead if provided
       const { leadName, leadEmail, leadCompany, leadWebsite, leadPhone } = req.body
@@ -70,7 +72,7 @@ export const analyzeBusinessCompetitorSite = async (req, res) => {
       console.error('DB save failed (non-fatal):', dbErr.message)
     }
 
-    res.json(result)
+    res.json({ ...result, businessCompetitorId })
   } catch (error) {
     console.error('Business competitor analysis error:', error.message)
     res.status(500).json({

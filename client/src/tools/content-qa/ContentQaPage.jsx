@@ -56,6 +56,8 @@ import {
   useAnalyzeContentQaMutation,
   usePolishContentQaMutation,
   useImportContentQaMutation,
+  useStoreContentQaPdfMutation,
+  useLinkLeadToResultMutation,
 } from '../../services/apiSlice'
 import { contentQaSchema, parseContentQaForm } from '../../schemas/contentQa.schema'
 import { getScoreColor, getScoreBg } from '../../utils/scoreHelpers'
@@ -310,6 +312,11 @@ export default function ContentQaPage({
 
   const [report, setReport] = useState(null)
   const [qaId, setQaId] = useState(null)
+  // Captured from LeadCaptureModal when this tool's pre-use popup gate is
+  // enabled (ToolConfig.showLeadPopup) — that popup fires BEFORE analysis
+  // runs, so this lead has no result yet at capture time; linked to the
+  // result once it exists (see the store-pdf effect below).
+  const [popupLeadId, setPopupLeadId] = useState(null)
   const [statuses, setStatuses] = useState({})
   // expandedCats removed — all category cards are always fully visible
   const [error, setError] = useState(null)
@@ -532,6 +539,8 @@ export default function ContentQaPage({
     useAnalyzeContentQaMutation()
   const [polishContentQa, { isLoading: isPolishing }] = usePolishContentQaMutation()
   const [importContentQa, { isLoading: isImporting }] = useImportContentQaMutation()
+  const [storeContentQaPdf] = useStoreContentQaPdfMutation()
+  const [linkLeadToResult] = useLinkLeadToResultMutation()
 
   // Google Docs URL Import Handler
   const handleImportGdoc = async () => {
@@ -1112,6 +1121,54 @@ export default function ContentQaPage({
     }
   }, [report, statuses])
 
+  // Store the generated PDF on the result as soon as it's ready, independent
+  // of whether the user ever submits their email. This is what makes both
+  // automatic send-on-capture and a later manual admin send (from
+  // /admin/leads) possible without needing this browser tab to still be
+  // open — see leadController.js's autoSendContentQaPdf and
+  // adminController.js's sendLeadPdf, both of which read the stored PDF back
+  // from ContentQA.pdfBase64 rather than regenerating it.
+  const pdfStoredForIdRef = useRef(null)
+  useEffect(() => {
+    if (!qaId || !report) return
+    if (pdfStoredForIdRef.current === qaId) return
+    pdfStoredForIdRef.current = qaId
+
+    ;(async () => {
+      try {
+        const { generateQaPdf } = await import('../../utils/generateQaPdf')
+        const doc = generateQaPdf(report, {
+          title: title || 'Untitled Content',
+          keyword: targetKeyword,
+          wordCount,
+          score: scores.overall,
+          passed: scores.passed,
+          total: scores.total,
+        })
+        const dataUri = doc.output('datauristring')
+        const pdfBase64 = dataUri.split(',')[1]
+        if (pdfBase64) {
+          await storeContentQaPdf({ id: qaId, pdfBase64 }).unwrap()
+        }
+      } catch (err) {
+        console.warn('Could not store PDF report for later sending:', err)
+      }
+
+      // This tool's lead popup (showLeadPopup) fires BEFORE analysis, so the
+      // lead created there has no result to link at capture time —
+      // createLeadHandler's automatic-send check finds nothing. Now that the
+      // result (and its PDF, stored above) exists, attach it to that same
+      // lead and re-check automatic send at this point instead.
+      if (popupLeadId) {
+        try {
+          await linkLeadToResult({ id: popupLeadId, contentQaId: qaId }).unwrap()
+        } catch (err) {
+          console.warn('Could not link result to lead:', err)
+        }
+      }
+    })()
+  }, [qaId, report])
+
   // Speech Synthesizer Functions
   const handleToggleSpeech = () => {
     if (!window.speechSynthesis) {
@@ -1213,7 +1270,8 @@ Audited with Missive Digital Content QA Tool.`
       <LeadCaptureModal
         show={showPopup}
         onClose={handlePopupClose}
-        onSubmit={() => {
+        onSubmit={(leadId) => {
+          setPopupLeadId(leadId)
           handlePopupSubmit()
           runAnalysis()
         }}
@@ -3388,14 +3446,19 @@ Audited with Missive Digital Content QA Tool.`
                 </div>
               )}
 
-              {/* Lead Form */}
-              <DynamicLeadForm
-                toolSlug="content-qa"
-                relatedIdField="qaId"
-                relatedIdValue={qaId}
-                title="Get Your Free Content Strategy"
-                subtitle="Our experts will review your QA report and share a personalized content improvement plan."
-              />
+              {/* Lead Form — skipped when the pre-use popup already captured
+                  this visitor's email (popupLeadId); that lead gets linked
+                  to the result instead (see the store-pdf effect above), so
+                  this form would otherwise ask for the same email twice. */}
+              {!popupLeadId && (
+                <DynamicLeadForm
+                  toolSlug="content-qa"
+                  relatedIdField="contentQaId"
+                  relatedIdValue={qaId}
+                  title="Get Your Free Content Strategy"
+                  subtitle="Our experts will review your QA report and share a personalized content improvement plan."
+                />
+              )}
 
               {/* Send PDF Report via Email Modal */}
               <SendPdfModal

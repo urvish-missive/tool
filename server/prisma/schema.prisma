@@ -43,6 +43,7 @@ model Audit {
   structuredDataScore  Int
   status               String      @default("pending")
   reportJson           String
+  pdfBase64            String?
   createdAt            DateTime    @default(now())
   updatedAt            DateTime    @updatedAt
   pages                AuditPage[]
@@ -100,6 +101,7 @@ model KeywordResearch {
   language     String?
   businessType String?
   reportJson   String
+  pdfBase64    String?
   createdAt    DateTime    @default(now())
   keywords     Keyword[]
   leads        Lead[]
@@ -137,6 +139,7 @@ model ROICalculation {
   moderateGrowth        Float
   aggressiveGrowth      Float
   resultJson            String
+  pdfBase64             String?
   createdAt             DateTime  @default(now())
   leads                 Lead[]
 
@@ -169,6 +172,12 @@ model Lead {
   competitorAnalysis  CompetitorAnalysis? @relation(fields: [competitorAnalysisId], references: [id])
   contentQaId         String?           @db.ObjectId
   contentQa           ContentQA?        @relation(fields: [contentQaId], references: [id])
+  blogConclusionId    String?           @db.ObjectId
+  blogConclusion      BlogConclusion?   @relation(fields: [blogConclusionId], references: [id])
+  pdfSendStatus       String            @default("not_sent") // "not_sent" | "sent" | "failed"
+  pdfSentAt           DateTime?
+  pdfSendError        String?
+  pdfSendTriggeredBy  String?           // "automatic" | "manual"
   sitemapId           String?           @db.ObjectId
   sitemap             SitemapGeneration? @relation(fields: [sitemapId], references: [id])
   rankCheckId         String?           @db.ObjectId
@@ -183,9 +192,33 @@ model Lead {
   contentWriter       ContentWriter?    @relation(fields: [contentWriterId], references: [id])
   businessCompetitorId String?          @db.ObjectId
   businessCompetitor  BusinessCompetitor? @relation(fields: [businessCompetitorId], references: [id])
+  eeatAnalysisId      String?           @db.ObjectId
+  eeatAnalysis        EeatAnalysis?     @relation(fields: [eeatAnalysisId], references: [id])
+  caseStudyId         String?           @db.ObjectId
+  caseStudy           CaseStudy?        @relation(fields: [caseStudyId], references: [id])
+  blogIntroId         String?           @db.ObjectId
+  blogIntro           BlogIntro?        @relation(fields: [blogIntroId], references: [id])
   createdAt          DateTime          @default(now())
 
   @@index([email])
+  @@index([createdAt])
+}
+
+model BlogConclusion {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  topic           String
+  intro           String?
+  keyTakeaways    String?
+  ctaGoal         String?
+  funnelStage     String?
+  audience        String?
+  targetKeywords  String?
+  tone            String?
+  conclusionsJson String   // full generated conclusions array
+  pdfBase64       String?  // Generated PDF (base64), stored at result-render time so it can be (re)sent to a captured lead anytime
+  createdAt       DateTime @default(now())
+  leads           Lead[]
+
   @@index([createdAt])
 }
 
@@ -198,6 +231,7 @@ model BlogTopic {
   contentType     String
   topicsJson      String
   strategy        String?
+  pdfBase64       String?
   createdAt       DateTime @default(now())
   leads           Lead[]
 
@@ -226,6 +260,7 @@ model FaqGeneration {
   keywords     String?
   faqsJson     String
   questionCount Int
+  pdfBase64    String?
   createdAt    DateTime @default(now())
   leads        Lead[]
 
@@ -255,6 +290,7 @@ model CompetitorAnalysis {
   yourUrl         String?
   targetKeywords  String?
   reportJson      String
+  pdfBase64       String?
   createdAt       DateTime @default(now())
   leads           Lead[]
 
@@ -273,6 +309,7 @@ model ContentQA {
   categoryScores  String   // JSON: { objective: number, audience: number, seo: number, ... }
   statuses        String   // JSON: { "obj-1": "pass", "seo-3": "fail", ... }
   reportJson      String?
+  pdfBase64       String?  // Generated PDF (base64), stored at result-render time so it can be (re)sent to a captured lead anytime, with or without a live browser session
   createdAt       DateTime @default(now())
   leads           Lead[]
 
@@ -362,6 +399,7 @@ model ContentWriter {
   title         String
   contentJson   String   // JSON full generated content
   wordCount     Int      @default(0)
+  pdfBase64     String?
   createdAt     DateTime @default(now())
   leads         Lead[]
 
@@ -375,11 +413,50 @@ model BusinessCompetitor {
   companyName     String?
   industry        String?
   reportJson      String
+  pdfBase64       String?
   createdAt       DateTime @default(now())
   leads           Lead[]
 
   @@index([createdAt])
   @@index([competitorUrl])
+}
+
+model EeatAnalysis {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  content         String
+  targetKeyword   String?
+  url             String?
+  overallScore    Int      @default(0)
+  reportJson      String
+  pdfBase64       String?
+  createdAt       DateTime @default(now())
+  leads           Lead[]
+
+  @@index([createdAt])
+}
+
+model CaseStudy {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  companyName     String?
+  industry        String?
+  resultJson      String
+  pdfBase64       String?
+  createdAt       DateTime @default(now())
+  leads           Lead[]
+
+  @@index([createdAt])
+}
+
+model BlogIntro {
+  id              String   @id @default(auto()) @map("_id") @db.ObjectId
+  topic           String
+  audience        String?
+  introsJson      String
+  pdfBase64       String?
+  createdAt       DateTime @default(now())
+  leads           Lead[]
+
+  @@index([createdAt])
 }
 
 // ─── Admin & Tool Management ────────────────────────────
@@ -410,6 +487,7 @@ model ToolConfig {
   showLeadPopup   Boolean  @default(false)
   formFields      String   @default("{}") // JSON: { fieldName: { enabled: bool, label: string, required: bool, type: string } }
   popupFields     String   @default("{}") // JSON: { [fieldName]: { show: bool, required: bool } }
+  pdfSendMode     String   @default("manual") // "manual" | "automatic" — whether a captured lead's PDF report is emailed immediately or held for an admin to send from /admin/leads
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 }

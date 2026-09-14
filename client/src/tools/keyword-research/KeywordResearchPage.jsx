@@ -1,7 +1,7 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useResearchKeywordsMutation } from '../../services/apiSlice'
+import { useResearchKeywordsMutation, useStoreResultPdfMutation, useLinkLeadToResultMutation } from '../../services/apiSlice'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
 import { useLeadPopup } from '../../components/useLeadPopup'
@@ -628,9 +628,16 @@ export default function KeywordResearchPage() {
 
   const [researchKeywords, { isLoading, isError, error, data, reset: resetMutation }] =
     useResearchKeywordsMutation()
+  const [storeResultPdf] = useStoreResultPdfMutation()
+  const [linkLeadToResult] = useLinkLeadToResultMutation()
   const { popupEnabled, showPopup, handlePopupSubmit, handlePopupClose, triggerPopup } =
     useLeadPopup('keyword-research')
   const [pendingForm, setPendingForm] = useState(null)
+  // Captured from LeadCaptureModal when this tool's pre-use popup gate is
+  // enabled (ToolConfig.showLeadPopup) — that popup fires BEFORE research
+  // runs, so this lead has no result yet at capture time; linked to the
+  // result once it exists (see the store-pdf effect below).
+  const [popupLeadId, setPopupLeadId] = useState(null)
   const { isFieldEnabled } = useToolFields('keyword-research')
 
   useEffect(() => {
@@ -643,6 +650,44 @@ export default function KeywordResearchPage() {
       )
     }
   }, [data])
+
+  // Stash the PDF on the result at generation time, independent of whether
+  // the user ever submits a lead form — this is what makes both automatic
+  // send-on-capture and a later manual admin send possible without a live
+  // browser session (see server/src/utils/pdfSendResultTypes.js).
+  const pdfStoredForIdRef = useRef(null)
+  useEffect(() => {
+    if (!researchId || !report) return
+    if (pdfStoredForIdRef.current === researchId) return
+    pdfStoredForIdRef.current = researchId
+
+    ;(async () => {
+      try {
+        const { generateKeywordResearchPdf } = await import('../../utils/generateKeywordResearchPdf')
+        const doc = generateKeywordResearchPdf(report)
+        const dataUri = doc.output('datauristring')
+        const pdfBase64 = dataUri.split(',')[1]
+        if (pdfBase64) {
+          await storeResultPdf({ model: 'keywordResearch', id: researchId, pdfBase64 }).unwrap()
+        }
+      } catch (err) {
+        console.warn('Could not store PDF report for later sending:', err)
+      }
+
+      // This tool's lead popup (showLeadPopup) fires BEFORE research runs,
+      // so the lead created there has no result to link at capture time —
+      // createLeadHandler's automatic-send check finds nothing. Now that the
+      // result (and its PDF, stored above) exists, attach it to that same
+      // lead and re-check automatic send at this point instead.
+      if (popupLeadId) {
+        try {
+          await linkLeadToResult({ id: popupLeadId, researchId }).unwrap()
+        } catch (err) {
+          console.warn('Could not link result to lead:', err)
+        }
+      }
+    })()
+  }, [researchId, report])
 
   const runResearch = useCallback(
     (form) => {
@@ -685,7 +730,8 @@ export default function KeywordResearchPage() {
       <LeadCaptureModal
         show={showPopup}
         onClose={handlePopupClose}
-        onSubmit={() => {
+        onSubmit={(leadId) => {
+          setPopupLeadId(leadId)
           handlePopupSubmit()
           if (pendingForm) runResearch(pendingForm)
           setPendingForm(null)
@@ -989,14 +1035,19 @@ export default function KeywordResearchPage() {
                 </div>
               </div>
 
-              {/* Lead Form */}
-              <DynamicLeadForm
-                toolSlug="keyword-research"
-                relatedIdField="researchId"
-                relatedIdValue={researchId}
-                title="Get My Free SEO Strategy & Keyword Roadmap"
-                subtitle="Our experts will review your keyword opportunities and deliver a custom ranking action plan."
-              />
+              {/* Lead Form — skipped when the pre-use popup already
+                  captured this visitor's email (popupLeadId); that lead
+                  gets linked to the result instead (see the store-pdf
+                  effect above). */}
+              {!popupLeadId && (
+                <DynamicLeadForm
+                  toolSlug="keyword-research"
+                  relatedIdField="researchId"
+                  relatedIdValue={researchId}
+                  title="Get My Free SEO Strategy & Keyword Roadmap"
+                  subtitle="Our experts will review your keyword opportunities and deliver a custom ranking action plan."
+                />
+              )}
             </div>
           )}
         </div>

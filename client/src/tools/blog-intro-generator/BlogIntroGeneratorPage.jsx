@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -22,9 +22,14 @@ import {
   Anchor,
 } from 'lucide-react'
 import { blogIntroSchema, parseBlogIntroForm } from '../../schemas/blogIntro.schema'
-import { useGenerateBlogIntrosMutation } from '../../services/apiSlice'
+import {
+  useGenerateBlogIntrosMutation,
+  useStoreResultPdfMutation,
+  useLinkLeadToResultMutation,
+} from '../../services/apiSlice'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
+import DynamicLeadForm from '../../components/DynamicLeadForm'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 
 const FUNNEL_OPTIONS = [
@@ -131,11 +136,18 @@ export default function BlogIntroGeneratorPage({
   const toneValue = watch('tone')
 
   const [generateBlogIntros, { isLoading }] = useGenerateBlogIntrosMutation()
+  const [storeResultPdf] = useStoreResultPdfMutation()
+  const [linkLeadToResult] = useLinkLeadToResultMutation()
 
   const { showPopup, handlePopupSubmit, handlePopupClose, triggerPopup, popupEnabled } =
     useLeadPopup('blog-intro-generator')
 
   const [pendingForm, setPendingForm] = useState(null)
+  // Captured from LeadCaptureModal when this tool's pre-use popup gate is
+  // enabled (ToolConfig.showLeadPopup) — that popup fires BEFORE generation
+  // runs, so this lead has no result yet at capture time; linked to the
+  // result once it exists (see the store-pdf effect below).
+  const [popupLeadId, setPopupLeadId] = useState(null)
 
   const executeGeneration = async (formData) => {
     setErrorMessage('')
@@ -183,6 +195,44 @@ export default function BlogIntroGeneratorPage({
 
     executeGeneration(parsed.data)
   }
+
+  // Stash the PDF on the result at generation time, independent of whether
+  // the user ever submits a lead form — this is what makes both automatic
+  // send-on-capture and a later manual admin send possible without a live
+  // browser session (see server/src/utils/pdfSendResultTypes.js).
+  const pdfStoredForIdRef = useRef(null)
+  useEffect(() => {
+    if (!dataResult?.blogIntroId) return
+    if (pdfStoredForIdRef.current === dataResult.blogIntroId) return
+    pdfStoredForIdRef.current = dataResult.blogIntroId
+
+    ;(async () => {
+      try {
+        const { generateBlogIntroPdf } = await import('../../utils/generateBlogIntroPdf')
+        const doc = generateBlogIntroPdf(dataResult)
+        const dataUri = doc.output('datauristring')
+        const pdfBase64 = dataUri.split(',')[1]
+        if (pdfBase64) {
+          await storeResultPdf({ model: 'blogIntro', id: dataResult.blogIntroId, pdfBase64 }).unwrap()
+        }
+      } catch (err) {
+        console.warn('Could not store PDF report for later sending:', err)
+      }
+
+      // This tool's lead popup (showLeadPopup) fires BEFORE generation, so
+      // the lead created there has no result to link at capture time —
+      // createLeadHandler's automatic-send check finds nothing. Now that the
+      // result (and its PDF, stored above) exists, attach it to that same
+      // lead and re-check automatic send at this point instead.
+      if (popupLeadId) {
+        try {
+          await linkLeadToResult({ id: popupLeadId, blogIntroId: dataResult.blogIntroId }).unwrap()
+        } catch (err) {
+          console.warn('Could not link result to lead:', err)
+        }
+      }
+    })()
+  }, [dataResult])
 
   const handleReset = () => {
     resetForm()
@@ -337,7 +387,8 @@ export default function BlogIntroGeneratorPage({
       <LeadCaptureModal
         show={showPopup}
         onClose={handlePopupClose}
-        onSubmit={() => {
+        onSubmit={(leadId) => {
+          setPopupLeadId(leadId)
           handlePopupSubmit()
           if (pendingForm) executeGeneration(pendingForm)
           setPendingForm(null)
@@ -1049,6 +1100,19 @@ export default function BlogIntroGeneratorPage({
                 </button>
               </div>
             </div>
+
+            {/* Lead Form — skipped when the pre-use popup already captured
+                this visitor's email (popupLeadId); that lead gets linked to
+                the result instead (see the store-pdf effect above). */}
+            {!popupLeadId && (
+              <DynamicLeadForm
+                toolSlug="blog-intro-generator"
+                relatedIdField="blogIntroId"
+                relatedIdValue={dataResult.blogIntroId}
+                title="Get Your Free Content Strategy"
+                subtitle="Our team will review your introductions and share ideas to strengthen your funnel."
+              />
+            )}
           </div>
         )}
       </div>

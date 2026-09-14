@@ -1,4 +1,5 @@
 import { generateCaseStudy } from '../services/caseStudyGenerator.js'
+import prisma from '../utils/prisma.js'
 
 /**
  * Handler for generating a conversion-engineered Case Study & Marketing Distribution Plan
@@ -58,12 +59,32 @@ export async function generateCaseStudyHandler(req, res) {
       preferredProvider,
     })
 
+    const caseStudyBody = result.caseStudy || result
+
+    // Persist so a lead captured after viewing this result can be linked to
+    // it, and so a client-side generated PDF can be stored here for later
+    // sending.
+    let caseStudyId = null
+    try {
+      const saved = await prisma.caseStudy.create({
+        data: {
+          companyName: clientName?.trim() || caseStudyBody.executiveSnapshot?.client || null,
+          industry: niche.trim() || caseStudyBody.executiveSnapshot?.industry || null,
+          resultJson: JSON.stringify(result),
+        },
+      })
+      caseStudyId = saved.id
+    } catch (dbErr) {
+      console.error('CaseStudy save failed (non-fatal):', dbErr.message)
+    }
+
     return res.json({
       success: true,
+      caseStudyId,
       data: {
         ...result,
-        caseStudy: result.caseStudy || result,
-        result: result.caseStudy || result,
+        caseStudy: caseStudyBody,
+        result: caseStudyBody,
       },
     })
   } catch (error) {

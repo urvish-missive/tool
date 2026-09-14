@@ -30,9 +30,10 @@ import {
 } from 'lucide-react'
 
 import { caseStudySchema, parseCaseStudyForm } from '../../schemas/caseStudy.schema'
-import { useGenerateCaseStudyMutation } from '../../services/apiSlice'
+import { useGenerateCaseStudyMutation, useStoreResultPdfMutation, useLinkLeadToResultMutation } from '../../services/apiSlice'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
+import DynamicLeadForm from '../../components/DynamicLeadForm'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 
 function LinkedInIcon({ className = 'w-5 h-5' }) {
@@ -249,11 +250,18 @@ export default function CaseStudyGeneratorPage({
   })
 
   const [generateCaseStudyMutation, { isLoading }] = useGenerateCaseStudyMutation()
+  const [storeResultPdf] = useStoreResultPdfMutation()
+  const [linkLeadToResult] = useLinkLeadToResultMutation()
 
   const { showPopup, handlePopupClose, handlePopupSubmit, triggerPopup, popupEnabled } =
     useLeadPopup('case-study-generator')
 
   const [pendingForm, setPendingForm] = useState(null)
+  // Captured from LeadCaptureModal when this tool's pre-use popup gate is
+  // enabled (ToolConfig.showLeadPopup) — that popup fires BEFORE generation
+  // runs, so this lead has no result yet at capture time; linked to the
+  // result once it exists (see the store-pdf effect below).
+  const [popupLeadId, setPopupLeadId] = useState(null)
   const activeToneValue = watch('tone')
 
   const handleLoadSample = (preset = SAMPLE_PRESETS[0]) => {
@@ -327,6 +335,7 @@ export default function CaseStudyGeneratorPage({
           ...payload,
           caseStudy,
           result: payload.result || caseStudy,
+          caseStudyId: response.caseStudyId,
         })
         setActiveTab('case-study')
         setTimeout(() => {
@@ -365,13 +374,52 @@ export default function CaseStudyGeneratorPage({
     }
   }
 
-  const onLeadSubmitSuccess = () => {
+  const onLeadSubmitSuccess = (leadId) => {
+    setPopupLeadId(leadId)
     handlePopupSubmit()
     if (pendingForm) {
       executeGeneration(pendingForm)
       setPendingForm(null)
     }
   }
+
+  // Stash the PDF on the result at generation time, independent of whether
+  // the user ever submits a lead form — this is what makes both automatic
+  // send-on-capture and a later manual admin send possible without a live
+  // browser session (see server/src/utils/pdfSendResultTypes.js).
+  const pdfStoredForIdRef = useRef(null)
+  useEffect(() => {
+    if (!dataResult?.caseStudyId) return
+    if (pdfStoredForIdRef.current === dataResult.caseStudyId) return
+    pdfStoredForIdRef.current = dataResult.caseStudyId
+
+    ;(async () => {
+      try {
+        const { generateCaseStudyPdf } = await import('../../utils/generateCaseStudyPdf')
+        const doc = generateCaseStudyPdf(dataResult.caseStudy || {})
+        const dataUri = doc.output('datauristring')
+        const pdfBase64 = dataUri.split(',')[1]
+        if (pdfBase64) {
+          await storeResultPdf({ model: 'caseStudy', id: dataResult.caseStudyId, pdfBase64 }).unwrap()
+        }
+      } catch (err) {
+        console.warn('Could not store PDF report for later sending:', err)
+      }
+
+      // This tool's lead popup (showLeadPopup) fires BEFORE generation, so
+      // the lead created there has no result to link at capture time —
+      // createLeadHandler's automatic-send check finds nothing. Now that the
+      // result (and its PDF, stored above) exists, attach it to that same
+      // lead and re-check automatic send at this point instead.
+      if (popupLeadId) {
+        try {
+          await linkLeadToResult({ id: popupLeadId, caseStudyId: dataResult.caseStudyId }).unwrap()
+        } catch (err) {
+          console.warn('Could not link result to lead:', err)
+        }
+      }
+    })()
+  }, [dataResult])
 
   return (
     <div className={isEmbedded ? 'w-full' : 'min-h-screen bg-slate-50 text-slate-800 pb-20'}>
@@ -1843,6 +1891,19 @@ export default function CaseStudyGeneratorPage({
                   </div>
                 </div>
               </div>
+            )}
+
+            {/* Lead Form — skipped when the pre-use popup already captured
+                this visitor's email (popupLeadId); that lead gets linked to
+                the result instead (see the store-pdf effect above). */}
+            {!popupLeadId && (
+              <DynamicLeadForm
+                toolSlug="case-study-generator"
+                relatedIdField="caseStudyId"
+                relatedIdValue={dataResult.caseStudyId}
+                title="Get Your Free Content Strategy"
+                subtitle="Our team will review your case study and share distribution ideas to maximize its reach."
+              />
             )}
           </div>
         )}

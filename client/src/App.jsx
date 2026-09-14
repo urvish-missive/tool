@@ -29,6 +29,7 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminTools from './pages/admin/AdminTools'
 import AdminDevices from './pages/admin/AdminDevices'
 import AdminLeads from './pages/admin/AdminLeads'
+import AdminClients from './pages/admin/AdminClients'
 import AdminActivity from './pages/admin/AdminActivity'
 import GlobalDeviceLimitModal from './components/GlobalDeviceLimitModal'
 import ScrollToTop from './components/ScrollToTop'
@@ -48,6 +49,7 @@ export default function App() {
           <Route path="tools" element={<AdminTools />} />
           <Route path="devices" element={<AdminDevices />} />
           <Route path="leads" element={<AdminLeads />} />
+          <Route path="clients" element={<AdminClients />} />
         </Route>
 
 

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -29,9 +29,10 @@ import {
   ShieldAlert,
 } from 'lucide-react'
 import { eeatSchema, parseEeatForm } from '../../schemas/eeat.schema'
-import { useAnalyzeEeatMutation } from '../../services/apiSlice'
+import { useAnalyzeEeatMutation, useStoreResultPdfMutation, useLinkLeadToResultMutation } from '../../services/apiSlice'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
+import DynamicLeadForm from '../../components/DynamicLeadForm'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 
 const FRAMEWORK_PRESETS = [
@@ -131,11 +132,18 @@ export default function EeatAnalyzerPage({ isEmbedded = false, onResultStateChan
   const contentText = watch('content')
 
   const [analyzeEeat, { isLoading }] = useAnalyzeEeatMutation()
+  const [storeResultPdf] = useStoreResultPdfMutation()
+  const [linkLeadToResult] = useLinkLeadToResultMutation()
 
   const { showPopup, handlePopupSubmit, handlePopupClose, triggerPopup, popupEnabled } =
     useLeadPopup('eeat-analyzer')
 
   const [pendingForm, setPendingForm] = useState(null)
+  // Captured from LeadCaptureModal when this tool's pre-use popup gate is
+  // enabled (ToolConfig.showLeadPopup) — that popup fires BEFORE analysis
+  // runs, so this lead has no result yet at capture time; linked to the
+  // result once it exists (see the store-pdf effect below).
+  const [popupLeadId, setPopupLeadId] = useState(null)
 
   const executeAnalysis = async (formData) => {
     setErrorMessage('')
@@ -151,7 +159,7 @@ export default function EeatAnalyzerPage({ isEmbedded = false, onResultStateChan
       }).unwrap()
 
       if (res.success && res.data) {
-        setDataResult(res.data)
+        setDataResult({ ...res.data, eeatAnalysisId: res.eeatAnalysisId })
         setActivePillarTab('experience')
         setTimeout(() => {
           const el = document.getElementById('eeat-results')
@@ -268,6 +276,44 @@ ${d.aiSearchReadiness?.keyQuotableBlocks?.map((b) => `> ${b}`).join('\n\n') || `
 
   const pillarsData = dataResult?.eeat?.pillars || dataResult?.pillars || {}
 
+  // Stash the PDF on the result at generation time, independent of whether
+  // the user ever submits a lead form — this is what makes both automatic
+  // send-on-capture and a later manual admin send possible without a live
+  // browser session (see server/src/utils/pdfSendResultTypes.js).
+  const pdfStoredForIdRef = useRef(null)
+  useEffect(() => {
+    if (!dataResult?.eeatAnalysisId) return
+    if (pdfStoredForIdRef.current === dataResult.eeatAnalysisId) return
+    pdfStoredForIdRef.current = dataResult.eeatAnalysisId
+
+    ;(async () => {
+      try {
+        const { generateEeatPdf } = await import('../../utils/generateEeatPdf')
+        const doc = generateEeatPdf(dataResult)
+        const dataUri = doc.output('datauristring')
+        const pdfBase64 = dataUri.split(',')[1]
+        if (pdfBase64) {
+          await storeResultPdf({ model: 'eeatAnalysis', id: dataResult.eeatAnalysisId, pdfBase64 }).unwrap()
+        }
+      } catch (err) {
+        console.warn('Could not store PDF report for later sending:', err)
+      }
+
+      // This tool's lead popup (showLeadPopup) fires BEFORE analysis, so the
+      // lead created there has no result to link at capture time —
+      // createLeadHandler's automatic-send check finds nothing. Now that the
+      // result (and its PDF, stored above) exists, attach it to that same
+      // lead and re-check automatic send at this point instead.
+      if (popupLeadId) {
+        try {
+          await linkLeadToResult({ id: popupLeadId, eeatAnalysisId: dataResult.eeatAnalysisId }).unwrap()
+        } catch (err) {
+          console.warn('Could not link result to lead:', err)
+        }
+      }
+    })()
+  }, [dataResult])
+
   return (
     <div
       className={isEmbedded ? 'w-full @container' : 'min-h-screen bg-slate-50/50 pb-24 @container'}
@@ -276,7 +322,8 @@ ${d.aiSearchReadiness?.keyQuotableBlocks?.map((b) => `> ${b}`).join('\n\n') || `
       <LeadCaptureModal
         show={showPopup}
         onClose={handlePopupClose}
-        onSubmit={() => {
+        onSubmit={(leadId) => {
+          setPopupLeadId(leadId)
           handlePopupSubmit()
           if (pendingForm) executeAnalysis(pendingForm)
           setPendingForm(null)
@@ -1212,6 +1259,19 @@ ${d.aiSearchReadiness?.keyQuotableBlocks?.map((b) => `> ${b}`).join('\n\n') || `
                 </button>
               </div>
             </div>
+
+            {/* Lead Form — skipped when the pre-use popup already captured
+                this visitor's email (popupLeadId); that lead gets linked to
+                the result instead (see the store-pdf effect above). */}
+            {!popupLeadId && (
+              <DynamicLeadForm
+                toolSlug="eeat-analyzer"
+                relatedIdField="eeatAnalysisId"
+                relatedIdValue={dataResult.eeatAnalysisId}
+                title="Get Your Free Content Authority Review"
+                subtitle="Our team will review your E-E-A-T audit and share ideas to strengthen your authority signals."
+              />
+            )}
           </div>
         )}
       </div>

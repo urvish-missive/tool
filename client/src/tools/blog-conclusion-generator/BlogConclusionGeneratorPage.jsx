@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -23,9 +23,14 @@ import {
   ShieldCheck,
 } from 'lucide-react'
 import { blogConclusionSchema, parseBlogConclusionForm } from '../../schemas/blogConclusion.schema'
-import { useGenerateBlogConclusionsMutation } from '../../services/apiSlice'
+import {
+  useGenerateBlogConclusionsMutation,
+  useStoreBlogConclusionPdfMutation,
+  useLinkLeadToResultMutation,
+} from '../../services/apiSlice'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
+import DynamicLeadForm from '../../components/DynamicLeadForm'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 
 const FUNNEL_OPTIONS = [
@@ -167,6 +172,47 @@ export default function BlogConclusionGeneratorPage({
     }
   }, [dataResult, onResultStateChange])
 
+  // Store the generated PDF on the result as soon as it's ready, independent
+  // of whether the user ever submits their email — same pattern as
+  // ContentQaPage.jsx. Makes both automatic send-on-capture and a later
+  // manual admin send possible without needing this browser tab open.
+  const pdfStoredForIdRef = useRef(null)
+  useEffect(() => {
+    const blogConclusionId = dataResult?.blogConclusionId
+    if (!blogConclusionId || !dataResult?.conclusions?.length) return
+    if (pdfStoredForIdRef.current === blogConclusionId) return
+    pdfStoredForIdRef.current = blogConclusionId
+    ;(async () => {
+      try {
+        const { generateBlogConclusionPdf } = await import('../../utils/generateBlogConclusionPdf')
+        const doc = generateBlogConclusionPdf(dataResult.conclusions, {
+          topic: dataResult.topic,
+          tone: dataResult.tone,
+        })
+        const dataUri = doc.output('datauristring')
+        const pdfBase64 = dataUri.split(',')[1]
+        if (pdfBase64) {
+          await storeBlogConclusionPdf({ id: blogConclusionId, pdfBase64 }).unwrap()
+        }
+      } catch (err) {
+        console.warn('Could not store PDF report for later sending:', err)
+      }
+
+      // This tool's lead popup (showLeadPopup) fires BEFORE generation, so
+      // the lead created there has no result to link at capture time —
+      // createLeadHandler's automatic-send check finds nothing. Now that
+      // the result (and its PDF, stored above) exists, attach it to that
+      // same lead and re-check automatic send at this point instead.
+      if (popupLeadId) {
+        try {
+          await linkLeadToResult({ id: popupLeadId, blogConclusionId }).unwrap()
+        } catch (err) {
+          console.warn('Could not link result to lead:', err)
+        }
+      }
+    })()
+  }, [dataResult])
+
   useEffect(() => {
     if (resetSignal > 0) {
       handleReset()
@@ -197,11 +243,18 @@ export default function BlogConclusionGeneratorPage({
   })
 
   const [generateConclusions, { isLoading }] = useGenerateBlogConclusionsMutation()
+  const [storeBlogConclusionPdf] = useStoreBlogConclusionPdfMutation()
+  const [linkLeadToResult] = useLinkLeadToResultMutation()
 
   const { showPopup, handlePopupClose, handlePopupSubmit, triggerPopup, popupEnabled } =
     useLeadPopup('blog-conclusion-generator')
 
   const [pendingForm, setPendingForm] = useState(null)
+  // Captured from LeadCaptureModal when this tool's pre-use popup gate is
+  // enabled (ToolConfig.showLeadPopup) — that popup fires BEFORE generation,
+  // so this lead has no result yet at capture time; linked to the result
+  // once it exists (see the dataResult effect above).
+  const [popupLeadId, setPopupLeadId] = useState(null)
   const countValue = watch('numVariations')
 
   const handleLoadSample = (preset = SAMPLE_PRESETS[0]) => {
@@ -1104,6 +1157,22 @@ export default function BlogConclusionGeneratorPage({
               )}
             </div>
 
+            {/* Lead Form — linked to this result so the PDF can be sent to
+                whoever submits, automatically or by an admin later. Skipped
+                when the pre-use popup already captured this visitor's
+                email (popupLeadId) — that lead gets linked to the result
+                instead (see the dataResult effect above), so this form
+                would otherwise ask for the same email twice. */}
+            {!popupLeadId && dataResult?.blogConclusionId && (
+              <DynamicLeadForm
+                toolSlug="blog-conclusion-generator"
+                relatedIdField="blogConclusionId"
+                relatedIdValue={dataResult.blogConclusionId}
+                title="Get Your Free Content Strategy"
+                subtitle="Our team will review your conclusions and share ideas to strengthen your funnel."
+              />
+            )}
+
             {/* Bottom Floating Reset */}
             <div className="text-center pt-2">
               <button
@@ -1123,7 +1192,8 @@ export default function BlogConclusionGeneratorPage({
       <LeadCaptureModal
         show={showPopup}
         onClose={handlePopupClose}
-        onSubmit={() => {
+        onSubmit={(leadId) => {
+          setPopupLeadId(leadId)
           handlePopupSubmit()
           if (pendingForm) executeGeneration(pendingForm)
           setPendingForm(null)

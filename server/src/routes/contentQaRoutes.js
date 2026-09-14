@@ -4,6 +4,7 @@ import {
   analyzeContentQAHandler,
   polishContentQAHandler,
   importContentQAHandler,
+  storeContentQaPdfHandler,
 } from '../controllers/contentQaController.js'
 
 const router = Router()
@@ -20,6 +21,7 @@ const qaLimiter = rateLimit({
 router.post('/analyze', qaLimiter, analyzeContentQAHandler)
 router.post('/polish', qaLimiter, polishContentQAHandler)
 router.post('/import', qaLimiter, importContentQAHandler)
+router.post('/:id/store-pdf', storeContentQaPdfHandler)
 
 export default router
 

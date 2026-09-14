@@ -24,6 +24,7 @@ import blogConclusionRoutes from './routes/blogConclusionRoutes.js'
 import eeatRoutes from './routes/eeatRoutes.js'
 import businessCompetitorRoutes from './routes/businessCompetitorRoutes.js'
 import caseStudyRoutes from './routes/caseStudyRoutes.js'
+import resultPdfRoutes from './routes/resultPdfRoutes.js'
 import deviceRoutes from './routes/deviceRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 
@@ -93,6 +94,7 @@ app.use('/api/blog-conclusion', toolAccess('blog-conclusion-generator'), blogCon
 app.use('/api/eeat', toolAccess('eeat-analyzer'), eeatRoutes)
 app.use('/api/business-competitor', toolAccess('business-competitor-analytics'), businessCompetitorRoutes)
 app.use('/api/case-study', toolAccess('case-study-generator'), caseStudyRoutes)
+app.use('/api/results', resultPdfRoutes)
 app.use('/api/devices', deviceRoutes)
 
 // Health check

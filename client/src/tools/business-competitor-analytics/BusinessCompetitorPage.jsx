@@ -1,8 +1,8 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { businessCompetitorSchema } from '../../schemas/businessCompetitor.schema'
-import { useAnalyzeBusinessCompetitorMutation } from '../../services/apiSlice'
+import { useAnalyzeBusinessCompetitorMutation, useStoreResultPdfMutation } from '../../services/apiSlice'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
 import {
@@ -43,11 +43,35 @@ const TABS = [
 
 export default function BusinessCompetitorPage() {
   const [analyze, { isLoading }] = useAnalyzeBusinessCompetitorMutation()
+  const [storeResultPdf] = useStoreResultPdfMutation()
   const [results, setResults] = useState(null)
   const [error, setError] = useState('')
   const [activeTab, setActiveTab] = useState('overview')
-  const [showLeadForm, setShowLeadForm] = useState(false)
-  const [pendingResult, setPendingResult] = useState(null)
+
+  // Stash the PDF on the result at generation time, independent of whether
+  // the user ever submits a lead form — this is what makes both automatic
+  // send-on-capture and a later manual admin send possible without a live
+  // browser session (see server/src/utils/pdfSendResultTypes.js).
+  const pdfStoredForIdRef = useRef(null)
+  useEffect(() => {
+    if (!results?.businessCompetitorId) return
+    if (pdfStoredForIdRef.current === results.businessCompetitorId) return
+    pdfStoredForIdRef.current = results.businessCompetitorId
+
+    ;(async () => {
+      try {
+        const { generateBusinessCompetitorPdf } = await import('../../utils/generateBusinessCompetitorPdf')
+        const doc = generateBusinessCompetitorPdf(results)
+        const dataUri = doc.output('datauristring')
+        const pdfBase64 = dataUri.split(',')[1]
+        if (pdfBase64) {
+          await storeResultPdf({ model: 'businessCompetitor', id: results.businessCompetitorId, pdfBase64 }).unwrap()
+        }
+      } catch (err) {
+        console.warn('Could not store PDF report for later sending:', err)
+      }
+    })()
+  }, [results])
 
   const {
     register,
@@ -91,18 +115,6 @@ export default function BusinessCompetitorPage() {
     setError('')
     setActiveTab('overview')
     window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
-  const handleLeadSubmit = async (leadData) => {
-    try {
-      await analyze({
-        competitorUrl: results.competitorUrl,
-        companyName: results.companyName,
-        industry: results.industry,
-        ...leadData,
-      }).unwrap()
-    } catch {}
-    setShowLeadForm(false)
   }
 
   const r = results
@@ -900,21 +912,15 @@ export default function BusinessCompetitorPage() {
               )}
             </div>
 
-            {/* Lead Form Section */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm">
-              <div className="text-center mb-4">
-                <h3 className="text-lg font-bold text-gray-900">Get the Full Report</h3>
-                <p className="text-sm text-gray-500">
-                  Enter your details to receive the complete business intelligence report via email.
-                </p>
-              </div>
-              <DynamicLeadForm
-                source="business-competitor-analytics"
-                analysisData={r}
-                onSuccess={() => setShowLeadForm(false)}
-                compact
-              />
-            </div>
+            {/* Lead Form — linked to this result so the PDF can be sent to
+                whoever submits, automatically or by an admin later. */}
+            <DynamicLeadForm
+              toolSlug="business-competitor-analytics"
+              relatedIdField="businessCompetitorId"
+              relatedIdValue={r.businessCompetitorId}
+              title="Get the Full Report"
+              subtitle="Enter your details to receive the complete business intelligence report via email."
+            />
           </div>
         )}
       </div>

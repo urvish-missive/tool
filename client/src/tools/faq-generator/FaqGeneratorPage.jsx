@@ -1,8 +1,9 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect, useRef } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useGenerateFaqsMutation } from '../../services/apiSlice'
+import { useGenerateFaqsMutation, useStoreResultPdfMutation } from '../../services/apiSlice'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
+import DynamicLeadForm from '../../components/DynamicLeadForm'
 import { faqGeneratorSchema, parseFaqGeneratorForm } from '../../schemas/faqGenerator.schema'
 import {
   HelpCircle,
@@ -54,6 +55,7 @@ export default function FaqGeneratorPage() {
 
   const topic = watch('topic')
   const [generateFaqs, { isLoading, reset: resetMutation }] = useGenerateFaqsMutation()
+  const [storeResultPdf] = useStoreResultPdfMutation()
 
   const [dataResult, setDataResult] = useState(null)
   const [error, setError] = useState('')
@@ -111,6 +113,31 @@ export default function FaqGeneratorPage() {
     resetMutation()
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
+
+  // Stash the PDF on the result at generation time, independent of whether
+  // the user ever submits a lead form — this is what makes both automatic
+  // send-on-capture and a later manual admin send possible without a live
+  // browser session (see server/src/utils/pdfSendResultTypes.js).
+  const pdfStoredForIdRef = useRef(null)
+  useEffect(() => {
+    if (!dataResult?.faqId) return
+    if (pdfStoredForIdRef.current === dataResult.faqId) return
+    pdfStoredForIdRef.current = dataResult.faqId
+
+    ;(async () => {
+      try {
+        const { generateFaqPdf } = await import('../../utils/generateFaqPdf')
+        const doc = generateFaqPdf(dataResult, { topic })
+        const dataUri = doc.output('datauristring')
+        const pdfBase64 = dataUri.split(',')[1]
+        if (pdfBase64) {
+          await storeResultPdf({ model: 'faqGeneration', id: dataResult.faqId, pdfBase64 }).unwrap()
+        }
+      } catch (err) {
+        console.warn('Could not store PDF report for later sending:', err)
+      }
+    })()
+  }, [dataResult])
 
   const triggerCopy = (text, key) => {
     navigator.clipboard.writeText(text)
@@ -632,6 +659,16 @@ export default function FaqGeneratorPage() {
                 </div>
               </div>
             )}
+
+            {/* Lead Form — linked to this result so the PDF can be sent to
+                whoever submits, automatically or by an admin later. */}
+            <DynamicLeadForm
+              toolSlug="faq-generator"
+              relatedIdField="faqId"
+              relatedIdValue={dataResult.faqId}
+              title="Get Your Free Content Strategy"
+              subtitle="Our team will review your FAQ set and share ideas to strengthen your on-page SEO."
+            />
           </div>
         )}
       </div>

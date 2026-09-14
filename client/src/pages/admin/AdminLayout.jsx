@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom'
-import { LayoutDashboard, Wrench, Users, Activity, Smartphone } from 'lucide-react'
+import { LayoutDashboard, Wrench, Users, UserCircle2, Activity, Smartphone } from 'lucide-react'
 
 const NAV = [
   {
@@ -13,6 +13,7 @@ const NAV = [
   { to: '/admin/tools', icon: <Wrench className="w-[18px] h-[18px]" />, label: 'Tools' },
   { to: '/admin/devices', icon: <Smartphone className="w-[18px] h-[18px]" />, label: 'Device Limits' },
   { to: '/admin/leads', icon: <Users className="w-[18px] h-[18px]" />, label: 'Leads' },
+  { to: '/admin/clients', icon: <UserCircle2 className="w-[18px] h-[18px]" />, label: 'Clients' },
 ]
 
 

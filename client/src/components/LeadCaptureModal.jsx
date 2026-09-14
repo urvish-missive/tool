@@ -117,11 +117,14 @@ export default function LeadCaptureModal({ show, onClose, onSubmit, toolSlug, ti
         }
       })
 
-      await submitLead(payload).unwrap()
+      const result = await submitLead(payload).unwrap()
       setLeadCaptured(true)
-      // Auto-close after brief success animation
+      // Auto-close after brief success animation. Pass the created leadId up
+      // so a caller whose result doesn't exist yet at capture time (this
+      // popup fires before generation) can link the lead to it afterward —
+      // see BlogConclusionGeneratorPage.jsx's use of PATCH /leads/:id/link-result.
       setTimeout(() => {
-        onSubmit?.()
+        onSubmit?.(result?.leadId)
       }, 800)
     } catch (err) {
       setError(err?.data?.error || 'Something went wrong. Please try again.')

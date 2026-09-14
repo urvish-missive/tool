@@ -1,4 +1,5 @@
 import { analyzeCompetitor } from '../services/competitorAnalyzer.js'
+import prisma from '../utils/prisma.js'
 
 export const analyzeCompetitorSite = async (req, res) => {
   try {
@@ -45,7 +46,25 @@ export const analyzeCompetitorSite = async (req, res) => {
       targetKeywords: targetKeywords?.trim() || undefined,
     })
 
-    res.json(result)
+    // Persist so a lead captured after viewing this result can be linked to
+    // it, and so a client-side generated PDF can be stored here for later
+    // sending.
+    let competitorAnalysisId = null
+    try {
+      const saved = await prisma.competitorAnalysis.create({
+        data: {
+          competitorUrl,
+          yourUrl: yourUrl?.trim() || null,
+          targetKeywords: targetKeywords?.trim() || null,
+          reportJson: JSON.stringify(result),
+        },
+      })
+      competitorAnalysisId = saved.id
+    } catch (dbErr) {
+      console.error('CompetitorAnalysis save failed (non-fatal):', dbErr.message)
+    }
+
+    res.json({ ...result, competitorAnalysisId })
   } catch (error) {
     console.error('Competitor analysis error:', error)
     res.status(500).json({

@@ -3,7 +3,8 @@ import { adminAuth } from '../middleware/adminAuth.js'
 import {
   login, getProfile, getStats,
   getTools, updateTool,
-  getLeads, deleteLead,
+  getLeads, deleteLead, sendLeadPdf,
+  getClients, getClientActivity,
   getActivity,
   getDevices, resetDeviceLimit, setDeviceCustomLimit, toggleBlockDevice, deleteDevice,
 } from '../controllers/adminController.js'
@@ -36,6 +37,11 @@ router.get('/activity', adminAuth, getActivity)
 // Leads management
 router.get('/leads', adminAuth, getLeads)
 router.delete('/leads/:id', adminAuth, deleteLead)
+router.post('/leads/:id/send-pdf', adminAuth, sendLeadPdf)
+
+// Clients management (leads deduplicated by email)
+router.get('/clients', adminAuth, getClients)
+router.get('/clients/:email/activity', adminAuth, getClientActivity)
 
 export default router
 

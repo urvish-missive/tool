@@ -1,4 +1,5 @@
 import { generateFAQs } from '../services/faqGenerator.js'
+import prisma from '../utils/prisma.js'
 
 export const generateFaqs = async (req, res) => {
   try {
@@ -11,14 +12,35 @@ export const generateFaqs = async (req, res) => {
       })
     }
 
+    const safeTopic = topic.trim()
+    const safeCount = Math.min(Math.max(parseInt(count) || 8, 3), 15)
+
     const result = await generateFAQs({
-      topic: topic.trim(),
+      topic: safeTopic,
       targetKeywords: targetKeywords?.trim(),
-      count: Math.min(Math.max(parseInt(count) || 8, 3), 15),
+      count: safeCount,
       preferredProvider,
     })
 
-    res.json(result)
+    // Persist so a lead captured after viewing this result can be linked to
+    // it, and so a client-side generated PDF can be stored here for later
+    // sending.
+    let faqId = null
+    try {
+      const saved = await prisma.faqGeneration.create({
+        data: {
+          topic: safeTopic,
+          keywords: targetKeywords?.trim() || null,
+          faqsJson: JSON.stringify(result.faqs || []),
+          questionCount: Array.isArray(result.faqs) ? result.faqs.length : safeCount,
+        },
+      })
+      faqId = saved.id
+    } catch (dbErr) {
+      console.error('FaqGeneration save failed (non-fatal):', dbErr.message)
+    }
+
+    res.json({ ...result, faqId })
   } catch (error) {
     console.error('FAQ generation error:', error)
     res.status(500).json({

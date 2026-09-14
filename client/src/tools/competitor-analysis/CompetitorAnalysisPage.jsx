@@ -1,6 +1,7 @@
-import { useState } from 'react'
-import { useAnalyzeCompetitorMutation } from '../../services/apiSlice'
+import { useState, useEffect, useRef } from 'react'
+import { useAnalyzeCompetitorMutation, useStoreResultPdfMutation } from '../../services/apiSlice'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
+import DynamicLeadForm from '../../components/DynamicLeadForm'
 import StrategicOverviewCard from './components/StrategicOverviewCard'
 import HeadToHeadBenchmark from './components/HeadToHeadBenchmark'
 import OutrankPlaybookTab from './components/OutrankPlaybookTab'
@@ -14,6 +15,7 @@ export default function CompetitorAnalysisPage() {
   const [yourUrl, setYourUrl] = useState('')
   const [targetKeywords, setTargetKeywords] = useState('')
   const [analyzeCompetitor, { isLoading, reset: resetMutation }] = useAnalyzeCompetitorMutation()
+  const [storeResultPdf] = useStoreResultPdfMutation()
 
   const [results, setResults] = useState(null)
   const [error, setError] = useState('')
@@ -57,6 +59,31 @@ export default function CompetitorAnalysisPage() {
     resetMutation()
     window.scrollTo({ top: 0, behavior: 'smooth' })
   }
+
+  // Stash the PDF on the result at generation time, independent of whether
+  // the user ever submits a lead form — this is what makes both automatic
+  // send-on-capture and a later manual admin send possible without a live
+  // browser session (see server/src/utils/pdfSendResultTypes.js).
+  const pdfStoredForIdRef = useRef(null)
+  useEffect(() => {
+    if (!results?.competitorAnalysisId) return
+    if (pdfStoredForIdRef.current === results.competitorAnalysisId) return
+    pdfStoredForIdRef.current = results.competitorAnalysisId
+
+    ;(async () => {
+      try {
+        const { generateCompetitorAnalysisPdf } = await import('../../utils/generateCompetitorAnalysisPdf')
+        const doc = generateCompetitorAnalysisPdf(results)
+        const dataUri = doc.output('datauristring')
+        const pdfBase64 = dataUri.split(',')[1]
+        if (pdfBase64) {
+          await storeResultPdf({ model: 'competitorAnalysis', id: results.competitorAnalysisId, pdfBase64 }).unwrap()
+        }
+      } catch (err) {
+        console.warn('Could not store PDF report for later sending:', err)
+      }
+    })()
+  }, [results])
 
   const competitorSeo = results?.competitorSeo || null
   const yourSeo = results?.yourSeo || null
@@ -331,6 +358,16 @@ export default function CompetitorAnalysisPage() {
             {activeTab === 'snippets' && snippetSnatch && (
               <SnippetSnatchTab snippetSnatch={snippetSnatch} />
             )}
+
+            {/* Lead Form — linked to this result so the PDF can be sent to
+                whoever submits, automatically or by an admin later. */}
+            <DynamicLeadForm
+              toolSlug="competitor-analyzer"
+              relatedIdField="competitorAnalysisId"
+              relatedIdValue={results.competitorAnalysisId}
+              title="Get Your Free Competitive Strategy Session"
+              subtitle="Our team will review this analysis and share a prioritized outrank plan."
+            />
           </div>
         )}
       </div>
