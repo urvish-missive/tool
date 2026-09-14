@@ -179,7 +179,7 @@ export default function ContentAnalyzerPage() {
       />
 
       {/* Hero */}
-      <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
+      <section className="relative overflow-hidden !pt-20 sm:!pt-28 lg:!pt-36 py-16 sm:py-20 lg:py-24">
         <div
           className="absolute inset-0"
           style={{ background: 'linear-gradient(77deg, #0C81F3 32%, #EB8988 100%)', opacity: 0.08 }}

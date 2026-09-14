@@ -531,7 +531,7 @@ export default function Home() {
     <div className="min-h-screen flex flex-col bg-gray-50">
       <main className="flex-1">
         {/* ═══════════════ 1. HERO ═══════════════ */}
-        <section className="relative overflow-hidden !pt-36 sm:!pt-40 py-16 sm:py-20 lg:py-28">
+        <section className="relative overflow-hidden !pt-20 sm:!pt-28 lg:!pt-36 py-16 sm:py-20 lg:py-28">
           <div className="absolute inset-0 overflow-hidden pointer-events-none">
             <div
               className="absolute inset-0"

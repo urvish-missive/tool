@@ -334,7 +334,7 @@ function BannedTicker() {
 function QaHero({ onCta, toolRef, onResultStateChange, hideHeroCopy, resetSignal, onNewAudit }) {
   return (
     <section
-      className={`relative bg-[#F9F7F6] overflow-hidden ${hideHeroCopy ? 'pt-24 sm:pt-28 pb-12' : 'py-20 sm:py-28'}`}
+      className={`relative bg-[#F9F7F6] overflow-hidden ${hideHeroCopy ? 'pt-2 sm:pt-3 md:pt-4 pb-6 sm:pb-8' : 'py-20 sm:py-28'}`}
     >
       {!hideHeroCopy && (
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -417,7 +417,7 @@ function QaHero({ onCta, toolRef, onResultStateChange, hideHeroCopy, resetSignal
                 <BadgeCheck className="w-3.5 h-3.5 text-[#0C81F3]" /> No Sign-Up
               </span>
             </div>
-            <div className="p-3 sm:p-7">
+            <div className={hideHeroCopy ? 'p-3 sm:p-5 md:p-6' : 'p-3 sm:p-7'}>
               <ContentQaPage
                 isEmbedded={true}
                 onResultStateChange={onResultStateChange}

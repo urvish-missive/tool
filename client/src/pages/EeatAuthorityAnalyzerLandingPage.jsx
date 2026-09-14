@@ -456,6 +456,7 @@ export default function EeatAuthorityAnalyzerLandingPage() {
           ]}
           toolRef={toolRef}
           toolLabel={hasResults ? 'Forensic E‑E‑A‑T Audit Results' : 'Run the E‑E‑A‑T Audit • Live'}
+          onReset={hasResults ? handleNewAudit : null}
           toolSlot={
             <EeatAnalyzerPage
               isEmbedded={true}

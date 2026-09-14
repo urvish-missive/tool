@@ -355,6 +355,7 @@ export default function BlogIntroLandingPage() {
           toolLabel={
             hasResults ? 'Active Blog Introductions' : 'Generate Blog Introductions • Live'
           }
+          onReset={hasResults ? handleNewIntro : null}
           toolSlot={
             <BlogIntroGeneratorPage
               isEmbedded={true}

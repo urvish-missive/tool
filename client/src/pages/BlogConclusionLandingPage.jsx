@@ -546,6 +546,7 @@ export default function BlogConclusionLandingPage() {
           ]}
           toolRef={toolRef}
           toolLabel={hasResults ? 'Active Blog Conclusions' : 'Generate Blog Conclusions • Live'}
+          onReset={hasResults ? handleNewConclusion : null}
           toolSlot={
             <BlogConclusionGeneratorPage
               isEmbedded={true}

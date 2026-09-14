@@ -381,7 +381,7 @@ export default function CaseStudyGeneratorPage({
 
       {/* Hero Header */}
       {!isEmbedded && (
-        <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24 bg-gradient-to-b from-slate-50 to-white border-b border-slate-200">
+        <section className="relative overflow-hidden !pt-20 sm:!pt-28 lg:!pt-36 py-16 sm:py-20 lg:py-24 bg-gradient-to-b from-slate-50 to-white border-b border-slate-200">
           <div
             className="absolute inset-0 pointer-events-none"
             style={{
@@ -679,34 +679,34 @@ export default function CaseStudyGeneratorPage({
         {dataResult && !isLoading && (
           <div id="case-study-results" className="space-y-6">
             {/* Top Results Action Bar */}
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-lg shadow-slate-200/40 border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="space-y-1.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0C81F3] border border-blue-200/60">
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-3 sm:p-5 md:p-7 shadow-lg shadow-slate-200/40 border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-3 sm:gap-4">
+              <div className="space-y-1.5 min-w-0">
+                <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
+                  <span className="text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-0.5 rounded-full bg-blue-50 text-[#0C81F3] border border-blue-200/60">
                     {dataResult.caseStudy?.executiveSnapshot?.industry || 'B2B'}
                   </span>
-                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200/60">
+                  <span className="text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200/60">
                     Tone: {dataResult.meta?.tone || activeToneValue}
                   </span>
-                  <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60">
+                  <span className="text-[10px] sm:text-[11px] font-bold px-2 sm:px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/60">
                     {dataResult.meta?.wordCount || 0} Words
                   </span>
                 </div>
-                <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">
+                <h2 className="text-lg sm:text-xl md:text-2xl font-extrabold text-slate-900 tracking-tight break-words">
                   {dataResult.caseStudy?.title}
                 </h2>
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed break-words">
                   {dataResult.caseStudy?.subtitle}
                 </p>
               </div>
 
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 flex-shrink-0 w-full md:w-auto">
+              <div className="flex flex-col xs:flex-row items-stretch xs:items-center gap-2 flex-shrink-0 w-full md:w-auto">
                 <button
                   type="button"
                   onClick={() =>
                     handleCopy('all-markdown', dataResult.caseStudy?.fullMarkdown || '')
                   }
-                  className="flex-1 sm:flex-none justify-center px-3.5 py-2 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 text-xs font-semibold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
+                  className="flex-1 xs:flex-none justify-center px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 text-[11px] sm:text-xs font-semibold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
                 >
                   {copiedKey === 'all-markdown' ? (
                     <>
@@ -722,7 +722,7 @@ export default function CaseStudyGeneratorPage({
                 <button
                   type="button"
                   onClick={handleDownloadMarkdown}
-                  className="flex-1 sm:flex-none justify-center px-3.5 py-2 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#4F9CF8] hover:opacity-95 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
+                  className="flex-1 xs:flex-none justify-center px-3 sm:px-3.5 py-2 sm:py-2.5 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#4F9CF8] hover:opacity-95 text-white text-[11px] sm:text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer active:scale-95"
                 >
                   <Download className="w-4 h-4" /> Download .md
                 </button>
@@ -735,10 +735,10 @@ export default function CaseStudyGeneratorPage({
                 <button
                   type="button"
                   onClick={() => scrollTabs('left')}
-                  className="absolute -left-2 sm:-left-3.5 z-20 p-1.5 sm:p-2 rounded-full bg-white/95 backdrop-blur-md border border-slate-200 shadow-md text-slate-700 hover:text-[#0C81F3] hover:bg-slate-50 transition-all cursor-pointer hidden sm:flex items-center justify-center hover:scale-105 active:scale-95"
+                  className="absolute -left-1 sm:-left-3.5 z-20 p-1 sm:p-2 rounded-full bg-white/95 backdrop-blur-md border border-slate-200 shadow-md text-slate-700 hover:text-[#0C81F3] hover:bg-slate-50 transition-all cursor-pointer flex items-center justify-center hover:scale-105 active:scale-95"
                   aria-label="Scroll tabs left"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
               )}
 
@@ -755,7 +755,7 @@ export default function CaseStudyGeneratorPage({
                   msOverflowStyle: 'none',
                   WebkitOverflowScrolling: 'touch',
                 }}
-                className={`flex items-center gap-2 overflow-x-auto scroll-smooth scrollbar-hide no-scrollbar py-1 px-1 w-full select-none ${
+                className={`flex items-center gap-1.5 sm:gap-2 overflow-x-auto scroll-smooth scrollbar-hide no-scrollbar py-1 px-1 w-full select-none ${
                   isMouseDown ? 'cursor-grabbing' : 'cursor-grab sm:cursor-default'
                 }`}
               >
@@ -767,13 +767,13 @@ export default function CaseStudyGeneratorPage({
                       key={tab.id}
                       type="button"
                       onClick={(e) => handleSelectTab(tab.id, e)}
-                      className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all whitespace-nowrap flex-shrink-0 cursor-pointer ${
+                      className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-[11px] sm:text-sm font-bold transition-all whitespace-nowrap flex-shrink-0 cursor-pointer ${
                         isActive
                           ? 'bg-slate-900 text-white shadow-xs'
                           : 'bg-white text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-slate-200'
                       }`}
                     >
-                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                      <Icon className={`w-3.5 h-3.5 sm:w-4 sm:h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
                       <span>{tab.label}</span>
                     </button>
                   )
@@ -784,10 +784,10 @@ export default function CaseStudyGeneratorPage({
                 <button
                   type="button"
                   onClick={() => scrollTabs('right')}
-                  className="absolute -right-2 sm:-right-3.5 z-20 p-1.5 sm:p-2 rounded-full bg-white/95 backdrop-blur-md border border-slate-200 shadow-md text-slate-700 hover:text-[#0C81F3] hover:bg-slate-50 transition-all cursor-pointer hidden sm:flex items-center justify-center hover:scale-105 active:scale-95"
+                  className="absolute -right-1 sm:-right-3.5 z-20 p-1 sm:p-2 rounded-full bg-white/95 backdrop-blur-md border border-slate-200 shadow-md text-slate-700 hover:text-[#0C81F3] hover:bg-slate-50 transition-all cursor-pointer flex items-center justify-center hover:scale-105 active:scale-95"
                   aria-label="Scroll tabs right"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
               )}
             </div>
@@ -815,32 +815,32 @@ export default function CaseStudyGeneratorPage({
                 </div>
 
                 {/* Executive Snapshot Card */}
-                <div className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl p-4 sm:p-6 shadow-xl space-y-4">
-                  <div className="text-xs font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
-                    <Target className="w-4 h-4" /> Executive Snapshot
+                <div className="bg-gradient-to-r from-slate-900 to-indigo-950 text-white rounded-2xl p-3 sm:p-5 md:p-6 shadow-xl space-y-3 sm:space-y-4">
+                  <div className="text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+                    <Target className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> Executive Snapshot
                   </div>
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-2 border-t border-slate-800">
-                    <div>
-                      <div className="text-xs text-slate-400">Client Profile</div>
-                      <div className="text-sm font-semibold mt-0.5">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 pt-2 border-t border-slate-800">
+                    <div className="min-w-0">
+                      <div className="text-[11px] sm:text-xs text-slate-400">Client Profile</div>
+                      <div className="text-xs sm:text-sm font-semibold mt-0.5 break-words">
                         {dataResult.caseStudy?.executiveSnapshot?.client || 'Enterprise Partner'}
                       </div>
                     </div>
-                    <div>
-                      <div className="text-xs text-slate-400">Industry / Niche</div>
-                      <div className="text-sm font-semibold mt-0.5">
+                    <div className="min-w-0">
+                      <div className="text-[11px] sm:text-xs text-slate-400">Industry / Niche</div>
+                      <div className="text-xs sm:text-sm font-semibold mt-0.5 break-words">
                         {dataResult.caseStudy?.executiveSnapshot?.industry || 'B2B'}
                       </div>
                     </div>
-                    <div>
-                      <div className="text-xs text-slate-400">Timeframe</div>
-                      <div className="text-sm font-semibold mt-0.5">
+                    <div className="min-w-0">
+                      <div className="text-[11px] sm:text-xs text-slate-400">Timeframe</div>
+                      <div className="text-xs sm:text-sm font-semibold mt-0.5 break-words">
                         {dataResult.caseStudy?.executiveSnapshot?.timeframe || '90 Days'}
                       </div>
                     </div>
-                    <div>
-                      <div className="text-xs text-slate-400">Core Win</div>
-                      <div className="text-sm font-semibold text-emerald-400 mt-0.5">
+                    <div className="min-w-0">
+                      <div className="text-[11px] sm:text-xs text-slate-400">Core Win</div>
+                      <div className="text-xs sm:text-sm font-semibold text-emerald-400 mt-0.5 break-words">
                         {dataResult.caseStudy?.executiveSnapshot?.coreWin || 'Scale Achieved'}
                       </div>
                     </div>
@@ -935,10 +935,10 @@ export default function CaseStudyGeneratorPage({
                 )}
 
                 {/* Raw Full Markdown View */}
-                <div className="bg-white rounded-2xl p-4 sm:p-6 border border-slate-200 shadow-sm space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                      <FileText className="w-5 h-5 text-indigo-500" /> Complete Case Study
+                <div className="bg-white rounded-2xl p-3 sm:p-5 md:p-6 border border-slate-200 shadow-sm space-y-3">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                      <FileText className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500 flex-shrink-0" /> Complete Case Study
                       (Markdown)
                     </h3>
                     <button
@@ -946,7 +946,7 @@ export default function CaseStudyGeneratorPage({
                       onClick={() =>
                         handleCopy('raw-markdown', dataResult.caseStudy?.fullMarkdown || '')
                       }
-                      className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-medium transition-all flex items-center gap-1 cursor-pointer"
+                      className="px-3 py-1.5 rounded-lg border border-slate-200 hover:bg-slate-50 text-slate-600 text-xs font-medium transition-all flex items-center gap-1 cursor-pointer self-end sm:self-auto"
                     >
                       {copiedKey === 'raw-markdown' ? (
                         <Check className="w-3.5 h-3.5 text-emerald-500" />
@@ -956,7 +956,7 @@ export default function CaseStudyGeneratorPage({
                       <span>{copiedKey === 'raw-markdown' ? 'Copied' : 'Copy'}</span>
                     </button>
                   </div>
-                  <pre className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 font-mono overflow-x-auto whitespace-pre-wrap max-h-96 leading-relaxed">
+                  <pre className="p-2.5 sm:p-4 rounded-xl bg-slate-50 border border-slate-200 text-[11px] sm:text-xs text-slate-700 font-mono overflow-x-auto whitespace-pre-wrap max-h-72 sm:max-h-96 leading-relaxed">
                     {dataResult.caseStudy?.fullMarkdown}
                   </pre>
                 </div>
@@ -967,17 +967,17 @@ export default function CaseStudyGeneratorPage({
             {activeTab === 'testimonials' && (
               <div className="space-y-6">
                 {/* Hero Testimonial */}
-                <div className="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950 text-white p-4 sm:p-6 shadow-xl relative overflow-hidden">
+                <div className="rounded-2xl bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950 text-white p-3 sm:p-5 md:p-6 shadow-xl relative overflow-hidden">
                   <div className="absolute -top-6 -right-6 w-40 h-40 bg-[#0C81F3]/20 rounded-full blur-3xl pointer-events-none" />
                   <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 relative">
-                    <div>
+                    <div className="min-w-0">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
                         <Star className="w-3.5 h-3.5" /> Landing Page Hero Quote
                       </span>
-                      <p className="text-lg sm:text-xl font-bold leading-snug mt-2 italic pr-0 sm:pr-8 break-words">
+                      <p className="text-base sm:text-lg md:text-xl font-bold leading-snug mt-2 italic pr-0 sm:pr-8 break-words">
                         "{dataResult.marketingStrategy?.modularTestimonials?.heroLandingPage}"
                       </p>
-                      <p className="text-xs text-slate-300 mt-3">
+                      <p className="text-[11px] sm:text-xs text-slate-300 mt-2 sm:mt-3">
                         Drop this above the fold on your homepage, feature page, or product landing
                         page to establish proof in the first scroll.
                       </p>
@@ -990,7 +990,7 @@ export default function CaseStudyGeneratorPage({
                           dataResult.marketingStrategy?.modularTestimonials?.heroLandingPage || ''
                         )
                       }
-                      className="self-start sm:self-auto flex-shrink-0 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-medium text-white transition-all flex items-center gap-1 cursor-pointer"
+                      className="self-end sm:self-auto flex-shrink-0 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-medium text-white transition-all flex items-center gap-1 cursor-pointer"
                     >
                       {copiedKey === 'testimonial-hero' ? (
                         <Check className="w-3.5 h-3.5 text-emerald-400" />
@@ -1093,16 +1093,16 @@ export default function CaseStudyGeneratorPage({
 
                 {/* Attributed Client Quote */}
                 {dataResult.caseStudy?.clientQuote && (
-                  <div className="rounded-2xl border border-blue-200/80 bg-gradient-to-r from-blue-50/80 via-indigo-50/40 to-slate-50 p-6 relative overflow-hidden">
-                    <Quote className="w-8 h-8 text-blue-200 absolute top-4 right-4 opacity-50" />
+                  <div className="rounded-2xl border border-blue-200/80 bg-gradient-to-r from-blue-50/80 via-indigo-50/40 to-slate-50 p-3 sm:p-5 md:p-6 relative overflow-hidden">
+                    <Quote className="w-6 h-6 sm:w-8 sm:h-8 text-blue-200 absolute top-3 right-3 sm:top-4 sm:right-4 opacity-50" />
                     <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
                       Full Attributed Quote
                     </span>
-                    <p className="text-base font-medium italic text-slate-800 leading-relaxed mt-2 pr-8">
+                    <p className="text-sm sm:text-base font-medium italic text-slate-800 leading-relaxed mt-2 pr-6 sm:pr-8 break-words">
                       "{dataResult.caseStudy.clientQuote.quote}"
                     </p>
-                    <div className="flex items-center justify-between mt-3">
-                      <div className="text-xs font-bold text-[#0C81F3]">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 mt-3">
+                      <div className="text-[11px] sm:text-xs font-bold text-[#0C81F3] break-words min-w-0">
                         {dataResult.caseStudy.clientQuote.author} &bull;{' '}
                         <span className="font-normal text-slate-600">
                           {dataResult.caseStudy.clientQuote.role},{' '}
@@ -1117,7 +1117,7 @@ export default function CaseStudyGeneratorPage({
                             `"${dataResult.caseStudy.clientQuote.quote}" — ${dataResult.caseStudy.clientQuote.author}, ${dataResult.caseStudy.clientQuote.role}, ${dataResult.caseStudy.clientQuote.company}`
                           )
                         }
-                        className="px-2.5 py-1 rounded-lg border border-blue-200 text-xs text-slate-600 hover:bg-white flex items-center gap-1 cursor-pointer"
+                        className="px-2.5 py-1 rounded-lg border border-blue-200 text-xs text-slate-600 hover:bg-white flex items-center gap-1 cursor-pointer self-end sm:self-auto flex-shrink-0"
                       >
                         {copiedKey === 'testimonial-attributed' ? (
                           <Check className="w-3 h-3 text-emerald-500" />
@@ -1131,34 +1131,34 @@ export default function CaseStudyGeneratorPage({
                 )}
 
                 {/* Placement Guide */}
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm">
-                  <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                    <Target className="w-5 h-5 text-[#0C81F3]" /> Where Each Quote Goes
+                <div className="bg-white rounded-2xl p-3 sm:p-5 md:p-6 border border-slate-200 shadow-sm">
+                  <h3 className="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                    <Target className="w-4 h-4 sm:w-5 sm:h-5 text-[#0C81F3] flex-shrink-0" /> Where Each Quote Goes
                   </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
-                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 sm:gap-3 mt-3 sm:mt-4">
+                    <div className="p-3 sm:p-3.5 rounded-xl bg-slate-50 border border-slate-200">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-amber-500 block mb-1">
                         Landing Page Hero
                       </span>
-                      <p className="text-[12px] text-slate-600 leading-relaxed">
+                      <p className="text-[11px] sm:text-[12px] text-slate-600 leading-relaxed">
                         Highest-traffic page, above the fold. Companion software logos or
                         star-rating treatment to amplify trust.
                       </p>
                     </div>
-                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <div className="p-3 sm:p-3.5 rounded-xl bg-slate-50 border border-slate-200">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-indigo-500 block mb-1">
                         Sales Deck / RFP
                       </span>
-                      <p className="text-[12px] text-slate-600 leading-relaxed">
+                      <p className="text-[11px] sm:text-[12px] text-slate-600 leading-relaxed">
                         Opening or closing slide, paired with the KPI table so the quote and the
                         numbers appear together.
                       </p>
                     </div>
-                    <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+                    <div className="p-3 sm:p-3.5 rounded-xl bg-slate-50 border border-slate-200">
                       <span className="text-[10px] font-bold uppercase tracking-wider text-rose-500 block mb-1">
                         Paid Ads / Pricing Table
                       </span>
-                      <p className="text-[12px] text-slate-600 leading-relaxed">
+                      <p className="text-[11px] sm:text-[12px] text-slate-600 leading-relaxed">
                         Companion badge on Meta and LinkedIn ads, or under your pricing tiers for
                         last-second risk removal.
                       </p>
@@ -1172,9 +1172,9 @@ export default function CaseStudyGeneratorPage({
             {activeTab === 'blog-strategy' && (
               <div className="space-y-6">
                 {/* Integration Guidance */}
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-[#0C81F3]" /> Blog Post Integration Playbook
+                <div className="bg-white rounded-2xl p-3 sm:p-5 md:p-6 border border-slate-200 shadow-sm space-y-3 sm:space-y-4">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                    <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 text-[#0C81F3] flex-shrink-0" /> Blog Post Integration Playbook
                   </h3>
                   <p className="text-sm text-slate-600">
                     {dataResult.marketingStrategy?.blogWeavingStrategy?.placementAdvice}
@@ -1239,11 +1239,11 @@ export default function CaseStudyGeneratorPage({
                 </div>
 
                 {/* Curated List of Same-Domain Blogs */}
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+                <div className="bg-white rounded-2xl p-3 sm:p-5 md:p-6 border border-slate-200 shadow-sm space-y-3 sm:space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                        <Flame className="w-5 h-5 text-amber-500" /> High-Value Blog Topics From The
+                    <div className="min-w-0">
+                      <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                        <Flame className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 flex-shrink-0" /> High-Value Blog Topics From The
                         Same Domain
                       </h3>
                       <p className="text-xs text-slate-500 mt-1">
@@ -1332,10 +1332,10 @@ export default function CaseStudyGeneratorPage({
               <div className="space-y-6">
                 {/* The Kill Metric Card */}
                 {dataResult.marketingStrategy?.salesEnablement?.killMetric && (
-                  <div className="p-6 rounded-2xl bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-900 text-white shadow-xl space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                        <Flame className="w-4 h-4 text-amber-400" /> The Kill Metric (Competitor
+                  <div className="p-3 sm:p-5 md:p-6 rounded-2xl bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-900 text-white shadow-xl space-y-2">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                      <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                        <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-400 flex-shrink-0" /> The Kill Metric (Competitor
                         Comparison Winner)
                       </span>
                       <button
@@ -1356,7 +1356,7 @@ export default function CaseStudyGeneratorPage({
                         <span>{copiedKey === 'kill-metric' ? 'Copied' : 'Copy Metric'}</span>
                       </button>
                     </div>
-                    <p className="text-xl sm:text-2xl font-extrabold text-white tracking-tight">
+                    <p className="text-lg sm:text-xl md:text-2xl font-extrabold text-white tracking-tight break-words">
                       {dataResult.marketingStrategy.salesEnablement.killMetric}
                     </p>
                     {dataResult.marketingStrategy.salesEnablement.discoveryCallTrigger && (
@@ -1369,10 +1369,10 @@ export default function CaseStudyGeneratorPage({
                 )}
 
                 {/* Objection Handlers */}
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+                <div className="bg-white rounded-2xl p-3 sm:p-5 md:p-6 border border-slate-200 shadow-sm space-y-3 sm:space-y-4">
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                      <Target className="w-5 h-5 text-[#0C81F3]" /> Objection-Handling Field Scripts
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                      <Target className="w-4 h-4 sm:w-5 sm:h-5 text-[#0C81F3] flex-shrink-0" /> Objection-Handling Field Scripts
                     </h3>
                     <p className="text-xs text-slate-500 mt-1">
                       Word-for-word rebuttals for sales reps using verified case study proof points
@@ -1385,10 +1385,10 @@ export default function CaseStudyGeneratorPage({
                       (item, idx) => (
                         <div
                           key={idx}
-                          className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5"
+                          className="p-3 sm:p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2.5"
                         >
-                          <div className="flex items-center justify-between">
-                            <span className="text-xs font-bold text-rose-700 bg-rose-50 px-2.5 py-1 rounded-md border border-rose-200">
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                            <span className="text-[11px] sm:text-xs font-bold text-rose-700 bg-rose-50 px-2 sm:px-2.5 py-1 rounded-md border border-rose-200 break-words">
                               {item.objection}
                             </span>
                             <button
@@ -1417,14 +1417,14 @@ export default function CaseStudyGeneratorPage({
 
                 {/* Cold Outreach & Warm Follow-Up Email */}
                 {dataResult.marketingStrategy?.salesEnablement?.coldOutreachEmail && (
-                  <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                          <Mail className="w-5 h-5 text-emerald-600" /> Cold Outreach & Follow-Up
+                  <div className="bg-white rounded-2xl p-3 sm:p-5 md:p-6 border border-slate-200 shadow-sm space-y-3 sm:space-y-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
+                      <div className="min-w-0">
+                        <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                          <Mail className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 flex-shrink-0" /> Cold Outreach & Follow-Up
                           Email Template
                         </h3>
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="text-[11px] sm:text-xs text-slate-500 mt-1">
                           High-converting 3-sentence B2B email sequence anchored in this case
                           study's transformation.
                         </p>
@@ -1468,7 +1468,7 @@ export default function CaseStudyGeneratorPage({
                         </div>
                       </div>
 
-                      <pre className="p-4 rounded-xl bg-slate-900 text-slate-100 text-xs font-sans whitespace-pre-wrap leading-relaxed">
+                      <pre className="p-2.5 sm:p-4 rounded-xl bg-slate-900 text-slate-100 text-[11px] sm:text-xs font-sans whitespace-pre-wrap leading-relaxed overflow-x-auto">
                         {dataResult.marketingStrategy.salesEnablement.coldOutreachEmail.body}
                       </pre>
 
@@ -1488,12 +1488,12 @@ export default function CaseStudyGeneratorPage({
             {activeTab === 'paid-social' && (
               <div className="space-y-6">
                 {/* Social Posts Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                   {/* LinkedIn Breakdown */}
-                  <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-sky-600 font-bold text-base">
-                        <LinkedInIcon className="w-5 h-5 text-sky-600" /> LinkedIn Post Breakdown
+                  <div className="bg-white rounded-2xl p-3 sm:p-5 md:p-6 border border-slate-200 shadow-sm space-y-3">
+                    <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-sky-600 font-bold text-sm sm:text-base">
+                        <LinkedInIcon className="w-4 h-4 sm:w-5 sm:h-5 text-sky-600 flex-shrink-0" /> LinkedIn Post Breakdown
                       </div>
                       <button
                         type="button"
@@ -1513,16 +1513,16 @@ export default function CaseStudyGeneratorPage({
                         <span>{copiedKey === 'linkedin-post' ? 'Copied Post' : 'Copy Post'}</span>
                       </button>
                     </div>
-                    <pre className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 whitespace-pre-wrap font-sans leading-relaxed max-h-96 overflow-y-auto">
+                    <pre className="p-2.5 sm:p-4 rounded-xl bg-slate-50 border border-slate-200 text-[11px] sm:text-xs text-slate-800 whitespace-pre-wrap font-sans leading-relaxed max-h-72 sm:max-h-96 overflow-y-auto">
                       {dataResult.marketingStrategy?.socialMedia?.linkedInPost}
                     </pre>
                   </div>
 
                   {/* Twitter / X Thread */}
-                  <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-slate-900 font-bold text-base">
-                        <TwitterIcon className="w-5 h-5 text-slate-800" /> Twitter / X Thread
+                  <div className="bg-white rounded-2xl p-3 sm:p-5 md:p-6 border border-slate-200 shadow-sm space-y-3">
+                    <div className="flex flex-col xs:flex-row items-start xs:items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-slate-900 font-bold text-sm sm:text-base">
+                        <TwitterIcon className="w-4 h-4 sm:w-5 sm:h-5 text-slate-800 flex-shrink-0" /> Twitter / X Thread
                         Concept
                       </div>
                       <button
@@ -1545,7 +1545,7 @@ export default function CaseStudyGeneratorPage({
                         <span>{copiedKey === 'twitter-thread' ? 'Copied Thread' : 'Copy All'}</span>
                       </button>
                     </div>
-                    <div className="space-y-2.5 max-h-96 overflow-y-auto pr-1">
+                    <div className="space-y-2 sm:space-y-2.5 max-h-72 sm:max-h-96 overflow-y-auto pr-1">
                       {(dataResult.marketingStrategy?.socialMedia?.twitterThread || []).map(
                         (tweet, idx) => (
                           <div
@@ -1565,14 +1565,14 @@ export default function CaseStudyGeneratorPage({
 
                 {/* 5-Slide Carousel Breakdown */}
                 {dataResult.marketingStrategy?.paidAdsStrategy?.carouselSlides?.length > 0 && (
-                  <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                          <Share2 className="w-5 h-5 text-purple-600" /> 5-Slide Document Ad /
+                  <div className="bg-white rounded-2xl p-3 sm:p-5 md:p-6 border border-slate-200 shadow-sm space-y-3 sm:space-y-4">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3">
+                      <div className="min-w-0">
+                        <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                          <Share2 className="w-4 h-4 sm:w-5 sm:h-5 text-purple-600 flex-shrink-0" /> 5-Slide Document Ad /
                           Carousel Copy
                         </h3>
-                        <p className="text-xs text-slate-500 mt-1">
+                        <p className="text-[11px] sm:text-xs text-slate-500 mt-1">
                           Slide-by-slide copy crafted for LinkedIn Document Carousels and Instagram
                           PDF Carousels.
                         </p>
@@ -1599,7 +1599,7 @@ export default function CaseStudyGeneratorPage({
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5 sm:gap-3">
                       {dataResult.marketingStrategy.paidAdsStrategy.carouselSlides.map((slide) => (
                         <div
                           key={slide.slideNumber}
@@ -1623,9 +1623,9 @@ export default function CaseStudyGeneratorPage({
                 )}
 
                 {/* Paid Ads Copy: Contrarian Ad & Search Snippets */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                   {/* Contrarian Paid Ad */}
-                  <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-3">
+                  <div className="bg-white rounded-2xl p-3 sm:p-5 md:p-6 border border-slate-200 shadow-sm space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-xs font-bold uppercase tracking-wider text-indigo-700 flex items-center gap-1.5">
                         <Zap className="w-4 h-4 text-indigo-600" /> Contrarian Pattern-Interrupt
@@ -1649,13 +1649,13 @@ export default function CaseStudyGeneratorPage({
                         <span>{copiedKey === 'contrarian-ad' ? 'Copied' : 'Copy'}</span>
                       </button>
                     </div>
-                    <pre className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-800 whitespace-pre-wrap font-sans leading-relaxed">
+                    <pre className="p-2.5 sm:p-4 rounded-xl bg-slate-50 border border-slate-200 text-[11px] sm:text-xs text-slate-800 whitespace-pre-wrap font-sans leading-relaxed overflow-x-auto">
                       {dataResult.marketingStrategy?.paidAdsStrategy?.contrarianAdCopy}
                     </pre>
                   </div>
 
                   {/* High-Intent Search Ad */}
-                  <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-3">
+                  <div className="bg-white rounded-2xl p-3 sm:p-5 md:p-6 border border-slate-200 shadow-sm space-y-3">
                     <span className="text-xs font-bold uppercase tracking-wider text-blue-700 flex items-center gap-1.5">
                       <Search className="w-4 h-4 text-blue-600" /> High-Intent Search Ad Headlines &
                       Copy
@@ -1695,11 +1695,11 @@ export default function CaseStudyGeneratorPage({
             {activeTab === 'video-newsletter' && (
               <div className="space-y-6">
                 {/* Video Title Suggestions */}
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-                  <div className="flex items-center gap-2 text-rose-600 font-bold text-base">
-                    <Video className="w-5 h-5" /> Video Title Suggestions
+                <div className="bg-white rounded-2xl p-3 sm:p-5 md:p-6 border border-slate-200 shadow-sm space-y-3 sm:space-y-4">
+                  <div className="flex items-center gap-2 text-rose-600 font-bold text-sm sm:text-base">
+                    <Video className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" /> Video Title Suggestions
                   </div>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-[11px] sm:text-xs text-slate-500">
                     Ready-to-use titles for short-form (TikTok/Reels/Shorts) and long-form (YouTube) videos based on this case study.
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -1727,11 +1727,11 @@ export default function CaseStudyGeneratorPage({
                 </div>
 
                 {/* Newsletter Title Suggestions */}
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
-                  <div className="flex items-center gap-2 text-indigo-600 font-bold text-base">
-                    <Send className="w-5 h-5" /> Newsletter Title Suggestions
+                <div className="bg-white rounded-2xl p-3 sm:p-5 md:p-6 border border-slate-200 shadow-sm space-y-3 sm:space-y-4">
+                  <div className="flex items-center gap-2 text-indigo-600 font-bold text-sm sm:text-base">
+                    <Send className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" /> Newsletter Title Suggestions
                   </div>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-[11px] sm:text-xs text-slate-500">
                     Subject lines and headline ideas for Substack, Beehiiv, or LinkedIn newsletter editions based on this case study.
                   </p>
                   <div className="space-y-2">
@@ -1755,13 +1755,13 @@ export default function CaseStudyGeneratorPage({
             {/* TAB 6: AI Search & GEO Citations */}
             {activeTab === 'ai-geo' && (
               <div className="space-y-6">
-                <div className="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-6">
+                <div className="bg-white rounded-2xl p-3 sm:p-5 md:p-6 border border-slate-200 shadow-sm space-y-4 sm:space-y-6">
                   <div>
-                    <h3 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                      <Globe className="w-5 h-5 text-[#0C81F3]" /> AI Search & GEO Citation
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+                      <Globe className="w-4 h-4 sm:w-5 sm:h-5 text-[#0C81F3] flex-shrink-0" /> AI Search & GEO Citation
                       Footprint
                     </h3>
-                    <p className="text-xs text-slate-500 mt-1">
+                    <p className="text-[11px] sm:text-xs text-slate-500 mt-1">
                       Engineered so Perplexity, Google AI Overviews, and ChatGPT extract and cite
                       this case study as ground truth.
                     </p>
@@ -1778,13 +1778,13 @@ export default function CaseStudyGeneratorPage({
                       ).map((bite, idx) => (
                         <div
                           key={idx}
-                          className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-3 text-xs"
+                          className="p-2.5 sm:p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-3 text-xs"
                         >
-                          <span className="text-slate-800 font-medium">"{bite}"</span>
+                          <span className="text-slate-800 font-medium break-words min-w-0">"{bite}"</span>
                           <button
                             type="button"
                             onClick={() => handleCopy(`soundbite-${idx}`, bite)}
-                            className="text-slate-400 hover:text-[#0C81F3] flex items-center gap-1 flex-shrink-0 cursor-pointer"
+                            className="text-slate-400 hover:text-[#0C81F3] flex items-center gap-1 flex-shrink-0 cursor-pointer self-end sm:self-auto"
                           >
                             {copiedKey === `soundbite-${idx}` ? (
                               <Check className="w-3.5 h-3.5 text-emerald-500" />
@@ -1801,7 +1801,7 @@ export default function CaseStudyGeneratorPage({
                   </div>
 
                   {/* Target AI Queries */}
-                  <div className="p-4 rounded-xl bg-blue-50/60 border border-blue-200/80 space-y-2 text-xs">
+                  <div className="p-3 sm:p-4 rounded-xl bg-blue-50/60 border border-blue-200/80 space-y-2 text-[11px] sm:text-xs">
                     <span className="font-bold text-blue-900 block">
                       Target AI Search & Perplexity Queries To Win:
                     </span>
@@ -1818,7 +1818,7 @@ export default function CaseStudyGeneratorPage({
                   </div>
 
                   {/* Entity Schema Recommendations */}
-                  <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
+                  <div className="p-3 sm:p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2 text-[11px] sm:text-xs">
                     <span className="font-bold text-slate-800 block">
                       Recommended Schema.org Structured Data Entities:
                     </span>

@@ -1384,7 +1384,7 @@ export default function BlogTopicGeneratorPage({
     <div className={isEmbedded ? 'w-full' : 'min-h-screen bg-slate-50/50 pb-20'}>
       {/* Hero Header */}
       {!isEmbedded && (
-        <section className="relative overflow-hidden !pt-36 py-16 sm:py-20 lg:py-24">
+        <section className="relative overflow-hidden !pt-20 sm:!pt-28 lg:!pt-36 py-16 sm:py-20 lg:py-24">
           <div
             className="absolute inset-0"
             style={{

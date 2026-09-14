@@ -46,7 +46,7 @@ export default function LandingHero({
       <section
         className={`relative border-b border-slate-200/60 transition-all overflow-hidden ${
           hideHeroCopy
-            ? 'bg-white pt-24 sm:pt-28 pb-12'
+            ? 'bg-white pt-2 sm:pt-3 md:pt-4 pb-6 sm:pb-8'
             : 'bg-gradient-to-b from-white via-slate-50/40 to-white pt-28 xs:pt-32 sm:pt-36 lg:pt-40 pb-14 sm:pb-20 lg:pb-24'
         }`}
       >
@@ -183,7 +183,7 @@ export default function LandingHero({
                 </span>
               )}
             </div>
-            <div className="p-3 sm:p-6 lg:p-8">{toolSlot}</div>
+            <div className={hideHeroCopy ? 'p-3 sm:p-5 md:p-6' : 'p-3 sm:p-6 lg:p-8'}>{toolSlot}</div>
           </div>
         </div>
       </section>

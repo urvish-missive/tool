@@ -323,6 +323,7 @@ export default function BlogTopicLandingPage() {
           toolLabel={
             hasResults ? 'Active Topic Silo & Master Briefs' : 'Generate Blog Topics & Silos - Live'
           }
+          onReset={hasResults ? handleNewSearch : null}
           toolSlot={
             <BlogTopicGeneratorPage
               isEmbedded={true}

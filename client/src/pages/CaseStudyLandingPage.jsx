@@ -301,6 +301,7 @@ export default function CaseStudyLandingPage() {
           ]}
           toolRef={toolRef}
           toolLabel={hasResults ? 'Generated Case Study Playbook' : 'Generate Case Study - Live'}
+          onReset={hasResults ? handleNewCaseStudy : null}
           toolSlot={
             <CaseStudyGeneratorPage
               isEmbedded={true}

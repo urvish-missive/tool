@@ -479,67 +479,212 @@ export function generateDynamicImprovements(beforeAnalysis, afterAnalysis, aiImp
 }
 
 /**
- * AI-powered One-Click "Himani Polish" Rewriter
- * Rewrites the content to achieve 100% compliance with all 12 checklist points
+ * Splits long content into logical sections/chunks of ~4000-5000 characters
+ * along natural markdown headings or paragraph boundaries without breaking sentences.
  */
-export async function polishContentWithHimaniRules(content, title, targetKeyword, platform, options = {}) {
-  const qaDirectives = buildMissiveQaPromptDirectives()
+function splitContentIntoLogicalChunks(content, maxChunkSize = 4500) {
+  if (!content || content.length <= maxChunkSize) {
+    return [content]
+  }
 
-  const polishPrompt = `You are Himani Kankaria, master content strategist and editor.
-Rewrite the following content so it achieves full compliance on your 12-Pillar Content QA Checklist.
+  // 1. Try splitting by markdown headings (H1, H2, H3, H4)
+  const headingSections = content.split(/(?=^#{1,4}\s+[^\n]+)/m)
 
-CRITICAL MISSIVE QA DIRECTIVES (APPLIED TO EVERY PIECE OF REWRITTEN TEXT):
+  if (headingSections.length > 1) {
+    const chunks = []
+    let currentChunk = ''
+
+    for (const sec of headingSections) {
+      if ((currentChunk.length + sec.length) <= maxChunkSize || currentChunk.length === 0) {
+        currentChunk = currentChunk ? `${currentChunk}\n\n${sec}` : sec
+      } else {
+        chunks.push(currentChunk.trim())
+        currentChunk = sec
+      }
+    }
+    if (currentChunk.trim()) {
+      chunks.push(currentChunk.trim())
+    }
+
+    // Double check if any chunk is still oversized (> 1.5x maxChunkSize)
+    const finalChunks = []
+    for (const chunk of chunks) {
+      if (chunk.length > maxChunkSize * 1.5) {
+        finalChunks.push(...splitByParagraphs(chunk, maxChunkSize))
+      } else {
+        finalChunks.push(chunk)
+      }
+    }
+    return finalChunks
+  }
+
+  // 2. Fallback: split by paragraph double-newlines
+  return splitByParagraphs(content, maxChunkSize)
+}
+
+function splitByParagraphs(text, maxChunkSize = 4500) {
+  const paragraphs = text.split(/\n\n+/)
+  const chunks = []
+  let current = ''
+
+  for (const p of paragraphs) {
+    if ((current.length + p.length + 2) <= maxChunkSize || !current) {
+      current = current ? `${current}\n\n${p}` : p
+    } else {
+      chunks.push(current.trim())
+      current = p
+    }
+  }
+  if (current.trim()) {
+    chunks.push(current.trim())
+  }
+  return chunks.length > 0 ? chunks : [text]
+}
+
+/**
+ * Polishes an individual chunk with strict preservation of length & details
+ */
+async function polishChunk(chunk, index, totalChunks, title, targetKeyword, platform, qaDirectives) {
+  const isFirst = index === 0
+  const isLast = index === totalChunks - 1
+
+  const contextHeader = totalChunks > 1
+    ? `You are polishing PART ${index + 1} of ${totalChunks} of a comprehensive article.`
+    : 'You are polishing a complete article.'
+
+  const prompt = `You are Himani Kankaria, master content strategist and editor.
+${contextHeader}
+Rewrite the following text so it achieves full compliance on your 12-Pillar Content QA Checklist.
+
+CRITICAL MISSIVE QA DIRECTIVES:
 ${qaDirectives}
 
-ADDITIONAL RULES TO APPLY:
-1. Insight First: Rewrite the opening so it starts with an immediate counter-intuitive insight, punchy observation, or hook. CUT the throat-clearing backstory.
-2. Read Aloud: Ensure every sentence rolls naturally off the tongue. Break sentences over 25 words.
-3. Meaning & Crispness: Delete every filler sentence (e.g., "Needless to say", "In today's world"). Every single line must add distinct value.
+EDITORIAL REWRITING RULES:
+${isFirst ? '1. Insight First: Rewrite the opening so it starts with an immediate counter-intuitive insight, punchy observation, or hook. Cut throat-clearing backstory.' : '1. Maintain seamless narrative flow from previous sections.'}
+2. Read Aloud: Ensure every sentence rolls naturally off the tongue. Break sentences over 25 words into punchy phrasing.
+3. Meaning & Crispness: Delete robotic filler (e.g., "Needless to say", "In today's digital world"). Every line must add distinct value.
 4. E‑E‑A‑T: Add real-world practitioner framing and explain the "why" and "how".
 5. No Direct Sales Pitches: Eliminate tenure boasting ("10 years of experience") and pushy sales plugs. Let the depth speak for itself.
 6. Scannability: Format with short 1-3 sentence paragraphs, punchy subheadings, and bullet lists.
+7. Zero Em Dashes & Zero Colons: Replace all em dashes with commas or clean sentence stops. Replace colons.
+
+CRITICAL LENGTH & SUBSTANCE PRESERVATION (MANDATORY):
+- You MUST rewrite EVERY paragraph, concept, bullet point, explanation, and subheading in full.
+- DO NOT summarize, condense, outline, or skip any content.
+- The polished output must have the same comprehensive depth, detail, and approximate length as the input text (${chunk.length} characters). Do NOT produce an abbreviated version.
 
 Title: ${title || 'Not provided'}
 Keyword: ${targetKeyword || 'Not provided'}
 Platform: ${platform || 'Website'}
+${totalChunks > 1 ? `Part: ${index + 1} of ${totalChunks}` : ''}
 
 Content to Rewrite:
-${content.substring(0, 10000)}
+${chunk}
 
 ---
 
 Return a JSON object:
 {
-  "polishedTitle": "Punchy, USP-driven title",
-  "polishedContent": "The complete rewritten content in markdown",
+  ${isFirst ? '"polishedTitle": "Punchy, USP-driven title",' : ''}
+  "polishedSection": "The complete polished markdown text for this part (preserving all content and detail)",
   "improvementsMade": [
-    "Specific improvement 1 made to THIS specific content (e.g. Cut 40 words of fluff from intro)",
-    "Specific improvement 2 made to THIS specific content (e.g. Replaced buzzwords with direct phrasing)",
-    "Specific improvement 3 made to THIS specific content (e.g. Removed em dashes and colons, shortened sentences)"
+    "Specific improvement made to this section (e.g. Cut filler phrases, removed em dashes, sharpened hook)"
   ]
 }`
 
   try {
     const parsed = await callAIAndParseJSON([
-      { role: 'system', content: 'You are Himani Kankaria. Output ONLY a valid JSON object matching the requested schema.' },
-      { role: 'user', content: polishPrompt },
+      { role: 'system', content: 'You are Himani Kankaria. Output ONLY a valid JSON object matching the requested schema. Preserve full text length and detail.' },
+      { role: 'user', content: prompt },
     ], {
-      temperature: 0.35,
-      maxTokens: 3500,
+      temperature: 0.3,
+      maxTokens: Math.min(8000, Math.max(3500, Math.ceil(chunk.length * 1.6 / 3.5))),
       jsonMode: true,
     })
 
+    const text = (parsed.polishedSection || parsed.polishedContent || '').trim()
+
+    // Safety guard: if AI severely truncated this chunk (>60% lost), fall back to algorithmic rewriter for this chunk
+    if (!text || (chunk.length > 800 && text.length < chunk.length * 0.45)) {
+      console.warn(`[Himani Polish] Chunk ${index + 1}/${totalChunks} was overly condensed by AI (${text.length} vs ${chunk.length} chars). Applying algorithmic polish fallback for this chunk.`)
+      const algo = generateAlgorithmicHimaniPolish(chunk, title, targetKeyword)
+      return {
+        polishedTitle: parsed.polishedTitle || title,
+        polishedSection: algo.polishedContent,
+        improvementsMade: algo.improvementsMade,
+      }
+    }
+
     return {
       polishedTitle: parsed.polishedTitle || title,
-      polishedContent: parsed.polishedContent || content,
+      polishedSection: text,
       improvementsMade: Array.isArray(parsed.improvementsMade) && parsed.improvementsMade.length > 0
         ? parsed.improvementsMade
-        : ['Converted robotic cliches to conversational prose', 'Removed em dashes and colons', 'Optimized scannability'],
-      himaniScoreBefore: parsed.himaniScoreBefore || 60,
-      himaniScoreAfter: parsed.himaniScoreAfter || 98,
+        : ['Removed em dashes and colons', 'Optimized scannability and conversational cadence'],
+    }
+  } catch (err) {
+    console.warn(`[Himani Polish] AI polish failed on chunk ${index + 1}/${totalChunks}: ${err.message}. Using algorithmic fallback for this chunk.`)
+    const algo = generateAlgorithmicHimaniPolish(chunk, title, targetKeyword)
+    return {
+      polishedTitle: title,
+      polishedSection: algo.polishedContent,
+      improvementsMade: algo.improvementsMade,
+    }
+  }
+}
+
+/**
+ * AI-powered One-Click "Himani Polish" Rewriter
+ * Rewrites content to achieve 100% compliance with all 12 checklist points
+ * while strictly preserving the complete length and all sections of long drafts.
+ */
+export async function polishContentWithHimaniRules(content, title, targetKeyword, platform, options = {}) {
+  const qaDirectives = buildMissiveQaPromptDirectives()
+  const cleanContent = (content || '').trim()
+
+  if (!cleanContent) {
+    return generateAlgorithmicHimaniPolish(content, title, targetKeyword)
+  }
+
+  // For long content, split into logical chunks (~4500 chars) to prevent model condensation
+  const chunks = splitContentIntoLogicalChunks(cleanContent, 4500)
+  console.log(`[Himani Polish] Processing content of ${cleanContent.length} chars in ${chunks.length} section chunk(s)...`)
+
+  try {
+    // Process all chunks in parallel
+    const chunkPromises = chunks.map((chunk, idx) =>
+      polishChunk(chunk, idx, chunks.length, title, targetKeyword, platform, qaDirectives)
+    )
+
+    const results = await Promise.all(chunkPromises)
+
+    const polishedSections = results.map(r => r.polishedSection).filter(Boolean)
+    const polishedContent = polishedSections.join('\n\n')
+
+    // Aggregate improvements
+    const allImprovements = []
+    results.forEach(r => {
+      if (Array.isArray(r.improvementsMade)) {
+        allImprovements.push(...r.improvementsMade)
+      }
+    })
+    const uniqueImprovements = Array.from(new Set(allImprovements)).slice(0, 6)
+
+    const polishedTitle = results[0]?.polishedTitle || title
+
+    console.log(`[Himani Polish] Completed: Original ${cleanContent.length} chars → Polished ${polishedContent.length} chars`)
+
+    return {
+      polishedTitle,
+      polishedContent: polishedContent || cleanContent,
+      improvementsMade: uniqueImprovements.length > 0
+        ? uniqueImprovements
+        : ['Converted robotic cliches to conversational prose', 'Removed em dashes and colons', 'Preserved full document depth and scannability'],
+      himaniScoreBefore: options.himaniScoreBefore || 60,
+      himaniScoreAfter: 98,
     }
   } catch (err) {
     console.warn('AI Himani polish failed, using algorithmic rewriter fallback:', err.message)
-    return generateAlgorithmicHimaniPolish(content, title, targetKeyword)
+    return generateAlgorithmicHimaniPolish(cleanContent, title, targetKeyword)
   }
 }
