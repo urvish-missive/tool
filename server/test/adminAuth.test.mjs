@@ -1,11 +1,16 @@
 import { test, describe } from 'node:test'
 import assert from 'node:assert/strict'
 import jwt from 'jsonwebtoken'
-import { adminAuth, signAdminToken } from '../src/middleware/adminAuth.js'
+import {
+  adminAuth,
+  signAdminToken,
+  getJwtSecret,
+  DEFAULT_INSECURE_JWT_SECRET,
+} from '../src/middleware/adminAuth.js'
 import prisma from '../src/utils/prisma.js'
 
 describe('adminAuth middleware (AUTH-001)', () => {
-  const JWT_SECRET = process.env.JWT_SECRET || 'seo-tools-admin-secret-key-change-in-production'
+  const JWT_SECRET = getJwtSecret()
 
   function createMockRes() {
     return {
@@ -138,6 +143,99 @@ describe('adminAuth middleware (AUTH-001)', () => {
       if (tempAdmin) {
         await prisma.admin.delete({ where: { id: tempAdmin.id } })
       }
+    }
+  })
+})
+
+describe('JWT Secret Security & Validation (SEC-02)', () => {
+  const originalEnv = { ...process.env }
+
+  test('throws fatal error in production if JWT_SECRET is unset', () => {
+    try {
+      process.env.NODE_ENV = 'production'
+      delete process.env.JWT_SECRET
+      assert.throws(() => getJwtSecret(), {
+        message: /FATAL: JWT_SECRET must be explicitly set/,
+      })
+    } finally {
+      process.env = { ...originalEnv }
+    }
+  })
+
+  test('throws fatal error in production if JWT_SECRET is default insecure secret', () => {
+    try {
+      process.env.NODE_ENV = 'production'
+      process.env.JWT_SECRET = DEFAULT_INSECURE_JWT_SECRET
+      assert.throws(() => getJwtSecret(), {
+        message: /FATAL: JWT_SECRET must be explicitly set/,
+      })
+    } finally {
+      process.env = { ...originalEnv }
+    }
+  })
+
+  test('throws fatal error in production if JWT_SECRET is shorter than 32 characters', () => {
+    try {
+      process.env.NODE_ENV = 'production'
+      process.env.JWT_SECRET = 'too-short-secret-key'
+      assert.throws(() => getJwtSecret(), {
+        message: /at least 32 characters/,
+      })
+    } finally {
+      process.env = { ...originalEnv }
+    }
+  })
+
+  test('returns configured JWT_SECRET in production when >= 32 characters', () => {
+    try {
+      process.env.NODE_ENV = 'production'
+      const secureKey = 'a-very-strong-and-cryptographically-secure-key-32chars'
+      process.env.JWT_SECRET = secureKey
+      assert.equal(getJwtSecret(), secureKey)
+    } finally {
+      process.env = { ...originalEnv }
+    }
+  })
+
+  test('falls back safely with warning in development/test if unset', () => {
+    try {
+      process.env.NODE_ENV = 'development'
+      delete process.env.JWT_SECRET
+      assert.equal(getJwtSecret(), DEFAULT_INSECURE_JWT_SECRET)
+    } finally {
+      process.env = { ...originalEnv }
+    }
+  })
+})
+
+describe('Default Admin Seeding Security (SEC-03)', () => {
+  test('refuses to seed default admin in production if password is default admin123', async () => {
+    const { seedAdminUser } = await import('../src/utils/seedAdmin.js')
+    const result = await seedAdminUser({
+      env: 'production',
+      password: 'admin123',
+    })
+    assert.equal(result.created, false)
+  })
+
+  test('refuses to seed default admin in production if password is shorter than 12 characters', async () => {
+    const { seedAdminUser } = await import('../src/utils/seedAdmin.js')
+    const result = await seedAdminUser({
+      env: 'production',
+      password: 'short-pass',
+    })
+    assert.equal(result.created, false)
+  })
+
+  test('refuses to seed admin if an admin already exists in database', async () => {
+    const { seedAdminUser } = await import('../src/utils/seedAdmin.js')
+    const adminCount = await prisma.admin.count()
+    if (adminCount > 0) {
+      const result = await seedAdminUser({
+        password: 'ValidPassword123!',
+      })
+      assert.equal(result.created, false)
+      assert.equal(result.reason, 'Admin already exists')
     }
   })
 })
