@@ -45,7 +45,7 @@ const baseQueryWithDeviceLimit = async (args, api, extraOptions) => {
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithDeviceLimit,
-  tagTypes: ['Analysis', 'Lead', 'BlogTopic', 'TopicCluster', 'Device'],
+  tagTypes: ['Analysis', 'Lead', 'BlogTopic', 'TopicCluster', 'Device', 'ToolConfig'],
   endpoints: (builder) => ({
 
 
@@ -398,6 +398,7 @@ export const apiSlice = createApi({
     // GET /api/tools/public
     getPublicTools: builder.query({
       query: () => '/tools/public',
+      providesTags: ['ToolConfig'],
     }),
 
     // ─── Admin endpoints ────────────────────────
@@ -415,6 +416,7 @@ export const apiSlice = createApi({
         url: '/admin/tools',
         headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
       }),
+      providesTags: ['ToolConfig'],
     }),
     updateAdminTool: builder.mutation({
       query: ({ id, ...updates }) => ({
@@ -423,28 +425,43 @@ export const apiSlice = createApi({
         body: updates,
         headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
       }),
-      async onQueryStarted({ id, ...updates }, { dispatch, queryFulfilled }) {
-        const patchResult = dispatch(
+      invalidatesTags: ['ToolConfig'],
+      async onQueryStarted({ id, slug, ...updates }, { dispatch, queryFulfilled }) {
+        const serializedUpdates = { ...updates }
+        if (updates.formFields && typeof updates.formFields === 'object') {
+          serializedUpdates.formFields = JSON.stringify(updates.formFields)
+        }
+        if (updates.popupFields && typeof updates.popupFields === 'object') {
+          serializedUpdates.popupFields = JSON.stringify(updates.popupFields)
+        }
+
+        const patchAdmin = dispatch(
           apiSlice.util.updateQueryData('getAdminTools', undefined, (draft) => {
             if (draft?.tools) {
-              const tool = draft.tools.find((t) => t.id === id)
+              const tool = draft.tools.find((t) => (t.id && t.id === id) || (slug && t.slug === slug) || (updates.slug && t.slug === updates.slug))
               if (tool) {
-                const serializedUpdates = { ...updates }
-                if (updates.formFields && typeof updates.formFields === 'object') {
-                  serializedUpdates.formFields = JSON.stringify(updates.formFields)
-                }
-                if (updates.popupFields && typeof updates.popupFields === 'object') {
-                  serializedUpdates.popupFields = JSON.stringify(updates.popupFields)
-                }
                 Object.assign(tool, serializedUpdates)
               }
             }
           })
         )
+
+        const patchPublic = dispatch(
+          apiSlice.util.updateQueryData('getPublicTools', undefined, (draft) => {
+            if (draft?.tools) {
+              const tool = draft.tools.find((t) => (t.id && t.id === id) || (slug && t.slug === slug) || (updates.slug && t.slug === updates.slug))
+              if (tool) {
+                Object.assign(tool, serializedUpdates)
+              }
+            }
+          })
+        )
+
         try {
           await queryFulfilled
         } catch {
-          patchResult.undo()
+          patchAdmin.undo()
+          patchPublic.undo()
         }
       },
     }),

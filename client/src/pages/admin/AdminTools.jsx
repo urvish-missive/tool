@@ -219,6 +219,9 @@ export default function AdminTools() {
   }, [tools, searchQuery])
 
   const updateTool = async (id, updates) => {
+    const targetTool = tools.find((t) => t.id === id)
+    const slug = targetTool?.slug || updates.slug
+
     // 1. Optimistic instant local update
     setLocalTools((prev) =>
       prev.map((t) => {
@@ -236,7 +239,7 @@ export default function AdminTools() {
 
     // 2. Persist to API in background
     try {
-      await updateAdminTool({ id, ...updates }).unwrap()
+      await updateAdminTool({ id, slug, ...updates }).unwrap()
     } catch (err) {
       console.error('Update failed, reverting state:', err)
       if (data?.tools) setLocalTools(data.tools)

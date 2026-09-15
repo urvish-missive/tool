@@ -97,7 +97,7 @@ app.get('/api/ai/active-model', (req, res) => {
 app.get('/api/tools/public', async (req, res) => {
   try {
     const tools = await prisma.toolConfig.findMany({
-      select: { slug: true, name: true, enabled: true, requireEmail: true, requireName: true, requirePhone: true, requireCompany: true, showLeadPopup: true, formFields: true, popupFields: true, deviceLimit: true },
+      select: { id: true, slug: true, name: true, enabled: true, requireEmail: true, requireName: true, requirePhone: true, requireCompany: true, showLeadPopup: true, formFields: true, popupFields: true, deviceLimit: true },
     })
 
     res.json({ success: true, tools })

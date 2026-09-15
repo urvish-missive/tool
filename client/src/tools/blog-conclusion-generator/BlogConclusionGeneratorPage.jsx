@@ -211,7 +211,7 @@ export default function BlogConclusionGeneratorPage({
         }
       }
     })()
-  }, [dataResult])
+  }, [dataResult, popupLeadId])
 
   useEffect(() => {
     if (resetSignal > 0) {
@@ -250,6 +250,7 @@ export default function BlogConclusionGeneratorPage({
     useLeadPopup('blog-conclusion-generator')
 
   const [pendingForm, setPendingForm] = useState(null)
+  const pendingFormRef = useRef(null)
   // Captured from LeadCaptureModal when this tool's pre-use popup gate is
   // enabled (ToolConfig.showLeadPopup) — that popup fires BEFORE generation,
   // so this lead has no result yet at capture time; linked to the result
@@ -414,6 +415,7 @@ export default function BlogConclusionGeneratorPage({
     }
 
     if (popupEnabled) {
+      pendingFormRef.current = validated.data
       setPendingForm(validated.data)
       triggerPopup()
       return
@@ -1163,11 +1165,11 @@ export default function BlogConclusionGeneratorPage({
                 email (popupLeadId) — that lead gets linked to the result
                 instead (see the dataResult effect above), so this form
                 would otherwise ask for the same email twice. */}
-            {!popupLeadId && dataResult?.blogConclusionId && (
+            {!popupLeadId && (
               <DynamicLeadForm
                 toolSlug="blog-conclusion-generator"
                 relatedIdField="blogConclusionId"
-                relatedIdValue={dataResult.blogConclusionId}
+                relatedIdValue={dataResult?.blogConclusionId}
                 title="Get Your Free Content Strategy"
                 subtitle="Our team will review your conclusions and share ideas to strengthen your funnel."
               />
@@ -1195,7 +1197,9 @@ export default function BlogConclusionGeneratorPage({
         onSubmit={(leadId) => {
           setPopupLeadId(leadId)
           handlePopupSubmit()
-          if (pendingForm) executeGeneration(pendingForm)
+          const formToExecute = pendingFormRef.current || pendingForm
+          if (formToExecute) executeGeneration(formToExecute)
+          pendingFormRef.current = null
           setPendingForm(null)
         }}
         toolSlug="blog-conclusion-generator"

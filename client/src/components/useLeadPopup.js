@@ -12,7 +12,9 @@ import { useGetPublicToolsQuery } from '../services/apiSlice'
  */
 export function useLeadPopup(toolSlug) {
   const [showPopup, setShowPopup] = useState(false)
-  const { data } = useGetPublicToolsQuery()
+  const { data } = useGetPublicToolsQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  })
 
   const popupEnabled = useMemo(() => {
     if (data?.success && data?.tools) {

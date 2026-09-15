@@ -17,7 +17,9 @@ export default function DynamicLeadForm({
 }) {
   const [form, setForm] = useState({ name: '', email: '', company: '', website: '', phone: '' })
   const [submitLead, { isLoading }] = useSubmitLeadMutation()
-  const { data: toolsData, isLoading: toolsLoading } = useGetPublicToolsQuery()
+  const { data: toolsData, isLoading: toolsLoading } = useGetPublicToolsQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  })
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
 

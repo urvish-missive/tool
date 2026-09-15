@@ -21,7 +21,9 @@ const DEFAULT_CONFIG = {
 export default function LeadCaptureModal({ show, onClose, onSubmit, toolSlug, title, subtitle }) {
   const [form, setForm] = useState({ name: '', email: '', company: '', website: '', phone: '' })
   const [submitLead, { isLoading }] = useSubmitLeadMutation()
-  const { data: toolsData } = useGetPublicToolsQuery()
+  const { data: toolsData } = useGetPublicToolsQuery(undefined, {
+    refetchOnMountOrArgChange: true,
+  })
   const [error, setError] = useState('')
   const [leadCaptured, setLeadCaptured] = useState(false)
 
