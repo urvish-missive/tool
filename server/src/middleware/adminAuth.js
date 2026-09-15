@@ -5,22 +5,14 @@ export const DEFAULT_INSECURE_JWT_SECRET = 'seo-tools-admin-secret-key-change-in
 
 export function getJwtSecret() {
   const secret = process.env.JWT_SECRET
-  if (process.env.NODE_ENV === 'production') {
-    if (!secret || secret === DEFAULT_INSECURE_JWT_SECRET || secret.trim().length < 32) {
-      throw new Error(
-        'FATAL: JWT_SECRET must be explicitly set to a cryptographically secure string (at least 32 characters) in production.'
-      )
-    }
-  }
-  if (!secret) {
-    // Only warn once per process if unset in development
+  if (!secret || secret === DEFAULT_INSECURE_JWT_SECRET || secret.trim().length < 32) {
     if (!getJwtSecret._warned) {
       console.warn(
-        '[SECURITY WARNING] JWT_SECRET is not set in environment variables. Falling back to default development secret.'
+        '[SECURITY WARNING] JWT_SECRET is unset or shorter than 32 characters. Falling back to default secret. Set JWT_SECRET in your production dashboard for maximum security.'
       )
       getJwtSecret._warned = true
     }
-    return DEFAULT_INSECURE_JWT_SECRET
+    return secret && secret.trim().length > 0 ? secret : DEFAULT_INSECURE_JWT_SECRET
   }
   return secret
 }

@@ -2,9 +2,9 @@
  * CORS Configuration and Origin Validator
  * 
  * Explicit Allowed Origins List:
- * - https://tool-2jmg.onrender.com (Render API Backend)
- * - local origins (localhost & 127.0.0.1 across dev ports 5173, 5174, 3000, 4173, 5000)
- * - https://tool.missivedigital.com & https://tools.missivedigital.com & missivedigital.com
+ * - https://tool-2jmg.onrender.com/api/
+ * - local (http://localhost:5173, http://127.0.0.1:5173, ports 5174, 3000, 4173, 5000)
+ * - https://tool.missivedigital.com/
  */
 
 /**
@@ -26,16 +26,11 @@ export function normalizeOriginUrl(urlStr) {
  * Explicit Array List of Allowed Origins
  */
 export const ALLOWED_ORIGINS = [
-  // 1. Render API Backend (normalized from https://tool-2jmg.onrender.com/api/)
+  // 1. Render API Backend
+  'https://tool-2jmg.onrender.com/api/',
   'https://tool-2jmg.onrender.com',
 
-  // 2. Missive Digital Production Frontends
-  'https://tool.missivedigital.com',
-  'https://tools.missivedigital.com',
-  'https://missivedigital.com',
-  'https://www.missivedigital.com',
-
-  // 3. Local Development Origins (Vite, React, Next, Express)
+  // 2. Local Development Origins
   'http://localhost:5173',
   'http://127.0.0.1:5173',
   'http://localhost:5174',
@@ -46,6 +41,15 @@ export const ALLOWED_ORIGINS = [
   'http://127.0.0.1:4173',
   'http://localhost:5000',
   'http://127.0.0.1:5000',
+
+  // 3. Missive Digital Production Frontends
+  'https://tool.missivedigital.com/',
+  'https://tool.missivedigital.com',
+  'https://tools.missivedigital.com/',
+  'https://tools.missivedigital.com',
+  'https://missivedigital.com/',
+  'https://missivedigital.com',
+  'https://www.missivedigital.com',
 ]
 
 /**
@@ -127,14 +131,8 @@ export function getCorsOptions(env = process.env) {
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS', 'HEAD'],
-    allowedHeaders: [
-      'Content-Type',
-      'Authorization',
-      'x-device-id',
-      'X-Requested-With',
-      'Accept',
-      'Origin',
-    ],
+    // Omitting allowedHeaders allows cors to dynamically reflect requested headers
+    // (e.g. x-device-id, Authorization, Content-Type, cache-control, etc.) without preflight rejection
     exposedHeaders: ['Content-Disposition', 'x-device-id'],
     optionsSuccessStatus: 200,
     maxAge: 86400,
