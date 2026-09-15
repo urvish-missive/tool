@@ -31,6 +31,7 @@ import adminRoutes from './routes/adminRoutes.js'
 import { toolAccess } from './middleware/toolAccess.js'
 import { getJwtSecret } from './middleware/adminAuth.js'
 import { seedAdminUser } from './utils/seedAdmin.js'
+import { getCorsOptions } from './utils/corsConfig.js'
 import prisma from './utils/prisma.js'
 import { getActiveModelInfo } from './utils/aiProvider.js'
 
@@ -39,22 +40,7 @@ const PORT = process.env.PORT || 5000
 
 // Security
 app.use(helmet({ crossOriginResourcePolicy: false }))
-const defaultDevOrigins = ['http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000']
-const allowedOrigins = process.env.CLIENT_URL
-  ? process.env.CLIENT_URL.split(',').map(s => s.trim())
-  : (process.env.NODE_ENV === 'production' ? [] : defaultDevOrigins)
-
-app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (e.g. same-origin, curl, server-to-server)
-    if (!origin) return callback(null, true)
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true)
-    }
-    return callback(null, false)
-  },
-  credentials: true,
-}))
+app.use(cors(getCorsOptions()))
 
 // Body parsing with size limit (allows up to 25MB for base64 PDF report attachments)
 app.use(express.json({ limit: '25mb' }))
