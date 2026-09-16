@@ -238,9 +238,9 @@ export default function AdminActivity() {
                   return (
                     <tr
                       key={item.id}
-                      className="border-b border-gray-100 hover:bg-gray-50 transition-colors"
+                      className="border-b border-gray-100 hover:bg-gray-50/70 transition-colors"
                     >
-                      <td className="px-5 py-3">
+                      <td className="px-5 py-3.5 align-middle whitespace-nowrap">
                         <span
                           className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold ${tc.color}`}
                         >
@@ -248,54 +248,54 @@ export default function AdminActivity() {
                           {tc.label}
                         </span>
                       </td>
-                      <td className="px-5 py-3">
+                      <td className="px-5 py-3.5 align-middle">
                         <span className="text-gray-900 font-medium max-w-[300px] truncate block">
                           {item.detail || '—'}
                         </span>
                       </td>
-                      <td className="px-5 py-3 hidden md:table-cell">
+                      <td className="px-5 py-3.5 align-middle hidden md:table-cell">
                         <span className="text-gray-500 text-xs max-w-[250px] truncate block">
                           {item.subdetail || '—'}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-center">
+                      <td className="px-5 py-3.5 align-middle whitespace-nowrap text-center">
                         {item.score != null ? (
                           <span
-                            className={`inline-block px-2 py-0.5 rounded text-xs font-bold ${
+                            className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-bold ${
                               item.score >= 70
-                                ? 'bg-green-100 text-green-700'
+                                ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                 : item.score >= 40
-                                  ? 'bg-yellow-100 text-yellow-700'
-                                  : 'bg-red-100 text-red-600'
+                                  ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                  : 'bg-rose-50 text-rose-700 border border-rose-200'
                             }`}
                           >
                             {item.score}/100
                           </span>
                         ) : (
-                          <span className="text-gray-300">—</span>
+                          <span className="text-gray-300 font-medium">—</span>
                         )}
                       </td>
-                      <td className="px-5 py-3">
+                      <td className="px-5 py-3.5 align-middle whitespace-nowrap">
                         <span
-                          className="text-xs text-gray-400"
+                          className="text-xs text-gray-500"
                           title={new Date(item.createdAt).toLocaleString()}
                         >
                           {formatTime(item.createdAt)}
                         </span>
                       </td>
-                      <td className="px-5 py-3 text-right">
+                      <td className="px-5 py-3.5 align-middle whitespace-nowrap text-right">
                         <button
                           onClick={() => handleDownloadActivityPdf(item)}
                           disabled={downloadingItemId === item.id}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-[#0C81F3] bg-[#0C81F3]/10 hover:bg-[#0C81F3]/20 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-[#0C81F3] bg-[#0C81F3]/10 hover:bg-[#0C81F3]/20 border border-[#0C81F3]/25 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                           title="Download generated result PDF report"
                         >
                           {downloadingItemId === item.id ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
                           ) : (
-                            <Download className="w-3.5 h-3.5" />
+                            <Download className="w-3.5 h-3.5 shrink-0" />
                           )}
-                          PDF
+                          <span>PDF</span>
                         </button>
                       </td>
                     </tr>

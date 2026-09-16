@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Download, Users, CheckCircle2, XCircle, Send, Loader2 } from 'lucide-react'
+import { Download, Users, CheckCircle2, XCircle, Send, Loader2, Trash2 } from 'lucide-react'
 import {
   useGetAdminLeadsQuery,
   useDeleteAdminLeadMutation,
@@ -241,127 +241,143 @@ export default function AdminLeads() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100 bg-gray-50">
-                  <th className="text-left px-4 py-3 text-gray-500 font-medium">Name</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-medium">Email</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-medium">Company</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-medium">Source</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-medium">Date</th>
-                  <th className="text-left px-4 py-3 text-gray-500 font-medium">PDF Status</th>
-                  <th className="text-center px-4 py-3 text-gray-500 font-medium">PDF Report</th>
-                  <th className="text-right px-4 py-3 text-gray-500 font-medium">Actions</th>
+              <thead className="bg-gray-50/80 border-b border-gray-200">
+                <tr>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Name
+                  </th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Email
+                  </th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Company
+                  </th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Source
+                  </th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Date
+                  </th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    PDF Status
+                  </th>
+                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    PDF Report
+                  </th>
+                  <th className="text-right px-4 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                    Actions
+                  </th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="divide-y divide-gray-100">
                 {leads.map((lead) => (
                   <tr
                     key={lead.id}
-                    className="border-b border-gray-50 hover:bg-gray-50 transition-colors"
+                    className="hover:bg-gray-50/70 transition-colors"
                   >
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-r from-[#0C81F3]/20 to-[#EB8988]/20 flex items-center justify-center text-[11px] font-bold text-gray-600">
+                    <td className="px-4 py-3.5 align-middle whitespace-nowrap">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#0C81F3]/15 to-[#EB8988]/20 flex items-center justify-center text-xs font-bold text-[#0C81F3] shrink-0 border border-[#0C81F3]/20">
                           {lead.name?.[0]?.toUpperCase() || '?'}
                         </div>
                         <span className="font-medium text-gray-900">{lead.name}</span>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-gray-500">{lead.email}</td>
-                    <td className="px-4 py-3 text-gray-500">{lead.company || '—'}</td>
-                    <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 bg-gray-100 text-gray-600 rounded-full text-xs capitalize">
+                    <td className="px-4 py-3.5 align-middle whitespace-nowrap text-gray-600">
+                      {lead.email}
+                    </td>
+                    <td className="px-4 py-3.5 align-middle whitespace-nowrap text-gray-600">
+                      {lead.company || <span className="text-gray-300 font-medium">—</span>}
+                    </td>
+                    <td className="px-4 py-3.5 align-middle whitespace-nowrap">
+                      <span className="inline-flex items-center px-2.5 py-1 bg-slate-100 text-slate-700 border border-slate-200/80 rounded-full text-xs font-medium capitalize">
                         {lead.source?.replace(/-/g, ' ') || 'unknown'}
                       </span>
                     </td>
-                    <td className="px-4 py-3 text-gray-400 text-xs">
-                      {new Date(lead.createdAt).toLocaleDateString()}{' '}
-                      {new Date(lead.createdAt).toLocaleTimeString([], {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                      })}
+                    <td className="px-4 py-3.5 align-middle whitespace-nowrap">
+                      <div className="flex flex-col leading-tight">
+                        <span className="text-gray-700 text-xs font-medium">
+                          {new Date(lead.createdAt).toLocaleDateString()}
+                        </span>
+                        <span className="text-gray-400 text-[11px] mt-0.5">
+                          {new Date(lead.createdAt).toLocaleTimeString([], {
+                            hour: '2-digit',
+                            minute: '2-digit',
+                          })}
+                        </span>
+                      </div>
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-4 py-3.5 align-middle whitespace-nowrap">
                       {lead.pdfSendStatus === 'sent' ? (
                         <span
-                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-full text-xs font-medium"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full text-xs font-medium"
                           title={
                             lead.pdfSentAt
                               ? `Sent ${new Date(lead.pdfSentAt).toLocaleString()} (${lead.pdfSendTriggeredBy || 'manual'})`
                               : undefined
                           }
                         >
-                          <CheckCircle2 className="w-3 h-3" /> Sent
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                          <span>Sent</span>
                         </span>
                       ) : lead.pdfSendStatus === 'failed' ? (
                         <span
-                          className="inline-flex items-center gap-1 px-2 py-0.5 bg-red-50 text-red-700 border border-red-200 rounded-full text-xs font-medium"
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-200/80 rounded-full text-xs font-medium"
                           title={lead.pdfSendError || 'Send failed'}
                         >
-                          <XCircle className="w-3 h-3" /> Failed
+                          <XCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                          <span>Failed</span>
                         </span>
                       ) : (
-                        <span className="inline-flex items-center px-2 py-0.5 bg-gray-100 text-gray-500 rounded-full text-xs font-medium">
-                          Not Sent
+                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 text-gray-600 border border-gray-200/80 rounded-full text-xs font-medium">
+                          <span className="w-1.5 h-1.5 rounded-full bg-gray-400 shrink-0" />
+                          <span>Not Sent</span>
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-center">
+                    <td className="px-4 py-3.5 align-middle whitespace-nowrap">
                       {hasLinkedResult(lead) ? (
                         <button
                           onClick={() => handleDownloadPdf(lead)}
                           disabled={downloadingLeadId === lead.id}
-                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#0C81F3]/10 hover:bg-[#0C81F3]/20 text-[#0C81F3] rounded-lg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0C81F3]/10 hover:bg-[#0C81F3]/20 text-[#0C81F3] border border-[#0C81F3]/25 rounded-lg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs"
                           title="Download the generated PDF report"
                         >
                           {downloadingLeadId === lead.id ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
                           ) : (
-                            <Download className="w-3.5 h-3.5" />
+                            <Download className="w-3.5 h-3.5 shrink-0" />
                           )}
                           <span>Download PDF</span>
                         </button>
                       ) : (
-                        <span className="text-gray-400 text-xs italic">—</span>
+                        <span className="text-gray-300 text-xs font-medium pl-2">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <div className="flex items-center justify-end gap-3">
+                    <td className="px-4 py-3.5 align-middle whitespace-nowrap text-right">
+                      <div className="flex items-center justify-end gap-2">
                         {hasLinkedResult(lead) && (
-                          <>
-                            <button
-                              onClick={() => handleDownloadPdf(lead)}
-                              disabled={downloadingLeadId === lead.id}
-                              className="inline-flex items-center gap-1 text-xs text-gray-700 hover:text-[#0C81F3] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                              title="Download the generated PDF report"
-                            >
-                              {downloadingLeadId === lead.id ? (
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                              ) : (
-                                <Download className="w-3 h-3" />
-                              )}
-                              <span>Download</span>
-                            </button>
-                            <button
-                              onClick={() => handleSendPdf(lead)}
-                              disabled={sendingLeadId === lead.id}
-                              className="inline-flex items-center gap-1 text-xs text-[#0C81F3] hover:text-[#0969C3] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                              title="Send the PDF report to this lead's email"
-                            >
-                              {sendingLeadId === lead.id ? (
-                                <Loader2 className="w-3 h-3 animate-spin" />
-                              ) : (
-                                <Send className="w-3 h-3" />
-                              )}
-                              {lead.pdfSendStatus === 'sent' ? 'Resend' : 'Send'}
-                            </button>
-                          </>
+                          <button
+                            onClick={() => handleSendPdf(lead)}
+                            disabled={sendingLeadId === lead.id}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-[#0C81F3] hover:text-[#0969C3] hover:bg-[#0C81F3]/10 border border-[#0C81F3]/25 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            title="Send the PDF report to this lead's email"
+                          >
+                            {sendingLeadId === lead.id ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+                            ) : (
+                              <Send className="w-3.5 h-3.5 shrink-0" />
+                            )}
+                            <span>{lead.pdfSendStatus === 'sent' ? 'Resend' : 'Send PDF'}</span>
+                          </button>
                         )}
                         <button
                           onClick={() => setLeadToDelete(lead)}
-                          className="text-xs text-gray-400 hover:text-red-500 transition-colors cursor-pointer"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-500 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 rounded-lg transition-colors cursor-pointer"
+                          title="Delete lead"
                         >
-                          Delete
+                          <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                          <span>Delete</span>
                         </button>
                       </div>
                     </td>
