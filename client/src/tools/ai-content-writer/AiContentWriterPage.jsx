@@ -143,7 +143,7 @@ export default function AiContentWriterPage() {
 
   const { showPopup, handlePopupSubmit, handlePopupClose, triggerPopup, popupEnabled } =
     useLeadPopup('ai-content-writer')
-  const [pendingForm, setPendingForm] = useState(null)
+  const pendingFormRef = useRef(null)
   // Captured from LeadCaptureModal when this tool's pre-use popup gate is
   // enabled (ToolConfig.showLeadPopup) — that popup fires BEFORE generation
   // runs, so this lead has no result yet at capture time; linked to the
@@ -187,6 +187,18 @@ export default function AiContentWriterPage() {
       })
   }
 
+  const handleModalSuccess = (leadId) => {
+    if (leadId) {
+      setPopupLeadId(leadId)
+    }
+    handlePopupSubmit(leadId)
+    const formToRun = pendingFormRef.current
+    if (formToRun) {
+      executeGeneration(formToRun)
+      pendingFormRef.current = null
+    }
+  }
+
   const onFormValid = (formData) => {
     const parsed = parseAiContentWriterForm(formData)
     if (!parsed.success) {
@@ -195,7 +207,7 @@ export default function AiContentWriterPage() {
     }
 
     if (popupEnabled) {
-      setPendingForm(parsed.data)
+      pendingFormRef.current = parsed.data
       triggerPopup()
       return
     }
@@ -248,7 +260,7 @@ export default function AiContentWriterPage() {
         }
       }
     })()
-  }, [dataResult])
+  }, [dataResult, popupLeadId])
 
   const triggerCopy = (text, key) => {
     navigator.clipboard.writeText(text)
@@ -1081,6 +1093,16 @@ export default function AiContentWriterPage() {
           </div>
         )}
       </div>
+
+      {/* Lead Capture Modal */}
+      <LeadCaptureModal
+        show={showPopup}
+        onClose={handlePopupClose}
+        onSubmit={handleModalSuccess}
+        toolSlug="ai-content-writer"
+        title="Generate High-Ranking SEO Content"
+        subtitle="Enter your details to run the AI Content Writer and receive your full SEO article."
+      />
     </div>
   )
 }

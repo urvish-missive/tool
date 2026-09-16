@@ -258,9 +258,11 @@ export default function SeoRoiPage() {
   // calculation runs, so this lead has no result yet at capture time;
   // linked to the result once it exists (see the store-pdf effect below).
   const [popupLeadId, setPopupLeadId] = useState(null)
+  const pendingFormRef = useRef(null)
 
   const onFormValid = (formData) => {
     if (popupEnabled) {
+      pendingFormRef.current = formData
       triggerPopup()
       return
     }
@@ -399,7 +401,9 @@ export default function SeoRoiPage() {
         onSubmit={(leadId) => {
           setPopupLeadId(leadId)
           handlePopupSubmit()
-          runCalculation()
+          const pending = pendingFormRef.current
+          runCalculation(pending)
+          pendingFormRef.current = null
         }}
         toolSlug="seo-roi"
         title="Get Your Free SEO ROI Analysis"

@@ -1,9 +1,15 @@
 import { useState, useMemo, useEffect, useRef } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { useGenerateFaqsMutation, useStoreResultPdfMutation } from '../../services/apiSlice'
+import {
+  useGenerateFaqsMutation,
+  useStoreResultPdfMutation,
+  useLinkLeadToResultMutation,
+} from '../../services/apiSlice'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
+import LeadCaptureModal from '../../components/LeadCaptureModal'
+import { useLeadPopup } from '../../components/useLeadPopup'
 import { faqGeneratorSchema, parseFaqGeneratorForm } from '../../schemas/faqGenerator.schema'
 import {
   HelpCircle,
@@ -56,6 +62,12 @@ export default function FaqGeneratorPage() {
   const topic = watch('topic')
   const [generateFaqs, { isLoading, reset: resetMutation }] = useGenerateFaqsMutation()
   const [storeResultPdf] = useStoreResultPdfMutation()
+  const [linkLeadToResult] = useLinkLeadToResultMutation()
+
+  const { popupEnabled, showPopup, handlePopupClose, handlePopupSubmit, triggerPopup } =
+    useLeadPopup('faq-generator')
+  const [popupLeadId, setPopupLeadId] = useState(null)
+  const pendingFormRef = useRef(null)
 
   const [dataResult, setDataResult] = useState(null)
   const [error, setError] = useState('')
@@ -78,12 +90,24 @@ export default function FaqGeneratorPage() {
       return
     }
     setError('')
+
+    if (popupEnabled) {
+      pendingFormRef.current = parsed.data
+      triggerPopup()
+      return
+    }
+
+    executeGeneration(parsed.data)
+  }
+
+  const executeGeneration = (data) => {
+    setError('')
     setDataResult(null)
 
     generateFaqs({
-      topic: parsed.data.topic,
-      targetKeywords: parsed.data.targetKeywords,
-      count: Number(parsed.data.count),
+      topic: data.topic,
+      targetKeywords: data.targetKeywords,
+      count: Number(data.count),
     })
       .unwrap()
       .then((result) => {
@@ -136,8 +160,16 @@ export default function FaqGeneratorPage() {
       } catch (err) {
         console.warn('Could not store PDF report for later sending:', err)
       }
+
+      if (popupLeadId) {
+        try {
+          await linkLeadToResult({ id: popupLeadId, faqId: dataResult.faqId }).unwrap()
+        } catch (err) {
+          console.warn('Could not link result to lead:', err)
+        }
+      }
     })()
-  }, [dataResult])
+  }, [dataResult, popupLeadId])
 
   const triggerCopy = (text, key) => {
     navigator.clipboard.writeText(text)
@@ -662,16 +694,36 @@ export default function FaqGeneratorPage() {
 
             {/* Lead Form — linked to this result so the PDF can be sent to
                 whoever submits, automatically or by an admin later. */}
-            <DynamicLeadForm
-              toolSlug="faq-generator"
-              relatedIdField="faqId"
-              relatedIdValue={dataResult.faqId}
-              title="Get Your Free Content Strategy"
-              subtitle="Our team will review your FAQ set and share ideas to strengthen your on-page SEO."
-            />
+            {!popupLeadId && (
+              <DynamicLeadForm
+                toolSlug="faq-generator"
+                relatedIdField="faqId"
+                relatedIdValue={dataResult?.faqId}
+                title="Get Your Free Content Strategy"
+                subtitle="Our team will review your FAQ set and share ideas to strengthen your on-page SEO."
+              />
+            )}
           </div>
         )}
       </div>
+
+      {/* Lead Capture Modal */}
+      <LeadCaptureModal
+        show={showPopup}
+        onClose={handlePopupClose}
+        onSubmit={(leadId) => {
+          setPopupLeadId(leadId)
+          handlePopupSubmit()
+          const formToExecute = pendingFormRef.current
+          if (formToExecute) {
+            executeGeneration(formToExecute)
+            pendingFormRef.current = null
+          }
+        }}
+        toolSlug="faq-generator"
+        title="Unlock High-Converting FAQs & Schema"
+        subtitle="Provide your details below to generate comprehensive FAQs and JSON-LD schema."
+      />
     </div>
   )
 }

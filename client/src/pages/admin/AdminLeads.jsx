@@ -4,6 +4,7 @@ import {
   useGetAdminLeadsQuery,
   useDeleteAdminLeadMutation,
   useSendAdminLeadPdfMutation,
+  useLazyGetAdminLeadPdfQuery,
 } from '../../services/apiSlice'
 import ConfirmModal from '../../components/ConfirmModal'
 import TablePagination from '../../components/TablePagination'
@@ -52,6 +53,7 @@ export default function AdminLeads() {
   const [leadToDelete, setLeadToDelete] = useState(null)
   const [toast, setToast] = useState(null)
   const [sendingLeadId, setSendingLeadId] = useState(null)
+  const [downloadingLeadId, setDownloadingLeadId] = useState(null)
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type })
@@ -68,6 +70,7 @@ export default function AdminLeads() {
   const { data, isLoading, refetch } = useGetAdminLeadsQuery(queryParams)
   const [deleteAdminLead, { isLoading: isDeleting }] = useDeleteAdminLeadMutation()
   const [sendAdminLeadPdf] = useSendAdminLeadPdfMutation()
+  const [getLeadPdfTrigger] = useLazyGetAdminLeadPdfQuery()
 
   const handleSendPdf = async (lead) => {
     setSendingLeadId(lead.id)
@@ -80,6 +83,39 @@ export default function AdminLeads() {
       refetch()
     } finally {
       setSendingLeadId(null)
+    }
+  }
+
+  const handleDownloadPdf = async (lead) => {
+    setDownloadingLeadId(lead.id)
+    try {
+      const res = await getLeadPdfTrigger(lead.id).unwrap()
+      if (!res?.pdfBase64) {
+        throw new Error('No PDF content available for this result.')
+      }
+
+      // Convert base64 to blob and trigger download
+      const byteCharacters = atob(res.pdfBase64)
+      const byteNumbers = new Array(byteCharacters.length)
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i)
+      }
+      const byteArray = new Uint8Array(byteNumbers)
+      const blob = new Blob([byteArray], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = res.filename || `${lead.source || 'tool'}-report.pdf`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      showToast(`Downloaded ${res.filename || 'PDF report'}`, 'success')
+    } catch (err) {
+      showToast(err?.data?.error || err?.message || 'Failed to download PDF report.', 'error')
+    } finally {
+      setDownloadingLeadId(null)
     }
   }
 
@@ -213,6 +249,7 @@ export default function AdminLeads() {
                   <th className="text-left px-4 py-3 text-gray-500 font-medium">Source</th>
                   <th className="text-left px-4 py-3 text-gray-500 font-medium">Date</th>
                   <th className="text-left px-4 py-3 text-gray-500 font-medium">PDF Status</th>
+                  <th className="text-center px-4 py-3 text-gray-500 font-medium">PDF Report</th>
                   <th className="text-right px-4 py-3 text-gray-500 font-medium">Actions</th>
                 </tr>
               </thead>
@@ -269,22 +306,56 @@ export default function AdminLeads() {
                         </span>
                       )}
                     </td>
+                    <td className="px-4 py-3 text-center">
+                      {hasLinkedResult(lead) ? (
+                        <button
+                          onClick={() => handleDownloadPdf(lead)}
+                          disabled={downloadingLeadId === lead.id}
+                          className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#0C81F3]/10 hover:bg-[#0C81F3]/20 text-[#0C81F3] rounded-lg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs"
+                          title="Download the generated PDF report"
+                        >
+                          {downloadingLeadId === lead.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Download className="w-3.5 h-3.5" />
+                          )}
+                          <span>Download PDF</span>
+                        </button>
+                      ) : (
+                        <span className="text-gray-400 text-xs italic">—</span>
+                      )}
+                    </td>
                     <td className="px-4 py-3 text-right">
                       <div className="flex items-center justify-end gap-3">
                         {hasLinkedResult(lead) && (
-                          <button
-                            onClick={() => handleSendPdf(lead)}
-                            disabled={sendingLeadId === lead.id}
-                            className="inline-flex items-center gap-1 text-xs text-[#0C81F3] hover:text-[#0969C3] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Send the PDF report to this lead's email"
-                          >
-                            {sendingLeadId === lead.id ? (
-                              <Loader2 className="w-3 h-3 animate-spin" />
-                            ) : (
-                              <Send className="w-3 h-3" />
-                            )}
-                            {lead.pdfSendStatus === 'sent' ? 'Resend' : 'Send'}
-                          </button>
+                          <>
+                            <button
+                              onClick={() => handleDownloadPdf(lead)}
+                              disabled={downloadingLeadId === lead.id}
+                              className="inline-flex items-center gap-1 text-xs text-gray-700 hover:text-[#0C81F3] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                              title="Download the generated PDF report"
+                            >
+                              {downloadingLeadId === lead.id ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Download className="w-3 h-3" />
+                              )}
+                              <span>Download</span>
+                            </button>
+                            <button
+                              onClick={() => handleSendPdf(lead)}
+                              disabled={sendingLeadId === lead.id}
+                              className="inline-flex items-center gap-1 text-xs text-[#0C81F3] hover:text-[#0969C3] transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                              title="Send the PDF report to this lead's email"
+                            >
+                              {sendingLeadId === lead.id ? (
+                                <Loader2 className="w-3 h-3 animate-spin" />
+                              ) : (
+                                <Send className="w-3 h-3" />
+                              )}
+                              {lead.pdfSendStatus === 'sent' ? 'Resend' : 'Send'}
+                            </button>
+                          </>
                         )}
                         <button
                           onClick={() => setLeadToDelete(lead)}

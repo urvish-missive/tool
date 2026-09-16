@@ -497,6 +497,18 @@ export const apiSlice = createApi({
         headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
       }),
     }),
+    getAdminLeadPdf: builder.query({
+      query: (id) => ({
+        url: `/admin/leads/${id}/pdf`,
+        headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+      }),
+    }),
+    getAdminResultPdf: builder.query({
+      query: ({ tool, id }) => ({
+        url: `/admin/results/${tool}/${id}/pdf`,
+        headers: { Authorization: `Bearer ${localStorage.getItem('admin_token')}` },
+      }),
+    }),
     getAdminActivity: builder.query({
       query: (params = {}) => ({
         url: `/admin/activity?${new URLSearchParams(params)}`,
@@ -623,6 +635,10 @@ export const {
   useGetAdminClientActivityQuery,
   useDeleteAdminLeadMutation,
   useSendAdminLeadPdfMutation,
+  useGetAdminLeadPdfQuery,
+  useLazyGetAdminLeadPdfQuery,
+  useGetAdminResultPdfQuery,
+  useLazyGetAdminResultPdfQuery,
   useGetAdminActivityQuery,
   useGetAdminDevicesQuery,
   useResetDeviceLimitMutation,

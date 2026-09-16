@@ -256,7 +256,7 @@ export default function CaseStudyGeneratorPage({
   const { showPopup, handlePopupClose, handlePopupSubmit, triggerPopup, popupEnabled } =
     useLeadPopup('case-study-generator')
 
-  const [pendingForm, setPendingForm] = useState(null)
+  const pendingFormRef = useRef(null)
   // Captured from LeadCaptureModal when this tool's pre-use popup gate is
   // enabled (ToolConfig.showLeadPopup) — that popup fires BEFORE generation
   // runs, so this lead has no result yet at capture time; linked to the
@@ -367,7 +367,7 @@ export default function CaseStudyGeneratorPage({
     }
 
     if (popupEnabled) {
-      setPendingForm(parseRes.data)
+      pendingFormRef.current = parseRes.data
       triggerPopup()
     } else {
       executeGeneration(parseRes.data)
@@ -375,11 +375,14 @@ export default function CaseStudyGeneratorPage({
   }
 
   const onLeadSubmitSuccess = (leadId) => {
-    setPopupLeadId(leadId)
-    handlePopupSubmit()
-    if (pendingForm) {
-      executeGeneration(pendingForm)
-      setPendingForm(null)
+    if (leadId) {
+      setPopupLeadId(leadId)
+    }
+    handlePopupSubmit(leadId)
+    const formToRun = pendingFormRef.current
+    if (formToRun) {
+      executeGeneration(formToRun)
+      pendingFormRef.current = null
     }
   }
 
@@ -419,7 +422,7 @@ export default function CaseStudyGeneratorPage({
         }
       }
     })()
-  }, [dataResult])
+  }, [dataResult, popupLeadId])
 
   return (
     <div className={isEmbedded ? 'w-full' : 'min-h-screen bg-slate-50 text-slate-800 pb-20'}>

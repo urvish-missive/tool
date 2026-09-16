@@ -12,8 +12,12 @@ import {
   Building2,
   Wrench,
   BarChart3,
+  Download,
+  Loader2,
+  CheckCircle2,
+  XCircle,
 } from 'lucide-react'
-import { useGetAdminActivityQuery } from '../../services/apiSlice'
+import { useGetAdminActivityQuery, useLazyGetAdminResultPdfQuery } from '../../services/apiSlice'
 
 const TOOLS = [
   { slug: '', label: 'All Tools' },
@@ -67,6 +71,13 @@ const TOOLS = [
 export default function AdminActivity() {
   const [page, setPage] = useState(1)
   const [toolFilter, setToolFilter] = useState('')
+  const [downloadingItemId, setDownloadingItemId] = useState(null)
+  const [toast, setToast] = useState(null)
+
+  const showToast = (msg, type = 'success') => {
+    setToast({ msg, type })
+    setTimeout(() => setToast(null), 3500)
+  }
 
   const queryParams = {
     page: String(page),
@@ -75,9 +86,42 @@ export default function AdminActivity() {
   }
 
   const { data, isLoading } = useGetAdminActivityQuery(queryParams)
+  const [getResultPdfTrigger] = useLazyGetAdminResultPdfQuery()
 
   const activity = data?.activity || []
   const pagination = data?.pagination || { page: 1, limit: 20, total: 0, pages: 1 }
+
+  const handleDownloadActivityPdf = async (item) => {
+    setDownloadingItemId(item.id)
+    try {
+      const res = await getResultPdfTrigger({ tool: item.tool, id: item.id }).unwrap()
+      if (!res?.pdfBase64) {
+        throw new Error('No PDF report generated for this result.')
+      }
+
+      const byteCharacters = atob(res.pdfBase64)
+      const byteNumbers = new Array(byteCharacters.length)
+      for (let i = 0; i < byteCharacters.length; i++) {
+        byteNumbers[i] = byteCharacters.charCodeAt(i)
+      }
+      const byteArray = new Uint8Array(byteNumbers)
+      const blob = new Blob([byteArray], { type: 'application/pdf' })
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = res.filename || `${item.tool}-report.pdf`
+      document.body.appendChild(a)
+      a.click()
+      document.body.removeChild(a)
+      URL.revokeObjectURL(url)
+
+      showToast(`Downloaded ${res.filename || 'PDF report'}`, 'success')
+    } catch (err) {
+      showToast(err?.data?.error || err?.message || 'No PDF report available for this result.', 'error')
+    } finally {
+      setDownloadingItemId(null)
+    }
+  }
 
   const getToolConfig = (slug) =>
     TOOLS.find((t) => t.slug === slug) || {
@@ -106,6 +150,22 @@ export default function AdminActivity() {
 
   return (
     <div className="space-y-6">
+      {/* Toast Notification */}
+      {toast && (
+        <div
+          className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-xl text-sm animate-fade-in ${
+            toast.type === 'error' ? 'bg-red-600 text-white' : 'bg-gray-900 text-white'
+          }`}
+        >
+          {toast.type === 'error' ? (
+            <XCircle className="w-4 h-4 text-white shrink-0" />
+          ) : (
+            <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          )}
+          <span>{toast.msg}</span>
+        </div>
+      )}
+
       <div>
         <h2 className="text-lg font-semibold text-gray-900">Activity Log</h2>
         <p className="text-sm text-gray-500">View all tool usage across your platform</p>
@@ -164,8 +224,11 @@ export default function AdminActivity() {
                   <th className="text-center px-5 py-3 font-medium text-gray-500 text-xs uppercase">
                     Score
                   </th>
-                  <th className="text-right px-5 py-3 font-medium text-gray-500 text-xs uppercase">
+                  <th className="text-left px-5 py-3 font-medium text-gray-500 text-xs uppercase">
                     Time
+                  </th>
+                  <th className="text-right px-5 py-3 font-medium text-gray-500 text-xs uppercase">
+                    Action
                   </th>
                 </tr>
               </thead>
@@ -212,13 +275,28 @@ export default function AdminActivity() {
                           <span className="text-gray-300">—</span>
                         )}
                       </td>
-                      <td className="px-5 py-3 text-right">
+                      <td className="px-5 py-3">
                         <span
                           className="text-xs text-gray-400"
                           title={new Date(item.createdAt).toLocaleString()}
                         >
                           {formatTime(item.createdAt)}
                         </span>
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        <button
+                          onClick={() => handleDownloadActivityPdf(item)}
+                          disabled={downloadingItemId === item.id}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-[#0C81F3] bg-[#0C81F3]/10 hover:bg-[#0C81F3]/20 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                          title="Download generated result PDF report"
+                        >
+                          {downloadingItemId === item.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            <Download className="w-3.5 h-3.5" />
+                          )}
+                          PDF
+                        </button>
                       </td>
                     </tr>
                   )
@@ -258,7 +336,7 @@ export default function AdminActivity() {
                       onClick={() => setPage(pageNum)}
                       className={`px-3 py-1 text-xs font-medium rounded-lg border transition-colors ${
                         pageNum === page
-? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white border-transparent'
+                          ? 'bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white border-transparent'
                           : 'border-gray-200 text-gray-600 hover:bg-white'
                       } cursor-pointer`}
                     >

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import {
   Sparkles,
   Download,
@@ -10,6 +10,8 @@ import {
 } from 'lucide-react'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import { useGenerateLogoVariationsMutation } from '../../services/apiSlice'
+import LeadCaptureModal from '../../components/LeadCaptureModal'
+import { useLeadPopup } from '../../components/useLeadPopup'
 
 const INDUSTRIES = [
   { value: 'tech', label: 'Technology & Software' },
@@ -121,6 +123,10 @@ export default function LogoMakerPage() {
   const [errorMessage, setErrorMessage] = useState('')
   const [mockupView, setMockupView] = useState('web') // 'web' | 'card' | 'avatar'
 
+  const { popupEnabled, showPopup, handlePopupClose, handlePopupSubmit, triggerPopup } =
+    useLeadPopup('logo-maker')
+  const pendingGenerateRef = useRef(false)
+
   const handleGenerate = async (e) => {
     e?.preventDefault?.()
     setValidationError('')
@@ -136,6 +142,16 @@ export default function LogoMakerPage() {
       return
     }
 
+    if (popupEnabled) {
+      pendingGenerateRef.current = true
+      triggerPopup()
+      return
+    }
+
+    executeGeneration()
+  }
+
+  const executeGeneration = async () => {
     setVariations(null)
 
     try {
@@ -560,6 +576,22 @@ export default function LogoMakerPage() {
           </div>
         )}
       </div>
+
+      {/* Lead Capture Modal */}
+      <LeadCaptureModal
+        show={showPopup}
+        onClose={handlePopupClose}
+        onSubmit={() => {
+          handlePopupSubmit()
+          if (pendingGenerateRef.current) {
+            executeGeneration()
+            pendingGenerateRef.current = false
+          }
+        }}
+        toolSlug="logo-maker"
+        title="Get Your Free Vector Logo Designs"
+        subtitle="Enter your details to generate professional vector logo designs."
+      />
     </div>
   )
 }

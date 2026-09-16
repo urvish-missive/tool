@@ -523,9 +523,20 @@ export default function SeoAuditPage() {
   const [submitLead] = useSubmitLeadMutation()
   const [storeResultPdf] = useStoreResultPdfMutation()
 
-  const { popupEnabled, showPopup, setShowPopup } = useLeadPopup('seo-audit')
+  const { popupEnabled, showPopup, handlePopupClose, handlePopupSubmit, triggerPopup } =
+    useLeadPopup('seo-audit')
+  const pendingAuditPayloadRef = useRef(null)
   const [showSendPdfModal, setShowSendPdfModal] = useState(false)
   const [leadCaptured, setLeadCaptured] = useState(false)
+
+  const handleAuditSubmit = (payload) => {
+    if (popupEnabled) {
+      pendingAuditPayloadRef.current = payload
+      triggerPopup()
+      return
+    }
+    runAudit(payload)
+  }
 
   const [activeTab, setActiveTab] = useState('issues')
   const [filterSeverity, setFilterSeverity] = useState('ALL')
@@ -742,7 +753,7 @@ export default function SeoAuditPage() {
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
         {!report && !isLoading && (
           <AuditForm
-            onSubmit={(payload) => runAudit(payload)}
+            onSubmit={handleAuditSubmit}
             isLoading={isLoading}
             errorMessage={errorMessage}
           />
@@ -2375,14 +2386,21 @@ export default function SeoAuditPage() {
       />
 
       {/* Lead Capture Modal for tool use */}
-      {showPopup && (
-        <LeadCaptureModal
-          isOpen={showPopup}
-          onClose={() => setShowPopup(false)}
-          onSubmit={handleLeadSubmit}
-          toolName="SEO Site Audit"
-        />
-      )}
+      <LeadCaptureModal
+        show={showPopup}
+        onClose={handlePopupClose}
+        onSubmit={(leadId) => {
+          handlePopupSubmit()
+          const pending = pendingAuditPayloadRef.current
+          if (pending) {
+            runAudit(pending)
+            pendingAuditPayloadRef.current = null
+          }
+        }}
+        toolSlug="seo-audit"
+        title="Get Your Free Technical SEO Audit"
+        subtitle="Enter your details to run your comprehensive site crawl and Core Web Vitals audit."
+      />
 
       {/* Exact Scoring Formula & Deductions Breakdown Modal */}
       <ScoreFormulaModal

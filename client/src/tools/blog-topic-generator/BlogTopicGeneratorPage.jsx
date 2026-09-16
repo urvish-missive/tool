@@ -3,9 +3,12 @@ import {
   useGenerateBlogTopicsMutation,
   useGenerateMasterBriefMutation,
   useStoreResultPdfMutation,
+  useLinkLeadToResultMutation,
 } from '../../services/apiSlice'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
+import LeadCaptureModal from '../../components/LeadCaptureModal'
+import { useLeadPopup } from '../../components/useLeadPopup'
 import {
   Sparkles,
   BookOpen,
@@ -105,6 +108,13 @@ export default function BlogTopicGeneratorPage({
   const [storeResultPdf] = useStoreResultPdfMutation()
   const [generateMasterBrief, { isLoading: isMasterBriefLoading }] =
     useGenerateMasterBriefMutation()
+  const [linkLeadToResult] = useLinkLeadToResultMutation()
+
+  const { popupEnabled, showPopup, handlePopupClose, handlePopupSubmit, triggerPopup } =
+    useLeadPopup('blog-topics')
+  const [popupLeadId, setPopupLeadId] = useState(null)
+  const pendingFormRef = useRef(null)
+
   const [results, setResults] = useState(null)
   const [error, setError] = useState('')
   const [copiedKey, setCopiedKey] = useState(null)
@@ -141,11 +151,23 @@ export default function BlogTopicGeneratorPage({
   }
 
   const handleGenerate = async (e) => {
-    e.preventDefault()
+    if (e?.preventDefault) e.preventDefault()
     if (!niche.trim()) {
       setError('Please enter your niche or industry.')
       return
     }
+    setError('')
+
+    if (popupEnabled) {
+      pendingFormRef.current = true
+      triggerPopup()
+      return
+    }
+
+    executeGeneration()
+  }
+
+  const executeGeneration = async () => {
     setError('')
     setResults(null)
 
@@ -206,8 +228,16 @@ export default function BlogTopicGeneratorPage({
       } catch (err) {
         console.warn('Could not store PDF report for later sending:', err)
       }
+
+      if (popupLeadId) {
+        try {
+          await linkLeadToResult({ id: popupLeadId, blogTopicId: results.topicsId }).unwrap()
+        } catch (err) {
+          console.warn('Could not link result to lead:', err)
+        }
+      }
     })()
-  }, [results])
+  }, [results, popupLeadId])
 
   const handleDeepenBrief = async (topic, topicKey) => {
     try {
@@ -1944,16 +1974,35 @@ export default function BlogTopicGeneratorPage({
 
             {/* Lead Form — linked to this result so the PDF can be sent to
                 whoever submits, automatically or by an admin later. */}
-            <DynamicLeadForm
-              toolSlug="blog-topics"
-              relatedIdField="blogTopicId"
-              relatedIdValue={results.topicsId}
-              title="Get Your Free Content Strategy"
-              subtitle="Our team will review your topic cluster and share ideas to strengthen your content plan."
-            />
+            {!popupLeadId && (
+              <DynamicLeadForm
+                toolSlug="blog-topics"
+                relatedIdField="blogTopicId"
+                relatedIdValue={results?.topicsId}
+                title="Get Your Free Content Strategy"
+                subtitle="Our team will review your topic cluster and share ideas to strengthen your content plan."
+              />
+            )}
           </div>
         )}
       </div>
+
+      {/* Lead Capture Modal */}
+      <LeadCaptureModal
+        show={showPopup}
+        onClose={handlePopupClose}
+        onSubmit={(leadId) => {
+          setPopupLeadId(leadId)
+          handlePopupSubmit()
+          if (pendingFormRef.current) {
+            executeGeneration()
+            pendingFormRef.current = null
+          }
+        }}
+        toolSlug="blog-topics"
+        title="Unlock High-Converting Topic Clusters"
+        subtitle="Provide your details below to generate comprehensive, search-optimized blog topics."
+      />
 
       {/* Full-Screen Master Document Modal */}
       {fullScreenTopicData && (

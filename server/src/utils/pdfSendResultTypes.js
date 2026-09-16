@@ -98,8 +98,60 @@ export const PDF_STORABLE_MODELS = new Set(PDF_SEND_RESULT_TYPES.map((t) => t.mo
 // hardcoding each tool's field name.
 export const LEAD_RESULT_FIELDS = PDF_SEND_RESULT_TYPES.map((t) => t.leadField)
 
-function resolveResultType(lead) {
+export function resolveResultType(lead) {
   return PDF_SEND_RESULT_TYPES.find((t) => lead[t.leadField])
+}
+
+/**
+ * Retrieves the stored PDF for a lead's linked result for download.
+ */
+export async function getStoredPdfForLead(lead) {
+  const resultType = resolveResultType(lead)
+  if (!resultType) {
+    return { success: false, error: 'This lead has no linked result to download a PDF for.' }
+  }
+
+  const result = await prisma[resultType.model].findUnique({ where: { id: lead[resultType.leadField] } })
+  const pdfBase64 = result?.pdfBase64
+  if (!pdfBase64) {
+    return { success: false, error: 'No PDF has been generated for this result yet.' }
+  }
+
+  const cleanName = (lead.name || 'report').replace(/[^a-zA-Z0-9_-]/g, '_')
+  const filename = `${resultType.toolSlug}-${cleanName}.pdf`
+
+  return {
+    success: true,
+    pdfBase64,
+    filename,
+    title: resultType.getTitle(result),
+  }
+}
+
+/**
+ * Retrieves the stored PDF for an arbitrary tool result for download.
+ */
+export async function getStoredPdfForResult(toolSlug, resultId) {
+  const resultType = PDF_SEND_RESULT_TYPES.find(
+    (t) => t.toolSlug === toolSlug || t.model.toLowerCase() === toolSlug.toLowerCase()
+  )
+  if (!resultType) {
+    return { success: false, error: `Tool ${toolSlug} does not support PDF reports.` }
+  }
+
+  const result = await prisma[resultType.model].findUnique({ where: { id: resultId } })
+  const pdfBase64 = result?.pdfBase64
+  if (!pdfBase64) {
+    return { success: false, error: 'No PDF has been generated for this result yet.' }
+  }
+
+  const filename = `${resultType.toolSlug}-${resultId}.pdf`
+  return {
+    success: true,
+    pdfBase64,
+    filename,
+    title: resultType.getTitle(result),
+  }
 }
 
 /**

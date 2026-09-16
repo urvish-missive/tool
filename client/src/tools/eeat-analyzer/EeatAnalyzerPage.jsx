@@ -138,7 +138,7 @@ export default function EeatAnalyzerPage({ isEmbedded = false, onResultStateChan
   const { showPopup, handlePopupSubmit, handlePopupClose, triggerPopup, popupEnabled } =
     useLeadPopup('eeat-analyzer')
 
-  const [pendingForm, setPendingForm] = useState(null)
+  const pendingFormRef = useRef(null)
   // Captured from LeadCaptureModal when this tool's pre-use popup gate is
   // enabled (ToolConfig.showLeadPopup) — that popup fires BEFORE analysis
   // runs, so this lead has no result yet at capture time; linked to the
@@ -182,6 +182,18 @@ export default function EeatAnalyzerPage({ isEmbedded = false, onResultStateChan
     }
   }
 
+  const handleModalSuccess = (leadId) => {
+    if (leadId) {
+      setPopupLeadId(leadId)
+    }
+    handlePopupSubmit(leadId)
+    const formToRun = pendingFormRef.current
+    if (formToRun) {
+      executeAnalysis(formToRun)
+      pendingFormRef.current = null
+    }
+  }
+
   const onFormValid = (formData) => {
     const parsed = parseEeatForm(formData)
     if (!parsed.success) {
@@ -190,7 +202,7 @@ export default function EeatAnalyzerPage({ isEmbedded = false, onResultStateChan
     }
 
     if (popupEnabled) {
-      setPendingForm(parsed.data)
+      pendingFormRef.current = parsed.data
       triggerPopup()
       return
     }
@@ -312,7 +324,7 @@ ${d.aiSearchReadiness?.keyQuotableBlocks?.map((b) => `> ${b}`).join('\n\n') || `
         }
       }
     })()
-  }, [dataResult])
+  }, [dataResult, popupLeadId])
 
   return (
     <div
@@ -322,12 +334,7 @@ ${d.aiSearchReadiness?.keyQuotableBlocks?.map((b) => `> ${b}`).join('\n\n') || `
       <LeadCaptureModal
         show={showPopup}
         onClose={handlePopupClose}
-        onSubmit={(leadId) => {
-          setPopupLeadId(leadId)
-          handlePopupSubmit()
-          if (pendingForm) executeAnalysis(pendingForm)
-          setPendingForm(null)
-        }}
+        onSubmit={handleModalSuccess}
         toolSlug="eeat-analyzer"
         title="Unlock Free E‑E‑A‑T Diagnostic Audit"
         subtitle="Forensically evaluate your content against Google Search Quality principles and AI Overview citation algorithms."

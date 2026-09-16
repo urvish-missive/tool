@@ -1,7 +1,13 @@
 import { useState, useEffect, useRef } from 'react'
-import { useAnalyzeCompetitorMutation, useStoreResultPdfMutation } from '../../services/apiSlice'
+import {
+  useAnalyzeCompetitorMutation,
+  useStoreResultPdfMutation,
+  useLinkLeadToResultMutation,
+} from '../../services/apiSlice'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
+import LeadCaptureModal from '../../components/LeadCaptureModal'
+import { useLeadPopup } from '../../components/useLeadPopup'
 import StrategicOverviewCard from './components/StrategicOverviewCard'
 import HeadToHeadBenchmark from './components/HeadToHeadBenchmark'
 import OutrankPlaybookTab from './components/OutrankPlaybookTab'
@@ -17,6 +23,12 @@ export default function CompetitorAnalysisPage() {
   const [analyzeCompetitor, { isLoading, reset: resetMutation }] = useAnalyzeCompetitorMutation()
   const [storeResultPdf] = useStoreResultPdfMutation()
 
+  const [linkLeadToResult] = useLinkLeadToResultMutation()
+  const { popupEnabled, showPopup, handlePopupClose, handlePopupSubmit, triggerPopup } =
+    useLeadPopup('competitor-analyzer')
+  const [popupLeadId, setPopupLeadId] = useState(null)
+  const pendingFormRef = useRef(null)
+
   const [results, setResults] = useState(null)
   const [error, setError] = useState('')
   const [activeTab, setActiveTab] = useState('playbook') // 'playbook' | 'gaps' | 'comparison' | 'backlinks' | 'snippets'
@@ -27,6 +39,18 @@ export default function CompetitorAnalysisPage() {
       setError('Please enter a competitor URL')
       return
     }
+    setError('')
+
+    if (popupEnabled) {
+      pendingFormRef.current = true
+      triggerPopup()
+      return
+    }
+
+    executeAnalysis()
+  }
+
+  const executeAnalysis = async () => {
     setError('')
     setResults(null)
 
@@ -82,8 +106,16 @@ export default function CompetitorAnalysisPage() {
       } catch (err) {
         console.warn('Could not store PDF report for later sending:', err)
       }
+
+      if (popupLeadId) {
+        try {
+          await linkLeadToResult({ id: popupLeadId, competitorAnalysisId: results.competitorAnalysisId }).unwrap()
+        } catch (err) {
+          console.warn('Could not link result to lead:', err)
+        }
+      }
     })()
-  }, [results])
+  }, [results, popupLeadId])
 
   const competitorSeo = results?.competitorSeo || null
   const yourSeo = results?.yourSeo || null
@@ -361,16 +393,35 @@ export default function CompetitorAnalysisPage() {
 
             {/* Lead Form — linked to this result so the PDF can be sent to
                 whoever submits, automatically or by an admin later. */}
-            <DynamicLeadForm
-              toolSlug="competitor-analyzer"
-              relatedIdField="competitorAnalysisId"
-              relatedIdValue={results.competitorAnalysisId}
-              title="Get Your Free Competitive Strategy Session"
-              subtitle="Our team will review this analysis and share a prioritized outrank plan."
-            />
+            {!popupLeadId && (
+              <DynamicLeadForm
+                toolSlug="competitor-analyzer"
+                relatedIdField="competitorAnalysisId"
+                relatedIdValue={results?.competitorAnalysisId}
+                title="Get Your Free Competitive Strategy Session"
+                subtitle="Our team will review this analysis and share a prioritized outrank plan."
+              />
+            )}
           </div>
         )}
       </div>
+
+      {/* Lead Capture Modal */}
+      <LeadCaptureModal
+        show={showPopup}
+        onClose={handlePopupClose}
+        onSubmit={(leadId) => {
+          setPopupLeadId(leadId)
+          handlePopupSubmit()
+          if (pendingFormRef.current) {
+            executeAnalysis()
+            pendingFormRef.current = null
+          }
+        }}
+        toolSlug="competitor-analyzer"
+        title="Get Your Free Competitive Intelligence"
+        subtitle="Provide your details below to run deep head-to-head competitor analysis and outrank playbook."
+      />
     </div>
   )
 }

@@ -2,7 +2,13 @@ import { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { businessCompetitorSchema } from '../../schemas/businessCompetitor.schema'
-import { useAnalyzeBusinessCompetitorMutation, useStoreResultPdfMutation } from '../../services/apiSlice'
+import {
+  useAnalyzeBusinessCompetitorMutation,
+  useStoreResultPdfMutation,
+  useLinkLeadToResultMutation,
+} from '../../services/apiSlice'
+import { useLeadPopup } from '../../components/useLeadPopup'
+import LeadCaptureModal from '../../components/LeadCaptureModal'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
 import {
@@ -44,9 +50,15 @@ const TABS = [
 export default function BusinessCompetitorPage() {
   const [analyze, { isLoading }] = useAnalyzeBusinessCompetitorMutation()
   const [storeResultPdf] = useStoreResultPdfMutation()
+  const [linkLeadToResult] = useLinkLeadToResultMutation()
   const [results, setResults] = useState(null)
   const [error, setError] = useState('')
   const [activeTab, setActiveTab] = useState('overview')
+
+  const { showPopup, handlePopupSubmit, handlePopupClose, triggerPopup, popupEnabled } =
+    useLeadPopup('business-competitor-analytics')
+  const pendingFormRef = useRef(null)
+  const [popupLeadId, setPopupLeadId] = useState(null)
 
   // Stash the PDF on the result at generation time, independent of whether
   // the user ever submits a lead form — this is what makes both automatic
@@ -70,8 +82,16 @@ export default function BusinessCompetitorPage() {
       } catch (err) {
         console.warn('Could not store PDF report for later sending:', err)
       }
+
+      if (popupLeadId) {
+        try {
+          await linkLeadToResult({ id: popupLeadId, businessCompetitorId: results.businessCompetitorId }).unwrap()
+        } catch (err) {
+          console.warn('Could not link result to lead:', err)
+        }
+      }
     })()
-  }, [results])
+  }, [results, popupLeadId])
 
   const {
     register,
@@ -88,7 +108,7 @@ export default function BusinessCompetitorPage() {
     },
   })
 
-  const onSubmit = async (data) => {
+  const executeAnalysis = async (data) => {
     setError('')
     setResults(null)
     try {
@@ -108,6 +128,27 @@ export default function BusinessCompetitorPage() {
         err?.data?.error || 'Failed to analyze competitor. Please check the URL and try again.'
       )
     }
+  }
+
+  const handleModalSuccess = (leadId) => {
+    if (leadId) {
+      setPopupLeadId(leadId)
+    }
+    handlePopupSubmit(leadId)
+    const formToRun = pendingFormRef.current
+    if (formToRun) {
+      executeAnalysis(formToRun)
+      pendingFormRef.current = null
+    }
+  }
+
+  const onSubmit = (data) => {
+    if (popupEnabled) {
+      pendingFormRef.current = data
+      triggerPopup()
+      return
+    }
+    executeAnalysis(data)
   }
 
   const handleReset = () => {
@@ -914,16 +955,28 @@ export default function BusinessCompetitorPage() {
 
             {/* Lead Form — linked to this result so the PDF can be sent to
                 whoever submits, automatically or by an admin later. */}
-            <DynamicLeadForm
-              toolSlug="business-competitor-analytics"
-              relatedIdField="businessCompetitorId"
-              relatedIdValue={r.businessCompetitorId}
-              title="Get the Full Report"
-              subtitle="Enter your details to receive the complete business intelligence report via email."
-            />
+            {!popupLeadId && (
+              <DynamicLeadForm
+                toolSlug="business-competitor-analytics"
+                relatedIdField="businessCompetitorId"
+                relatedIdValue={r.businessCompetitorId}
+                title="Get the Full Report"
+                subtitle="Enter your details to receive the complete business intelligence report via email."
+              />
+            )}
           </div>
         )}
       </div>
+
+      {/* Lead Capture Modal */}
+      <LeadCaptureModal
+        show={showPopup}
+        onClose={handlePopupClose}
+        onSubmit={handleModalSuccess}
+        toolSlug="business-competitor-analytics"
+        title="Unlock Deep Competitor Intelligence"
+        subtitle="Enter your details to generate real-time competitor profile, M&A history, and market strategy."
+      />
     </div>
   )
 }

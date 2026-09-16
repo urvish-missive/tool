@@ -317,6 +317,7 @@ export default function ContentQaPage({
   // runs, so this lead has no result yet at capture time; linked to the
   // result once it exists (see the store-pdf effect below).
   const [popupLeadId, setPopupLeadId] = useState(null)
+  const pendingFormRef = useRef(null)
   const [statuses, setStatuses] = useState({})
   // expandedCats removed — all category cards are always fully visible
   const [error, setError] = useState(null)
@@ -846,6 +847,7 @@ export default function ContentQaPage({
 
   const onFormValid = (formData) => {
     if (popupEnabled) {
+      pendingFormRef.current = formData
       triggerPopup()
       return
     }
@@ -1273,7 +1275,9 @@ Audited with Missive Digital Content QA Tool.`
         onSubmit={(leadId) => {
           setPopupLeadId(leadId)
           handlePopupSubmit()
-          runAnalysis()
+          const pending = pendingFormRef.current
+          runAnalysis(pending)
+          pendingFormRef.current = null
         }}
         toolSlug="content-qa"
         title="Unlock Himani's 12-Pillar Content QA Report"

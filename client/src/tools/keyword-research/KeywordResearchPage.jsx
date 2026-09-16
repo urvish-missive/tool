@@ -633,6 +633,7 @@ export default function KeywordResearchPage() {
   const { popupEnabled, showPopup, handlePopupSubmit, handlePopupClose, triggerPopup } =
     useLeadPopup('keyword-research')
   const [pendingForm, setPendingForm] = useState(null)
+  const pendingFormRef = useRef(null)
   // Captured from LeadCaptureModal when this tool's pre-use popup gate is
   // enabled (ToolConfig.showLeadPopup) — that popup fires BEFORE research
   // runs, so this lead has no result yet at capture time; linked to the
@@ -704,6 +705,7 @@ export default function KeywordResearchPage() {
 
   const onFormValid = (data) => {
     if (popupEnabled) {
+      pendingFormRef.current = data
       setPendingForm(data)
       triggerPopup()
       return
@@ -733,7 +735,9 @@ export default function KeywordResearchPage() {
         onSubmit={(leadId) => {
           setPopupLeadId(leadId)
           handlePopupSubmit()
-          if (pendingForm) runResearch(pendingForm)
+          const formToExecute = pendingFormRef.current || pendingForm
+          if (formToExecute) runResearch(formToExecute)
+          pendingFormRef.current = null
           setPendingForm(null)
         }}
         toolSlug="keyword-research"

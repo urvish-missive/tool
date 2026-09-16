@@ -1,7 +1,12 @@
 import prisma from '../utils/prisma.js'
 import bcrypt from 'bcryptjs'
 import { signAdminToken } from '../middleware/adminAuth.js'
-import { sendStoredPdfForLead, LEAD_RESULT_FIELDS } from '../utils/pdfSendResultTypes.js'
+import {
+  sendStoredPdfForLead,
+  getStoredPdfForLead,
+  getStoredPdfForResult,
+  LEAD_RESULT_FIELDS,
+} from '../utils/pdfSendResultTypes.js'
 
 // ─── Auth ────────────────────────────────────────────────
 
@@ -428,6 +433,73 @@ export async function sendLeadPdf(req, res) {
   } catch (err) {
     console.error('sendLeadPdf error:', err.message)
     res.status(500).json({ success: false, error: 'Failed to send PDF report.' })
+  }
+}
+
+/**
+ * Return stored PDF base64 + filename for direct browser download by admin
+ */
+export async function getLeadPdf(req, res) {
+  try {
+    const { id } = req.params
+    const lead = await prisma.lead.findUnique({ where: { id } })
+    if (!lead) {
+      return res.status(404).json({ success: false, error: 'Lead not found.' })
+    }
+
+    const result = await getStoredPdfForLead(lead)
+    if (!result.success) {
+      return res.status(404).json(result)
+    }
+
+    return res.json(result)
+  } catch (err) {
+    console.error('getLeadPdf error:', err.message)
+    res.status(500).json({ success: false, error: 'Failed to retrieve PDF report.' })
+  }
+}
+
+/**
+ * Download raw PDF file directly via HTTP attachment
+ */
+export async function downloadLeadPdfFile(req, res) {
+  try {
+    const { id } = req.params
+    const lead = await prisma.lead.findUnique({ where: { id } })
+    if (!lead) {
+      return res.status(404).send('Lead not found.')
+    }
+
+    const result = await getStoredPdfForLead(lead)
+    if (!result.success) {
+      return res.status(404).send(result.error)
+    }
+
+    const buffer = Buffer.from(result.pdfBase64, 'base64')
+    res.setHeader('Content-Type', 'application/pdf')
+    res.setHeader('Content-Disposition', `attachment; filename="${result.filename}"`)
+    res.setHeader('Content-Length', buffer.length)
+    return res.send(buffer)
+  } catch (err) {
+    console.error('downloadLeadPdfFile error:', err.message)
+    res.status(500).send('Failed to download PDF.')
+  }
+}
+
+/**
+ * Return stored PDF for an arbitrary tool activity result
+ */
+export async function getResultPdf(req, res) {
+  try {
+    const { tool, id } = req.params
+    const result = await getStoredPdfForResult(tool, id)
+    if (!result.success) {
+      return res.status(404).json(result)
+    }
+    return res.json(result)
+  } catch (err) {
+    console.error('getResultPdf error:', err.message)
+    res.status(500).json({ success: false, error: 'Failed to retrieve PDF.' })
   }
 }
 

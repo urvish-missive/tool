@@ -142,7 +142,7 @@ export default function BlogIntroGeneratorPage({
   const { showPopup, handlePopupSubmit, handlePopupClose, triggerPopup, popupEnabled } =
     useLeadPopup('blog-intro-generator')
 
-  const [pendingForm, setPendingForm] = useState(null)
+  const pendingFormRef = useRef(null)
   // Captured from LeadCaptureModal when this tool's pre-use popup gate is
   // enabled (ToolConfig.showLeadPopup) — that popup fires BEFORE generation
   // runs, so this lead has no result yet at capture time; linked to the
@@ -180,6 +180,18 @@ export default function BlogIntroGeneratorPage({
     }
   }
 
+  const handleModalSuccess = (leadId) => {
+    if (leadId) {
+      setPopupLeadId(leadId)
+    }
+    handlePopupSubmit(leadId)
+    const formToRun = pendingFormRef.current
+    if (formToRun) {
+      executeGeneration(formToRun)
+      pendingFormRef.current = null
+    }
+  }
+
   const onFormValid = (formData) => {
     const parsed = parseBlogIntroForm(formData)
     if (!parsed.success) {
@@ -188,7 +200,7 @@ export default function BlogIntroGeneratorPage({
     }
 
     if (popupEnabled) {
-      setPendingForm(parsed.data)
+      pendingFormRef.current = parsed.data
       triggerPopup()
       return
     }
@@ -232,7 +244,7 @@ export default function BlogIntroGeneratorPage({
         }
       }
     })()
-  }, [dataResult])
+  }, [dataResult, popupLeadId])
 
   const handleReset = () => {
     resetForm()
@@ -1116,6 +1128,16 @@ export default function BlogIntroGeneratorPage({
           </div>
         )}
       </div>
+
+      {/* Lead Capture Modal */}
+      <LeadCaptureModal
+        show={showPopup}
+        onClose={handlePopupClose}
+        onSubmit={handleModalSuccess}
+        toolSlug="blog-intro-generator"
+        title="Generate High-Converting Blog Introductions"
+        subtitle="Enter your details to generate tailored TOFU, MOFU, and BOFU hooks for your topic."
+      />
     </div>
   )
 }

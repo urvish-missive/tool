@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useExtractWebsiteContentMutation } from '../../services/apiSlice'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
+import DynamicLeadForm from '../../components/DynamicLeadForm'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import {
   Globe,
@@ -73,9 +74,9 @@ export default function WebsiteContentExtractorPage() {
   const [expandedFaq, setExpandedFaq] = useState(null)
 
   // Lead Popup Integration
-  const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose } =
+  const { popupEnabled, showPopup, triggerPopup, handlePopupSubmit, handlePopupClose, popupLeadId } =
     useLeadPopup('website-content-extractor')
-  const [pendingPayload, setPendingPayload] = useState(null)
+  const pendingPayloadRef = useRef(null)
 
   // Copy helper
   const handleCopy = (text, key) => {
@@ -100,8 +101,8 @@ export default function WebsiteContentExtractorPage() {
     }
 
     if (popupEnabled) {
-      setPendingPayload(payload)
-      setShowPopup(true)
+      pendingPayloadRef.current = payload
+      triggerPopup()
       return
     }
 
@@ -131,9 +132,11 @@ export default function WebsiteContentExtractorPage() {
   }
 
   const onLeadModalSuccess = (leadId) => {
-    if (pendingPayload) {
-      executeExtraction(pendingPayload, leadId)
-      setPendingPayload(null)
+    handlePopupSubmit(leadId)
+    const payload = pendingPayloadRef.current
+    if (payload) {
+      executeExtraction(payload, leadId)
+      pendingPayloadRef.current = null
     }
   }
 
@@ -997,7 +1000,28 @@ export default function WebsiteContentExtractorPage() {
             ))}
           </div>
         </div>
+
+        {/* Dynamic Lead Capture Form */}
+        {!popupLeadId && (
+          <div className="mt-12 mb-8">
+            <DynamicLeadForm
+              toolSlug="website-content-extractor"
+              title="Want to Scrape & Analyze Web Data at Scale?"
+              subtitle="Get in touch with our data & SEO engineers for custom crawlers, API pipelines, and intelligence dashboards."
+            />
+          </div>
+        )}
       </div>
+
+      {/* Lead Capture Modal */}
+      <LeadCaptureModal
+        show={showPopup}
+        onClose={handlePopupClose}
+        onSubmit={onLeadModalSuccess}
+        toolSlug="website-content-extractor"
+        title="Extract Any Website in Seconds"
+        subtitle="Enter your email to unlock deep website entity analysis and structured extraction."
+      />
     </div>
   )
 }

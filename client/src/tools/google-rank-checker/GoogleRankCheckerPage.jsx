@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useRef } from 'react'
 import { useCheckRankMutation } from '../../services/apiSlice'
 import DynamicLeadForm from '../../components/DynamicLeadForm'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
@@ -95,9 +95,9 @@ export default function GoogleRankCheckerPage() {
   const [checkRank, { isLoading, data: rankData, error: apiError }] = useCheckRankMutation()
 
   // Lead Popup Integration
-  const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose } =
+  const { popupEnabled, showPopup, triggerPopup, handlePopupSubmit, handlePopupClose, popupLeadId } =
     useLeadPopup('google-rank-checker')
-  const [pendingPayload, setPendingPayload] = useState(null)
+  const pendingPayloadRef = useRef(null)
 
   const errorMessage = apiError?.data?.error || null
 
@@ -120,18 +120,19 @@ export default function GoogleRankCheckerPage() {
     }
 
     if (popupEnabled) {
-      setPendingPayload(payload)
-      setShowPopup(true)
+      pendingPayloadRef.current = payload
+      triggerPopup()
     } else {
       checkRank(payload)
     }
   }
 
-  const handleModalSuccess = () => {
-    handlePopupSubmit()
-    if (pendingPayload) {
-      checkRank(pendingPayload)
-      setPendingPayload(null)
+  const handleModalSuccess = (leadId) => {
+    handlePopupSubmit(leadId)
+    const payload = pendingPayloadRef.current
+    if (payload) {
+      checkRank(payload)
+      pendingPayloadRef.current = null
     }
   }
 
@@ -1055,13 +1056,15 @@ export default function GoogleRankCheckerPage() {
         )}
 
         {/* Dynamic Lead Capture Form */}
-        <div className="mt-16 mb-16">
-          <DynamicLeadForm
-            toolSlug="google-rank-checker"
-            title="Want to Push Your Keywords to Position #1?"
-            subtitle="Request a 1-on-1 strategy call with Missive Digital's enterprise SEO specialists."
-          />
-        </div>
+        {!popupLeadId && (
+          <div className="mt-16 mb-16">
+            <DynamicLeadForm
+              toolSlug="google-rank-checker"
+              title="Want to Push Your Keywords to Position #1?"
+              subtitle="Request a 1-on-1 strategy call with Missive Digital's enterprise SEO specialists."
+            />
+          </div>
+        )}
 
         {/* FAQ Accordion */}
         <div className="max-w-3xl mx-auto mt-12 space-y-4">
@@ -1105,6 +1108,15 @@ export default function GoogleRankCheckerPage() {
           </div>
         </div>
       </div>
+
+      <LeadCaptureModal
+        show={showPopup}
+        onClose={handlePopupClose}
+        onSubmit={handleModalSuccess}
+        toolSlug="google-rank-checker"
+        title="Get Your Free Google Ranking Report"
+        subtitle="Enter your details to track your keyword rank and unlock deep competitor insights."
+      />
     </div>
   )
 }

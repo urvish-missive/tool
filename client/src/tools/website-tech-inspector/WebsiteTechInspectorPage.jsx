@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { useInspectWebsiteTechMutation } from '../../services/apiSlice'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
+import DynamicLeadForm from '../../components/DynamicLeadForm'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import {
   Globe,
@@ -67,9 +68,9 @@ export default function WebsiteTechInspectorPage() {
   const [results, setResults] = useState(null)
 
   // Lead Popup Integration
-  const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose } =
+  const { popupEnabled, showPopup, triggerPopup, handlePopupSubmit, handlePopupClose, popupLeadId } =
     useLeadPopup('website-tech-inspector')
-  const [pendingPayload, setPendingPayload] = useState(null)
+  const pendingPayloadRef = useRef(null)
 
   // Copy helper
   const handleCopy = (text, key) => {
@@ -90,8 +91,8 @@ export default function WebsiteTechInspectorPage() {
     const payload = { url: url.trim() }
 
     if (popupEnabled) {
-      setPendingPayload(payload)
-      setShowPopup(true)
+      pendingPayloadRef.current = payload
+      triggerPopup()
       return
     }
 
@@ -116,9 +117,11 @@ export default function WebsiteTechInspectorPage() {
   }
 
   const onLeadModalSuccess = (leadId) => {
-    if (pendingPayload) {
-      executeInspection(pendingPayload, leadId)
-      setPendingPayload(null)
+    handlePopupSubmit(leadId)
+    const payload = pendingPayloadRef.current
+    if (payload) {
+      executeInspection(payload, leadId)
+      pendingPayloadRef.current = null
     }
   }
 
@@ -141,7 +144,7 @@ export default function WebsiteTechInspectorPage() {
       <LeadCaptureModal
         show={showPopup}
         onClose={handlePopupClose}
-        onSubmitSuccess={onLeadModalSuccess}
+        onSubmit={onLeadModalSuccess}
         toolSlug="website-tech-inspector"
         title="Unlock Free Website Tech & Theme Inspector"
         subtitle="Extract brand colors, detect tech stack & CMS, and inspect Google Fonts from any website."
@@ -825,6 +828,17 @@ export default function WebsiteTechInspectorPage() {
             ))}
           </div>
         </div>
+
+        {/* Dynamic Lead Capture Form */}
+        {!popupLeadId && (
+          <div className="mt-12 mb-8">
+            <DynamicLeadForm
+              toolSlug="website-tech-inspector"
+              title="Need an Enterprise Web Audit & Modernization?"
+              subtitle="Connect with our technical architects to analyze website performance, modern CMS architecture, and brand design systems."
+            />
+          </div>
+        )}
       </div>
     </div>
   )

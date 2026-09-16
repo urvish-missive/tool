@@ -1,8 +1,9 @@
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { useExtractWebsiteImagesMutation } from '../../services/apiSlice'
 import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
+import DynamicLeadForm from '../../components/DynamicLeadForm'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import {
   Globe,
@@ -84,9 +85,9 @@ export default function WebsiteImageExtractorPage() {
   const [results, setResults] = useState(null)
 
   // Lead Modal Integration
-  const { popupEnabled, showPopup, setShowPopup, handlePopupSubmit, handlePopupClose } =
+  const { popupEnabled, showPopup, triggerPopup, handlePopupSubmit, handlePopupClose, popupLeadId } =
     useLeadPopup('website-image-extractor')
-  const [pendingPayload, setPendingPayload] = useState(null)
+  const pendingPayloadRef = useRef(null)
 
   // Copy helper
   const handleCopy = (text, key) => {
@@ -107,8 +108,8 @@ export default function WebsiteImageExtractorPage() {
     const payload = { url: url.trim() }
 
     if (popupEnabled) {
-      setPendingPayload(payload)
-      setShowPopup(true)
+      pendingPayloadRef.current = payload
+      triggerPopup()
       return
     }
 
@@ -137,9 +138,11 @@ export default function WebsiteImageExtractorPage() {
   }
 
   const onLeadModalSuccess = (leadId) => {
-    if (pendingPayload) {
-      executeExtraction(pendingPayload, leadId)
-      setPendingPayload(null)
+    handlePopupSubmit(leadId)
+    const payload = pendingPayloadRef.current
+    if (payload) {
+      executeExtraction(payload, leadId)
+      pendingPayloadRef.current = null
     }
   }
 
@@ -1228,7 +1231,28 @@ export default function WebsiteImageExtractorPage() {
             ))}
           </div>
         </div>
+
+        {/* Dynamic Lead Capture Form */}
+        {!popupLeadId && (
+          <div className="mt-12 mb-8">
+            <DynamicLeadForm
+              toolSlug="website-image-extractor"
+              title="Need Bulk Image Optimization & Web Assets?"
+              subtitle="Connect with our digital production team for automated media workflows, next-gen WebP conversions, and CDN setup."
+            />
+          </div>
+        )}
       </div>
+
+      {/* Lead Capture Modal */}
+      <LeadCaptureModal
+        show={showPopup}
+        onClose={handlePopupClose}
+        onSubmit={onLeadModalSuccess}
+        toolSlug="website-image-extractor"
+        title="Extract All Images in Seconds"
+        subtitle="Enter your details to scan and download all logos, photos, SVGs, and banners."
+      />
     </div>
   )
 }
