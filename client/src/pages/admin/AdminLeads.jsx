@@ -239,153 +239,263 @@ export default function AdminLeads() {
             <p className="text-sm">No leads found</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50/80 border-b border-gray-200">
-                <tr>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Email
-                  </th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Company
-                  </th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Source
-                  </th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Date
-                  </th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    PDF Status
-                  </th>
-                  <th className="text-left px-4 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    PDF Report
-                  </th>
-                  <th className="text-right px-4 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {leads.map((lead) => (
-                  <tr
-                    key={lead.id}
-                    className="hover:bg-gray-50/70 transition-colors"
-                  >
-                    <td className="px-4 py-3.5 align-middle whitespace-nowrap">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#0C81F3]/15 to-[#EB8988]/20 flex items-center justify-center text-xs font-bold text-[#0C81F3] shrink-0 border border-[#0C81F3]/20">
-                          {lead.name?.[0]?.toUpperCase() || '?'}
+          <>
+            {/* Desktop / Tablet Table View (>= 640px) */}
+            <div className="hidden sm:block overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50/80 border-b border-gray-200">
+                  <tr>
+                    <th className="text-left px-4 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Lead
+                    </th>
+                    <th className="text-left px-3 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Source
+                    </th>
+                    <th className="text-left px-3 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden lg:table-cell">
+                      Company
+                    </th>
+                    <th className="text-left px-3 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                      Date
+                    </th>
+                    <th className="text-left px-3 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      PDF Report
+                    </th>
+                    <th className="text-right px-4 py-3.5 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {leads.map((lead) => (
+                    <tr
+                      key={lead.id}
+                      className="hover:bg-gray-50/70 transition-colors"
+                    >
+                      {/* Lead (Avatar + Name + Email) */}
+                      <td className="px-4 py-3 align-middle">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#0C81F3]/15 to-[#EB8988]/20 flex items-center justify-center text-xs font-bold text-[#0C81F3] shrink-0 border border-[#0C81F3]/20">
+                            {lead.name?.[0]?.toUpperCase() || '?'}
+                          </div>
+                          <div className="min-w-0">
+                            <div
+                              className="font-medium text-gray-900 truncate max-w-[130px] md:max-w-[170px] lg:max-w-[220px]"
+                              title={lead.name}
+                            >
+                              {lead.name}
+                            </div>
+                            <div
+                              className="text-xs text-gray-500 truncate max-w-[130px] md:max-w-[170px] lg:max-w-[220px]"
+                              title={lead.email}
+                            >
+                              {lead.email}
+                            </div>
+                            {lead.company && (
+                              <div
+                                className="text-[11px] text-gray-400 truncate max-w-[130px] lg:hidden"
+                                title={lead.company}
+                              >
+                                {lead.company}
+                              </div>
+                            )}
+                          </div>
                         </div>
-                        <span className="font-medium text-gray-900">{lead.name}</span>
+                      </td>
+
+                      {/* Source */}
+                      <td className="px-3 py-3 align-middle whitespace-nowrap">
+                        <span className="inline-flex items-center px-2.5 py-0.5 bg-slate-100 text-slate-700 border border-slate-200/80 rounded-full text-xs font-medium capitalize">
+                          {lead.source?.replace(/-/g, ' ') || 'unknown'}
+                        </span>
+                      </td>
+
+                      {/* Company (Desktop >= 1024px) */}
+                      <td className="px-3 py-3 align-middle text-gray-600 hidden lg:table-cell">
+                        <span className="truncate max-w-[140px] block" title={lead.company || ''}>
+                          {lead.company || <span className="text-gray-300 font-medium">—</span>}
+                        </span>
+                      </td>
+
+                      {/* Date (Tablet/Desktop >= 768px) */}
+                      <td className="px-3 py-3 align-middle whitespace-nowrap hidden md:table-cell">
+                        <div className="flex flex-col leading-tight">
+                          <span className="text-gray-700 text-xs font-medium">
+                            {new Date(lead.createdAt).toLocaleDateString()}
+                          </span>
+                          <span className="text-gray-400 text-[11px] mt-0.5">
+                            {new Date(lead.createdAt).toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
+                        </div>
+                      </td>
+
+                      {/* PDF Report (Status Badge + Download Button) */}
+                      <td className="px-3 py-3 align-middle whitespace-nowrap">
+                        <div className="flex items-center gap-2">
+                          {lead.pdfSendStatus === 'sent' ? (
+                            <span
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full text-xs font-medium"
+                              title={
+                                lead.pdfSentAt
+                                  ? `Sent ${new Date(lead.pdfSentAt).toLocaleString()} (${lead.pdfSendTriggeredBy || 'manual'})`
+                                  : undefined
+                              }
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+                              <span>Sent</span>
+                            </span>
+                          ) : lead.pdfSendStatus === 'failed' ? (
+                            <span
+                              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-200/80 rounded-full text-xs font-medium"
+                              title={lead.pdfSendError || 'Send failed'}
+                            >
+                              <XCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
+                              <span>Failed</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 text-gray-600 border border-gray-200/80 rounded-full text-xs font-medium">
+                              <span className="w-1.5 h-1.5 rounded-full bg-gray-400 shrink-0" />
+                              <span>Not Sent</span>
+                            </span>
+                          )}
+
+                          {hasLinkedResult(lead) && (
+                            <button
+                              onClick={() => handleDownloadPdf(lead)}
+                              disabled={downloadingLeadId === lead.id}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#0C81F3]/10 hover:bg-[#0C81F3]/20 text-[#0C81F3] border border-[#0C81F3]/25 rounded-md text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs"
+                              title="Download generated PDF report"
+                            >
+                              {downloadingLeadId === lead.id ? (
+                                <Loader2 className="w-3 h-3 animate-spin shrink-0" />
+                              ) : (
+                                <Download className="w-3 h-3 shrink-0" />
+                              )}
+                              <span>PDF</span>
+                            </button>
+                          )}
+                        </div>
+                      </td>
+
+                      {/* Actions (Send PDF & Delete) */}
+                      <td className="px-4 py-3 align-middle whitespace-nowrap text-right">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {hasLinkedResult(lead) && (
+                            <button
+                              onClick={() => handleSendPdf(lead)}
+                              disabled={sendingLeadId === lead.id}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-[#0C81F3] hover:text-[#0969C3] hover:bg-[#0C81F3]/10 border border-[#0C81F3]/25 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Send the PDF report to this lead's email"
+                            >
+                              {sendingLeadId === lead.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+                              ) : (
+                                <Send className="w-3.5 h-3.5 shrink-0" />
+                              )}
+                              <span>{lead.pdfSendStatus === 'sent' ? 'Resend' : 'Send'}</span>
+                            </button>
+                          )}
+                          <button
+                            onClick={() => setLeadToDelete(lead)}
+                            className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-gray-500 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 rounded-lg transition-colors cursor-pointer"
+                            title="Delete lead"
+                          >
+                            <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                            <span className="hidden xl:inline">Delete</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Mobile Cards View (< 640px) */}
+            <div className="block sm:hidden divide-y divide-gray-100">
+              {leads.map((lead) => (
+                <div key={lead.id} className="p-4 space-y-3 hover:bg-gray-50/60 transition-colors">
+                  <div className="flex items-start justify-between gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#0C81F3]/15 to-[#EB8988]/20 flex items-center justify-center text-xs font-bold text-[#0C81F3] shrink-0 border border-[#0C81F3]/20">
+                        {lead.name?.[0]?.toUpperCase() || '?'}
                       </div>
-                    </td>
-                    <td className="px-4 py-3.5 align-middle whitespace-nowrap text-gray-600">
-                      {lead.email}
-                    </td>
-                    <td className="px-4 py-3.5 align-middle whitespace-nowrap text-gray-600">
-                      {lead.company || <span className="text-gray-300 font-medium">—</span>}
-                    </td>
-                    <td className="px-4 py-3.5 align-middle whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-1 bg-slate-100 text-slate-700 border border-slate-200/80 rounded-full text-xs font-medium capitalize">
+                      <div className="min-w-0">
+                        <div className="font-semibold text-gray-900 text-sm truncate">{lead.name}</div>
+                        <div className="text-xs text-gray-500 truncate">{lead.email}</div>
+                        {lead.company && <div className="text-[11px] text-gray-400 truncate">{lead.company}</div>}
+                      </div>
+                    </div>
+                    <div className="text-[11px] text-gray-400 shrink-0 text-right">
+                      {new Date(lead.createdAt).toLocaleDateString()}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-gray-50">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="inline-flex items-center px-2 py-0.5 bg-slate-100 text-slate-700 border border-slate-200/80 rounded-full text-[11px] font-medium capitalize">
                         {lead.source?.replace(/-/g, ' ') || 'unknown'}
                       </span>
-                    </td>
-                    <td className="px-4 py-3.5 align-middle whitespace-nowrap">
-                      <div className="flex flex-col leading-tight">
-                        <span className="text-gray-700 text-xs font-medium">
-                          {new Date(lead.createdAt).toLocaleDateString()}
-                        </span>
-                        <span className="text-gray-400 text-[11px] mt-0.5">
-                          {new Date(lead.createdAt).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3.5 align-middle whitespace-nowrap">
                       {lead.pdfSendStatus === 'sent' ? (
-                        <span
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full text-xs font-medium"
-                          title={
-                            lead.pdfSentAt
-                              ? `Sent ${new Date(lead.pdfSentAt).toLocaleString()} (${lead.pdfSendTriggeredBy || 'manual'})`
-                              : undefined
-                          }
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-                          <span>Sent</span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-200/80 rounded-full text-[11px] font-medium">
+                          <CheckCircle2 className="w-3 h-3 text-emerald-600" /> Sent
                         </span>
                       ) : lead.pdfSendStatus === 'failed' ? (
-                        <span
-                          className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-200/80 rounded-full text-xs font-medium"
-                          title={lead.pdfSendError || 'Send failed'}
-                        >
-                          <XCircle className="w-3.5 h-3.5 text-rose-600 shrink-0" />
-                          <span>Failed</span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-rose-50 text-rose-700 border border-rose-200/80 rounded-full text-[11px] font-medium">
+                          <XCircle className="w-3 h-3 text-rose-600" /> Failed
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gray-50 text-gray-600 border border-gray-200/80 rounded-full text-xs font-medium">
-                          <span className="w-1.5 h-1.5 rounded-full bg-gray-400 shrink-0" />
-                          <span>Not Sent</span>
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-gray-50 text-gray-600 border border-gray-200/80 rounded-full text-[11px] font-medium">
+                          <span className="w-1.5 h-1.5 rounded-full bg-gray-400" /> Not Sent
                         </span>
                       )}
-                    </td>
-                    <td className="px-4 py-3.5 align-middle whitespace-nowrap">
-                      {hasLinkedResult(lead) ? (
-                        <button
-                          onClick={() => handleDownloadPdf(lead)}
-                          disabled={downloadingLeadId === lead.id}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#0C81F3]/10 hover:bg-[#0C81F3]/20 text-[#0C81F3] border border-[#0C81F3]/25 rounded-lg text-xs font-semibold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-2xs"
-                          title="Download the generated PDF report"
-                        >
-                          {downloadingLeadId === lead.id ? (
-                            <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
-                          ) : (
-                            <Download className="w-3.5 h-3.5 shrink-0" />
-                          )}
-                          <span>Download PDF</span>
-                        </button>
-                      ) : (
-                        <span className="text-gray-300 text-xs font-medium pl-2">—</span>
-                      )}
-                    </td>
-                    <td className="px-4 py-3.5 align-middle whitespace-nowrap text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {hasLinkedResult(lead) && (
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      {hasLinkedResult(lead) && (
+                        <>
+                          <button
+                            onClick={() => handleDownloadPdf(lead)}
+                            disabled={downloadingLeadId === lead.id}
+                            className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#0C81F3]/10 hover:bg-[#0C81F3]/20 text-[#0C81F3] border border-[#0C81F3]/25 rounded-lg text-xs font-semibold cursor-pointer disabled:opacity-50"
+                            title="Download PDF"
+                          >
+                            {downloadingLeadId === lead.id ? (
+                              <Loader2 className="w-3 h-3 animate-spin shrink-0" />
+                            ) : (
+                              <Download className="w-3 h-3 shrink-0" />
+                            )}
+                            <span>PDF</span>
+                          </button>
                           <button
                             onClick={() => handleSendPdf(lead)}
                             disabled={sendingLeadId === lead.id}
-                            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-[#0C81F3] hover:text-[#0969C3] hover:bg-[#0C81F3]/10 border border-[#0C81F3]/25 rounded-lg transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Send the PDF report to this lead's email"
+                            className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-[#0C81F3] hover:bg-[#0C81F3]/10 border border-[#0C81F3]/25 rounded-lg cursor-pointer disabled:opacity-50"
                           >
                             {sendingLeadId === lead.id ? (
                               <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
                             ) : (
-                              <Send className="w-3.5 h-3.5 shrink-0" />
+                              <Send className="w-3 h-3 shrink-0" />
                             )}
-                            <span>{lead.pdfSendStatus === 'sent' ? 'Resend' : 'Send PDF'}</span>
+                            <span>{lead.pdfSendStatus === 'sent' ? 'Resend' : 'Send'}</span>
                           </button>
-                        )}
-                        <button
-                          onClick={() => setLeadToDelete(lead)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-gray-500 hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 rounded-lg transition-colors cursor-pointer"
-                          title="Delete lead"
-                        >
-                          <Trash2 className="w-3.5 h-3.5 shrink-0" />
-                          <span>Delete</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                        </>
+                      )}
+                      <button
+                        onClick={() => setLeadToDelete(lead)}
+                        className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                        title="Delete lead"
+                      >
+                        <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         {/* Pagination */}

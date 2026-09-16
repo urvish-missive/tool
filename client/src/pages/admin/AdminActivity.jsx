@@ -208,7 +208,7 @@ export default function AdminActivity() {
         </div>
       ) : (
         <div className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
+          <div className="hidden sm:block overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-200 bg-gray-50">
@@ -249,12 +249,12 @@ export default function AdminActivity() {
                         </span>
                       </td>
                       <td className="px-5 py-3.5 align-middle">
-                        <span className="text-gray-900 font-medium max-w-[300px] truncate block">
+                        <span className="text-gray-900 font-medium max-w-[140px] sm:max-w-[200px] md:max-w-[280px] truncate block" title={item.detail || ''}>
                           {item.detail || '—'}
                         </span>
                       </td>
                       <td className="px-5 py-3.5 align-middle hidden md:table-cell">
-                        <span className="text-gray-500 text-xs max-w-[250px] truncate block">
+                        <span className="text-gray-500 text-xs max-w-[120px] sm:max-w-[180px] md:max-w-[240px] truncate block" title={item.subdetail || ''}>
                           {item.subdetail || '—'}
                         </span>
                       </td>
@@ -303,6 +303,69 @@ export default function AdminActivity() {
                 })}
               </tbody>
             </table>
+          </div>
+
+          {/* Mobile Cards View (< 640px) */}
+          <div className="block sm:hidden divide-y divide-gray-100">
+            {activity.map((item) => {
+              const tc = getToolConfig(item.tool)
+              return (
+                <div key={item.id} className="p-4 space-y-2.5 hover:bg-gray-50/60 transition-colors">
+                  <div className="flex items-center justify-between gap-2">
+                    <span
+                      className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-semibold ${tc.color}`}
+                    >
+                      {tc.icon && <tc.icon className="w-3.5 h-3.5 shrink-0" />}
+                      {tc.label}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {formatTime(item.createdAt)}
+                    </span>
+                  </div>
+
+                  <div>
+                    <div className="text-sm font-medium text-gray-900 line-clamp-1">{item.detail || '—'}</div>
+                    {item.subdetail && (
+                      <div className="text-xs text-gray-500 line-clamp-1 mt-0.5">{item.subdetail}</div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1.5 border-t border-gray-50">
+                    <div>
+                      {item.score != null ? (
+                        <span
+                          className={`inline-block px-2 py-0.5 rounded-full text-xs font-bold ${
+                            item.score >= 70
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : item.score >= 40
+                                ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                                : 'bg-rose-50 text-rose-700 border border-rose-200'
+                          }`}
+                        >
+                          Score: {item.score}/100
+                        </span>
+                      ) : (
+                        <span className="text-xs text-gray-400">No score</span>
+                      )}
+                    </div>
+
+                    <button
+                      onClick={() => handleDownloadActivityPdf(item)}
+                      disabled={downloadingItemId === item.id}
+                      className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-[#0C81F3] bg-[#0C81F3]/10 hover:bg-[#0C81F3]/20 border border-[#0C81F3]/25 rounded-lg transition-colors cursor-pointer disabled:opacity-50"
+                      title="Download generated result PDF report"
+                    >
+                      {downloadingItemId === item.id ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin shrink-0" />
+                      ) : (
+                        <Download className="w-3.5 h-3.5 shrink-0" />
+                      )}
+                      <span>PDF</span>
+                    </button>
+                  </div>
+                </div>
+              )
+            })}
           </div>
 
           {/* Pagination */}
