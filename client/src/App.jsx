@@ -23,6 +23,7 @@ import BlogConclusionLandingPage from './pages/BlogConclusionLandingPage'
 import EeatAuthorityAnalyzerLandingPage from './pages/EeatAuthorityAnalyzerLandingPage'
 import BusinessCompetitorPage from './tools/business-competitor-analytics/BusinessCompetitorPage'
 import CaseStudyLandingPage from './pages/CaseStudyLandingPage'
+import WebsiteStructureAuditPage from './tools/website-structure-audit/WebsiteStructureAuditPage'
 import AdminLogin from './pages/admin/AdminLogin'
 import AdminLayout from './pages/admin/AdminLayout'
 import AdminDashboard from './pages/admin/AdminDashboard'
@@ -219,6 +220,14 @@ export default function App() {
                     element={
                       <ToolGuard toolPath="/case-study-generator">
                         <CaseStudyLandingPage />
+                      </ToolGuard>
+                    }
+                  />
+                  <Route
+                    path="/website-structure-audit"
+                    element={
+                      <ToolGuard toolPath="/website-structure-audit">
+                        <WebsiteStructureAuditPage />
                       </ToolGuard>
                     }
                   />

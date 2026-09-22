@@ -251,7 +251,8 @@ const QUALITY_PROVIDER_ORDER = [
 const FAST_PROVIDER_POOL = [
   'groq',
   'gemini-3.5-flash-lite',
-  'zen',
+  // 'zen' removed from rotation: its free tier 403s outside OpenCode
+  // ("FreeTierError: can only be used from within OpenCode") — a guaranteed wasted slot.
   'groq-20b',
 ]
 

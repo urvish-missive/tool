@@ -25,6 +25,7 @@ import {
   ArrowDown,
   ArrowRight,
   LayoutGrid,
+  FolderTree,
   ShieldCheck as ShieldCheckIcon,
 } from 'lucide-react'
 import { useGetPublicToolsQuery } from '../services/apiSlice'
@@ -52,6 +53,7 @@ const TOOL_SLUG_MAP = {
   eeat_analyzer: 'eeat-analyzer',
   business_competitor_analytics: 'business-competitor-analytics',
   case_study_generator: 'case-study-generator',
+  website_structure_audit: 'website-structure-audit',
 }
 
 /* ─────────────── Category Taxonomy ─────────────── */
@@ -214,6 +216,17 @@ const TOOLS = [
     icon: Zap,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/website-tech-inspector',
+    badge: 'New Tool',
+    category: 'seo',
+  },
+  {
+    id: 'website_structure_audit',
+    title: 'Website Structure Audit',
+    description:
+      'Audit site hierarchy, click depth, internal link equity, directory silos, 301 redirect map, and content gaps with 1-click Excel download.',
+    icon: FolderTree,
+    color: 'from-[#0C81F3] to-[#EB8988]',
+    path: '/website-structure-audit',
     badge: 'New Tool',
     category: 'seo',
   },

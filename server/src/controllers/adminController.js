@@ -650,6 +650,7 @@ async function getToolCount(tool) {
     'website-content-extractor': () => prisma.extractedWebsite?.count?.().catch(() => 0) || 0,
     'website-image-extractor': () => prisma.extractedImageProject?.count?.().catch(() => 0) || 0,
     'website-tech-inspector': () => prisma.extractedTechProject?.count?.().catch(() => 0) || 0,
+    'website-structure-audit': () => prisma.websiteStructureAudit?.count?.().catch(() => 0) || 0,
   }
   return counts[tool] ? counts[tool]() : 0
 }
@@ -668,6 +669,7 @@ function formatActivity(tool, record) {
     'website-content-extractor': 'Website Content Extractor',
     'website-image-extractor': 'Website Image Extractor',
     'website-tech-inspector': 'Tech & Theme Inspector',
+    'website-structure-audit': 'Website Structure Audit',
   }
   const base = { id: record.id, tool, toolName: toolNames[tool] || tool, createdAt: record.createdAt }
 
@@ -696,6 +698,8 @@ function formatActivity(tool, record) {
       return { ...base, detail: record.websiteUrl, score: null, subdetail: `${record.totalImages || 0} images discovered` }
     case 'website-tech-inspector':
       return { ...base, detail: record.websiteUrl, score: null, subdetail: record.hostname || 'Tech & Theme Inspected' }
+    case 'website-structure-audit':
+      return { ...base, detail: record.websiteUrl, score: record.overallScore, subdetail: `${record.totalPages || 0} pages • Max Depth ${record.maxDepth || 1}` }
     default:
       return base
   }

@@ -24,6 +24,7 @@ import blogConclusionRoutes from './routes/blogConclusionRoutes.js'
 import eeatRoutes from './routes/eeatRoutes.js'
 import businessCompetitorRoutes from './routes/businessCompetitorRoutes.js'
 import caseStudyRoutes from './routes/caseStudyRoutes.js'
+import structureAuditRoutes from './routes/structureAuditRoutes.js'
 import resultPdfRoutes from './routes/resultPdfRoutes.js'
 import deviceRoutes from './routes/deviceRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
@@ -80,6 +81,7 @@ app.use('/api/blog-conclusion', toolAccess('blog-conclusion-generator'), blogCon
 app.use('/api/eeat', toolAccess('eeat-analyzer'), eeatRoutes)
 app.use('/api/business-competitor', toolAccess('business-competitor-analytics'), businessCompetitorRoutes)
 app.use('/api/case-study', toolAccess('case-study-generator'), caseStudyRoutes)
+app.use('/api/structure-audit', toolAccess('website-structure-audit'), structureAuditRoutes)
 app.use('/api/results', resultPdfRoutes)
 app.use('/api/devices', deviceRoutes)
 
@@ -500,6 +502,28 @@ async function seedDefaults() {
           },
         })
         console.log('[OK] Case Study Generator tool config seeded')
+      }
+    } catch {}
+
+    // Ensure website-structure-audit exists if database was already initialized
+    try {
+      const structTool = await prisma.toolConfig.findUnique({ where: { slug: 'website-structure-audit' } })
+      if (!structTool) {
+        await prisma.toolConfig.create({
+          data: {
+            slug: 'website-structure-audit',
+            name: 'Website Structure Audit',
+            description: 'Audit website information architecture, click depth, directory silos, 301 redirects, recommended taxonomy, and content gaps',
+            dailyLimit: 40,
+            hourlyLimit: 10,
+            formFields: JSON.stringify({
+              websiteUrl: { enabled: true, label: 'Website URL', required: true },
+              focusNiche: { enabled: true, label: 'Focus Niche / Industry', required: false },
+              scanType: { enabled: true, label: 'Scan Depth', required: false },
+            }),
+          },
+        })
+        console.log('[OK] Website Structure Audit tool config seeded')
       }
     } catch {}
   }

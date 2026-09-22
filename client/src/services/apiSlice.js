@@ -390,6 +390,15 @@ export const apiSlice = createApi({
       },
     }),
 
+    // POST /api/structure-audit/analyze
+    auditWebsiteStructure: builder.mutation({
+      query: (payload) => ({
+        url: '/structure-audit/analyze',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
     // GET /api/health
     healthCheck: builder.query({
       query: () => '/health',
@@ -622,6 +631,7 @@ export const {
   useAnalyzeEeatMutation,
   useAnalyzeBusinessCompetitorMutation,
   useGenerateCaseStudyMutation,
+  useAuditWebsiteStructureMutation,
   useRewriteContentMutation,
   useGenerateMetaTagsMutation,
   useHealthCheckQuery,

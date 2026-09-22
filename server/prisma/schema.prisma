@@ -198,6 +198,8 @@ model Lead {
   caseStudy           CaseStudy?        @relation(fields: [caseStudyId], references: [id])
   blogIntroId         String?           @db.ObjectId
   blogIntro           BlogIntro?        @relation(fields: [blogIntroId], references: [id])
+  websiteStructureAuditId String?       @db.ObjectId
+  websiteStructureAudit   WebsiteStructureAudit? @relation(fields: [websiteStructureAuditId], references: [id])
   createdAt          DateTime          @default(now())
 
   @@index([email])
@@ -457,6 +459,28 @@ model BlogIntro {
   leads           Lead[]
 
   @@index([createdAt])
+}
+
+model WebsiteStructureAudit {
+  id                       String   @id @default(auto()) @map("_id") @db.ObjectId
+  websiteUrl               String
+  focusNiche               String?
+  overallScore             Int      @default(0)
+  totalPages               Int      @default(0)
+  maxDepth                 Int      @default(0)
+  summaryJson              String   
+  inventoryJson            String   
+  redirectMapJson          String  
+  recommendedStructureJson String   
+  pagesToCreateJson        String   
+  excelBase64              String? 
+  pdfBase64                String?  
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+  leads                    Lead[]
+
+  @@index([createdAt])
+  @@index([websiteUrl])
 }
 
 // ─── Admin & Tool Management ────────────────────────────

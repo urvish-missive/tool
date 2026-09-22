@@ -327,10 +327,13 @@ Return a JSON object with this EXACT structure:
 }`
 
   try {
+    // This report demands ~4000 tokens of nested JSON — needs far more than the
+    // default 5s provider timeout, otherwise working generations get aborted and
+    // the entire request is repeated on the next provider (the main source of lag).
     const parsed = await callAIAndParseJSON([
       { role: 'system', content: systemMessage },
       { role: 'user', content: userMessage },
-    ], { preferredProvider, temperature: 0.3, maxTokens: 4000 })
+    ], { preferredProvider, temperature: 0.3, maxTokens: 4000, timeout: 25000 })
 
     return {
       executiveSummary: parsed.executiveSummary || 'Business analysis completed.',

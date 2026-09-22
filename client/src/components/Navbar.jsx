@@ -42,6 +42,7 @@ import {
   Mail,
   MapPin,
   Calendar,
+  FolderTree,
 } from 'lucide-react'
 import { useGetPublicToolsQuery } from '../services/apiSlice'
 
@@ -66,6 +67,7 @@ const TOOL_HREF_SLUGS = {
   '/eeat-analyzer': 'eeat-analyzer',
   '/business-competitor-analytics': 'business-competitor-analytics',
   '/case-study-generator': 'case-study-generator',
+  '/website-structure-audit': 'website-structure-audit',
 }
 
 const NAV_ITEMS = [
@@ -316,6 +318,13 @@ const NAV_ITEMS = [
               icon: Zap,
               label: 'Tech & Theme Inspector',
               href: '/website-tech-inspector',
+            },
+            {
+              icon: FolderTree,
+              label: 'Website Structure Audit',
+              href: '/website-structure-audit',
+              badge: 'NEW',
+              badgeColor: 'bg-emerald-500 text-white',
             },
           ],
         },
