@@ -1,6 +1,6 @@
 /**
  * CORS Configuration and Origin Validator
- * 
+ *
  * Explicit Allowed Origins List:
  * - https://tool-2jmg.onrender.com/api/
  * - local (http://localhost:5173, http://127.0.0.1:5173, ports 5174, 3000, 4173, 5000)
@@ -73,7 +73,10 @@ export function isAllowedOrigin(origin, env = process.env) {
   // 2. Check dynamic CLIENT_URL from environment (supports comma-separated list and *)
   const rawClientUrl = env.CLIENT_URL || ''
   const configuredOrigins = rawClientUrl
-    ? rawClientUrl.split(',').map((s) => normalizeOriginUrl(s)).filter(Boolean)
+    ? rawClientUrl
+        .split(',')
+        .map((s) => normalizeOriginUrl(s))
+        .filter(Boolean)
     : []
 
   if (configuredOrigins.includes('*') || configuredOrigins.includes(cleanOrigin)) {
@@ -85,8 +88,12 @@ export function isAllowedOrigin(origin, env = process.env) {
     return true
   }
 
-  // 4. Missive Digital subdomains (*.missivedigital.com)
+  // 4. Missive Digital subdomains
   if (/^https:\/\/(?:[a-zA-Z0-9-_.]+\.)?missivedigital\.com$/i.test(cleanOrigin)) {
+    return true
+  }
+
+  if (/^https:\/\/(?:[a-zA-Z0-9-_.]+\.)?missive\.digital$/i.test(cleanOrigin)) {
     return true
   }
 
@@ -102,7 +109,11 @@ export function isAllowedOrigin(origin, env = process.env) {
 
   // 7. Private local network LAN IPs (e.g. mobile testing in development)
   if (env.NODE_ENV !== 'production') {
-    if (/^https?:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:[0-9]+)?$/i.test(cleanOrigin)) {
+    if (
+      /^https?:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:[0-9]+)?$/i.test(
+        cleanOrigin
+      )
+    ) {
       return true
     }
   }
@@ -124,7 +135,7 @@ export function getCorsOptions(env = process.env) {
       if (env.NODE_ENV !== 'production') {
         console.warn(
           `[CORS] Blocked request from origin: "${origin}". ` +
-          `Add it to ALLOWED_ORIGINS in corsConfig.js or CLIENT_URL in server/.env.`
+            `Add it to ALLOWED_ORIGINS in corsConfig.js or CLIENT_URL in server/.env.`
         )
       }
       return callback(null, false)
