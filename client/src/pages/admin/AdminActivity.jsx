@@ -196,7 +196,7 @@ export default function AdminActivity() {
       {/* Activity Table */}
       {isLoading ? (
         <div className="flex items-center justify-center py-20">
-          <div className="w-8 h-8 border-4 border-gray-200 border-t-[#0C81F3] rounded-full animate-spin" />
+          <div className="w-7 h-7 border-4 border-gray-200 border-t-[#0C81F3] rounded-full animate-spin" />
         </div>
       ) : activity.length === 0 ? (
         <div className="bg-white border border-gray-200 rounded-xl p-12 text-center shadow-sm">
