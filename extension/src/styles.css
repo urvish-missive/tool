@@ -1,0 +1,59 @@
+@import 'tailwindcss';
+@import '@fontsource/rubik/latin-400.css';
+@import '@fontsource/rubik/latin-500.css';
+@import '@fontsource/rubik/latin-600.css';
+@import '@fontsource/rubik/latin-700.css';
+
+/* Same type and brand colours as the web app (client/src/index.css, Navbar). */
+@theme {
+  --font-sans: 'Rubik', ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --color-brand: #0c81f3;
+  --color-brand-dark: #0a6cd0;
+  --color-brand-soft: #eaf4fe;
+  --color-teal: #1aa99b;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  margin: 0;
+  background: #f8fafc;
+  color: #0f172a;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-width: 300px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-brand);
+  outline-offset: 2px;
+}
+
+@keyframes missive-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.pulse-dot {
+  animation: missive-pulse 1.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

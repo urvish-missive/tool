@@ -84,3 +84,7 @@ AI API keys stay server-side only. Never exposed to the frontend.
 | CLIENT_URL | Frontend URL | http://localhost:5173 |
 | RATE_LIMIT_WINDOW_MS | Rate limit window | 3600000 (1 hour) |
 | RATE_LIMIT_MAX_REQUESTS | Max requests per window | 10 |
+
+## Chrome Extension
+
+A Manifest V3 side-panel extension that runs Content QA on the current page lives in [`extension/`](extension/README.md). It reuses `POST /api/content-qa/analyze` and the existing device limits. Build it with `cd extension && npm install && npm run build:extension`, then load `extension/dist-extension` in `chrome://extensions`.

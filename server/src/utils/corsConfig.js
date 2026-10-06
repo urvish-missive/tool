@@ -107,7 +107,18 @@ export function isAllowedOrigin(origin, env = process.env) {
     return true
   }
 
-  // 7. Private local network LAN IPs (e.g. mobile testing in development)
+  // 7. Missive SEO Chrome extension(s): exact IDs only, from EXTENSION_IDS
+  //    (comma-separated). Never a wildcard: any installed extension could
+  //    otherwise call the API with the browser's CORS blessing.
+  if (cleanOrigin.startsWith('chrome-extension://')) {
+    const extensionIds = (env.EXTENSION_IDS || '')
+      .split(',')
+      .map((s) => s.trim().toLowerCase())
+      .filter((s) => /^[a-p]{32}$/.test(s))
+    return extensionIds.includes(cleanOrigin.slice('chrome-extension://'.length).toLowerCase())
+  }
+
+  // 8. Private local network LAN IPs (e.g. mobile testing in development)
   if (env.NODE_ENV !== 'production') {
     if (
       /^https?:\/\/(192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:[0-9]+)?$/i.test(

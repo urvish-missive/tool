@@ -81,6 +81,14 @@ describe('isAllowedOrigin unit tests', () => {
     assert.equal(isAllowedOrigin('https://tool-2jmg.onrender.com', prodEnv), true)
   })
 
+  test('allows only the Chrome extension IDs listed in EXTENSION_IDS', () => {
+    const id = 'abcdefghijklmnopabcdefghijklmnop'
+    const env = { NODE_ENV: 'production', CLIENT_URL: '', EXTENSION_IDS: ` ${id} , not-a-valid-id` }
+    assert.equal(isAllowedOrigin(`chrome-extension://${id}`, env), true)
+    assert.equal(isAllowedOrigin('chrome-extension://ponmlkjihgfedcbaponmlkjihgfedcba', env), false)
+    assert.equal(isAllowedOrigin(`chrome-extension://${id}`, { NODE_ENV: 'production', CLIENT_URL: '' }), false)
+  })
+
   test('rejects malicious or untrusted origins in production', () => {
     const prodEnv = { NODE_ENV: 'production', CLIENT_URL: 'https://tools.missivedigital.com' }
     assert.equal(isAllowedOrigin('https://malicious-site.com', prodEnv), false)
