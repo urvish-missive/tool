@@ -6,7 +6,7 @@ const router = Router()
 
 const extractorLimiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 3600000,
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 30,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 500,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, error: 'Rate limit reached for Website Extractor. Please try again later.' },

@@ -3,6 +3,10 @@ import prisma from '../utils/prisma.js'
 // Simple in-memory rate limiter per IP per tool
 const usageCounts = new Map()
 
+// Every tool allows at least this many requests per IP per hour; a higher
+// "Hourly limit" set in the admin panel still applies.
+const MIN_HOURLY_LIMIT = 500
+
 // Clean up old entries every 10 minutes
 setInterval(() => {
   const now = Date.now()
@@ -100,10 +104,11 @@ export function toolAccess(toolSlug) {
         if (now - record.windowStart > 3600000) {
           usageCounts.set(key, { count: 1, windowStart: now })
         } else {
-          if (record.count >= config.hourlyLimit) {
+          const hourlyLimit = Math.max(config.hourlyLimit, MIN_HOURLY_LIMIT)
+          if (record.count >= hourlyLimit) {
             return res.status(429).json({
               success: false,
-              error: `Rate limit exceeded for ${config.name}. Max ${config.hourlyLimit} requests per hour.`,
+              error: `Rate limit exceeded for ${config.name}. Max ${hourlyLimit} requests per hour.`,
               retryAfter: Math.ceil((3600000 - (now - record.windowStart)) / 1000),
             })
           }

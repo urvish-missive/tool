@@ -11,7 +11,7 @@ const router = Router()
 
 const qaLimiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 3600000,
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 25,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 500,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, error: 'Rate limit reached. Please try again later.' },

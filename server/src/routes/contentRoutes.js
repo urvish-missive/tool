@@ -8,7 +8,7 @@ const router = Router()
 // Per-route rate limit: 10 analyses per IP per hour
 const analyzeLimiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 3600000,
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 10,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 500,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, error: 'You\'ve reached the current analysis limit. Please try again later.' },

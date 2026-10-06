@@ -50,7 +50,7 @@ app.use(express.urlencoded({ extended: true, limit: '25mb' }))
 // Global rate limit
 app.use('/api', rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 3600000,
-  max: 200,
+  max: 5000,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, error: 'Too many requests. Please try again later.' },

@@ -9,7 +9,7 @@ const router = Router()
 
 const imageLimiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 3600000,
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 30,
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 500,
   standardHeaders: true,
   legacyHeaders: false,
   message: { success: false, error: 'Rate limit reached for Image Extractor. Please try again later.' },
