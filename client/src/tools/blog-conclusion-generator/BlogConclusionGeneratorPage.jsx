@@ -463,7 +463,7 @@ export default function BlogConclusionGeneratorPage({
           <div className="relative max-w-4xl mx-auto px-4 sm:px-6 text-center">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white text-[11px] sm:text-xs font-bold rounded-full mb-3 tracking-wide uppercase shadow-2xs whitespace-nowrap shrink-0">
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Missive's SEO Tools • Missive Digital</span>
+              <span>Missive's Tools • Missive Digital</span>
             </div>
 
             <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-slate-900 leading-tight">

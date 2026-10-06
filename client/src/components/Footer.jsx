@@ -137,9 +137,9 @@ export default function Footer() {
             </ul>
           </div>
 
-          {/* Missive's SEO Tools — Dynamic & Filtered by Admin Status */}
+          {/* Missive's Tools — Dynamic & Filtered by Admin Status */}
           <div>
-            <h3 className="text-white font-semibold text-base mb-5">Missive's SEO Tools</h3>
+            <h3 className="text-white font-semibold text-base mb-5">Missive's Tools</h3>
             <ul className="space-y-3 text-sm">
               {visibleTools.map((tool) => (
                 <li key={tool.slug}>

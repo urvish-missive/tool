@@ -670,7 +670,7 @@ export default function ContentQaLandingPage() {
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://tools.missivedigital.com/content-qa" />
-        <meta property="og:site_name" content="Missive's SEO Tools" />
+        <meta property="og:site_name" content="Missive's Tools" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Content QA Checklist by Missive Digital" />
         <meta
@@ -687,7 +687,7 @@ export default function ContentQaLandingPage() {
         {/* 1. Hero with embedded tool */}
         <LandingHero
           hideHeroCopy={hasResults}
-          badge="Missive's SEO Tools • Missive Digital"
+          badge="Missive's Tools • Missive Digital"
           title={[
             { text: 'Publish Copy That ' },
             { text: 'Passes Inspection', gradient: true },

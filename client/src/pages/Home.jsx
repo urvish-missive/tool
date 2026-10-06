@@ -466,7 +466,7 @@ function WorkflowPipeline({ tools }) {
 
 const HOME_FAQS = [
   {
-    question: "What is Missive's SEO Tools?",
+    question: "What is Missive's Tools?",
     answer:
       'A free suite of AI-powered SEO and content tools built by Missive Digital. It covers research, writing, auditing, and competitive intelligence, using the same frameworks the agency uses for its own clients.',
     tag: 'Basics',
@@ -732,7 +732,7 @@ export default function Home() {
                 <h3 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight mb-6">
                   Why We Created{' '}
                   <span className="bg-gradient-to-r from-[#67A7FF] to-[#F7B7B3] bg-clip-text text-transparent">
-                    Missive's SEO Tools
+                    Missive's Tools
                   </span>
                 </h3>
 

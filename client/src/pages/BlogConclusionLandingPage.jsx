@@ -509,7 +509,7 @@ export default function BlogConclusionLandingPage() {
           property="og:url"
           content="https://tools.missivedigital.com/blog-conclusion-generator"
         />
-        <meta property="og:site_name" content="Missive's SEO Tools" />
+        <meta property="og:site_name" content="Missive's Tools" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Blog Conclusion Generator by Missive Digital" />
         <meta
@@ -525,7 +525,7 @@ export default function BlogConclusionLandingPage() {
         {/* ═══════════════ 1. HERO WITH CUSTOM FLOATING GLASS CARDS ═══════════════ */}
         <LandingHero
           hideHeroCopy={hasResults}
-          badge="Missive's SEO Tools • Missive Digital"
+          badge="Missive's Tools • Missive Digital"
           title={[
             { text: 'Write Blog Endings ' },
             { text: 'That Actually Convert', gradient: true },

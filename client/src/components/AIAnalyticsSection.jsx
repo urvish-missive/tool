@@ -157,7 +157,7 @@ export default function AIAnalyticsSection({ report, onReset, onEdit }) {
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-[#0C81F3]/10 text-[#0C81F3] text-[11px] font-bold uppercase tracking-wider">
               <Sparkles className="w-3 h-3" />
-              Missive's SEO Tools • Missive Digital
+              Missive's Tools • Missive Digital
             </span>
           </div>
           <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 tracking-tight">

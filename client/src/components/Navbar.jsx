@@ -240,7 +240,7 @@ const NAV_ITEMS = [
     },
   },
   {
-    label: "Missive's SEO Tools",
+    label: "Missive's Tools",
     dropdown: {
       columns: [
         {

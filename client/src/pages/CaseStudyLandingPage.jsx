@@ -269,7 +269,7 @@ export default function CaseStudyLandingPage() {
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://tools.missivedigital.com/case-study-generator" />
-        <meta property="og:site_name" content="Missive's SEO Tools" />
+        <meta property="og:site_name" content="Missive's Tools" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="AI Case Study Generator - Missive Digital" />
         <meta
@@ -284,7 +284,7 @@ export default function CaseStudyLandingPage() {
         {/* 1. Hero with embedded tool */}
         <LandingHero
           hideHeroCopy={hasResults}
-          badge="Missive's SEO Tools • Missive Digital"
+          badge="Missive's Tools • Missive Digital"
           title={[{ text: 'Turn Client Wins Into ' }, { text: 'Revenue Engines', gradient: true }]}
           subtitle="Generate evidence-backed B2B case studies with sales battlecards, social repurposing, video scripts, and AI search citations. All from one form."
           ctaLabel="Generate Case Study Free"

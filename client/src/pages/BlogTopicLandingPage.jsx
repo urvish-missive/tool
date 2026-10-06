@@ -285,7 +285,7 @@ export default function BlogTopicLandingPage() {
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://tools.missivedigital.com/blog-topic-generator" />
-        <meta property="og:site_name" content="Missive's SEO Tools" />
+        <meta property="og:site_name" content="Missive's Tools" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="AI Blog Topic & Silo Generator - Missive Digital" />
         <meta
@@ -300,7 +300,7 @@ export default function BlogTopicLandingPage() {
         {/* 1. Hero with embedded tool */}
         <LandingHero
           hideHeroCopy={hasResults}
-          badge="Missive's SEO Tools • Missive Digital"
+          badge="Missive's Tools • Missive Digital"
           title={[
             { text: 'Plan Your ' },
             { text: 'Blog Content', gradient: true },

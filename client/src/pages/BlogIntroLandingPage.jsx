@@ -316,7 +316,7 @@ export default function BlogIntroLandingPage() {
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://tools.missivedigital.com/blog-intro-generator" />
-        <meta property="og:site_name" content="Missive's SEO Tools" />
+        <meta property="og:site_name" content="Missive's Tools" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="Blog Introduction Generator by Missive Digital" />
         <meta
@@ -332,7 +332,7 @@ export default function BlogIntroLandingPage() {
         {/* ═══════════════ 1. HERO WITH FLOATING GLASS CARDS ═══════════════ */}
         <LandingHero
           hideHeroCopy={hasResults}
-          badge="Missive's SEO Tools • Missive Digital"
+          badge="Missive's Tools • Missive Digital"
           title={[
             { text: 'Generate High-Converting ' },
             { text: 'Blog Introductions', gradient: true },

@@ -416,7 +416,7 @@ export default function EeatAuthorityAnalyzerLandingPage() {
         />
         <meta property="og:type" content="website" />
         <meta property="og:url" content="https://tools.missivedigital.com/eeat-analyzer" />
-        <meta property="og:site_name" content="Missive's SEO Tools" />
+        <meta property="og:site_name" content="Missive's Tools" />
         <meta name="twitter:card" content="summary_large_image" />
         <meta
           name="twitter:title"
@@ -435,7 +435,7 @@ export default function EeatAuthorityAnalyzerLandingPage() {
         {/* ═══════════════ 1. HERO ═══════════════ */}
         <LandingHero
           hideHeroCopy={hasResults}
-          badge="Missive's SEO Tools • Missive Digital"
+          badge="Missive's Tools • Missive Digital"
           title={[
             { text: 'Rank Higher in Google' },
             { text: ' AI Search Results', gradient: true },
