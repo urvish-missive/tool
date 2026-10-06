@@ -1,6 +1,10 @@
 import { analyzeContentQA } from '../services/contentQaAnalyzer.js'
 import { reviewContentQA, polishContentWithHimaniRules, generateDynamicImprovements } from '../services/contentQaAiAnalyzer.js'
-import { importContentFromUrl, importContentFromFile } from '../services/contentQa/contentImportService.js'
+import {
+  importContentFromUrl,
+  importContentFromFile,
+  extractArticleFromHtml,
+} from '../services/contentQa/contentImportService.js'
 import prisma from '../utils/prisma.js'
 
 /**
@@ -75,9 +79,22 @@ function buildFallbackAiReport(programmatic) {
   }
 }
 
+// Optional `sourceHtml` input (Chrome extension): page HTML is run through the
+// same extractor as the web app's URL import, so both get identical content.
+const MAX_SOURCE_HTML_CHARS = 5_000_000
+// Same ceiling the web form enforces on content (client/src/schemas/contentQa.schema.js).
+const MAX_CONTENT_CHARS = 50_000
+
+/** Cut at a paragraph boundary so no block is split mid-sentence. */
+function truncateAtParagraph(text, max) {
+  if (text.length <= max) return text
+  const cut = text.lastIndexOf('\n\n', max)
+  return text.slice(0, cut > 0 ? cut : max).trim()
+}
+
 export async function analyzeContentQAHandler(req, res) {
   try {
-    const {
+    let {
       content,
       title,
       targetKeyword,
@@ -95,6 +112,26 @@ export async function analyzeContentQAHandler(req, res) {
       complianceJurisdiction,
       preferredProvider,
     } = req.body
+
+    let source = null
+    const { sourceHtml } = req.body
+    if (!content && typeof sourceHtml === 'string') {
+      if (sourceHtml.length > MAX_SOURCE_HTML_CHARS) {
+        return res.status(413).json({ success: false, error: 'This page is too large to analyze.' })
+      }
+      const imported = extractArticleFromHtml(sourceHtml)
+      if (!imported.success) {
+        return res.status(400).json({ success: false, error: imported.error })
+      }
+      content = truncateAtParagraph(imported.content, MAX_CONTENT_CHARS)
+      title = title || imported.title || undefined
+      source = {
+        title: imported.title,
+        wordCount: imported.wordCount,
+        chars: content.length,
+        truncated: content.length < imported.content.length,
+      }
+    }
 
     if (!content || content.trim().length < 20) {
       return res.status(400).json({ success: false, error: 'Content must be at least 20 characters' })
@@ -231,6 +268,8 @@ export async function analyzeContentQAHandler(req, res) {
     res.json({
       success: true,
       qaId,
+      // Only for sourceHtml requests: what was extracted from the page.
+      ...(source && { source }),
       report: {
         categories: programmatic.categories,
         statuses: programmatic.statuses,

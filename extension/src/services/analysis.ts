@@ -32,8 +32,8 @@ export async function extractPage(tabId: number): Promise<ExtractResult> {
 }
 
 export async function runAnalysis(page: PageContent, options: AnalyzeOptions): Promise<StoredResult> {
-  const { request, formatted } = buildAnalyzeRequest(page, options)
-  if (request.content.trim().length < MIN_CONTENT_CHARS) {
+  const { request, fallback } = buildAnalyzeRequest(page, options)
+  if (fallback && fallback.content.trim().length < MIN_CONTENT_CHARS) {
     throw new ApiError('BAD_REQUEST', 'This page does not have enough readable text to analyze.')
   }
 
@@ -43,8 +43,9 @@ export async function runAnalysis(page: PageContent, options: AnalyzeOptions): P
     analyzedAt: new Date().toISOString(),
     report: response.report!,
     qaId: response.qaId ?? null,
-    truncated: formatted.truncated,
-    sentChars: request.content.length,
+    truncated: response.source?.truncated ?? fallback?.truncated ?? false,
+    sentChars: response.source?.chars ?? fallback?.content.length ?? 0,
+    matchesWebImport: !fallback,
   }
   await storeResult(result)
   return result

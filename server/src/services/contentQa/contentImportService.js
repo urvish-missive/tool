@@ -192,71 +192,80 @@ async function handleWebArticleImport(url) {
       }
     }
 
-    const html = await response.text()
-    const $ = cheerio.load(html)
-
-    // Extract Title
-    let title =
-      $('meta[property="og:title"]').attr('content') ||
-      $('meta[name="twitter:title"]').attr('content') ||
-      $('h1').first().text() ||
-      $('title').text() ||
-      ''
-    title = title.replace(/\s+/g, ' ').trim()
-
-    // Remove boilerplate elements
-    $(
-      'script, style, noscript, nav, header, footer, aside, form, iframe, svg, .sidebar, .comments, .advertisement, .ad, .social-share, .cookie-banner, .popup'
-    ).remove()
-
-    // Find main article container if available
-    let $root = $('article')
-    if (!$root.length) $root = $('main')
-    if (!$root.length) $root = $('[role="main"]')
-    if (!$root.length)
-      $root = $('.post-content, .entry-content, .article-content, .blog-post, .content-area, .content')
-    if (!$root.length) $root = $('body')
-
-    const paragraphs = []
-    $root.find('p, h1, h2, h3, h4, li').each((_, el) => {
-      const text = $(el).text().replace(/\s+/g, ' ').trim()
-      if (!text || text.length < 3) return
-
-      const tagName = el.tagName.toLowerCase()
-      if (tagName === 'h1') paragraphs.push(`# ${text}`)
-      else if (tagName === 'h2') paragraphs.push(`## ${text}`)
-      else if (tagName === 'h3') paragraphs.push(`### ${text}`)
-      else if (tagName === 'li') paragraphs.push(`- ${text}`)
-      else paragraphs.push(text)
-    })
-
-    let content = paragraphs.join('\n\n').trim()
-    if (!content || content.length < 50) {
-      content = $root.text().replace(/\s+/g, ' ').trim()
-    }
-
-    if (!content || content.length < 20) {
-      return {
-        success: false,
-        source: 'web',
-        error:
-          'Could not extract article text from this page. You can copy and paste the text directly.',
-      }
-    }
-
-    return {
-      success: true,
-      source: 'web',
-      title,
-      content,
-      wordCount: countWords(content),
-    }
+    return extractArticleFromHtml(await response.text())
   } catch (err) {
     return {
       success: false,
       source: 'web',
       error: `Failed to extract web content: ${err.message}`,
     }
+  }
+}
+
+/**
+ * Extract the article title and markdown-style content from page HTML.
+ * Shared by the URL importer above (web app) and by POST /content-qa/analyze
+ * with `sourceHtml` (Chrome extension), so both produce identical content and
+ * therefore identical Content QA scores. Change it here, and both follow.
+ */
+export function extractArticleFromHtml(html) {
+  const $ = cheerio.load(html)
+
+  // Extract Title
+  let title =
+    $('meta[property="og:title"]').attr('content') ||
+    $('meta[name="twitter:title"]').attr('content') ||
+    $('h1').first().text() ||
+    $('title').text() ||
+    ''
+  title = title.replace(/\s+/g, ' ').trim()
+
+  // Remove boilerplate elements
+  $(
+    'script, style, noscript, nav, header, footer, aside, form, iframe, svg, .sidebar, .comments, .advertisement, .ad, .social-share, .cookie-banner, .popup'
+  ).remove()
+
+  // Find main article container if available
+  let $root = $('article')
+  if (!$root.length) $root = $('main')
+  if (!$root.length) $root = $('[role="main"]')
+  if (!$root.length)
+    $root = $('.post-content, .entry-content, .article-content, .blog-post, .content-area, .content')
+  if (!$root.length) $root = $('body')
+
+  const paragraphs = []
+  $root.find('p, h1, h2, h3, h4, li').each((_, el) => {
+    const text = $(el).text().replace(/\s+/g, ' ').trim()
+    if (!text || text.length < 3) return
+
+    const tagName = el.tagName.toLowerCase()
+    if (tagName === 'h1') paragraphs.push(`# ${text}`)
+    else if (tagName === 'h2') paragraphs.push(`## ${text}`)
+    else if (tagName === 'h3') paragraphs.push(`### ${text}`)
+    else if (tagName === 'li') paragraphs.push(`- ${text}`)
+    else paragraphs.push(text)
+  })
+
+  let content = paragraphs.join('\n\n').trim()
+  if (!content || content.length < 50) {
+    content = $root.text().replace(/\s+/g, ' ').trim()
+  }
+
+  if (!content || content.length < 20) {
+    return {
+      success: false,
+      source: 'web',
+      error:
+        'Could not extract article text from this page. You can copy and paste the text directly.',
+    }
+  }
+
+  return {
+    success: true,
+    source: 'web',
+    title,
+    content,
+    wordCount: countWords(content),
   }
 }
 

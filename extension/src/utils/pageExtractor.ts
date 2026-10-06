@@ -356,6 +356,22 @@ function collectImages(doc: Document, pageUrl: URL) {
   return { images, totals, capped: totals.total > EXTRACTION_LIMITS.maxImages }
 }
 
+/* ── HTML for server-side extraction ───────────────────────────────── */
+
+export const MAX_SOURCE_HTML_CHARS = 4_500_000
+
+// Only elements the server importer discards anyway or that carry no text,
+// so stripping them changes nothing in the extracted content.
+const STRIP_FOR_IMPORT =
+  'script, style, noscript, svg, iframe, template, canvas, link, img, picture, video, audio, source, object, embed'
+
+export function serializeForImport(doc: Document): string | null {
+  const clone = doc.documentElement.cloneNode(true) as Element
+  clone.querySelectorAll(STRIP_FOR_IMPORT).forEach((el) => el.remove())
+  const html = `<!doctype html>${clone.outerHTML}`
+  return html.length <= MAX_SOURCE_HTML_CHARS ? html : null
+}
+
 /* ── Entry point ───────────────────────────────────────────────────── */
 
 export function extractPage(doc: Document, win: Window): PageContent {
@@ -432,6 +448,8 @@ export function extractPage(doc: Document, win: Window): PageContent {
 
     structuredData,
     structuredDataTypes: Array.from(types),
+
+    html: serializeForImport(doc),
 
     limits: { blocksCapped: state.capped, linksCapped, imagesCapped },
     extractedAt: new Date().toISOString(),

@@ -78,8 +78,11 @@ export default function Options() {
       <Card title="Privacy">
         <p>When you click Analyze, the extension sends the following from the current page to the Missive SEO API:</p>
         <ul className="list-disc space-y-1 pl-5">
-          <li>the main article text (up to 50,000 characters), title and meta description;</li>
-          <li>the page path, plus the optional keyword and audience you enter;</li>
+          <li>
+            the page’s HTML with scripts, styles and media removed. The server pulls the article text out of it with the
+            same code as the web app’s “Import from URL”, so both give the same scores;
+          </li>
+          <li>the optional keyword and audience you enter;</li>
           <li>a random device ID used for the free-usage limit.</li>
         </ul>
         <p>

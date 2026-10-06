@@ -66,6 +66,14 @@ export interface PageContent {
   structuredData: unknown[]
   structuredDataTypes: string[]
 
+  /**
+   * Page HTML with scripts, styles and media stripped, sent as `sourceHtml` so
+   * the server extracts content with the same code as the web app's URL
+   * import. null if the page is too large (the extension then falls back to
+   * sending its own extracted text).
+   */
+  html: string | null
+
   /** Limits hit while extracting (so the UI can say so) */
   limits: { blocksCapped: boolean; linksCapped: boolean; imagesCapped: boolean }
   extractedAt: string

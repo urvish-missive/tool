@@ -111,12 +111,15 @@ Toolbar click ──► service worker ──► chrome.sidePanel.open()
                                      │  (click grants activeTab for that tab)
 Side panel ──EXTRACT_PAGE──► service worker ──scripting.executeScript──► content-script.js
           ◄──────────── PageContent (main text, headings, links, images, meta, JSON-LD) ◄──┘
-Side panel ──POST /api/content-qa/analyze (x-device-id)──► existing Express route
+Side panel ──POST /api/content-qa/analyze { sourceHtml } (x-device-id)──► existing Express route
+                                         (same importer as the web app's "Import from URL")
           ◄──── existing report: 12 pillar scores, findings, AI summary/top fixes ◄──┘
 ```
 
 * **Content extraction** (`src/utils/pageExtractor.ts`): picks `<article>`, then `<main>`/`[role=main]`, common CMS containers, then a paragraph-density fallback. It skips nav, header-with-nav, footer, aside, forms, dialogs, hidden elements, and cookie/ad/share/newsletter blocks. Output is the same markdown shape (`#` headings, `-` list items) the server's URL importer produces.
-* **Large pages** (`src/utils/contentFormatter.ts`): capped at 50,000 characters, the same limit as the web form. The opening is kept in full, then the rest of the heading outline plus the first paragraph under each heading. Blocks are never cut mid-sentence.
+* **Same results as the web app.** The extension sends the page HTML (scripts, styles and media stripped) as `sourceHtml`. The server runs it through `extractArticleFromHtml`, the exact function behind the web app's "Import from URL", and analyzes it with the web form's defaults (`contentTemplate: blog`, `supportingLineMode: recommended`, `insightFirstScope: DOCUMENT_INTRO`). Same content and same options give the same scores. `server/test/contentQaParity.test.mjs` (`npm run test:parity`) guards this. The AI-written text (summary, top fixes) can still vary between any two runs, on the website too; scores never come from the AI.
+* **Large pages:** pages over 4.5 MB of HTML fall back to the extension's own extraction (`src/utils/contentFormatter.ts`), and the panel says results may differ slightly. Content over 50,000 characters is cut at a paragraph boundary on the server (the web form refuses such content outright).
+* **Local extraction**: capped at 50,000 characters, the same limit as the web form. The opening is kept in full, then the rest of the heading outline plus the first paragraph under each heading. Blocks are never cut mid-sentence.
 * **On-page SEO checks** (`src/services/pageChecks.ts`): title and meta length, H1, heading hierarchy, canonical, robots, lang, viewport, alt text, empty or generic anchors, internal links, Open Graph, Twitter card and JSON-LD. These run locally and are free: they are not sent to the server and do not use an analysis.
 * **Results** are cached per URL in `chrome.storage.session`, so reopening the panel restores them. The cache clears when the browser closes.
 
@@ -169,4 +172,4 @@ Only exact `chrome-extension://<id>` origins are accepted; wildcards are never a
 | Host: Missive API | Send the page text to the Missive Content QA service for analysis. |
 | Optional `http(s)://*/*` | User opt-in, so the panel can follow them across tabs without re-clicking. |
 
-**Data disclosure:** website content (the main text, title, meta description and URL path of a page the user chooses to analyze) is sent to the Missive API. It is not sold or used for anything other than the analysis. The server stores up to the first 5,000 characters with the result, as it does for the web tool.
+**Data disclosure:** website content (the HTML of a page the user chooses to analyze, with scripts, styles and media removed) is sent to the Missive API. It is not sold or used for anything other than the analysis. The server stores up to the first 5,000 characters with the result, as it does for the web tool.

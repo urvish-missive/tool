@@ -55,7 +55,7 @@ export default function SidePanel() {
   const [showOptions, setShowOptions] = useState(false)
   const [targetKeyword, setTargetKeyword] = useState('')
   const [targetAudience, setTargetAudience] = useState('')
-  const [template, setTemplate] = useState<'auto' | AnalyzeRequest['contentTemplate']>('auto')
+  const [template, setTemplate] = useState<AnalyzeRequest['contentTemplate']>('blog')
 
   // Identifies the tab/URL the panel is currently showing, to drop stale async results.
   const currentKey = useRef<string>('')
@@ -93,7 +93,7 @@ export default function SidePanel() {
         const stored = await runAnalysis(extracted.page, {
           targetKeyword,
           targetAudience,
-          contentTemplate: template === 'auto' ? undefined : template,
+          contentTemplate: template,
         })
         if (currentKey.current !== key) return
         setStep('recommend')
@@ -294,8 +294,7 @@ export default function SidePanel() {
                     onChange={(e) => setTemplate(e.target.value as typeof template)}
                     className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm font-normal outline-none focus:border-brand"
                   >
-                    <option value="auto">Detect automatically</option>
-                    <option value="blog">Article / blog post</option>
+                    <option value="blog">Article / blog post (web app default)</option>
                     <option value="landing_page">Landing / product page</option>
                   </select>
                 </label>
@@ -312,8 +311,14 @@ export default function SidePanel() {
             <ScoreCard report={result.report} />
             {result.truncated && (
               <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
-                This page is long, so the opening and the full heading outline were analyzed (
-                {result.sentChars.toLocaleString()} characters).
+                This page is longer than the 50,000-character Content QA limit, so the first{' '}
+                {result.sentChars.toLocaleString()} characters were analyzed.
+              </p>
+            )}
+            {result.matchesWebImport === false && (
+              <p className="rounded-lg bg-slate-100 px-3 py-2 text-xs text-slate-600">
+                This page is very large, so the extension extracted the text itself. Scores may differ slightly from
+                the web app’s “Import from URL”.
               </p>
             )}
             <RecommendationList report={result.report} />

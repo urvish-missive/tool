@@ -85,19 +85,27 @@ export interface AnalyzeResponse {
   success: boolean
   qaId?: string | null
   report?: QaReport
+  /** Present when the request used sourceHtml: what the server extracted. */
+  source?: { title: string; wordCount: number; chars: number; truncated: boolean }
   error?: string
 }
 
-/** Payload accepted by POST /api/content-qa/analyze (same as the web form). */
+/**
+ * Payload for POST /api/content-qa/analyze. Mirrors exactly what the web form
+ * sends (client ContentQaPage runAnalysis) so both get the same results.
+ * Either `sourceHtml` (server extracts content with the web importer) or
+ * `content` (fallback for very large pages) is sent.
+ */
 export interface AnalyzeRequest {
-  content: string
+  sourceHtml?: string
+  content?: string
   title?: string
   targetKeyword?: string
-  metaDescription?: string
-  urlSlug?: string
-  platform: 'website'
   targetAudience?: string
+  platform: 'website'
   contentTemplate: 'blog' | 'landing_page'
+  supportingLineMode: 'recommended'
+  insightFirstScope: 'DOCUMENT_INTRO'
 }
 
 export interface DeviceStatus {
@@ -116,4 +124,6 @@ export interface StoredResult {
   qaId?: string | null
   truncated: boolean
   sentChars: number
+  /** true when the server extracted the content (identical to the web app's URL import) */
+  matchesWebImport: boolean
 }

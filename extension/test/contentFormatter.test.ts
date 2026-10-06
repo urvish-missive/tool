@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { blockToMarkdown, buildAnalyzeRequest, detectTemplate, formatContent } from '../src/utils/contentFormatter'
+import { blockToMarkdown, buildAnalyzeRequest, formatContent } from '../src/utils/contentFormatter'
 import type { ContentBlock, PageContent } from '../src/types/page'
 
 function page(overrides: Partial<PageContent> = {}): PageContent {
@@ -29,6 +29,7 @@ function page(overrides: Partial<PageContent> = {}): PageContent {
     twitter: {},
     structuredData: [],
     structuredDataTypes: [],
+    html: null,
     limits: { blocksCapped: false, linksCapped: false, imagesCapped: false },
     extractedAt: '',
     ...overrides,
@@ -71,28 +72,35 @@ describe('formatContent', () => {
   })
 })
 
+const WEB_FORM_DEFAULTS = {
+  platform: 'website',
+  contentTemplate: 'blog',
+  supportingLineMode: 'recommended',
+  insightFirstScope: 'DOCUMENT_INTRO',
+}
+
 describe('buildAnalyzeRequest', () => {
-  it('maps the page onto the existing /content-qa/analyze payload', () => {
-    const { request } = buildAnalyzeRequest(page({ openGraph: { title: 'OG headline' } }), { targetKeyword: '  seo  ' })
-    expect(request).toMatchObject({
-      title: 'OG headline',
-      metaDescription: 'Meta',
-      urlSlug: '/blog/post',
-      platform: 'website',
-      targetKeyword: 'seo',
-      contentTemplate: 'blog',
-    })
+  it('sends the page HTML with exactly the web form defaults', () => {
+    const { request, fallback } = buildAnalyzeRequest(page({ html: '<html>…</html>' }), { targetKeyword: '  seo  ' })
+    expect(fallback).toBeNull()
+    expect(request).toEqual({ ...WEB_FORM_DEFAULTS, sourceHtml: '<html>…</html>', targetKeyword: 'seo', targetAudience: undefined })
+  })
+
+  it('never sends fields the web form does not send', () => {
+    const { request } = buildAnalyzeRequest(page({ html: '<html></html>' }))
+    expect(request).not.toHaveProperty('metaDescription')
+    expect(request).not.toHaveProperty('urlSlug')
+    expect(request).not.toHaveProperty('content')
+  })
+
+  it('falls back to extracted text when there is no HTML', () => {
+    const { request, fallback } = buildAnalyzeRequest(page({ openGraph: { title: 'OG headline' } }))
+    expect(fallback?.truncated).toBe(false)
+    expect(request).toMatchObject({ ...WEB_FORM_DEFAULTS, title: 'OG headline' })
     expect(request.content).toContain('# H1 text')
   })
 
-  it('falls back to the H1 for the headline', () => {
-    expect(buildAnalyzeRequest(page()).request.title).toBe('H1 text')
-  })
-})
-
-describe('detectTemplate', () => {
-  it('detects product pages as landing pages', () => {
-    expect(detectTemplate(page({ structuredDataTypes: ['Product'] }))).toBe('landing_page')
-    expect(detectTemplate(page({ structuredDataTypes: ['Product', 'Article'] }))).toBe('blog')
+  it('uses the chosen content type', () => {
+    expect(buildAnalyzeRequest(page({ html: 'x' }), { contentTemplate: 'landing_page' }).request.contentTemplate).toBe('landing_page')
   })
 })

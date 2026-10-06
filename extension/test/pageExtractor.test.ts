@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // @vitest-environment-options {"url": "https://example.com/blog/post"}
 import { beforeEach, describe, expect, it } from 'vitest'
-import { extractPage, findMainContentRoot } from '../src/utils/pageExtractor'
+import { extractPage, findMainContentRoot, serializeForImport } from '../src/utils/pageExtractor'
 
 const LONG = 'This paragraph has enough words to count as real article content for the extractor. '.repeat(4)
 
@@ -83,5 +83,18 @@ describe('extractPage', () => {
     load(`<body><article><p>${LONG}</p><table><tr><th>Plan</th><th>Price</th></tr><tr><td>Pro</td><td>$10</td></tr></table></article></body>`)
     const page = extractPage(document, window)
     expect(page.blocks.map((b) => b.text)).toContain('| Pro | $10 |')
+  })
+})
+
+describe('serializeForImport', () => {
+  it('keeps text and meta but strips scripts, styles and media, without touching the live page', () => {
+    document.documentElement.innerHTML =
+      '<head><meta property="og:title" content="T"><script>var secret=1</script><style>p{}</style></head>' +
+      '<body><article><h1>Hi</h1><p>Text</p><img src="a.png"><svg><text>x</text></svg></article></body>'
+    const html = serializeForImport(document)!
+    expect(html).toContain('og:title')
+    expect(html).toContain('<h1>Hi</h1><p>Text</p>')
+    expect(html).not.toMatch(/<script|<style|<img|<svg/)
+    expect(document.querySelector('script')).not.toBeNull()
   })
 })

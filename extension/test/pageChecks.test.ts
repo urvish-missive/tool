@@ -29,6 +29,7 @@ const base: PageContent = {
   twitter: {},
   structuredData: [],
   structuredDataTypes: [],
+  html: null,
   limits: { blocksCapped: false, linksCapped: false, imagesCapped: false },
   extractedAt: '',
 }

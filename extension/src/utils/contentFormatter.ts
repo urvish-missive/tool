@@ -86,18 +86,6 @@ export function formatContent(blocks: ContentBlock[], maxChars = MAX_CONTENT_CHA
   }
 }
 
-/** Article vs. landing page decides which Content QA rule template applies. */
-export function detectTemplate(page: PageContent): AnalyzeRequest['contentTemplate'] {
-  const articleTypes = /^(Article|BlogPosting|NewsArticle|TechArticle|Report|ScholarlyArticle|HowTo)$/i
-  if (page.structuredDataTypes.some((t) => articleTypes.test(t))) return 'blog'
-  if (page.openGraph.type?.toLowerCase() === 'article') return 'blog'
-  if (page.structuredDataTypes.some((t) => /^(Product|Service|Offer|SoftwareApplication)$/i.test(t))) {
-    return 'landing_page'
-  }
-  if (page.openGraph.type?.toLowerCase() === 'product') return 'landing_page'
-  return 'blog'
-}
-
 /** Headline, using the same priority as the server's web importer. */
 export function pickTitle(page: PageContent): string {
   const firstH1 = page.headings.find((h) => h.level === 1)?.text
@@ -108,27 +96,35 @@ export function pickTitle(page: PageContent): string {
 export interface AnalyzeOptions {
   targetKeyword?: string
   targetAudience?: string
+  /** Defaults to 'blog', the web form's default. */
   contentTemplate?: AnalyzeRequest['contentTemplate']
 }
 
+/**
+ * Builds the same request the web app sends after "Import from URL":
+ * identical option defaults, and the page HTML so the server runs the same
+ * importer. No metaDescription/urlSlug: the web form does not send them, and
+ * they would change the AI review input.
+ *
+ * Only if the page HTML is too large does it fall back to the extension's own
+ * extracted text (results may then differ slightly from the web app).
+ */
 export function buildAnalyzeRequest(page: PageContent, options: AnalyzeOptions = {}) {
-  const formatted = formatContent(page.blocks)
-  let urlSlug = ''
-  try {
-    urlSlug = new URL(page.url).pathname
-  } catch {
-    // keep empty
-  }
-
-  const request: AnalyzeRequest = {
-    content: formatted.content,
-    title: pickTitle(page) || undefined,
-    metaDescription: page.metaDescription || undefined,
-    urlSlug: urlSlug || undefined,
+  const base = {
     platform: 'website',
+    contentTemplate: options.contentTemplate || 'blog',
+    supportingLineMode: 'recommended',
+    insightFirstScope: 'DOCUMENT_INTRO',
     targetKeyword: truncate(normalizeWhitespace(options.targetKeyword), 100) || undefined,
     targetAudience: truncate(normalizeWhitespace(options.targetAudience), 200) || undefined,
-    contentTemplate: options.contentTemplate || detectTemplate(page),
+  } as const
+
+  if (page.html) {
+    const request: AnalyzeRequest = { ...base, sourceHtml: page.html }
+    return { request, fallback: null }
   }
-  return { request, formatted }
+
+  const fallback = formatContent(page.blocks)
+  const request: AnalyzeRequest = { ...base, content: fallback.content, title: pickTitle(page) || undefined }
+  return { request, fallback }
 }
