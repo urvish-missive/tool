@@ -613,7 +613,7 @@ export default function Home() {
         <LandingMarquee title="One Suite Powering Content Across" />
 
         {/* ═══════════════ 3. WORKFLOW PIPELINE (unique to this page) ═══════════════ */}
-        <WorkflowPipeline tools={visibleTools} />
+        {/* <WorkflowPipeline tools={visibleTools} /> */}
 
         {/* ═══════════════ 4. TOOLS GRID WITH CATEGORY FILTER ═══════════════ */}
         <section id="tools-grid" className="py-14 sm:py-16 lg:py-20 scroll-mt-24">
