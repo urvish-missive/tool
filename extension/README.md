@@ -24,7 +24,7 @@ After rebuilding, click the reload icon on the extension's card in `chrome://ext
 
 | Command | API used | Use it for |
 |---|---|---|
-| `npm run build:extension` | `https://tool-2jmg.onrender.com/api` (production) | Real use / Web Store |
+| `npm run build:extension` | `toolapi.missive.digital/api` (production) | Real use / Web Store |
 | `npm run dev` (watch build) | `http://localhost:5000/api` (from `.env.development`) | Developing against your local server |
 | `npm run preview` | `localhost:5000` + mocked Chrome APIs | UI work without loading the extension |
 

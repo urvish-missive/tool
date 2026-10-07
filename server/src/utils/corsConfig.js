@@ -2,7 +2,7 @@
  * CORS Configuration and Origin Validator
  *
  * Explicit Allowed Origins List:
- * - https://tool-2jmg.onrender.com/api/
+ * - toolapi.missive.digital/api/
  * - local (http://localhost:5173, http://127.0.0.1:5173, ports 5174, 3000, 4173, 5000)
  * - https://tool.missivedigital.com/
  */
@@ -27,8 +27,8 @@ export function normalizeOriginUrl(urlStr) {
  */
 export const ALLOWED_ORIGINS = [
   // 1. Render API Backend
-  'https://tool-2jmg.onrender.com/api/',
-  'https://tool-2jmg.onrender.com',
+  'toolapi.missive.digital/api/',
+  'toolapi.missive.digital',
 
   // 2. Local Development Origins
   'http://localhost:5173',

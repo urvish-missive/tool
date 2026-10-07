@@ -66,8 +66,8 @@ describe('isAllowedOrigin unit tests', () => {
 
   test('allows Render API backend from ALLOWED_ORIGINS array with or without /api/ path', () => {
     const prodEnv = { NODE_ENV: 'production', CLIENT_URL: '' }
-    assert.equal(isAllowedOrigin('https://tool-2jmg.onrender.com', prodEnv), true)
-    assert.equal(isAllowedOrigin('https://tool-2jmg.onrender.com/api/', prodEnv), true)
+    assert.equal(isAllowedOrigin('toolapi.missive.digital', prodEnv), true)
+    assert.equal(isAllowedOrigin('toolapi.missive.digital/api/', prodEnv), true)
   })
 
   test('allows Vercel preview and production subdomains', () => {
@@ -78,7 +78,7 @@ describe('isAllowedOrigin unit tests', () => {
 
   test('allows Render deployments', () => {
     const prodEnv = { NODE_ENV: 'production', CLIENT_URL: '' }
-    assert.equal(isAllowedOrigin('https://tool-2jmg.onrender.com', prodEnv), true)
+    assert.equal(isAllowedOrigin('toolapi.missive.digital', prodEnv), true)
   })
 
   test('allows only the Chrome extension IDs listed in EXTENSION_IDS', () => {
