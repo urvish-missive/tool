@@ -162,6 +162,8 @@ export default function BlogConclusionGeneratorPage({
   const [dataResult, setDataResult] = useState(null)
   const [errorMessage, setErrorMessage] = useState('')
   const [activeSampleId, setActiveSampleId] = useState(null)
+  // The PDF effect reads this state in its dependency array during render.
+  const [popupLeadId, setPopupLeadId] = useState(null)
 
   useEffect(() => {
     if (dataResult?.conclusions?.length) {
@@ -251,11 +253,6 @@ export default function BlogConclusionGeneratorPage({
 
   const [pendingForm, setPendingForm] = useState(null)
   const pendingFormRef = useRef(null)
-  // Captured from LeadCaptureModal when this tool's pre-use popup gate is
-  // enabled (ToolConfig.showLeadPopup) — that popup fires BEFORE generation,
-  // so this lead has no result yet at capture time; linked to the result
-  // once it exists (see the dataResult effect above).
-  const [popupLeadId, setPopupLeadId] = useState(null)
   const countValue = watch('numVariations')
 
   const handleLoadSample = (preset = SAMPLE_PRESETS[0]) => {
