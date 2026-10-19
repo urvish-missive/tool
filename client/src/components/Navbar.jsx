@@ -458,8 +458,8 @@ export default function Navbar() {
       >
         <div className="flex items-center justify-between h-16 shrink-0">
           {/* Logo */}
-          <Link
-            to="/"
+          <a
+            href="https://missivedigital.com/"
             onClick={() => {
               setMobileOpen(false)
               setMobileExpanded(null)
@@ -467,7 +467,7 @@ export default function Navbar() {
             className="flex items-center gap-2.5 shrink-0 group"
           >
             <img src="/logo.png" alt="Missive Digital" className="h-8 w-auto" />
-          </Link>
+          </a>
 
           {/* Desktop nav */}
           <div className="hidden lg:flex items-center gap-2 xl:gap-3">

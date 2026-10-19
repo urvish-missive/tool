@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import rateLimit from 'express-rate-limit'
 import { adminAuth } from '../middleware/adminAuth.js'
 import {
   login, getProfile, getStats,
@@ -11,8 +12,18 @@ import {
 
 const router = Router()
 
+// PIN guessing protection: 5 wrong PINs per IP per 15 minutes (correct PINs are not counted)
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  skipSuccessfulRequests: true,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { success: false, error: 'Too many wrong PINs. Try again in 15 minutes.' },
+})
+
 // Public (no auth)
-router.post('/login', login)
+router.post('/login', loginLimiter, login)
 
 // Protected (admin auth required)
 router.get('/profile', adminAuth, getProfile)

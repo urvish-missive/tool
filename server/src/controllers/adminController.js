@@ -1,5 +1,6 @@
 import prisma from '../utils/prisma.js'
 import bcrypt from 'bcryptjs'
+import crypto from 'crypto'
 import { signAdminToken } from '../middleware/adminAuth.js'
 import {
   sendStoredPdfForLead,
@@ -10,25 +11,35 @@ import {
 
 // ─── Auth ────────────────────────────────────────────────
 
+// Constant-time PIN check: hash both sides so lengths always match for timingSafeEqual.
+const pinMatches = (pin, expected) =>
+  crypto.timingSafeEqual(
+    crypto.createHash('sha256').update(String(pin)).digest(),
+    crypto.createHash('sha256').update(String(expected)).digest()
+  )
+
+// The admin panel signs in with a 6-digit PIN set in ADMIN_PIN (server .env). A correct PIN
+// signs in as the first active admin account; wrong attempts are rate limited in adminRoutes.js.
 export async function login(req, res) {
   try {
-    const { email, password } = req.body
-    if (!email || !password) {
-      return res.status(400).json({ success: false, error: 'Email and password required' })
+    const { pin } = req.body
+    const expected = (process.env.ADMIN_PIN || '').trim()
+    if (!/^\d{6}$/.test(expected)) {
+      console.error('Admin login refused: ADMIN_PIN is not set to 6 digits in the server .env')
+      return res.status(503).json({ success: false, error: 'Admin PIN is not configured on the server' })
+    }
+    if (typeof pin !== 'string' || !/^\d{6}$/.test(pin)) {
+      return res.status(400).json({ success: false, error: 'Enter your 6-digit PIN' })
+    }
+    if (!pinMatches(pin, expected)) {
+      return res.status(401).json({ success: false, error: 'Incorrect PIN' })
     }
 
-    const admin = await prisma.admin.findUnique({ where: { email: email.toLowerCase() } })
+    // Older admin records have no isActive field stored, so only an explicit false counts as disabled
+    const admins = await prisma.admin.findMany({ where: { role: 'admin' }, orderBy: { createdAt: 'asc' } })
+    const admin = admins.find((a) => a.isActive !== false)
     if (!admin) {
-      return res.status(401).json({ success: false, error: 'Invalid credentials' })
-    }
-
-    const valid = await bcrypt.compare(password, admin.passwordHash)
-    if (!valid) {
-      return res.status(401).json({ success: false, error: 'Invalid credentials' })
-    }
-
-    if (admin.isActive === false) {
-      return res.status(403).json({ success: false, error: 'Account has been disabled' })
+      return res.status(403).json({ success: false, error: 'No active admin account exists' })
     }
 
     const token = signAdminToken(admin)
