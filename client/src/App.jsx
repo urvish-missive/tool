@@ -7,7 +7,7 @@ import ContentAnalyzerPage from './pages/ContentAnalyzerPage'
 import SeoAuditPage from './tools/seo-audit/SeoAuditPage'
 import KeywordResearchPage from './tools/keyword-research/KeywordResearchPage'
 import SeoRoiPage from './tools/seo-roi/SeoRoiPage'
-import BlogTopicLandingPage from './pages/BlogTopicLandingPage'
+import HubSpokePlannerPage from './tools/hub-spoke-planner/HubSpokePlannerPage'
 import LogoMakerPage from './tools/logo-maker/LogoMakerPage'
 import FaqGeneratorPage from './tools/faq-generator/FaqGeneratorPage'
 import CompetitorAnalysisPage from './tools/competitor-analysis/CompetitorAnalysisPage'
@@ -91,7 +91,7 @@ export default function App() {
                     path="/blog-topic-generator"
                     element={
                       <ToolGuard toolPath="/blog-topic-generator">
-                        <BlogTopicLandingPage />
+                        <HubSpokePlannerPage />
                       </ToolGuard>
                     }
                   />

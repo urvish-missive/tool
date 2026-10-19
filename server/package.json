@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "node --watch-path=src --watch-path=server.js server.js",
     "start": "node server.js",
-    "test": "node --test test/blogTopicGenerator.test.js",
     "test:cors": "node --test test/cors.test.mjs",
     "test:auth": "node --test test/adminAuth.test.mjs",
     "test:eeat": "node --test test/eeatRegression.test.mjs",

@@ -1,5 +1,5 @@
 import { callAIAndParseJSON } from '../utils/aiProvider.js'
-import { TONE_PROFILES } from './blogTopicGenerator.js'
+import { TONE_PROFILES } from '../constants/toneProfiles.js'
 import { buildMissiveQaPromptDirectives, auditCaseStudyMissiveQa } from '../utils/missiveQaRules.js'
 
 /**

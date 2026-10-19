@@ -36,6 +36,8 @@ import {
   Phone,
   Eye,
   EyeOff,
+  Lock,
+  Upload,
 } from 'lucide-react'
 
 // Tools wired into the "store PDF at generation, send automatic or manual"
@@ -44,7 +46,6 @@ const PDF_SEND_CAPABLE_TOOLS = [
   'content-qa',
   'blog-conclusion-generator',
   'seo-audit',
-  'blog-topics',
   'blog-intro-generator',
   'faq-generator',
   'competitor-analyzer',
@@ -88,12 +89,9 @@ const TOOL_FIELDS = {
     { key: 'growthPreset', label: 'Growth Scenario', icon: Rocket },
   ],
   'blog-topics': [
-    { key: 'niche', label: 'Niche / Industry', icon: Factory },
-    { key: 'targetKeywords', label: 'Target Keywords', icon: Key },
-    { key: 'audience', label: 'Target Audience', icon: User },
-    { key: 'contentGoal', label: 'Content Goal', icon: Target },
-    { key: 'contentType', label: 'Content Type', icon: File },
-    { key: 'topicCount', label: 'Topic Count', icon: Hash },
+    { key: 'info', label: 'Anything Else (Details)', icon: FileText },
+    { key: 'url', label: 'Website', icon: Globe },
+    { key: 'file', label: 'Document Upload', icon: Upload },
   ],
   'ai-content-writer': [
     { key: 'keyword', label: 'Topic / Primary Keyword', icon: Target },
@@ -136,12 +134,8 @@ const TOOL_FIELDS = {
     { key: 'url', label: 'Website URL', icon: Globe },
     { key: 'extractAIOverview', label: 'AI Overview', icon: Sparkles },
   ],
-  'website-image-extractor': [
-    { key: 'url', label: 'Website URL', icon: Globe },
-  ],
-  'website-tech-inspector': [
-    { key: 'url', label: 'Website URL', icon: Globe },
-  ],
+  'website-image-extractor': [{ key: 'url', label: 'Website URL', icon: Globe }],
+  'website-tech-inspector': [{ key: 'url', label: 'Website URL', icon: Globe }],
   'geo-analyzer': [
     { key: 'url', label: 'Website URL', icon: Globe },
     { key: 'content', label: 'Content Draft', icon: FileText },
@@ -250,7 +244,8 @@ export default function AdminTools() {
     let parsed = {}
     try {
       if (tool.popupFields) {
-        parsed = typeof tool.popupFields === 'string' ? JSON.parse(tool.popupFields) : tool.popupFields
+        parsed =
+          typeof tool.popupFields === 'string' ? JSON.parse(tool.popupFields) : tool.popupFields
       }
     } catch {}
 
@@ -263,8 +258,12 @@ export default function AdminTools() {
         company: tool.requireCompany ?? false,
         website: false,
       }
-      const show = parsed[def.key]?.show !== undefined ? Boolean(parsed[def.key].show) : def.defaultShow
-      const required = parsed[def.key]?.required !== undefined ? Boolean(parsed[def.key].required) : legacyReqMap[def.key]
+      const show =
+        parsed[def.key]?.show !== undefined ? Boolean(parsed[def.key].show) : def.defaultShow
+      const required =
+        parsed[def.key]?.required !== undefined
+          ? Boolean(parsed[def.key].required)
+          : legacyReqMap[def.key]
       result[def.key] = { show, required }
     })
     return result
@@ -318,6 +317,27 @@ export default function AdminTools() {
     updateTool(toolId, { formFields: updatedFields })
   }
 
+  // Hub & Spoke Planner: the email unlock form that gates the full plan, stored in formFields.unlockGate
+  const getUnlockGate = (tool) => {
+    let fields = {}
+    try {
+      fields = tool?.formFields ? JSON.parse(tool.formFields) : {}
+    } catch {}
+    return {
+      enabled: fields.unlockGate?.enabled !== false,
+      freeSpokes: fields.unlockGate?.freeSpokes ?? 3,
+    }
+  }
+  const updateUnlockGate = (tool, patch) => {
+    let fields = {}
+    try {
+      fields = tool?.formFields ? JSON.parse(tool.formFields) : {}
+    } catch {}
+    updateTool(tool.id, {
+      formFields: { ...fields, unlockGate: { ...getUnlockGate(tool), ...patch } },
+    })
+  }
+
   if (isLoading && !tools.length) {
     return (
       <div className="flex items-center justify-center py-20">
@@ -333,7 +353,8 @@ export default function AdminTools() {
         <div>
           <h2 className="text-lg font-bold text-gray-900">Tool Management</h2>
           <p className="text-sm text-gray-500">
-            Enable/disable tools, configure fields, rate limits, and lead popups ({tools.length} total tools)
+            Enable/disable tools, configure fields, rate limits, and lead popups ({tools.length}{' '}
+            total tools)
           </p>
         </div>
 
@@ -567,7 +588,9 @@ export default function AdminTools() {
                   {/* Form Field Visibility */}
                   {fieldDefs.length > 0 && (
                     <div className="border-t border-gray-100 pt-3">
-                      <p className="text-xs font-semibold text-gray-700 mb-0.5">Input Form Fields</p>
+                      <p className="text-xs font-semibold text-gray-700 mb-0.5">
+                        Input Form Fields
+                      </p>
                       <p className="text-[10px] text-gray-400 mb-2">
                         Show or hide input fields in the tool page form
                       </p>
@@ -596,6 +619,70 @@ export default function AdminTools() {
                     </div>
                   )}
 
+                  {/* Unlock Form (Hub & Spoke Planner only) */}
+                  {tool.slug === 'blog-topics' && (
+                    <div className="bg-gray-50 rounded-xl p-3.5 border border-gray-200/80">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0 flex-1 pr-2">
+                          <p className="text-xs font-semibold text-gray-800 flex items-center gap-1">
+                            <Lock className="w-3.5 h-3.5" /> Unlock Form (Full Plan Gate)
+                          </p>
+                          <p className="text-[10px] text-gray-500">
+                            Ask for contact details before showing every supporting page, the
+                            linking plan, the shortlist and exports. Fields follow &quot;Required
+                            Fields&quot; below.
+                          </p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            updateUnlockGate(tool, { enabled: !getUnlockGate(tool).enabled })
+                          }
+                          className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors cursor-pointer focus:outline-none shadow-xs ${
+                            getUnlockGate(tool).enabled ? 'bg-[#0C81F3]' : 'bg-gray-300'
+                          }`}
+                          title={
+                            getUnlockGate(tool).enabled
+                              ? 'Click to turn the unlock form off'
+                              : 'Click to turn the unlock form on'
+                          }
+                        >
+                          <span
+                            className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform shadow-xs ${
+                              getUnlockGate(tool).enabled ? 'translate-x-6' : 'translate-x-1'
+                            }`}
+                          />
+                        </button>
+                      </div>
+                      {getUnlockGate(tool).enabled && (
+                        <div className="mt-3 pt-3 border-t border-gray-200 flex items-center justify-between gap-3">
+                          <label
+                            htmlFor={`free-spokes-${tool.id}`}
+                            className="text-[11px] font-medium text-gray-600"
+                          >
+                            Supporting pages shown in full before unlocking
+                          </label>
+                          <input
+                            id={`free-spokes-${tool.id}`}
+                            type="number"
+                            min="0"
+                            max="12"
+                            value={getUnlockGate(tool).freeSpokes}
+                            onChange={(e) =>
+                              updateUnlockGate(tool, {
+                                freeSpokes: Math.min(
+                                  12,
+                                  Math.max(0, parseInt(e.target.value) || 0)
+                                ),
+                              })
+                            }
+                            className="w-16 bg-white border border-gray-200 rounded-lg px-2 py-1 text-xs text-gray-900 focus:border-[#0C81F3] focus:outline-none"
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   {/* Lead Capture Settings */}
                   <div className="border-t border-gray-100 pt-3 space-y-3">
                     {/* Required Fields (Bottom Inline Form) */}
@@ -604,7 +691,9 @@ export default function AdminTools() {
                         Required Fields (Bottom Lead Form)
                       </p>
                       <p className="text-[10px] text-gray-400 mb-2">
-                        Fields shown in the lead form below tool results
+                        {tool.slug === 'blog-topics'
+                          ? 'Fields required in the unlock form (name, email and company are always shown)'
+                          : 'Fields shown in the lead form below tool results'}
                       </p>
                       <div className="flex flex-wrap gap-1.5">
                         {[
@@ -616,9 +705,7 @@ export default function AdminTools() {
                           <button
                             type="button"
                             key={field.key}
-                            onClick={() =>
-                              updateTool(tool.id, { [field.key]: !tool[field.key] })
-                            }
+                            onClick={() => updateTool(tool.id, { [field.key]: !tool[field.key] })}
                             className={`px-3 py-1.5 rounded-lg text-xs font-medium border transition-colors cursor-pointer ${
                               tool[field.key]
                                 ? 'bg-[#0C81F3]/10 text-[#0C81F3] border-[#0C81F3]/30'
@@ -667,7 +754,8 @@ export default function AdminTools() {
                                 PDF Delivery Mode
                               </p>
                               <p className="text-[10px] text-gray-500">
-                                Automatic: email the report the moment a lead is captured. Manual: an admin sends it later from Leads.
+                                Automatic: email the report the moment a lead is captured. Manual:
+                                an admin sends it later from Leads.
                               </p>
                             </div>
                             <div className="flex items-center gap-1 rounded-lg border border-gray-200 bg-gray-50 p-0.5 shrink-0">
@@ -694,7 +782,9 @@ export default function AdminTools() {
                         <div className="mt-3 pt-3 border-t border-gray-200 space-y-2.5">
                           <div className="flex items-center justify-between">
                             <div>
-                              <p className="text-xs font-semibold text-gray-700">Popup Form Fields</p>
+                              <p className="text-xs font-semibold text-gray-700">
+                                Popup Form Fields
+                              </p>
                               <p className="text-[10px] text-gray-400">
                                 Set field visibility and requirement for the popup modal
                               </p>
@@ -702,7 +792,9 @@ export default function AdminTools() {
                             <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-100">
                               {(() => {
                                 const pf = getToolPopupFields(tool)
-                                const shownCount = POPUP_FIELD_DEFS.filter((d) => pf[d.key]?.show).length
+                                const shownCount = POPUP_FIELD_DEFS.filter(
+                                  (d) => pf[d.key]?.show
+                                ).length
                                 const reqCount = POPUP_FIELD_DEFS.filter(
                                   (d) => pf[d.key]?.show && pf[d.key]?.required
                                 ).length
@@ -858,5 +950,3 @@ export default function AdminTools() {
     </div>
   )
 }
-
-

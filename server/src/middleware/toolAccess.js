@@ -27,7 +27,7 @@ export function toolAccess(toolSlug) {
           'seo-audit': { name: 'SEO Audit', description: 'Audit websites for technical SEO issues' },
           'keyword-research': { name: 'Keyword Research', description: 'Generate keyword ideas and opportunities' },
           'seo-roi': { name: 'SEO ROI Calculator', description: 'Estimate SEO ROI and organic traffic' },
-          'blog-topics': { name: 'Blog Topic Generator', description: 'Generate blog topics and content ideas' },
+          'blog-topics': { name: 'Hub & Spoke Planner', description: 'Plan hub and spoke content clusters with outlines and first drafts' },
           'logo-maker': { name: 'Logo Maker', description: 'Generate logo designs with AI' },
           'website-content-extractor': { name: 'Website Content Extractor & AI Q&A', description: 'Extract clean website content, metadata, schema, and answer questions with AI' },
           'website-image-extractor': { name: 'Website Image Extractor & Downloader', description: 'Extract all images, logos, SVGs, and social banners from any URL with 1-click downloads' },

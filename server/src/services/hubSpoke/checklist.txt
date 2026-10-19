@@ -1,0 +1,16 @@
+Search intent: the page answers the exact question behind the primary keyword in the first screen, and the title promises what the page delivers
+Primary keyword in the H1, the first 100 words, at least one H2 and the meta title; secondary keywords used naturally in H2s and body, never stuffed
+Experience: at least two first-hand examples, scenarios or lessons from practice, not generic advice
+Expertise: every section explains why, not only what; terms are precise and defined on first use
+Authoritativeness: every claim that needs proof has a current, authoritative source (last 2 years where possible); nothing is invented
+Trust: no unverifiable numbers, no fake quotes or customers; author bio, date and sources are provided for
+Depth: each H2 has enough substance to stand alone, with the how and a concrete example
+Originality: the page says something competitors on page one do not (an angle, a framework, a step, data)
+Structure: H1 once, logical H2/H3 hierarchy that mirrors the outline, scannable paragraphs and lists, no labelled lead-ins ("How it works:", "The benefit:"), a short summary box for long pages
+Visuals: at least one image, one infographic or table and one video embed are placed where they add meaning, each with a described purpose and alt text
+Internal links: links to the pillar and the sibling pages with descriptive anchor text, placed in context
+External links: links to the sources cited, placed where the claim appears
+Readability: plain language, short sentences, active voice, no filler phrases, reads well on mobile
+Conversion: one clear call to action in context, matching the funnel stage, no hard sell
+On-page SEO: meta title under 60 characters, meta description under 155 characters, descriptive URL slug suggested, FAQ answers short enough for snippets
+Freshness: dated claims flagged for review and a suggested review date

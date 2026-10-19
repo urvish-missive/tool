@@ -246,7 +246,7 @@ const NAV_ITEMS = [
         {
           title: 'Blog & Writing',
           items: [
-            { icon: Lightbulb, label: 'Blog Topic Generator', href: '/blog-topic-generator' },
+            { icon: Lightbulb, label: 'Hub & Spoke Planner', href: '/blog-topic-generator' },
             { icon: Rocket, label: 'Blog Intro Generator', href: '/blog-intro-generator' },
             {
               icon: Target,

@@ -1,5 +1,7 @@
 import 'dotenv/config' // reloaded
 import express from 'express'
+import path from 'path'
+import { fileURLToPath } from 'url'
 import cors from 'cors'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
@@ -8,7 +10,6 @@ import leadRoutes from './routes/leadRoutes.js'
 import auditRoutes from './routes/auditRoutes.js'
 import keywordRoutes from './routes/keywordRoutes.js'
 import roiRoutes from './routes/roiRoutes.js'
-import blogTopicRoutes from './routes/blogTopicRoutes.js'
 import logoRoutes from './routes/logoRoutes.js'
 import faqRoutes from './routes/faqRoutes.js'
 import competitorRoutes from './routes/competitorRoutes.js'
@@ -26,6 +27,7 @@ import businessCompetitorRoutes from './routes/businessCompetitorRoutes.js'
 import caseStudyRoutes from './routes/caseStudyRoutes.js'
 import structureAuditRoutes from './routes/structureAuditRoutes.js'
 import resultPdfRoutes from './routes/resultPdfRoutes.js'
+import hubSpokeRoutes from './routes/hubSpokeRoutes.js'
 import deviceRoutes from './routes/deviceRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 
@@ -65,7 +67,8 @@ app.use('/api/leads', leadRoutes)
 app.use('/api/audit', toolAccess('seo-audit'), auditRoutes)
 app.use('/api/keywords', toolAccess('keyword-research'), keywordRoutes)
 app.use('/api/seo-roi', toolAccess('seo-roi'), roiRoutes)
-app.use('/api/blog-topics', toolAccess('blog-topics'), blogTopicRoutes)
+// Hub & Spoke Planner, the tool now served at /blog-topic-generator (device limit applies to plans only)
+app.use('/api/hub-spoke', hubSpokeRoutes)
 app.use('/api/logo', toolAccess('logo-maker'), logoRoutes)
 app.use('/api/faqs', toolAccess('faq-generator'), faqRoutes)
 app.use('/api/competitors', toolAccess('competitor-analyzer'), competitorRoutes)
@@ -84,6 +87,12 @@ app.use('/api/case-study', toolAccess('case-study-generator'), caseStudyRoutes)
 app.use('/api/structure-audit', toolAccess('website-structure-audit'), structureAuditRoutes)
 app.use('/api/results', resultPdfRoutes)
 app.use('/api/devices', deviceRoutes)
+
+// Images generated for Hub & Spoke drafts
+app.use(
+  '/uploads/hub-spoke',
+  express.static(path.join(path.dirname(fileURLToPath(import.meta.url)), '../uploads/hub-spoke'))
+)
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -175,13 +184,11 @@ async function seedDefaults() {
         months: { enabled: true, label: 'Campaign Duration', required: false },
         growthPreset: { enabled: true, label: 'Growth Scenario', required: false },
       })},
-      { slug: 'blog-topics', name: 'Blog Topic Generator', description: 'Generate blog topics and content ideas', dailyLimit: 60, hourlyLimit: 12, formFields: JSON.stringify({
-        niche: { enabled: true, label: 'Niche / Industry', required: true },
-        targetKeywords: { enabled: true, label: 'Target Keywords', required: false },
-        audience: { enabled: true, label: 'Target Audience', required: false },
-        contentGoal: { enabled: true, label: 'Content Goal', required: false },
-        contentType: { enabled: true, label: 'Content Type', required: false },
-        topicCount: { enabled: true, label: 'Topic Count', required: false },
+      { slug: 'blog-topics', name: 'Hub & Spoke Planner', description: 'Plan hub and spoke content clusters with outlines and first drafts', dailyLimit: 60, hourlyLimit: 12, formFields: JSON.stringify({
+        info: { enabled: true, label: 'Anything Else (Details)', required: false },
+        url: { enabled: true, label: 'Website', required: false },
+        file: { enabled: true, label: 'Document Upload', required: false },
+        unlockGate: { enabled: true, freeSpokes: 3 }, // email unlock before the full plan
       })},
       { slug: 'logo-maker', name: 'Logo Maker', description: 'Generate logo designs with AI', dailyLimit: 30, hourlyLimit: 5, formFields: JSON.stringify({
         brandName: { enabled: true, label: 'Brand Name', required: true },

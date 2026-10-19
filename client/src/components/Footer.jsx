@@ -7,7 +7,7 @@ const FOOTER_TOOLS = [
   { label: 'Content Analyzer', href: '/content-analyzer', slug: 'content-analyzer' },
   { label: 'SEO Website Audit', href: '/seo-audit', slug: 'seo-audit' },
   { label: 'Keyword Research', href: '/keyword-research', slug: 'keyword-research' },
-  { label: 'Blog Topic Generator', href: '/blog-topic-generator', slug: 'blog-topics' },
+  { label: 'Hub & Spoke Planner', href: '/blog-topic-generator', slug: 'blog-topics' },
   { label: 'Logo Maker', href: '/logo-maker', slug: 'logo-maker' },
   { label: 'Content QA Checklist', href: '/content-qa', slug: 'content-qa' },
   { label: 'FAQ Generator', href: '/faq-generator', slug: 'faq-generator' },

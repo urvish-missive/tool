@@ -15,14 +15,6 @@ const rawBaseQuery = fetchBaseQuery({
   },
 })
 
-const isToolGeneration = (args) => {
-  const url = typeof args === 'string' ? args : args?.url || ''
-  const method = (typeof args === 'object' && args?.method ? args.method : 'GET').toUpperCase()
-  if (method !== 'POST') return false
-  if (url.startsWith('/leads') || url.startsWith('/admin') || url.includes('/health')) return false
-  return true
-}
-
 const baseQueryWithDeviceLimit = async (args, api, extraOptions) => {
   const result = await rawBaseQuery(args, api, extraOptions)
 
@@ -45,7 +37,7 @@ const baseQueryWithDeviceLimit = async (args, api, extraOptions) => {
 export const apiSlice = createApi({
   reducerPath: 'api',
   baseQuery: baseQueryWithDeviceLimit,
-  tagTypes: ['Analysis', 'Lead', 'BlogTopic', 'TopicCluster', 'Device', 'ToolConfig'],
+  tagTypes: ['Analysis', 'Lead', 'Device', 'ToolConfig'],
   endpoints: (builder) => ({
 
 
@@ -135,44 +127,54 @@ export const apiSlice = createApi({
       }),
     }),
 
-    // POST /api/blog-topics/generate
-    generateTopics: builder.mutation({
-      query: (payload) => ({
-        url: '/blog-topics/generate',
-        method: 'POST',
-        body: payload,
-      }),
-      invalidatesTags: ['BlogTopic'],
-    }),
-
-    // POST /api/blog-topics/clusters
-    generateClusters: builder.mutation({
-      query: (payload) => ({
-        url: '/blog-topics/clusters',
-        method: 'POST',
-        body: payload,
-      }),
-      invalidatesTags: ['TopicCluster'],
-    }),
-
-    // POST /api/blog-topics/master-brief
-    generateMasterBrief: builder.mutation({
-      query: (payload) => ({
-        url: '/blog-topics/master-brief',
-        method: 'POST',
-        body: payload,
-      }),
-    }),
-
-    // GET /api/blog-topics/:id
-    getBlogTopics: builder.query({
-      query: (id) => `/blog-topics/${id}`,
-    }),
-
     // POST /api/faqs/generate
     generateFaqs: builder.mutation({
       query: (payload) => ({
         url: '/faqs/generate',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
+    // GET /api/hub-spoke/me — whether this visitor has the upgraded planner features
+    getHubSpokeAccess: builder.query({
+      query: () => '/hub-spoke/me',
+    }),
+
+    // POST /api/hub-spoke/cluster — build a hub & spoke content cluster
+    generateHubSpokeCluster: builder.mutation({
+      query: (payload) => ({
+        url: '/hub-spoke/cluster',
+        method: 'POST',
+        body: payload,
+        timeout: 200000,
+      }),
+    }),
+
+    // POST /api/hub-spoke/outline — outline for one page of the cluster
+    generateHubSpokeOutline: builder.mutation({
+      query: (payload) => ({
+        url: '/hub-spoke/outline',
+        method: 'POST',
+        body: payload,
+        timeout: 200000,
+      }),
+    }),
+
+    // POST /api/hub-spoke/draft — full first draft from an approved outline
+    generateHubSpokeDraft: builder.mutation({
+      query: (payload) => ({
+        url: '/hub-spoke/draft',
+        method: 'POST',
+        body: payload,
+        timeout: 300000,
+      }),
+    }),
+
+    // POST /api/hub-spoke/wordpress — send an approved draft to WordPress as a draft post
+    sendHubSpokeToWordpress: builder.mutation({
+      query: (payload) => ({
+        url: '/hub-spoke/wordpress',
         method: 'POST',
         body: payload,
       }),
@@ -604,11 +606,12 @@ export const {
   useGetAuditQuery,
   useResearchKeywordsMutation,
   useCalculateROIMutation,
-  useGenerateTopicsMutation,
-  useGenerateClustersMutation,
-  useGenerateMasterBriefMutation,
-  useGetBlogTopicsQuery,
   useGenerateFaqsMutation,
+  useGetHubSpokeAccessQuery,
+  useGenerateHubSpokeClusterMutation,
+  useGenerateHubSpokeOutlineMutation,
+  useGenerateHubSpokeDraftMutation,
+  useSendHubSpokeToWordpressMutation,
   useAnalyzeCompetitorMutation,
   useAnalyzeContentQaMutation,
   useStoreContentQaPdfMutation,
@@ -660,5 +663,4 @@ export const {
 } = apiSlice
 
 
-export const useGenerateBlogTopicsMutation = useGenerateTopicsMutation
 export const useGenerateWrittenContentMutation = useGenerateContentMutation

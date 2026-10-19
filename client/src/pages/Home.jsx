@@ -100,9 +100,9 @@ const TOOLS = [
   },
   {
     id: 'blog_topic_generator',
-    title: 'Blog Topic Generator',
+    title: 'Hub & Spoke Planner',
     description:
-      'Generate catchy, SEO-optimized blog topic ideas with headlines, target keywords, and content briefs.',
+      'Turn one topic into a complete content cluster: a pillar page, supporting pages, funnel stages, internal links, outlines and first drafts.',
     icon: Lightbulb,
     color: 'from-[#0C81F3] to-[#EB8988]',
     path: '/blog-topic-generator',

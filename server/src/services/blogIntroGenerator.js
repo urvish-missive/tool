@@ -1,13 +1,13 @@
 import { callAIAndParseJSON } from '../utils/aiProvider.js'
-import { TONE_PROFILES } from './blogTopicGenerator.js'
+import { TONE_PROFILES } from '../constants/toneProfiles.js'
 import { buildMissiveQaPromptDirectives } from '../utils/missiveQaRules.js'
 import { validateFactSafety } from './factValidator.js'
 
 /**
  * Fact-safety pass applied to every intro (AI-generated or fallback) before
  * it's returned. Neither the AI prompt nor the fallback templates are
- * fact-checked anywhere else in this file, unlike blogTopicGenerator.js and
- * qaService.js, which both run generated text through validateFactSafety.
+ * fact-checked anywhere else in this file, so generated text is run through
+ * validateFactSafety here.
  * Without this, unverifiable numbers ("Over 70% of initiatives stall out",
  * "cuts wasted effort in half") ship as if they were sourced data.
  */
