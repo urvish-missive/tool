@@ -292,10 +292,11 @@ export const apiSlice = createApi({
     // POST /api/tech-inspector/inspect
     // POST /api/portal-fetcher/fetch
     fetchPortalData: builder.mutation({
-      query: (payload) => ({
+      query: ({ batchToken, ...payload }) => ({
         url: '/portal-fetcher/fetch',
         method: 'POST',
         body: payload,
+        ...(batchToken ? { headers: { 'x-batch-token': batchToken } } : {}),
       }),
     }),
 

@@ -33,6 +33,7 @@ import deviceRoutes from './routes/deviceRoutes.js'
 import adminRoutes from './routes/adminRoutes.js'
 
 import { toolAccess } from './middleware/toolAccess.js'
+import { consumeBatchToken } from './utils/batchToken.js'
 import { getJwtSecret } from './middleware/adminAuth.js'
 import { seedAdminUser } from './utils/seedAdmin.js'
 import { getCorsOptions } from './utils/corsConfig.js'
@@ -86,7 +87,7 @@ app.use('/api/eeat', toolAccess('eeat-analyzer'), eeatRoutes)
 app.use('/api/business-competitor', toolAccess('business-competitor-analytics'), businessCompetitorRoutes)
 app.use('/api/case-study', toolAccess('case-study-generator'), caseStudyRoutes)
 app.use('/api/structure-audit', toolAccess('website-structure-audit'), structureAuditRoutes)
-app.use('/api/portal-fetcher', toolAccess('portal-data-fetcher'), portalFetcherRoutes)
+app.use('/api/portal-fetcher', toolAccess('portal-data-fetcher', { isContinuation: consumeBatchToken }), portalFetcherRoutes)
 app.use('/api/results', resultPdfRoutes)
 app.use('/api/devices', deviceRoutes)
 

@@ -140,3 +140,18 @@ test('drops credentials on a cross-origin redirect', async () => {
     globalThis.fetch = realFetch
   }
 })
+
+test('batch tokens: bound to device and tool, capped, tamper-proof', async () => {
+  const { issueBatchToken, consumeBatchToken } = await import('../src/utils/batchToken.js')
+  const t = issueBatchToken('dev-1', 'portal-data-fetcher', 2)
+  const req = (token, dev = 'dev-1') => ({ headers: { 'x-batch-token': token, 'x-device-id': dev } })
+  assert.equal(consumeBatchToken(req(t, 'dev-2'), 'portal-data-fetcher'), false)
+  assert.equal(consumeBatchToken(req(t), 'seo-audit'), false)
+  assert.equal(consumeBatchToken(req(t), 'portal-data-fetcher'), true)
+  assert.equal(consumeBatchToken(req(t), 'portal-data-fetcher'), true)
+  assert.equal(consumeBatchToken(req(t), 'portal-data-fetcher'), false) // cap reached
+  const [b64, sig] = issueBatchToken('dev-1', 'portal-data-fetcher', 5).split('.')
+  const forged = Buffer.from(Buffer.from(b64, 'base64url').toString().replace('.5.', '.99.')).toString('base64url') + '.' + sig
+  assert.equal(consumeBatchToken(req(forged), 'portal-data-fetcher'), false)
+  assert.equal(consumeBatchToken({ headers: {} }, 'portal-data-fetcher'), false)
+})

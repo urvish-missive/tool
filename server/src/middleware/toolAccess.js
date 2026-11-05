@@ -15,7 +15,14 @@ setInterval(() => {
   }
 }, 600000)
 
-export function toolAccess(toolSlug) {
+/**
+ * @param {string} toolSlug
+ * @param {object} [options]
+ * @param {(req) => boolean} [options.isContinuation] Follow-up call of a run that
+ *   was already counted (e.g. a bulk search). Skips the device-limit check and
+ *   usage tracking; the per-IP hourly limit still applies.
+ */
+export function toolAccess(toolSlug, options = {}) {
   return async (req, res, next) => {
     try {
       const config = await prisma.toolConfig.findUnique({ where: { slug: toolSlug } })
@@ -56,7 +63,8 @@ export function toolAccess(toolSlug) {
 
       const ip = req.ip || req.connection?.remoteAddress || 'unknown'
       const deviceId = req.headers['x-device-id'] || req.query?.deviceId || req.body?.deviceId || null
-      const isActionRequest = req.method === 'POST' || req.method === 'PUT'
+      const isContinuation = Boolean(options.isContinuation?.(req, toolSlug))
+      const isActionRequest = (req.method === 'POST' || req.method === 'PUT') && !isContinuation
 
       // ─── Device Limit Enforcement ────────────────────────────
       if (deviceId && isActionRequest) {

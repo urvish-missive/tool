@@ -1,4 +1,5 @@
 import { fetchPortalData, parseCurl, parseHeaderBlock } from '../services/portalDataFetcher.js'
+import { issueBatchToken, MAX_BATCH_CALLS } from '../utils/batchToken.js'
 
 /**
  * POST /api/portal-fetcher/fetch
@@ -10,7 +11,16 @@ import { fetchPortalData, parseCurl, parseHeaderBlock } from '../services/portal
  */
 export async function fetchPortalDataHandler(req, res) {
   try {
-    const { curl, request, pagination, dataPath } = req.body || {}
+    const { curl, request, pagination, dataPath, batch } = req.body || {}
+
+    // Bulk search: the first call of a run asks for a token covering the rest.
+    const batchTotal = parseInt(batch?.total)
+    if (batchTotal > MAX_BATCH_CALLS) {
+      return res.status(400).json({
+        success: false,
+        error: `A bulk search can run at most ${MAX_BATCH_CALLS} combinations. Use fewer keywords or countries.`,
+      })
+    }
 
     let parsed
     if (typeof curl === 'string' && curl.trim()) {
@@ -39,7 +49,13 @@ export async function fetchPortalDataHandler(req, res) {
       dataPath: typeof dataPath === 'string' ? dataPath : '',
     })
 
-    return res.json({ success: true, ...result })
+    const deviceId = req.headers['x-device-id']
+    const batchToken =
+      batch?.start && batchTotal > 1 && deviceId && !req.headers['x-batch-token']
+        ? issueBatchToken(deviceId, 'portal-data-fetcher', batchTotal - 1)
+        : undefined
+
+    return res.json({ success: true, ...result, ...(batchToken ? { batchToken } : {}) })
   } catch (err) {
     const status = err.status && err.status >= 400 && err.status < 600 ? err.status : 400
     // Log only the message: never the request, headers or cookies.

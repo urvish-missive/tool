@@ -28,6 +28,13 @@ import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
 import TablePagination from '../../components/TablePagination'
 import { useLeadPopup } from '../../components/useLeadPopup'
+import {
+  buildCombinations,
+  findSample,
+  mergeResults,
+  parseValueList,
+  substitute,
+} from './bulkSearch'
 
 const TOOL_SLUG = 'portal-data-fetcher'
 
@@ -94,6 +101,8 @@ const STOP_REASONS = {
   'http-error': 'Stopped on an error page',
   'row-limit': 'Row limit reached',
   'time-limit': 'Time limit reached',
+  bulk: 'All searches done',
+  'bulk-stopped': 'Stopped by you',
 }
 
 const inputCls =
@@ -136,7 +145,17 @@ function toCsv(rows, columns) {
 }
 
 export default function PortalDataFetcherPage() {
-  const [mode, setMode] = useState('curl') // 'curl' | 'manual'
+  const [mode, setMode] = useState('bulk') // 'bulk' | 'curl' | 'manual'
+  const [variables, setVariables] = useState([
+    {
+      name: 'Keyword',
+      sample: '',
+      list: 'Telecom\nSoftware\nIT\nAccounting\nWellness\nVoIP',
+    },
+    { name: 'Country', sample: '', list: 'South Africa\nUnited States\nCanada\nLondon' },
+  ])
+  const [bulk, setBulk] = useState(null) // { running, done, total, current, log }
+  const stopRef = useRef(false)
   const [curl, setCurl] = useState('')
   const [manual, setManual] = useState({ method: 'GET', url: '', headers: '', body: '' })
   const [paginate, setPaginate] = useState(false)
@@ -182,13 +201,31 @@ export default function PortalDataFetcherPage() {
           }
         : { mode: 'none' },
     }
-    if (mode === 'curl') payload.curl = curl.trim()
+    if (mode === 'curl' || mode === 'bulk') payload.curl = curl.trim()
     else payload.request = { ...manual, url: manual.url.trim() }
     return payload
   }
 
+  const busy = isLoading || Boolean(bulk?.running)
+  const parsedVars = variables.map((v) => ({ ...v, items: parseValueList(v.list) }))
+  const combinations = mode === 'bulk' ? buildCombinations(parsedVars) : []
+
   const validate = () => {
-    if (mode === 'curl') {
+    if (mode === 'bulk') {
+      if (!curl.trim()) return 'Paste the cURL of one search you ran on the portal.'
+      if (!/^\s*curl(\.exe)?\s/i.test(curl))
+        return 'The command should start with "curl". In DevTools use right-click → Copy → Copy as cURL.'
+      const active = parsedVars.filter((v) => v.sample.trim())
+      if (!active.length)
+        return 'Enter the keyword (and country) you searched for in the request you copied.'
+      for (const v of active) {
+        if (!findSample(curl, v.sample).count)
+          return `"${v.sample}" was not found in the copied request. Enter the ${v.name.toLowerCase()} exactly as you searched it (or the code/ID the portal sent).`
+        if (!v.items.length) return `Add at least one ${v.name.toLowerCase()} to search.`
+      }
+      if (combinations.length > 200)
+        return `That is ${combinations.length} searches; the maximum is 200. Use fewer values.`
+    } else if (mode === 'curl') {
       if (!curl.trim()) return 'Paste the cURL command you copied from DevTools.'
       if (!/^\s*curl(\.exe)?\s/i.test(curl))
         return 'The command should start with "curl". In DevTools use right-click → Copy → Copy as cURL.'
@@ -200,21 +237,104 @@ export default function PortalDataFetcherPage() {
     return ''
   }
 
+  const showResult = (data) => {
+    setResult(data)
+    setHiddenCols(new Set())
+    setSearch('')
+    setPage(1)
+    setShowRaw(!data.totalRows)
+    setTimeout(
+      () =>
+        document.getElementById('portal-fetcher-results')?.scrollIntoView({ behavior: 'smooth' }),
+      150
+    )
+  }
+
+  const runBulk = async (basePayload, leadId = null) => {
+    setError('')
+    setErrorPreview('')
+    setResult(null)
+    stopRef.current = false
+    const combos = combinations
+    const varNames = parsedVars.filter((v) => v.sample.trim() && v.items.length).map((v) => v.name)
+    const log = []
+    const batches = []
+    let token = null
+    let first = null
+    let pagesFetched = 0
+    let aborted = false
+    setBulk({ running: true, done: 0, total: combos.length, current: '', log: [] })
+
+    for (let i = 0; i < combos.length; i++) {
+      if (stopRef.current) break
+      const combo = combos[i]
+      const label = combo.map((c) => c.label).join(' · ')
+      setBulk((b) => ({ ...b, current: label }))
+      try {
+        const data = await fetchPortalData({
+          ...basePayload,
+          curl: substitute(
+            basePayload.curl,
+            combo.map((c) => ({ sample: c.sample, value: c.value }))
+          ),
+          dataPath: basePayload.dataPath || first?.detectedPath || '',
+          ...(i === 0 ? { batch: { start: true, total: combos.length }, leadId } : {}),
+          ...(token ? { batchToken: token } : {}),
+        }).unwrap()
+        if (i === 0) token = data.batchToken || null
+        first = first || data
+        pagesFetched += data.pagesFetched || 0
+        batches.push({ combo, rows: data.rows, columns: data.columns })
+        log.push({ label, count: data.totalRows, pages: data.pagesFetched })
+      } catch (err) {
+        const msg = err?.data?.error || err?.error || 'Request failed'
+        log.push({ label, count: 0, error: msg })
+        // Wrong request format or expired session: every other search would fail too.
+        if (i === 0 || /session|401|403|limit/i.test(msg)) {
+          aborted = true
+          setError(i === 0 ? msg : `Stopped after "${label}": ${msg}`)
+          setErrorPreview(err?.data?.rawPreview || '')
+        }
+      }
+      setBulk((b) => ({ ...b, done: i + 1, log: [...log] }))
+      if (aborted) break
+    }
+
+    setBulk((b) => ({ ...b, running: false }))
+    if (!first) return
+
+    const merged = mergeResults(batches, varNames)
+    const failed = log.filter((l) => l.error)
+    const warnings = [...(first.warnings || [])]
+    if (merged.duplicates > 0)
+      warnings.push(
+        `${merged.duplicates.toLocaleString()} duplicate records found by more than one search were merged${
+          merged.idColumn ? ` (matched on "${merged.idColumn}")` : ''
+        }.`
+      )
+    if (failed.length)
+      warnings.push(`${failed.length} of ${log.length} searches failed. See the search log.`)
+
+    showResult({
+      ...first,
+      rows: merged.rows,
+      columns: merged.columns,
+      totalRows: merged.rows.length,
+      pagesFetched,
+      stoppedReason: stopRef.current || aborted ? 'bulk-stopped' : 'bulk',
+      warnings,
+      bulk: { searches: log.length, total: combos.length, log },
+    })
+  }
+
   const run = async (payload, leadId = null) => {
+    if (mode === 'bulk') return runBulk(payload, leadId)
+    setBulk(null)
     setError('')
     setErrorPreview('')
     try {
       const data = await fetchPortalData({ ...payload, leadId }).unwrap()
-      setResult(data)
-      setHiddenCols(new Set())
-      setSearch('')
-      setPage(1)
-      setShowRaw(!data.totalRows)
-      setTimeout(
-        () =>
-          document.getElementById('portal-fetcher-results')?.scrollIntoView({ behavior: 'smooth' }),
-        150
-      )
+      showResult(data)
     } catch (err) {
       setError(
         err?.data?.error || err?.error || err?.message || 'Failed to fetch data from the portal.'
@@ -375,7 +495,7 @@ export default function PortalDataFetcherPage() {
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* How to */}
-        {!isLoading && !result && (
+        {!busy && !result && (
           <div className="grid sm:grid-cols-3 gap-4 mb-8">
             {HOW_TO_STEPS.map((s, i) => (
               <div
@@ -398,12 +518,13 @@ export default function PortalDataFetcherPage() {
         )}
 
         {/* Form */}
-        {!isLoading && (
+        {!busy && (
           <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-8">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="inline-flex p-1 bg-slate-100 rounded-xl">
                 {[
-                  { id: 'curl', label: 'Paste cURL', icon: Terminal },
+                  { id: 'bulk', label: 'Bulk search (filters)', icon: Layers },
+                  { id: 'curl', label: 'Single request', icon: Terminal },
                   { id: 'manual', label: 'Manual request', icon: Code },
                 ].map((t) => (
                   <button
@@ -422,10 +543,30 @@ export default function PortalDataFetcherPage() {
                 ))}
               </div>
 
-              {mode === 'curl' ? (
+              {mode === 'bulk' && (
+                <div className="rounded-2xl border border-blue-200 bg-blue-50/60 p-4 text-sm text-slate-700 space-y-1">
+                  <div className="font-bold text-slate-900">How bulk search works</div>
+                  <p>
+                    1. On the portal (e.g. BNI Connect → Search Members), run <b>one</b> search
+                    yourself, for example keyword <b>Telecom</b> in <b>South Africa</b>.
+                  </p>
+                  <p>
+                    2. In DevTools → Network → Fetch/XHR, copy that search request as cURL and paste
+                    it below.
+                  </p>
+                  <p>
+                    3. Type the keyword and country you searched for. The tool finds them in the
+                    request and repeats the search for every value in your lists, then merges and
+                    de-duplicates the results.
+                  </p>
+                </div>
+              )}
+
+              {mode !== 'manual' ? (
                 <div className="space-y-2">
                   <label htmlFor="portal-curl" className="block text-sm font-bold text-slate-800">
-                    cURL command <span className="text-rose-500">*</span>
+                    {mode === 'bulk' ? 'cURL of one search you ran' : 'cURL command'}{' '}
+                    <span className="text-rose-500">*</span>
                   </label>
                   <textarea
                     id="portal-curl"
@@ -439,6 +580,92 @@ export default function PortalDataFetcherPage() {
                   <p className="text-xs text-slate-500">
                     Bash and Windows cmd formats from Chrome, Edge and Firefox are supported.
                   </p>
+                  {mode === 'bulk' && (
+                    <div className="grid md:grid-cols-2 gap-4 pt-4">
+                      {variables.map((v, vi) => {
+                        const found =
+                          v.sample.trim() && curl.trim() ? findSample(curl, v.sample) : null
+                        const items = parsedVars[vi].items
+                        const update = (patch) =>
+                          setVariables((all) =>
+                            all.map((x, xi) => (xi === vi ? { ...x, ...patch } : x))
+                          )
+                        return (
+                          <div
+                            key={v.name}
+                            className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 space-y-3"
+                          >
+                            <div className="text-sm font-bold text-slate-900">
+                              {v.name === 'Keyword' ? 'Industry / keywords' : 'Countries'}
+                            </div>
+                            <div className="space-y-1">
+                              <label className="block text-xs font-semibold text-slate-600">
+                                {v.name} used in the copied search
+                              </label>
+                              <input
+                                value={v.sample}
+                                onChange={(e) => update({ sample: e.target.value })}
+                                placeholder={
+                                  v.name === 'Keyword'
+                                    ? 'e.g. Telecom'
+                                    : 'e.g. South Africa (or its code/ID)'
+                                }
+                                className={inputCls}
+                              />
+                              {found && (
+                                <p
+                                  className={`text-xs font-semibold ${found.count ? 'text-emerald-600' : 'text-rose-600'}`}
+                                >
+                                  {found.count
+                                    ? `✓ Found ${found.count}× in the request${found.caseInsensitive ? ' (different letter case)' : ''}`
+                                    : '✗ Not found in the request. Leave empty to skip this filter.'}
+                                </p>
+                              )}
+                            </div>
+                            <div className="space-y-1">
+                              <label className="block text-xs font-semibold text-slate-600">
+                                {v.name === 'Keyword' ? 'Keywords' : 'Countries'} to search (one per
+                                line)
+                              </label>
+                              <textarea
+                                rows={6}
+                                value={v.list}
+                                onChange={(e) => update({ list: e.target.value })}
+                                className={`${inputCls} font-mono text-xs`}
+                              />
+                              <p className="text-xs text-slate-500">
+                                {items.length} value{items.length === 1 ? '' : 's'}. If the portal
+                                sends a code or ID instead of the name, write{' '}
+                                <code>Name = code</code>, e.g.{' '}
+                                <code>
+                                  {v.name === 'Keyword' ? 'Telecom = 1203' : 'United States = US'}
+                                </code>
+                                .
+                              </p>
+                            </div>
+                          </div>
+                        )
+                      })}
+                      <div className="md:col-span-2 text-xs text-slate-600">
+                        {combinations.length > 0 ? (
+                          <>
+                            <b>{combinations.length}</b> searches will run (
+                            {parsedVars
+                              .filter((v) => v.sample.trim() && v.items.length)
+                              .map(
+                                (v) =>
+                                  `${v.items.length} ${v.name === 'Country' ? 'countries' : 'keywords'}`
+                              )
+                              .join(' × ')}
+                            ). Tip: London is a city, so if the portal searches by country use
+                            United Kingdom, or copy a search that filters by city.
+                          </>
+                        ) : (
+                          'Fill in the values you searched for to see how many searches will run.'
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-4">
@@ -656,7 +883,9 @@ export default function PortalDataFetcherPage() {
                     className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-gradient-to-r from-[#0C81F3] to-[#EB8988] text-white font-bold text-sm shadow-md hover:shadow-lg hover:opacity-95 transition-all"
                   >
                     <Zap className="w-4 h-4" />
-                    Fetch data
+                    {mode === 'bulk' && combinations.length
+                      ? `Run ${combinations.length} searches`
+                      : 'Fetch data'}
                   </button>
                 </div>
               </div>
@@ -664,7 +893,46 @@ export default function PortalDataFetcherPage() {
           </div>
         )}
 
-        {isLoading && (
+        {bulk?.running && (
+          <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-8 space-y-4">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <div className="text-lg font-bold text-slate-900">
+                  Searching {bulk.done + 1 > bulk.total ? bulk.total : bulk.done + 1} of{' '}
+                  {bulk.total}
+                </div>
+                <div className="text-sm text-slate-600">{bulk.current}</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  stopRef.current = true
+                }}
+                className="px-4 py-2 rounded-xl border border-rose-300 text-rose-600 text-sm font-semibold hover:bg-rose-50"
+              >
+                Stop &amp; show results
+              </button>
+            </div>
+            <div className="h-2.5 rounded-full bg-slate-100 overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-[#0C81F3] to-[#EB8988] transition-all"
+                style={{ width: `${Math.round((bulk.done / Math.max(1, bulk.total)) * 100)}%` }}
+              />
+            </div>
+            <div className="max-h-56 overflow-auto text-xs divide-y divide-slate-100">
+              {bulk.log.map((l) => (
+                <div key={l.label} className="flex justify-between py-1.5">
+                  <span className="text-slate-700">{l.label}</span>
+                  <span className={l.error ? 'text-rose-600' : 'text-emerald-600 font-semibold'}>
+                    {l.error ? l.error : `${l.count.toLocaleString()} records`}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {isLoading && !bulk?.running && (
           <div className="mb-8">
             <UnifiedToolLoader
               steps={LOADING_STEPS}
@@ -676,13 +944,18 @@ export default function PortalDataFetcherPage() {
         )}
 
         {/* Results */}
-        {result && !isLoading && (
+        {result && !busy && (
           <div id="portal-fetcher-results" className="space-y-6 mb-12">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {[
                 { label: 'Records', value: result.totalRows.toLocaleString() },
                 { label: 'Columns', value: result.columns.length },
-                { label: 'Pages fetched', value: result.pagesFetched },
+                result.bulk
+                  ? {
+                      label: 'Searches run',
+                      value: `${result.bulk.searches} / ${result.bulk.total}`,
+                    }
+                  : { label: 'Pages fetched', value: result.pagesFetched },
                 {
                   label: 'Finished because',
                   value: STOP_REASONS[result.stoppedReason] || result.stoppedReason,
@@ -726,6 +999,26 @@ export default function PortalDataFetcherPage() {
                   </div>
                 ))}
               </div>
+            )}
+
+            {result.bulk && (
+              <details className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
+                <summary className="text-sm font-bold text-slate-800 cursor-pointer">
+                  Search log ({result.bulk.log.length} searches)
+                </summary>
+                <div className="mt-3 max-h-72 overflow-auto text-xs divide-y divide-slate-100">
+                  {result.bulk.log.map((l) => (
+                    <div key={l.label} className="flex justify-between gap-4 py-1.5">
+                      <span className="text-slate-700">{l.label}</span>
+                      <span className={l.error ? 'text-rose-600' : 'text-slate-600'}>
+                        {l.error
+                          ? l.error
+                          : `${l.count.toLocaleString()} records · ${l.pages} page${l.pages === 1 ? '' : 's'}`}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </details>
             )}
 
             {result.candidates?.length > 0 && (

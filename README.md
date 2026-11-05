@@ -98,4 +98,6 @@ Pulls records from any portal you are logged into (e.g. BNI Connect) through the
 3. Optionally turn on **Fetch all pages** (page-number or offset parameter, in the query string or JSON/form body).
 4. Review the table, hide columns, search, and export to Excel, CSV or JSON.
 
-Server: `server/src/services/portalDataFetcher.js` (cURL parser, SSRF-checked requests, pagination, JSON/HTML-table to rows). Session cookies and tokens are used only for the outgoing request and are never stored or logged. Tests: `cd server && npm run test:portal`.
+Server: `server/src/services/portalDataFetcher.js` (cURL parser, SSRF-checked requests, pagination, JSON/HTML-table to rows). Session cookies and tokens are used only for the outgoing request and are never stored or logged. Tests: `cd server && npm run test:portal`, `cd client && node --test test/bulkSearch.test.mjs`.
+
+**Bulk search (filters):** run one search on the portal yourself (e.g. keyword *Telecom* in *South Africa*), copy that request as cURL, and enter the keyword and country you used. The tool finds those values in the request (URL, JSON or form body, any encoding), repeats the search for every keyword x country combination (max 200), and merges the results with de-duplication and "Search: Keyword / Country" columns. A bulk run counts as one use of the device quota (signed batch token, `server/src/utils/batchToken.js`).
