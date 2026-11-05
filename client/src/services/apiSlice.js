@@ -290,6 +290,15 @@ export const apiSlice = createApi({
     }),
 
     // POST /api/tech-inspector/inspect
+    // POST /api/portal-fetcher/fetch
+    fetchPortalData: builder.mutation({
+      query: (payload) => ({
+        url: '/portal-fetcher/fetch',
+        method: 'POST',
+        body: payload,
+      }),
+    }),
+
     inspectWebsiteTech: builder.mutation({
       query: (payload) => ({
         url: '/tech-inspector/inspect',
@@ -625,6 +634,7 @@ export const {
   useAskWebsiteQuestionMutation,
   useExtractWebsiteImagesMutation,
   useInspectWebsiteTechMutation,
+  useFetchPortalDataMutation,
   useGenerateContentMutation,
   useGenerateBlogIntrosMutation,
   useGenerateBlogConclusionsMutation,

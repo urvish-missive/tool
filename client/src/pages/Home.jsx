@@ -26,6 +26,7 @@ import {
   ArrowRight,
   LayoutGrid,
   FolderTree,
+  DatabaseZap,
   ShieldCheck as ShieldCheckIcon,
 } from 'lucide-react'
 import { useGetPublicToolsQuery } from '../services/apiSlice'
@@ -54,6 +55,7 @@ const TOOL_SLUG_MAP = {
   business_competitor_analytics: 'business-competitor-analytics',
   case_study_generator: 'case-study-generator',
   website_structure_audit: 'website-structure-audit',
+  portal_data_fetcher: 'portal-data-fetcher',
 }
 
 /* ─────────────── Category Taxonomy ─────────────── */
@@ -229,6 +231,17 @@ const TOOLS = [
     path: '/website-structure-audit',
     badge: 'New Tool',
     category: 'seo',
+  },
+  {
+    id: 'portal_data_fetcher',
+    title: 'Portal API Data Fetcher',
+    description:
+      'Pull member lists, reports and records from any portal you are logged into (e.g. BNI Connect) through its API, with auto-pagination and 1-click Excel/CSV export.',
+    icon: DatabaseZap,
+    color: 'from-[#0C81F3] to-[#EB8988]',
+    path: '/portal-data-fetcher',
+    badge: 'New Tool',
+    category: 'research',
   },
   {
     id: 'ai_content_writer',

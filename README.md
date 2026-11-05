@@ -88,3 +88,14 @@ AI API keys stay server-side only. Never exposed to the frontend.
 ## Chrome Extension
 
 A Manifest V3 side-panel extension that runs Content QA on the current page lives in [`extension/`](extension/README.md). It reuses `POST /api/content-qa/analyze` and the existing device limits. Build it with `cd extension && npm install && npm run build:extension`, then load `extension/dist-extension` in `chrome://extensions`.
+
+## Portal API Data Fetcher (`/portal-data-fetcher`)
+
+Pulls records from any portal you are logged into (e.g. BNI Connect) through the portal's own API.
+
+1. Log in to the portal, open DevTools → **Network** → **Fetch/XHR**, and load the data.
+2. Right-click the request that returns the records → **Copy → Copy as cURL** and paste it into the tool.
+3. Optionally turn on **Fetch all pages** (page-number or offset parameter, in the query string or JSON/form body).
+4. Review the table, hide columns, search, and export to Excel, CSV or JSON.
+
+Server: `server/src/services/portalDataFetcher.js` (cURL parser, SSRF-checked requests, pagination, JSON/HTML-table to rows). Session cookies and tokens are used only for the outgoing request and are never stored or logged. Tests: `cd server && npm run test:portal`.

@@ -15,6 +15,7 @@ import ContentQaLandingPage from './pages/ContentQaLandingPage'
 import XmlSitemapGeneratorPage from './tools/xml-sitemap-generator/XmlSitemapGeneratorPage'
 import GoogleRankCheckerPage from './tools/google-rank-checker/GoogleRankCheckerPage'
 import WebsiteContentExtractorPage from './tools/website-content-extractor/WebsiteContentExtractorPage'
+import PortalDataFetcherPage from './tools/portal-data-fetcher/PortalDataFetcherPage'
 import WebsiteImageExtractorPage from './tools/website-image-extractor/WebsiteImageExtractorPage'
 import WebsiteTechInspectorPage from './tools/website-tech-inspector/WebsiteTechInspectorPage'
 import AiContentWriterPage from './tools/ai-content-writer/AiContentWriterPage'
@@ -220,6 +221,14 @@ export default function App() {
                     element={
                       <ToolGuard toolPath="/case-study-generator">
                         <CaseStudyLandingPage />
+                      </ToolGuard>
+                    }
+                  />
+                  <Route
+                    path="/portal-data-fetcher"
+                    element={
+                      <ToolGuard toolPath="/portal-data-fetcher">
+                        <PortalDataFetcherPage />
                       </ToolGuard>
                     }
                   />

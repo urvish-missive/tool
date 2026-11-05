@@ -681,6 +681,7 @@ function formatActivity(tool, record) {
     'website-image-extractor': 'Website Image Extractor',
     'website-tech-inspector': 'Tech & Theme Inspector',
     'website-structure-audit': 'Website Structure Audit',
+    'portal-data-fetcher': 'Portal API Data Fetcher',
   }
   const base = { id: record.id, tool, toolName: toolNames[tool] || tool, createdAt: record.createdAt }
 

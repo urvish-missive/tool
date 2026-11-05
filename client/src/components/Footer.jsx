@@ -43,6 +43,7 @@ const FOOTER_TOOLS = [
     href: '/business-competitor-analytics',
     slug: 'business-competitor-analytics',
   },
+  { label: 'Portal API Data Fetcher', href: '/portal-data-fetcher', slug: 'portal-data-fetcher' },
 ]
 
 export default function Footer() {

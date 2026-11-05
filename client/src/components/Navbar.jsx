@@ -43,6 +43,7 @@ import {
   MapPin,
   Calendar,
   FolderTree,
+  DatabaseZap,
 } from 'lucide-react'
 import { useGetPublicToolsQuery } from '../services/apiSlice'
 
@@ -68,6 +69,7 @@ const TOOL_HREF_SLUGS = {
   '/business-competitor-analytics': 'business-competitor-analytics',
   '/case-study-generator': 'case-study-generator',
   '/website-structure-audit': 'website-structure-audit',
+  '/portal-data-fetcher': 'portal-data-fetcher',
 }
 
 const NAV_ITEMS = [
@@ -323,6 +325,13 @@ const NAV_ITEMS = [
               icon: FolderTree,
               label: 'Website Structure Audit',
               href: '/website-structure-audit',
+              badge: 'NEW',
+              badgeColor: 'bg-emerald-500 text-white',
+            },
+            {
+              icon: DatabaseZap,
+              label: 'Portal API Data Fetcher',
+              href: '/portal-data-fetcher',
               badge: 'NEW',
               badgeColor: 'bg-emerald-500 text-white',
             },

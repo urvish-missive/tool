@@ -12,6 +12,7 @@
     "test:qa": "node --test test/contentQaRegression.test.mjs",
     "test:parity": "node --test test/contentQaParity.test.mjs",
     "test:mongo": "node --test test/mongoSrv.test.mjs",
+    "test:portal": "node --test test/portalFetcher.test.mjs",
     "seed:admin": "node src/utils/seedAdmin.js",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",

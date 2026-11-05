@@ -136,6 +136,7 @@ const TOOL_FIELDS = {
   ],
   'website-image-extractor': [{ key: 'url', label: 'Website URL', icon: Globe }],
   'website-tech-inspector': [{ key: 'url', label: 'Website URL', icon: Globe }],
+  'portal-data-fetcher': [{ key: 'curl', label: 'cURL Command / API Request', icon: Globe }],
   'geo-analyzer': [
     { key: 'url', label: 'Website URL', icon: Globe },
     { key: 'content', label: 'Content Draft', icon: FileText },

@@ -26,6 +26,7 @@ import eeatRoutes from './routes/eeatRoutes.js'
 import businessCompetitorRoutes from './routes/businessCompetitorRoutes.js'
 import caseStudyRoutes from './routes/caseStudyRoutes.js'
 import structureAuditRoutes from './routes/structureAuditRoutes.js'
+import portalFetcherRoutes from './routes/portalFetcherRoutes.js'
 import resultPdfRoutes from './routes/resultPdfRoutes.js'
 import hubSpokeRoutes from './routes/hubSpokeRoutes.js'
 import deviceRoutes from './routes/deviceRoutes.js'
@@ -85,6 +86,7 @@ app.use('/api/eeat', toolAccess('eeat-analyzer'), eeatRoutes)
 app.use('/api/business-competitor', toolAccess('business-competitor-analytics'), businessCompetitorRoutes)
 app.use('/api/case-study', toolAccess('case-study-generator'), caseStudyRoutes)
 app.use('/api/structure-audit', toolAccess('website-structure-audit'), structureAuditRoutes)
+app.use('/api/portal-fetcher', toolAccess('portal-data-fetcher'), portalFetcherRoutes)
 app.use('/api/results', resultPdfRoutes)
 app.use('/api/devices', deviceRoutes)
 
@@ -534,6 +536,27 @@ async function seedDefaults() {
       }
     } catch {}
   }
+
+  // Ensure portal-data-fetcher exists (fresh and existing databases alike)
+  try {
+    const portalTool = await prisma.toolConfig.findUnique({ where: { slug: 'portal-data-fetcher' } })
+    if (!portalTool) {
+      await prisma.toolConfig.create({
+        data: {
+          slug: 'portal-data-fetcher',
+          name: 'Portal API Data Fetcher',
+          description: 'Fetch data from any logged-in portal API (e.g. BNI Connect) via a copied cURL request and export it to Excel, CSV or JSON',
+          dailyLimit: 100,
+          hourlyLimit: 30,
+          deviceLimit: 25,
+          formFields: JSON.stringify({
+            curl: { enabled: true, label: 'cURL Command / API Request', required: true },
+          }),
+        },
+      })
+      console.log('[OK] Portal API Data Fetcher tool config seeded')
+    }
+  } catch {}
 }
 
 start()
