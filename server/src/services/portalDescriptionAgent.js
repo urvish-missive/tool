@@ -12,7 +12,9 @@ Apply ALL requested filters and run the search before collecting. Inspect the re
 Only navigate, search, filter, read. Never edit a member, send messages, invite, connect, delete, buy, or submit other forms.
 Do not ask for credentials; login has already happened. Stop on OTP/CAPTCHA or an unsupported workflow.
 When results match the request, return {"action":"extract","rowSelector":"CSS matching repeated result rows/cards", "fields":[{"name":"Name","selector":"CSS inside each row","attribute":"optional href"}],"nextControl":"current Next control ID or empty"}.
-Use only structure visible in the HTML snapshot to derive extraction CSS. Select requested fields only; do not invent data.
+Use only structure visible in the HTML snapshot to derive extraction CSS. If the user specifies columns, select those fields only; do not invent data.
+If columns are omitted, collect useful visible member details: Name, Company, Chapter, Location and Website where available.
+If a filter is omitted, do not require it. Interpret ordinary search descriptions directly; never ask for navigation steps, selectors or configuration.
 If no records are found, return {"action":"empty"}. If you cannot proceed, return {"action":"blocked"}.
 The task may request several keyword/country combinations: do not claim a single search covers multiple combinations.
 For unsupported tasks, stop with blocked rather than silently omitting them.`

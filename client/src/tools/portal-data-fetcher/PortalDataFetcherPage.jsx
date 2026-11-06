@@ -953,7 +953,9 @@ export default function PortalDataFetcherPage() {
                     <Zap className="w-4 h-4" />
                     {mode === 'bulk' && combinations.length
                       ? `Run ${combinations.length} searches`
-                      : 'Fetch data'}
+                      : mode === 'browser'
+                        ? 'Find my data'
+                        : 'Fetch data'}
                   </button>
                 </div>
               </div>
