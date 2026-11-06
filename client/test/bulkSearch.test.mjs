@@ -56,3 +56,29 @@ test('combinations and merge with de-duplication', () => {
   assert.equal(merged.rows[0]['Search: Keyword'], 'Telecom, VoIP')
   assert.deepEqual(merged.columns, ['Search: Keyword', 'Search: Country', 'id', 'name'])
 })
+
+test('auto-detects which list value the copied search used', async () => {
+  const { autoDetectSample } = await import('../src/tools/portal-data-fetcher/bulkSearch.js')
+  const curl = `curl 'https://x.test/s' --data-raw '{"keywords":"telecom","country":"South Africa","limit":10}'`
+  assert.equal(autoDetectSample(curl, parseValueList('Telecom\nIT\nVoIP')).value, 'Telecom') // case-insensitive ok for long values
+  assert.equal(autoDetectSample(curl, parseValueList('South Africa\nCanada')).value, 'South Africa')
+  assert.equal(autoDetectSample(`curl 'https://x.test/s?q=it'`, parseValueList('IT')), null) // short value needs exact case
+  assert.equal(autoDetectSample(curl, parseValueList('Canada\nWellness')), null)
+})
+
+test('never matches or rewrites headers / tokens; BNI Connect request shape', async () => {
+  const { detectPagination, autoDetectSample } = await import('../src/tools/portal-data-fetcher/bulkSearch.js')
+  const bni = `curl --url 'https://api.bniconnectglobal.com/connect-search-api/search/member/advanced' \\
+  -H 'authorization: Bearer abc.IT-xyz.IT_def' \\
+  -H 'cookie: kw=IT' \\
+  -H 'content-type: application/json' \\
+  --data-raw '{"search_keywords":"IT","concept_id":1,"locale_code":"en_IN","page_no":1,"per_page":20}'`
+  assert.equal(findSample(bni, 'IT').count, 1)
+  const out = substitute(bni, [{ sample: 'IT', value: 'Telecom' }])
+  assert.ok(out.includes(`"search_keywords":"Telecom"`))
+  assert.ok(out.includes('Bearer abc.IT-xyz.IT_def') && out.includes('cookie: kw=IT'))
+  assert.equal(autoDetectSample(bni, parseValueList('Telecom\nSoftware\nIT')).value, 'IT')
+  assert.deepEqual(detectPagination(bni), { mode: 'page', param: 'page_no', start: 1, step: 1, location: 'body', pageSize: 20 })
+  assert.deepEqual(detectPagination(`curl 'https://x.test/a?offset=0&limit=50'`), { mode: 'offset', param: 'offset', start: 0, step: 50, location: 'query', pageSize: 50 })
+  assert.equal(detectPagination(`curl 'https://x.test/a'`), null)
+})

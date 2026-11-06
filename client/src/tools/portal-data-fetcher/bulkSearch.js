@@ -14,6 +14,23 @@ function escapeRegExp(s) {
   return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
 }
 
+// Header, cookie, user and agent arguments: never searched or rewritten, so a
+// short keyword like "IT" can't land inside an Authorization token or cookie.
+const PROTECTED_ARG =
+  /(?:^|\s)(?:-H|--header|-b|--cookie|-A|--user-agent|-e|--referer|-u|--user)(?:\s+|=)(\^"(?:\^.|[^^])*?\^"|'[^']*'|"(?:\\.|[^"\\])*"|\S+)/g
+
+export function protectedRanges(curl) {
+  const ranges = []
+  let m
+  PROTECTED_ARG.lastIndex = 0
+  while ((m = PROTECTED_ARG.exec(curl))) {
+    ranges.push([m.index, m.index + m[0].length])
+  }
+  return ranges
+}
+
+const inRanges = (ranges, start, end) => ranges.some(([a, b]) => start < b && end > a)
+
 /** The forms a value can take inside a copied request, each with its encoder. */
 function encodings(curl) {
   const isCmd = /\^"/.test(curl)
@@ -36,6 +53,7 @@ export function findSample(curl, sample) {
   const value = String(sample || '').trim()
   if (!value || !curl) return { count: 0, forms: [], caseInsensitive: false }
 
+  const ranges = protectedRanges(curl)
   const tryFind = (flags) => {
     const forms = []
     let count = 0
@@ -48,6 +66,7 @@ export function findSample(curl, sample) {
       let m
       let n = 0
       while ((m = re.exec(curl))) {
+        if (inRanges(ranges, m.index, m.index + m[0].length)) continue
         const before = curl[m.index - 1]
         const after = curl[m.index + m[0].length]
         if (!isWordChar(pat[0]) || !isWordChar(before)) {
@@ -83,7 +102,9 @@ export function substitute(curl, vars) {
       if (!pat) return
       const marker = `\u0000${vi}_${ei}\u0000`
       const re = new RegExp(escapeRegExp(pat), ci ? 'gi' : 'g')
+      const ranges = protectedRanges(out)
       out = out.replace(re, (m, idx, str) => {
+        if (inRanges(ranges, idx, idx + m.length)) return m
         const before = str[idx - 1]
         const after = str[idx + m.length]
         if (isWordChar(pat[0]) && isWordChar(before)) return m
@@ -182,4 +203,84 @@ export function mergeResults(batches, variableNames) {
     duplicates: totalFound - rows.length,
     idColumn: idCol || null,
   }
+}
+
+/**
+ * When the user leaves "value used in the copied search" empty, look for one
+ * of their list values inside the copied request and use it. Longer values win
+ * (so "South Africa" beats "Africa"); values under 4 characters, like "IT",
+ * must match the letter case exactly to avoid false hits.
+ */
+export function autoDetectSample(curl, items) {
+  if (!curl || !items?.length) return null
+  const candidates = []
+  for (const item of items) {
+    for (const v of new Set([item.value, item.label])) {
+      if (!v) continue
+      const hit = findSample(curl, v)
+      if (!hit.count || (hit.caseInsensitive && v.length < 4)) continue
+      candidates.push({ value: v, label: item.label, count: hit.count })
+    }
+  }
+  candidates.sort((a, b) => b.value.length - a.value.length || b.count - a.count)
+  return candidates[0] || null
+}
+
+const PAGE_KEYS =
+  'page_no|pageNo|page_number|pageNumber|pageIndex|page_index|currentPage|current_page|page|p'
+const SIZE_KEYS = 'per_page|perPage|page_size|pageSize|size|limit|rows|count|take|max_results'
+const OFFSET_KEYS = 'offset|skip|start|from|startIndex|start_index'
+
+/**
+ * Suggest pagination settings from the copied request, e.g. BNI Connect's
+ * {"page_no":1,"per_page":20} -> page number "page_no" in the body, starting at 1.
+ */
+export function detectPagination(curl) {
+  const text = String(curl || '')
+  const json = (keys) => new RegExp(`"(${keys})"\\s*:\\s*"?(\\d+)"?`).exec(text)
+  const query = (keys) => new RegExp(`[?&](${keys})=(\\d+)(?=[&'"\\s^]|$)`).exec(text)
+  const size = json(SIZE_KEYS) || query(SIZE_KEYS)
+  const step = size ? Number(size[2]) : null
+
+  const page = json(PAGE_KEYS)
+  if (page)
+    return {
+      mode: 'page',
+      param: page[1],
+      start: Number(page[2]),
+      step: 1,
+      location: 'body',
+      pageSize: step,
+    }
+  const off = json(OFFSET_KEYS)
+  if (off && step)
+    return {
+      mode: 'offset',
+      param: off[1],
+      start: Number(off[2]),
+      step,
+      location: 'body',
+      pageSize: step,
+    }
+  const qPage = query(PAGE_KEYS)
+  if (qPage)
+    return {
+      mode: 'page',
+      param: qPage[1],
+      start: Number(qPage[2]),
+      step: 1,
+      location: 'query',
+      pageSize: step,
+    }
+  const qOff = query(OFFSET_KEYS)
+  if (qOff && step)
+    return {
+      mode: 'offset',
+      param: qOff[1],
+      start: Number(qOff[2]),
+      step,
+      location: 'query',
+      pageSize: step,
+    }
+  return null
 }
