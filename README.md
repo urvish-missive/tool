@@ -102,11 +102,15 @@ Server setup (requires a Node host that supports Chromium, not static frontend h
 ```bash
 cd server
 npm install
-npx playwright install chromium
+npm run browser:install
 # On Linux, install system dependencies if needed:
-# npx playwright install --with-deps chromium
+# npm run browser:install:deps
 npm start
 ```
+
+Production deployment: run `npm ci` from `server/` and restart/redeploy the backend. Its `postinstall` now downloads Chromium automatically. Installation failures fail the deployment rather than leaving the browser tool unavailable. If your host disables npm lifecycle scripts, explicitly run `npm run browser:install` in the build command. Linux hosts also need Chromium system libraries: an administrator can install these with `npm run browser:install:deps`. The host must allow Chromium processes; frontend-only deployments do not provide a browser runtime.
+
+The install script and runtime default `PLAYWRIGHT_BROWSERS_PATH` to `0`, storing Chromium alongside the installed Playwright package so different build/runtime user home directories do not change the browser location. Preserve that installed directory in the deployed artifact. If configuring a custom `PLAYWRIGHT_BROWSERS_PATH`, set the same absolute path during build and runtime. Browser files must be installed on the target OS; do not copy Windows browser files to Linux. Use Node 20 or newer for this Playwright dependency.
 
 **Advanced manual mode** remains available for deterministic workflows or servers without AI. Its login/search/table controls are generic defaults, not verified against an authenticated BNI account. Set the login URL if needed, adjust login controls, add navigation and filter steps in their execution order, and configure a result-row/member-card CSS selector. Controls accept CSS or exact accessible names (`label:Country`, `button:Search`, `link:Next`, `text:Advanced Search`). Native dropdowns use the visible option text; custom dropdowns use ordered Click steps. Each extraction field needs a column name and a CSS selector relative to its result row; `:scope` collects the entire row, and the optional attribute extracts values such as `href`. Set an optional Next control and maximum pages for pagination.
 

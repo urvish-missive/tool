@@ -1,9 +1,9 @@
 import assert from 'node:assert/strict'
-import { chromium } from 'playwright'
+import { launchPortalBrowser } from '../src/utils/portalBrowserRuntime.js'
 import { applyBrowserStep, collectBrowserRows, validateBrowserConfig, discoverLoginControls } from '../src/services/portalBrowserFetcher.js'
 import { runDescriptionSearch } from '../src/services/portalDescriptionAgent.js'
 
-const browser = await chromium.launch({ headless: true })
+const browser = await launchPortalBrowser()
 try {
   const page = await browser.newPage()
   page.setDefaultTimeout(2000)

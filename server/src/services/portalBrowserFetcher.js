@@ -1,6 +1,7 @@
 import { lookup } from 'node:dns/promises'
 import { isIP } from 'node:net'
 import { runDescriptionSearch } from './portalDescriptionAgent.js'
+import { launchPortalBrowser } from '../utils/portalBrowserRuntime.js'
 
 export const BNI_SEARCH_URL = 'https://www.bniconnectglobal.com/web/dashboard/search'
 const HOSTS = new Set(['www.bniconnectglobal.com', 'bniconnectglobal.com'])
@@ -160,8 +161,7 @@ export async function fetchBrowserPortalData(input, { launch } = {}) {
   const startedAt = Date.now()
   try {
     if (!launch) {
-      const { chromium } = await import('playwright')
-      launch = (options) => chromium.launch(options)
+      launch = launchPortalBrowser
     }
     browser = await launch({ headless: true, timeout: 15000 })
     const context = await browser.newContext({ acceptDownloads: false, serviceWorkers: 'block' })
@@ -219,7 +219,10 @@ export async function fetchBrowserPortalData(input, { launch } = {}) {
     if (error.portalAgent && !timedOut) throw error
     // Never return Playwright messages: they may include typed passwords or page content.
     if (/Cannot find package|Executable doesn't exist/.test(error.message)) {
-      throw fail('Browser automation is not installed on this server. Run npm install and npx playwright install chromium in server/.', 503)
+      throw fail('The server browser runtime is missing. The server administrator must run npm ci and npm run browser:install in server/, then restart or redeploy the backend.', 503)
+    }
+    if (/error while loading shared libraries|Host system is missing dependencies|libnss3|libatk|libgbm/i.test(error.message)) {
+      throw fail('The server is missing Chromium system libraries. The server administrator must run npm run browser:install:deps in server/ on a supported Linux host, then restart the backend.', 503)
     }
     throw fail(timedOut ? 'Browser run reached its 95-second limit. Use fewer pages or steps.' : `Browser run failed while ${phase}.`, 422)
   } finally {

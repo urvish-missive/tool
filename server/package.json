@@ -4,6 +4,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "postinstall": "node scripts/install-browser.mjs",
+    "browser:install": "node scripts/install-browser.mjs",
+    "browser:install:deps": "node scripts/install-browser.mjs --with-deps",
     "dev": "node --watch-path=src --watch-path=server.js server.js",
     "start": "node server.js",
     "test:cors": "node --test test/cors.test.mjs",
@@ -12,7 +15,7 @@
     "test:qa": "node --test test/contentQaRegression.test.mjs",
     "test:parity": "node --test test/contentQaParity.test.mjs",
     "test:mongo": "node --test test/mongoSrv.test.mjs",
-    "test:portal": "node --test test/portalFetcher.test.mjs test/portalBrowserFetcher.test.mjs test/portalDescriptionAgent.test.mjs",
+    "test:portal": "node --test test/portalFetcher.test.mjs test/portalBrowserFetcher.test.mjs test/portalDescriptionAgent.test.mjs test/portalBrowserRuntime.test.mjs",
     "test:portal-browser": "node test/portalBrowser.integration.mjs",
     "seed:admin": "node src/utils/seedAdmin.js",
     "db:generate": "prisma generate",
