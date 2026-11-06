@@ -82,6 +82,20 @@ test('runner closes browser on failure and never exposes Playwright credential e
   await assert.rejects(fetchBrowserPortalData(input(), { launch: async () => ({
     newContext: async () => { throw new Error('fill private-password on member page') },
     close: async () => { closed = true },
-  }) }), (error) => !error.message.includes('private-password') && error.status === 422)
+  }) }), (error) => !error.message.includes('private-password') && error.status === 503)
   assert.equal(closed, true)
+})
+
+test('failure to launch is a server availability error rather than invalid user input', async () => {
+  await assert.rejects(fetchBrowserPortalData(input(), { launch: async () => { throw new Error('spawn EACCES /private/browser') } }),
+    (error) => error.status === 503 && error.code === 'BROWSER_PERMISSION_DENIED' && !error.message.includes('/private/browser'))
+})
+
+test('created browser contexts close before disconnecting even when session setup fails', async () => {
+  const closed = []
+  await assert.rejects(fetchBrowserPortalData(input(), { launch: async () => ({
+    newContext: async () => ({ setDefaultTimeout: () => { throw new Error('setup failed') }, close: async () => closed.push('context') }),
+    close: async () => closed.push('browser'),
+  }) }), (error) => error.status === 503)
+  assert.deepEqual(closed, ['context', 'browser'])
 })

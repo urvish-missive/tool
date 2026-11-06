@@ -2,7 +2,17 @@ import 'dotenv/config'
 import { spawnSync } from 'node:child_process'
 import { createRequire } from 'node:module'
 import { dirname, join } from 'node:path'
-import { configurePortalBrowserEnvironment } from '../src/utils/portalBrowserRuntime.js'
+import { configurePortalBrowserEnvironment, getPortalBrowserConnection } from '../src/utils/portalBrowserRuntime.js'
+
+try {
+  if (getPortalBrowserConnection().mode === 'remote') {
+    console.log('[portal-browser] Remote Chromium configured; local browser download skipped.')
+    process.exit(0)
+  }
+} catch (error) {
+  console.error(error.message)
+  process.exit(1)
+}
 
 const require = createRequire(import.meta.url)
 const cli = join(dirname(require.resolve('playwright/package.json')), 'cli.js')

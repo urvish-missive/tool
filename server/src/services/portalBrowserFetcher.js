@@ -1,7 +1,7 @@
 import { lookup } from 'node:dns/promises'
 import { isIP } from 'node:net'
 import { runDescriptionSearch } from './portalDescriptionAgent.js'
-import { launchPortalBrowser } from '../utils/portalBrowserRuntime.js'
+import { launchPortalBrowser, browserStartupError } from '../utils/portalBrowserRuntime.js'
 
 export const BNI_SEARCH_URL = 'https://www.bniconnectglobal.com/web/dashboard/search'
 const HOSTS = new Set(['www.bniconnectglobal.com', 'bniconnectglobal.com'])
@@ -156,7 +156,11 @@ export async function fetchBrowserPortalData(input, { launch } = {}) {
   const config = validateBrowserConfig(input)
   if (activeRuns >= 2) throw fail('Both browser workers are busy. Please try again shortly.', 429)
   activeRuns++
-  let browser, timer, timedOut = false
+  let browser, context, timer, timedOut = false
+  const closeSession = async () => {
+    if (context) await context.close().catch(() => {})
+    if (browser) await browser.close().catch(() => {})
+  }
   let phase = 'starting the browser'
   const startedAt = Date.now()
   try {
@@ -164,7 +168,8 @@ export async function fetchBrowserPortalData(input, { launch } = {}) {
       launch = launchPortalBrowser
     }
     browser = await launch({ headless: true, timeout: 15000 })
-    const context = await browser.newContext({ acceptDownloads: false, serviceWorkers: 'block' })
+    phase = 'initializing the browser session'
+    context = await browser.newContext({ acceptDownloads: false, serviceWorkers: 'block' })
     context.setDefaultTimeout(10000)
     context.setDefaultNavigationTimeout(20000)
     await context.route('**/*', async (route) => {
@@ -178,7 +183,7 @@ export async function fetchBrowserPortalData(input, { launch } = {}) {
       await (allowed ? route.continue() : route.abort()).catch(() => {})
     })
     if (context.routeWebSocket) await context.routeWebSocket('**/*', (socket) => socket.close())
-    timer = setTimeout(() => { timedOut = true; browser.close().catch(() => {}) }, 95000)
+    timer = setTimeout(() => { timedOut = true; closeSession().catch(() => {}) }, 95000)
     const page = await context.newPage()
     phase = 'opening BNI Connect'
     await page.goto(config.loginUrl || config.url, { waitUntil: 'domcontentloaded' })
@@ -217,6 +222,7 @@ export async function fetchBrowserPortalData(input, { launch } = {}) {
       status: 200, kind: 'browser', candidates: [], detectedPath: '', rawPreview: '', durationMs: Date.now() - startedAt }
   } catch (error) {
     if (error.portalAgent && !timedOut) throw error
+    if (!browser || phase === 'initializing the browser session') throw browserStartupError(error)
     // Never return Playwright messages: they may include typed passwords or page content.
     if (/Cannot find package|Executable doesn't exist/.test(error.message)) {
       throw fail('The server browser runtime is missing. The server administrator must run npm ci and npm run browser:install in server/, then restart or redeploy the backend.', 503)
@@ -227,7 +233,7 @@ export async function fetchBrowserPortalData(input, { launch } = {}) {
     throw fail(timedOut ? 'Browser run reached its 95-second limit. Use fewer pages or steps.' : `Browser run failed while ${phase}.`, 422)
   } finally {
     clearTimeout(timer)
-    if (browser) await browser.close().catch(() => {})
+    await closeSession()
     activeRuns--
   }
 }

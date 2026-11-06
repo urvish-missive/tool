@@ -69,6 +69,7 @@ export async function fetchPortalDataHandler(req, res) {
     return res.status(status).json({
       success: false,
       error: err.message || 'Failed to fetch data from the portal.',
+      ...(err.portalBrowser ? { code: err.code } : {}),
       ...(err.preview ? { rawPreview: err.preview } : {}),
     })
   }

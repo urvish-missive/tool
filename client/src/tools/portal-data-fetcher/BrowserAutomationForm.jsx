@@ -149,7 +149,8 @@ export default function BrowserAutomationForm({ value, onChange, inputCls }) {
       <p className="text-xs text-slate-500">
         Credentials are sent to this tool’s server for this run, used to log in to BNI, and kept out
         of saved results and logs. Each run closes its isolated browser. Use a trusted HTTPS
-        deployment.
+        deployment. If a remote browser is configured, that service processes your login and portal
+        data.
       </p>
       {value.automation === 'description' && (
         <section className="space-y-4">
