@@ -183,3 +183,24 @@ export function mergeResults(batches, variableNames) {
     idColumn: idCol || null,
   }
 }
+
+/**
+ * When the user leaves "value used in the copied search" empty, look for one
+ * of their list values inside the copied request and use it. Longer values win
+ * (so "South Africa" beats "Africa"); values under 4 characters, like "IT",
+ * must match the letter case exactly to avoid false hits.
+ */
+export function autoDetectSample(curl, items) {
+  if (!curl || !items?.length) return null
+  const candidates = []
+  for (const item of items) {
+    for (const v of new Set([item.value, item.label])) {
+      if (!v) continue
+      const hit = findSample(curl, v)
+      if (!hit.count || (hit.caseInsensitive && v.length < 4)) continue
+      candidates.push({ value: v, label: item.label, count: hit.count })
+    }
+  }
+  candidates.sort((a, b) => b.value.length - a.value.length || b.count - a.count)
+  return candidates[0] || null
+}

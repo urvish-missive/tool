@@ -56,3 +56,12 @@ test('combinations and merge with de-duplication', () => {
   assert.equal(merged.rows[0]['Search: Keyword'], 'Telecom, VoIP')
   assert.deepEqual(merged.columns, ['Search: Keyword', 'Search: Country', 'id', 'name'])
 })
+
+test('auto-detects which list value the copied search used', async () => {
+  const { autoDetectSample } = await import('../src/tools/portal-data-fetcher/bulkSearch.js')
+  const curl = `curl 'https://x.test/s' --data-raw '{"keywords":"telecom","country":"South Africa","limit":10}'`
+  assert.equal(autoDetectSample(curl, parseValueList('Telecom\nIT\nVoIP')).value, 'Telecom') // case-insensitive ok for long values
+  assert.equal(autoDetectSample(curl, parseValueList('South Africa\nCanada')).value, 'South Africa')
+  assert.equal(autoDetectSample(`curl 'https://x.test/s?q=it'`, parseValueList('IT')), null) // short value needs exact case
+  assert.equal(autoDetectSample(curl, parseValueList('Canada\nWellness')), null)
+})

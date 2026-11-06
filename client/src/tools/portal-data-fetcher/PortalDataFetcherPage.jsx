@@ -30,6 +30,7 @@ import TablePagination from '../../components/TablePagination'
 import { useLeadPopup } from '../../components/useLeadPopup'
 import {
   buildCombinations,
+  autoDetectSample,
   findSample,
   mergeResults,
   parseValueList,
@@ -207,7 +208,14 @@ export default function PortalDataFetcherPage() {
   }
 
   const busy = isLoading || Boolean(bulk?.running)
-  const parsedVars = variables.map((v) => ({ ...v, items: parseValueList(v.list) }))
+  // A blank "used in the copied search" box is filled automatically with the
+  // list value found in the copied request (e.g. "Telecom").
+  const parsedVars = variables.map((v) => {
+    const items = parseValueList(v.list)
+    const typed = v.sample.trim()
+    const auto = !typed && mode === 'bulk' ? autoDetectSample(curl, items) : null
+    return { ...v, items, typed, auto, sample: typed || auto?.value || '' }
+  })
   const combinations = mode === 'bulk' ? buildCombinations(parsedVars) : []
 
   const validate = () => {
@@ -217,7 +225,7 @@ export default function PortalDataFetcherPage() {
         return 'The command should start with "curl". In DevTools use right-click → Copy → Copy as cURL.'
       const active = parsedVars.filter((v) => v.sample.trim())
       if (!active.length)
-        return 'Enter the keyword (and country) you searched for in the request you copied.'
+        return 'None of your keywords or countries appear in the copied request. On the portal, search for one of them (e.g. Telecom in South Africa), then copy THAT search request (DevTools → Network → Fetch/XHR, the request made when you clicked Search). If the portal sends a code instead of the name, type that code in the "used in the copied search" box.'
       for (const v of active) {
         if (!findSample(curl, v.sample).count)
           return `"${v.sample}" was not found in the copied request. Enter the ${v.name.toLowerCase()} exactly as you searched it (or the code/ID the portal sent).`
@@ -555,9 +563,9 @@ export default function PortalDataFetcherPage() {
                     it below.
                   </p>
                   <p>
-                    3. Type the keyword and country you searched for. The tool finds them in the
-                    request and repeats the search for every value in your lists, then merges and
-                    de-duplicates the results.
+                    3. Check your keyword and country lists. The tool detects which of them you
+                    searched for in the copied request (or type it yourself), repeats the search for
+                    every value in your lists, then merges and de-duplicates the results.
                   </p>
                 </div>
               )}
@@ -583,9 +591,9 @@ export default function PortalDataFetcherPage() {
                   {mode === 'bulk' && (
                     <div className="grid md:grid-cols-2 gap-4 pt-4">
                       {variables.map((v, vi) => {
-                        const found =
-                          v.sample.trim() && curl.trim() ? findSample(curl, v.sample) : null
-                        const items = parsedVars[vi].items
+                        const pv = parsedVars[vi]
+                        const found = pv.typed && curl.trim() ? findSample(curl, pv.typed) : null
+                        const items = pv.items
                         const update = (patch) =>
                           setVariables((all) =>
                             all.map((x, xi) => (xi === vi ? { ...x, ...patch } : x))
@@ -606,12 +614,23 @@ export default function PortalDataFetcherPage() {
                                 value={v.sample}
                                 onChange={(e) => update({ sample: e.target.value })}
                                 placeholder={
-                                  v.name === 'Keyword'
-                                    ? 'e.g. Telecom'
-                                    : 'e.g. South Africa (or its code/ID)'
+                                  pv.auto
+                                    ? `Auto-detected: ${pv.auto.value}`
+                                    : v.name === 'Keyword'
+                                      ? 'Leave empty to auto-detect, or e.g. Telecom'
+                                      : 'Leave empty to auto-detect, or e.g. South Africa / its code'
                                 }
                                 className={inputCls}
                               />
+                              {!pv.typed && curl.trim() && (
+                                <p
+                                  className={`text-xs font-semibold ${pv.auto ? 'text-emerald-600' : 'text-amber-600'}`}
+                                >
+                                  {pv.auto
+                                    ? `✓ Auto-detected "${pv.auto.value}" in the copied request`
+                                    : `None of these ${v.name === 'Country' ? 'countries' : 'keywords'} found in the request. This filter will be skipped unless you type the value the portal sent.`}
+                                </p>
+                              )}
                               {found && (
                                 <p
                                   className={`text-xs font-semibold ${found.count ? 'text-emerald-600' : 'text-rose-600'}`}
