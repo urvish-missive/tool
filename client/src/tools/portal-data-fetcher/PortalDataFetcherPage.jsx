@@ -31,6 +31,7 @@ import { useLeadPopup } from '../../components/useLeadPopup'
 import {
   buildCombinations,
   autoDetectSample,
+  detectPagination,
   findSample,
   mergeResults,
   parseValueList,
@@ -208,6 +209,24 @@ export default function PortalDataFetcherPage() {
   }
 
   const busy = isLoading || Boolean(bulk?.running)
+  const detectedPaging = mode !== 'manual' ? detectPagination(curl) : null
+  const pagingMatches =
+    detectedPaging &&
+    paginate &&
+    pagination.param === detectedPaging.param &&
+    pagination.location === detectedPaging.location
+  const useDetectedPaging = () => {
+    setPaginate(true)
+    setPagination((p) => ({
+      ...p,
+      mode: detectedPaging.mode,
+      param: detectedPaging.param,
+      start: detectedPaging.start,
+      step: detectedPaging.step,
+      location: detectedPaging.location,
+      maxPages: Math.max(Number(p.maxPages) || 0, 25),
+    }))
+  }
   // A blank "used in the copied search" box is filled automatically with the
   // list value found in the copied request (e.g. "Telecom").
   const parsedVars = variables.map((v) => {
@@ -754,6 +773,24 @@ export default function PortalDataFetcherPage() {
                     Follow the portal's pagination automatically
                   </span>
                 </label>
+
+                {detectedPaging && !pagingMatches && (
+                  <div className="flex flex-wrap items-center gap-3 rounded-xl bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs text-emerald-800">
+                    <span>
+                      Detected pagination in the copied request: <b>{detectedPaging.param}</b> (
+                      {detectedPaging.mode === 'page' ? 'page number' : 'offset'} in the{' '}
+                      {detectedPaging.location === 'body' ? 'request body' : 'URL'}
+                      {detectedPaging.pageSize ? `, ${detectedPaging.pageSize} per page` : ''}).
+                    </span>
+                    <button
+                      type="button"
+                      onClick={useDetectedPaging}
+                      className="px-3 py-1 rounded-lg bg-emerald-600 text-white font-bold hover:bg-emerald-700"
+                    >
+                      Use it
+                    </button>
+                  </div>
+                )}
 
                 {paginate && (
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
