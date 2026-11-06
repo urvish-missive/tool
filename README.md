@@ -91,6 +91,27 @@ A Manifest V3 side-panel extension that runs Content QA on the current page live
 
 ## Portal API Data Fetcher (`/portal-data-fetcher`)
 
+### BNI Connect browser automation
+
+The default **BNI browser automation** mode opens `https://www.bniconnectglobal.com/web/dashboard/search`, logs in with the supplied credentials, follows ordered click/type/select/check/wait steps, applies filters, clicks Search, and extracts selected fields across result pages. Results use the existing table and Excel/CSV/JSON exports. The copied-request modes below remain available.
+
+Server setup (requires a Node host that supports Chromium, not static frontend hosting):
+
+```bash
+cd server
+npm install
+npx playwright install chromium
+# On Linux, install system dependencies if needed:
+# npx playwright install --with-deps chromium
+npm start
+```
+
+**One-time page setup is required.** The login/search/table controls are generic defaults, not verified against an authenticated BNI account. Set the login URL if needed, adjust login controls, add navigation and filter steps in their execution order, and configure a result-row/member-card CSS selector. Controls accept CSS or exact accessible names (`label:Country`, `button:Search`, `link:Next`, `text:Advanced Search`). Native dropdowns use the visible option text; custom dropdowns use ordered Click steps. Each extraction field needs a column name and a CSS selector relative to its result row; `:scope` collects the entire row, and the optional attribute extracts values such as `href`. Set an optional Next control and maximum pages for pagination. All configured filters apply to one search; copied-request bulk mode supports combinations.
+
+Browser sessions are isolated, credentials are not saved or logged, and browsers close on success or error. Browser mode is limited to BNI HTTPS pages, two concurrent runs, 50 pages, 20,000 rows, and 95 seconds after browser setup. Resource requests receive public-address DNS checks; navigation and non-GET requests must stay on BNI. OTP/CAPTCHA and external identity-provider login are not supported by unattended browser mode; log in yourself and use copied-request modes for those sessions. A real logged-in BNI run is needed to verify the account-specific page controls.
+
+Validation: `npm run test:portal` covers request replay and browser runner unit tests; `npm run test:portal-browser` launches Chromium against a sample page to verify filters, search, field extraction and asynchronous pagination. This fixture test does not verify BNI login or its authenticated page structure.
+
 Pulls records from any portal you are logged into (e.g. BNI Connect) through the portal's own API.
 
 1. Log in to the portal, open DevTools → **Network** → **Fetch/XHR**, and load the data.

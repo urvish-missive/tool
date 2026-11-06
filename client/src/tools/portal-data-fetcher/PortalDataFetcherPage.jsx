@@ -28,6 +28,10 @@ import UnifiedToolLoader from '../../components/UnifiedToolLoader'
 import LeadCaptureModal from '../../components/LeadCaptureModal'
 import TablePagination from '../../components/TablePagination'
 import { useLeadPopup } from '../../components/useLeadPopup'
+import BrowserAutomationForm, {
+  initialBrowserConfig,
+  validateBrowserForm,
+} from './BrowserAutomationForm'
 import {
   buildCombinations,
   findSample,
@@ -71,7 +75,7 @@ const FAQ_ITEMS = [
   },
   {
     q: 'Is my password or session stored?',
-    a: 'No. You never enter your password here. The copied cURL contains your current session cookie or token; it is used only to send the request(s) for this fetch and is not saved to our database or logs. Sessions also expire on their own when you log out of the portal.',
+    a: 'Browser mode sends your login details to this tool’s server only for the current run, in an isolated browser that closes afterward. Credentials are not saved to the database or logs. Copied-request modes use the cookie or token from your cURL instead.',
   },
   {
     q: 'How does pagination work?',
@@ -145,7 +149,8 @@ function toCsv(rows, columns) {
 }
 
 export default function PortalDataFetcherPage() {
-  const [mode, setMode] = useState('bulk') // 'bulk' | 'curl' | 'manual'
+  const [mode, setMode] = useState('browser')
+  const [browserConfig, setBrowserConfig] = useState(initialBrowserConfig)
   const [variables, setVariables] = useState([
     {
       name: 'Keyword',
@@ -188,6 +193,7 @@ export default function PortalDataFetcherPage() {
   const pendingPayloadRef = useRef(null)
 
   const buildPayload = (overridePath) => {
+    if (mode === 'browser') return { browser: browserConfig }
     const payload = {
       dataPath: (overridePath ?? dataPath).trim(),
       pagination: paginate
@@ -211,6 +217,7 @@ export default function PortalDataFetcherPage() {
   const combinations = mode === 'bulk' ? buildCombinations(parsedVars) : []
 
   const validate = () => {
+    if (mode === 'browser') return validateBrowserForm(browserConfig)
     if (mode === 'bulk') {
       if (!curl.trim()) return 'Paste the cURL of one search you ran on the portal.'
       if (!/^\s*curl(\.exe)?\s/i.test(curl))
@@ -335,6 +342,7 @@ export default function PortalDataFetcherPage() {
     try {
       const data = await fetchPortalData({ ...payload, leadId }).unwrap()
       showResult(data)
+      if (payload.browser) setBrowserConfig((current) => ({ ...current, password: '' }))
     } catch (err) {
       setError(
         err?.data?.error || err?.error || err?.message || 'Failed to fetch data from the portal.'
@@ -373,6 +381,7 @@ export default function PortalDataFetcherPage() {
   }
 
   const handleReset = () => {
+    setBrowserConfig(initialBrowserConfig())
     setCurl('')
     setManual({ method: 'GET', url: '', headers: '', body: '' })
     setResult(null)
@@ -480,22 +489,21 @@ export default function PortalDataFetcherPage() {
             <span>Missive's Tools • Missive Digital</span>
           </div>
           <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold tracking-tight leading-tight mb-4">
-            <span className="text-gray-900">Portal API </span>
+            <span className="text-gray-900">Portal </span>
             <span className="bg-gradient-to-r from-[#0C81F3] via-[#67A7FF] to-[#EB8988] bg-clip-text text-transparent">
               Data Fetcher
             </span>
           </h1>
           <p className="mt-3 text-base sm:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Fetch member lists, reports and records from any portal you are logged into, such as BNI
-            Connect, straight from its API. Every page collected automatically, ready for Excel, CSV
-            or JSON.
+            Automate BNI Connect login, clicks, searches and filters, then collect the data you need
+            for Excel, CSV or JSON. Copied API requests remain available for other portals.
           </p>
         </div>
       </section>
 
       <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* How to */}
-        {!busy && !result && (
+        {!busy && !result && mode !== 'browser' && (
           <div className="grid sm:grid-cols-3 gap-4 mb-8">
             {HOW_TO_STEPS.map((s, i) => (
               <div
@@ -521,8 +529,9 @@ export default function PortalDataFetcherPage() {
         {!busy && (
           <div className="bg-white rounded-3xl shadow-xl shadow-slate-200/50 border border-slate-200 p-6 sm:p-8 mb-8">
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="inline-flex p-1 bg-slate-100 rounded-xl">
+              <div className="flex flex-wrap gap-1 p-1 bg-slate-100 rounded-xl">
                 {[
+                  { id: 'browser', label: 'BNI browser automation', icon: MousePointerClick },
                   { id: 'bulk', label: 'Bulk search (filters)', icon: Layers },
                   { id: 'curl', label: 'Single request', icon: Terminal },
                   { id: 'manual', label: 'Manual request', icon: Code },
@@ -562,7 +571,13 @@ export default function PortalDataFetcherPage() {
                 </div>
               )}
 
-              {mode !== 'manual' ? (
+              {mode === 'browser' ? (
+                <BrowserAutomationForm
+                  value={browserConfig}
+                  onChange={setBrowserConfig}
+                  inputCls={inputCls}
+                />
+              ) : mode !== 'manual' ? (
                 <div className="space-y-2">
                   <label htmlFor="portal-curl" className="block text-sm font-bold text-slate-800">
                     {mode === 'bulk' ? 'cURL of one search you ran' : 'cURL command'}{' '}
@@ -721,132 +736,147 @@ export default function PortalDataFetcherPage() {
               )}
 
               {/* Pagination */}
-              <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5 space-y-4">
-                <label className="flex items-center gap-3 cursor-pointer select-none">
-                  <input
-                    type="checkbox"
-                    checked={paginate}
-                    onChange={(e) => setPaginate(e.target.checked)}
-                    className="w-4 h-4 accent-[#0C81F3]"
-                  />
-                  <Layers className="w-4 h-4 text-[#0C81F3]" />
-                  <span className="text-sm font-bold text-slate-800">Fetch all pages</span>
-                  <span className="text-xs text-slate-500">
-                    Follow the portal's pagination automatically
-                  </span>
-                </label>
+              {mode !== 'browser' && (
+                <>
+                  <div className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4 sm:p-5 space-y-4">
+                    <label className="flex items-center gap-3 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={paginate}
+                        onChange={(e) => setPaginate(e.target.checked)}
+                        className="w-4 h-4 accent-[#0C81F3]"
+                      />
+                      <Layers className="w-4 h-4 text-[#0C81F3]" />
+                      <span className="text-sm font-bold text-slate-800">Fetch all pages</span>
+                      <span className="text-xs text-slate-500">
+                        Follow the portal's pagination automatically
+                      </span>
+                    </label>
 
-                {paginate && (
-                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-                    <div className="space-y-1 col-span-2 md:col-span-1">
-                      <label className="block text-xs font-semibold text-slate-600">Type</label>
-                      <select
-                        value={pagination.mode}
-                        onChange={(e) => {
-                          const m = e.target.value
-                          setPagination({
-                            ...pagination,
-                            mode: m,
-                            param: m === 'offset' ? 'offset' : 'page',
-                            start: m === 'offset' ? 0 : 1,
-                            step: m === 'offset' ? 50 : 1,
-                          })
-                        }}
-                        className={inputCls}
-                      >
-                        <option value="page">Page number</option>
-                        <option value="offset">Offset / skip</option>
-                      </select>
-                    </div>
-                    <div className="space-y-1 col-span-2 md:col-span-1">
-                      <label className="block text-xs font-semibold text-slate-600">
-                        Parameter name
-                      </label>
-                      <input
-                        value={pagination.param}
-                        onChange={(e) => setPagination({ ...pagination, param: e.target.value })}
-                        placeholder="page or paging.offset"
-                        className={`${inputCls} font-mono`}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="block text-xs font-semibold text-slate-600">Start at</label>
-                      <input
-                        type="number"
-                        value={pagination.start}
-                        onChange={(e) => setPagination({ ...pagination, start: e.target.value })}
-                        className={inputCls}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="block text-xs font-semibold text-slate-600">
-                        {pagination.mode === 'offset' ? 'Page size' : 'Increment'}
-                      </label>
-                      <input
-                        type="number"
-                        min={1}
-                        value={pagination.step}
-                        onChange={(e) => setPagination({ ...pagination, step: e.target.value })}
-                        className={inputCls}
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label className="block text-xs font-semibold text-slate-600">
-                        Max pages (≤ 50)
-                      </label>
-                      <input
-                        type="number"
-                        min={1}
-                        max={50}
-                        value={pagination.maxPages}
-                        onChange={(e) => setPagination({ ...pagination, maxPages: e.target.value })}
-                        className={inputCls}
-                      />
-                    </div>
-                    <div className="space-y-1 col-span-2 md:col-span-5">
-                      <label className="block text-xs font-semibold text-slate-600">
-                        Parameter location
-                      </label>
-                      <div className="flex flex-wrap gap-2">
-                        {[
-                          { id: 'auto', label: 'Auto-detect' },
-                          { id: 'query', label: 'URL query string' },
-                          { id: 'body', label: 'Request body (JSON / form)' },
-                        ].map((o) => (
-                          <button
-                            key={o.id}
-                            type="button"
-                            onClick={() => setPagination({ ...pagination, location: o.id })}
-                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                              pagination.location === o.id
-                                ? 'bg-[#0C81F3] text-white border-[#0C81F3]'
-                                : 'bg-white text-slate-600 border-slate-300 hover:border-[#0C81F3]'
-                            }`}
+                    {paginate && (
+                      <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                        <div className="space-y-1 col-span-2 md:col-span-1">
+                          <label className="block text-xs font-semibold text-slate-600">Type</label>
+                          <select
+                            value={pagination.mode}
+                            onChange={(e) => {
+                              const m = e.target.value
+                              setPagination({
+                                ...pagination,
+                                mode: m,
+                                param: m === 'offset' ? 'offset' : 'page',
+                                start: m === 'offset' ? 0 : 1,
+                                step: m === 'offset' ? 50 : 1,
+                              })
+                            }}
+                            className={inputCls}
                           >
-                            {o.label}
-                          </button>
-                        ))}
+                            <option value="page">Page number</option>
+                            <option value="offset">Offset / skip</option>
+                          </select>
+                        </div>
+                        <div className="space-y-1 col-span-2 md:col-span-1">
+                          <label className="block text-xs font-semibold text-slate-600">
+                            Parameter name
+                          </label>
+                          <input
+                            value={pagination.param}
+                            onChange={(e) =>
+                              setPagination({ ...pagination, param: e.target.value })
+                            }
+                            placeholder="page or paging.offset"
+                            className={`${inputCls} font-mono`}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="block text-xs font-semibold text-slate-600">
+                            Start at
+                          </label>
+                          <input
+                            type="number"
+                            value={pagination.start}
+                            onChange={(e) =>
+                              setPagination({ ...pagination, start: e.target.value })
+                            }
+                            className={inputCls}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="block text-xs font-semibold text-slate-600">
+                            {pagination.mode === 'offset' ? 'Page size' : 'Increment'}
+                          </label>
+                          <input
+                            type="number"
+                            min={1}
+                            value={pagination.step}
+                            onChange={(e) => setPagination({ ...pagination, step: e.target.value })}
+                            className={inputCls}
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="block text-xs font-semibold text-slate-600">
+                            Max pages (≤ 50)
+                          </label>
+                          <input
+                            type="number"
+                            min={1}
+                            max={50}
+                            value={pagination.maxPages}
+                            onChange={(e) =>
+                              setPagination({ ...pagination, maxPages: e.target.value })
+                            }
+                            className={inputCls}
+                          />
+                        </div>
+                        <div className="space-y-1 col-span-2 md:col-span-5">
+                          <label className="block text-xs font-semibold text-slate-600">
+                            Parameter location
+                          </label>
+                          <div className="flex flex-wrap gap-2">
+                            {[
+                              { id: 'auto', label: 'Auto-detect' },
+                              { id: 'query', label: 'URL query string' },
+                              { id: 'body', label: 'Request body (JSON / form)' },
+                            ].map((o) => (
+                              <button
+                                key={o.id}
+                                type="button"
+                                onClick={() => setPagination({ ...pagination, location: o.id })}
+                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                                  pagination.location === o.id
+                                    ? 'bg-[#0C81F3] text-white border-[#0C81F3]'
+                                    : 'bg-white text-slate-600 border-slate-300 hover:border-[#0C81F3]'
+                                }`}
+                              >
+                                {o.label}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
-                )}
-              </div>
 
-              <div className="space-y-2">
-                <label htmlFor="portal-datapath" className="block text-sm font-bold text-slate-800">
-                  Data path{' '}
-                  <span className="text-xs font-normal text-slate-500">
-                    (optional, auto-detected)
-                  </span>
-                </label>
-                <input
-                  id="portal-datapath"
-                  value={dataPath}
-                  onChange={(e) => setDataPath(e.target.value)}
-                  placeholder="e.g. data.members or result.content"
-                  className={`${inputCls} font-mono`}
-                />
-              </div>
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="portal-datapath"
+                      className="block text-sm font-bold text-slate-800"
+                    >
+                      Data path{' '}
+                      <span className="text-xs font-normal text-slate-500">
+                        (optional, auto-detected)
+                      </span>
+                    </label>
+                    <input
+                      id="portal-datapath"
+                      value={dataPath}
+                      onChange={(e) => setDataPath(e.target.value)}
+                      placeholder="e.g. data.members or result.content"
+                      className={`${inputCls} font-mono`}
+                    />
+                  </div>
+                </>
+              )}
 
               {error && (
                 <div className="p-4 bg-rose-50 border border-rose-200 rounded-xl text-sm text-rose-700 space-y-2">
@@ -865,7 +895,7 @@ export default function PortalDataFetcherPage() {
               <div className="flex flex-col sm:flex-row sm:items-center gap-4 justify-between">
                 <p className="flex items-center gap-2 text-xs text-slate-500">
                   <ShieldCheck className="w-4 h-4 text-emerald-500 flex-shrink-0" />
-                  Your session cookie / token is used only for this fetch and is never stored.
+                  Login details and session tokens are used only for this run and never saved.
                 </p>
                 <div className="flex gap-3">
                   {result && (
@@ -935,10 +965,23 @@ export default function PortalDataFetcherPage() {
         {isLoading && !bulk?.running && (
           <div className="mb-8">
             <UnifiedToolLoader
-              steps={LOADING_STEPS}
+              steps={
+                mode === 'browser'
+                  ? [
+                      'Opening an isolated BNI browser',
+                      'Logging in and following navigation steps',
+                      'Applying filters and running your search',
+                      'Collecting result pages and selected fields',
+                    ]
+                  : LOADING_STEPS
+              }
               currentStep={1}
-              title="Fetching Data from the Portal API"
-              subtitle="Large lists with many pages can take up to a minute."
+              title={
+                mode === 'browser'
+                  ? 'Running BNI Connect automation'
+                  : 'Fetching Data from the Portal API'
+              }
+              subtitle="Large lists with many pages can take up to two minutes."
             />
           </div>
         )}

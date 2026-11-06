@@ -6,3 +6,4 @@ dist/
 .DS_Store
 .claude/
 server/uploads/
+server/.npm-cache/

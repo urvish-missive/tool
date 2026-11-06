@@ -1,5 +1,6 @@
 import { fetchPortalData, parseCurl, parseHeaderBlock } from '../services/portalDataFetcher.js'
 import { issueBatchToken, MAX_BATCH_CALLS } from '../utils/batchToken.js'
+import { fetchBrowserPortalData } from '../services/portalBrowserFetcher.js'
 
 /**
  * POST /api/portal-fetcher/fetch
@@ -11,6 +12,11 @@ import { issueBatchToken, MAX_BATCH_CALLS } from '../utils/batchToken.js'
  */
 export async function fetchPortalDataHandler(req, res) {
   try {
+    res.set('Cache-Control', 'no-store')
+    if (req.body?.browser) {
+      const result = await fetchBrowserPortalData(req.body.browser)
+      return res.json({ success: true, ...result })
+    }
     const { curl, request, pagination, dataPath, batch } = req.body || {}
 
     // Bulk search: the first call of a run asks for a token covering the rest.
