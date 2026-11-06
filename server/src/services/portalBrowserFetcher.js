@@ -1,5 +1,6 @@
 import { lookup } from 'node:dns/promises'
 import { isIP } from 'node:net'
+import { runDescriptionSearch } from './portalDescriptionAgent.js'
 
 export const BNI_SEARCH_URL = 'https://www.bniconnectglobal.com/web/dashboard/search'
 const HOSTS = new Set(['www.bniconnectglobal.com', 'bniconnectglobal.com'])
@@ -17,6 +18,8 @@ function portalUrl(value) {
 
 export function validateBrowserConfig(input = {}) {
   const config = {
+    automation: input.automation === 'description' ? 'description' : 'manual',
+    description: String(input.description || '').trim(),
     url: portalUrl(input.url || BNI_SEARCH_URL),
     loginUrl: input.loginUrl ? portalUrl(input.loginUrl) : '',
     username: String(input.username || ''), password: String(input.password || ''),
@@ -39,7 +42,8 @@ export function validateBrowserConfig(input = {}) {
       throw fail('Each step or filter needs an action and a page control.')
     }
   }
-  if (!config.fields.length) throw fail('Add at least one data field to extract.')
+  if (config.automation === 'description' && (config.description.length < 10 || config.description.length > 4000)) throw fail('Describe the search, filters and fields you need in 10 to 4,000 characters.')
+  if (config.automation !== 'description' && !config.fields.length) throw fail('Add at least one data field to extract.')
   const names = new Set()
   for (const field of config.fields) {
     if (!field?.name?.trim() || !field.selector?.trim() || names.has(field.name.trim())) {
@@ -69,6 +73,22 @@ export async function applyBrowserStep(page, step) {
   else await control.click()
 }
 
+export async function discoverLoginControls(page) {
+  return page.evaluate(() => {
+    const visible = (element) => Boolean(element.getClientRects().length) && !element.disabled
+    const password = [...document.querySelectorAll('input[type="password"]')].find(visible)
+    if (!password) return null
+    const form = password.closest('form') || document.body
+    const inputs = [...form.querySelectorAll('input')].filter((element) => visible(element) && ['text', 'email', 'tel', ''].includes(element.type))
+    const username = inputs.find((element) => /username|email|user|login/i.test(`${element.autocomplete} ${element.name} ${element.id} ${element.placeholder}`)) || inputs[0]
+    const buttons = [...form.querySelectorAll('button,input[type="submit"],[role="button"]')].filter(visible)
+    const submit = buttons.find((element) => /^(log\s*in|sign\s*in|login|signin)$/i.test((element.textContent || element.value || '').trim())) || buttons.find((element) => element.type === 'submit')
+    if (!username || !submit) return null
+    for (const [name, element] of [['username', username], ['password', password], ['submit', submit]]) element.setAttribute('data-portal-login', name)
+    return { usernameTarget: '[data-portal-login="username"]', passwordTarget: '[data-portal-login="password"]', loginTarget: '[data-portal-login="submit"]' }
+  })
+}
+
 function publicAddress(address) {
   if (isIP(address) === 4) {
     const [a, b] = address.split('.').map(Number)
@@ -94,12 +114,13 @@ export async function collectBrowserRows(page, config) {
   let pagesFetched = 0, stoppedReason = 'max-pages'
   for (let index = 0; index < config.maxPages; index++) {
     await page.locator(config.rowSelector).first().waitFor({ state: 'visible' })
-    const batch = await page.locator(config.rowSelector).evaluateAll((elements, fields) => elements.map((row) =>
+    const batch = await page.locator(config.rowSelector).evaluateAll((elements, { fields, safe }) => elements.slice(0, 20000).map((row) =>
       Object.fromEntries(fields.map((field) => {
         const element = field.selector === ':scope' ? row : row.querySelector(field.selector)
-        const value = !element ? '' : field.attribute ? element.getAttribute(field.attribute) || '' : element.textContent || ''
+        if (safe && element && (!element.getClientRects().length || ['INPUT', 'TEXTAREA', 'SCRIPT', 'STYLE', 'NOSCRIPT'].includes(element.tagName))) return [field.name.trim(), '']
+        const value = !element ? '' : field.attribute ? element.getAttribute(field.attribute) || '' : (safe ? element.innerText : element.textContent) || ''
         return [field.name.trim(), value.replace(/\s+/g, ' ').trim()]
-      }))), config.fields)
+      }))), { fields: config.fields, safe: config.safeExtraction })
     const fingerprint = JSON.stringify(batch)
     if (seenPages.has(fingerprint)) { stoppedReason = 'repeated-page'; warnings.push('The next page repeated. Check the Next control and results-ready selector.'); break }
     seenPages.add(fingerprint)
@@ -162,6 +183,12 @@ export async function fetchBrowserPortalData(input, { launch } = {}) {
     phase = 'opening BNI Connect'
     await page.goto(config.loginUrl || config.url, { waitUntil: 'domcontentloaded' })
     phase = 'finding the login form (check login URL and controls)'
+    if (config.automation === 'description') {
+      await page.locator('input[type="password"]').first().waitFor({ state: 'visible' })
+      const controls = await discoverLoginControls(page)
+      if (!controls) throw fail('Could not automatically identify the login controls.')
+      Object.assign(config, controls)
+    }
     await findControl(page, config.passwordTarget).waitFor({ state: 'visible' })
     // Confirm current origin before filling credentials, even after redirects.
     portalUrl(page.url())
@@ -171,6 +198,12 @@ export async function fetchBrowserPortalData(input, { launch } = {}) {
     await findControl(page, config.loginTarget).click()
     await findControl(page, config.passwordTarget).waitFor({ state: 'hidden' })
     await page.goto(config.url, { waitUntil: 'domcontentloaded' })
+    if (config.automation === 'description') {
+      phase = 'interpreting your description and searching BNI Connect'
+      const result = await runDescriptionSearch(page, config, { collect: collectBrowserRows, validateConfig: validateBrowserConfig })
+      return { ...result, request: { method: 'BROWSER', host: new URL(config.url).host, path: new URL(config.url).pathname },
+        status: 200, kind: 'browser', candidates: [], detectedPath: '', rawPreview: '', durationMs: Date.now() - startedAt }
+    }
     phase = 'applying navigation steps and filters'
     for (const step of [...config.steps, ...config.filters]) await applyBrowserStep(page, step)
     if (config.searchTarget) {
@@ -183,6 +216,7 @@ export async function fetchBrowserPortalData(input, { launch } = {}) {
     return { ...result, request: { method: 'BROWSER', host: new URL(config.url).host, path: new URL(config.url).pathname },
       status: 200, kind: 'browser', candidates: [], detectedPath: '', rawPreview: '', durationMs: Date.now() - startedAt }
   } catch (error) {
+    if (error.portalAgent && !timedOut) throw error
     // Never return Playwright messages: they may include typed passwords or page content.
     if (/Cannot find package|Executable doesn't exist/.test(error.message)) {
       throw fail('Browser automation is not installed on this server. Run npm install and npx playwright install chromium in server/.', 503)
